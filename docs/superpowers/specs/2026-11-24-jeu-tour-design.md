@@ -25,7 +25,7 @@ ou se protéger), et la boutique aléatoire donne un build différent à chaque 
 - **Graphismes : les modèles de Godot (Phil)**, c'est-à-dire les maillages primitifs intégrés
   (`BoxMesh`, `CylinderMesh`, `SphereMesh`, `CapsuleMesh`, `PrismMesh`, `TorusMesh`) avec des
   `StandardMaterial3D`. Toute la correspondance « entité → apparence » passe par un seul
-  endroit (`visuals/`), pour qu'un modèle CC0 puisse remplacer une primitive plus tard sans
+  endroit (`visuels/`), pour qu'un modèle CC0 puisse remplacer une primitive plus tard sans
   toucher au code de jeu.
 - **Multijoueur : le même que l'original (Phil)** : 1 à 8 joueurs, chacun sa tour, son arène,
   ses ennemis et son or. Aucune interaction directe entre les arènes ; on se compare au tableau
