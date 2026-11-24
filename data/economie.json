@@ -1,0 +1,12 @@
+{
+	"or_depart": 500,
+	"revenu_periode_s": 10,
+	"revenu_base": [
+		{"manche": 1, "valeur": 20},
+		{"manche": 6, "valeur": 30}
+	],
+	"prime_mult": [
+		{"manche": 1, "valeur": 1.0},
+		{"manche": 10, "valeur": 1.5}
+	]
+}
