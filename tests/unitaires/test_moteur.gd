@@ -162,6 +162,8 @@ func test_executer_une_methode_sans_assertion_est_un_echec() -> void:
 
 
 func test_executer_un_fichier_illisible_est_un_echec_et_les_autres_tournent() -> void:
+	attendre_erreur("Expected parameter name")
+	attendre_erreur("Failed to load script")
 	var casse := _ecrire("test_a_casse.gd", ENTETE + "\n\nfunc test_x( -> void:\n\tverifier(true\n")
 	var bon := _ecrire("test_b_bon.gd", ENTETE + "\n\nfunc test_ok() -> void:\n\tverifier(true)\n")
 	var res := moteur.executer(PackedStringArray([casse, bon]), "", arbre)
@@ -242,14 +244,105 @@ func test_executer_filtre_par_methode_ou_par_fichier() -> void:
 	verifier_egal(par_fichier["echecs"], 1)
 
 
+# --- erreurs d'exécution -------------------------------------------------------
+
+
+func _executer_source(nom: String, source: String) -> Dictionary:
+	var chemin := _ecrire(nom, ENTETE + source)
+	return moteur.executer(PackedStringArray([chemin]), "", arbre)
+
+
+func test_executer_une_erreur_de_script_apres_une_assertion_est_un_echec() -> void:
+	# Chaque erreur est aussi vue par le moteur qui exécute CE test : on la déclare.
+	var cas := [
+		["null", '\tvar x: Object = null\n\tx.call("foo")', "Cannot call method"],
+		["borne", "\tvar a: Array = [1]\n\tvar k := 5\n\tprint(a[k])", "Out of bounds"],
+	]
+	for cas_i: Array in cas:
+		var motif: String = cas_i[2]
+		attendre_erreur(motif)
+		var corps: String = cas_i[1]
+		var source := "\n\nfunc test_plante() -> void:\n\tverifier(true)\n%s\n" % corps
+		var res := _executer_source("test_%s.gd" % cas_i[0], source)
+		verifier_egal(res["tests"], 1, motif)
+		verifier_egal(res["echecs"], 1, "la méthode qui plante échoue : %s" % motif)
+		verifier_egal(res["assertions"], 1, motif)
+		verifier_contient(_lignes(res)[0], "::test_plante — ")
+		verifier_contient(_lignes(res)[0], motif)
+
+
+func test_executer_un_push_error_non_attendu_est_un_echec() -> void:
+	attendre_erreur("boum")
+	var res := _executer_source(
+		"test_push.gd", '\n\nfunc test_push() -> void:\n\tpush_error("boum")\n\tverifier(true)\n'
+	)
+	verifier_egal(res["echecs"], 1)
+	verifier_contient(_lignes(res)[0], "boum")
+
+
+func test_executer_un_push_error_attendu_reussit() -> void:
+	attendre_erreur("boum")
+	var source := '\n\nfunc test_push() -> void:\n\tattendre_erreur("boum")\n\tpush_error("boum")\n'
+	var res := _executer_source("test_attendu.gd", source)
+	verifier_egal(res["tests"], 1)
+	verifier_egal(res["echecs"], 0, "l'erreur voulue ne fait pas échouer")
+	verifier_egal(res["assertions"], 1, "l'erreur attendue survenue compte pour une assertion")
+	verifier_egal(_lignes(res).size(), 0)
+
+
+func test_executer_une_erreur_attendue_qui_ne_vient_pas_est_un_echec() -> void:
+	var source := '\n\nfunc test_absent() -> void:\n\tattendre_erreur("jamais")\n\tverifier(true)\n'
+	var res := _executer_source("test_absent.gd", source)
+	verifier_egal(res["echecs"], 1)
+	verifier_contient(_lignes(res)[0], "jamais")
+
+
+func test_executer_une_erreur_attendue_n_est_consommee_qu_une_fois() -> void:
+	attendre_erreur("boum")
+	attendre_erreur("boum")
+	var source := (
+		'\n\nfunc test_deux() -> void:\n\tattendre_erreur("boum")\n'
+		+ '\tpush_error("boum")\n\tpush_error("boum")\n'
+	)
+	var res := _executer_source("test_deux.gd", source)
+	verifier_egal(res["echecs"], 1, "la seconde erreur n'était pas attendue")
+	verifier_egal(_lignes(res).size(), 1)
+
+
+func test_executer_un_motif_attendu_ne_couvre_pas_une_autre_erreur() -> void:
+	attendre_erreur("autre")
+	var source := (
+		'\n\nfunc test_autre() -> void:\n\tattendre_erreur("voulue")\n'
+		+ '\tpush_error("autre")\n\tverifier(true)\n'
+	)
+	var res := _executer_source("test_autre.gd", source)
+	verifier_egal(res["echecs"], 1)
+	verifier_egal(_lignes(res).size(), 2, "l'erreur imprévue et l'erreur voulue absente")
+
+
+func test_executer_une_erreur_hors_methode_fait_echouer_le_fichier() -> void:
+	attendre_erreur("au chargement")
+	var source := (
+		"\nvar _v: int = _boum()\n"
+		+ '\n\nfunc _boum() -> int:\n\tpush_error("au chargement")\n\treturn 1\n'
+		+ "\n\nfunc test_ok() -> void:\n\tverifier(true)\n"
+	)
+	var res := _executer_source("test_chargement.gd", source)
+	verifier_egal(res["echecs"], 1)
+	verifier_egal(res["assertions"], 0, "aucune méthode n'est lancée")
+	verifier_contient(_lignes(res)[0], "au chargement")
+
+
 # --- code de sortie ----------------------------------------------------------
 
 
-func test_code_de_sortie_normal_et_controle() -> void:
+func test_code_de_sortie_normal() -> void:
 	verifier_egal(moteur.code_de_sortie({"tests": 3, "echecs": 0}, false), 0)
 	verifier_egal(moteur.code_de_sortie({"tests": 3, "echecs": 1}, false), 1)
 	verifier_egal(moteur.code_de_sortie({"tests": 3, "echecs": 3}, false), 1)
-	# En mode contrôle, tout doit avoir échoué : c'est la preuve de détection.
+
+
+func test_code_de_sortie_controle_exige_que_tout_echoue() -> void:
 	verifier_egal(moteur.code_de_sortie({"tests": 2, "echecs": 2}, true), 0)
 	verifier_egal(moteur.code_de_sortie({"tests": 2, "echecs": 1}, true), 1)
 	verifier_egal(moteur.code_de_sortie({"tests": 2, "echecs": 0}, true), 1)

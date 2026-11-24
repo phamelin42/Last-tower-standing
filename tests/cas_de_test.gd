@@ -12,6 +12,8 @@ extends RefCounted
 var arbre: SceneTree
 var echecs: Array[String] = []
 var nb_assertions: int = 0
+## Motifs des erreurs voulues, pas encore survenues (voir `attendre_erreur`).
+var erreurs_attendues: Array[String] = []
 
 
 func avant_chaque() -> void:
@@ -20,6 +22,15 @@ func avant_chaque() -> void:
 
 func apres_chaque() -> void:
 	pass
+
+
+## Toute erreur journalisée pendant la méthode (erreur de script, `push_error`) la fait
+## échouer, sauf si elle est déclarée ici : une erreur dont le message contient `motif`
+## doit survenir. Chaque déclaration est consommée par une seule erreur ; une déclaration
+## qui ne se réalise pas fait échouer la méthode. Une erreur voulue qui survient compte
+## pour une assertion.
+func attendre_erreur(motif: String) -> void:
+	erreurs_attendues.append(motif)
 
 
 func verifier(condition: bool, message: String = "") -> void:

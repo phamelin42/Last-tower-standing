@@ -5,6 +5,9 @@ extends RefCounted
 
 const SEGMENT_CONTROLE := "/controle/"
 
+## Journal des erreurs du moteur, rempli pendant `executer`.
+var _journal: JournalErreurs
+
 
 ## Chemins des `test_*.gd` de `dossier`, triés. Le dossier `controle/` n'est
 ## visible qu'en mode contrôle (et alors il est le seul). Le filtre garde un
@@ -27,8 +30,11 @@ func decouvrir(dossier: String, filtre: String, controle: bool) -> PackedStringA
 ## Un test = une méthode `test_*` ; un fichier inutilisable compte pour un test échoué.
 func executer(chemins: PackedStringArray, filtre: String, arbre: SceneTree) -> Dictionary:
 	var bilan := {"tests": 0, "echecs": 0, "assertions": 0, "lignes": PackedStringArray()}
+	_journal = JournalErreurs.new()
+	OS.add_logger(_journal)
 	for chemin: String in chemins:
 		_executer_fichier(chemin, filtre, arbre, bilan)
+	OS.remove_logger(_journal)
 	return bilan
 
 
@@ -80,18 +86,30 @@ func _executer_fichier(chemin: String, filtre: String, arbre: SceneTree, bilan: 
 	if not FileAccess.file_exists(chemin):
 		_echec_fichier(chemin, "fichier absent", bilan)
 		return
+	_journal.prendre()
 	var script := ResourceLoader.load(chemin, "", ResourceLoader.CACHE_MODE_IGNORE) as GDScript
+	var erreurs := _journal.prendre()
 	if script == null or not script.can_instantiate():
-		_echec_fichier(
-			chemin, "script impossible à charger (erreur d'analyse ou fichier absent)", bilan
-		)
+		var detail := _texte_erreurs(erreurs)
+		_echec_fichier(chemin, "script impossible à charger %s" % detail, bilan)
 		return
 	var sonde: Variant = script.new()
+	erreurs.append_array(_journal.prendre())
+	if not erreurs.is_empty():
+		_echec_fichier(chemin, "erreur hors méthode %s" % _texte_erreurs(erreurs), bilan)
+		return
 	if not sonde is CasDeTest:
 		_echec_fichier(chemin, "la classe doit étendre CasDeTest", bilan)
 		return
 	for nom: String in _methodes_a_lancer(script, chemin, filtre):
 		_executer_methode(script, chemin, nom, arbre, bilan)
+
+
+func _texte_erreurs(erreurs: Array[Dictionary]) -> String:
+	var morceaux := PackedStringArray()
+	for erreur in erreurs:
+		morceaux.append("%s [%s]" % [erreur["message"], erreur["lieu"]])
+	return ": " + " ; ".join(morceaux) if not morceaux.is_empty() else "(erreur d'analyse)"
 
 
 func _methodes_a_lancer(script: GDScript, chemin: String, filtre: String) -> PackedStringArray:
@@ -110,20 +128,76 @@ func _methodes_a_lancer(script: GDScript, chemin: String, filtre: String) -> Pac
 func _executer_methode(
 	script: GDScript, chemin: String, nom: String, arbre: SceneTree, bilan: Dictionary
 ) -> void:
+	_journal.prendre()
 	# Une instance neuve par méthode : aucun état ne fuit d'un test à l'autre.
 	var cas: CasDeTest = script.new()
 	cas.arbre = arbre
 	cas.avant_chaque()
 	cas.call(nom)
 	cas.apres_chaque()
-	bilan["tests"] += 1
-	bilan["assertions"] += cas.nb_assertions
 	var messages: Array[String] = cas.echecs.duplicate()
+	_rapprocher_erreurs(cas, _journal.prendre(), messages)
 	if cas.nb_assertions == 0:
 		messages.append("aucune assertion")
+	bilan["tests"] += 1
+	bilan["assertions"] += cas.nb_assertions
 	if messages.is_empty():
 		return
 	bilan["echecs"] += 1
 	var lignes: PackedStringArray = bilan["lignes"]
 	for message in messages:
 		lignes.append("ECHEC %s::%s — %s" % [chemin, nom, message])
+
+
+## Une erreur journalisée fait échouer la méthode, sauf si elle était attendue.
+func _rapprocher_erreurs(
+	cas: CasDeTest, erreurs: Array[Dictionary], messages: Array[String]
+) -> void:
+	var attendues := cas.erreurs_attendues.duplicate()
+	for erreur in erreurs:
+		var message: String = erreur["message"]
+		var trouvee := -1
+		for i in attendues.size():
+			if attendues[i] in message:
+				trouvee = i
+				break
+		if trouvee >= 0:
+			attendues.remove_at(trouvee)
+			cas.nb_assertions += 1
+		else:
+			messages.append("erreur non attendue : %s [%s]" % [message, erreur["lieu"]])
+	for motif: String in attendues:
+		messages.append("erreur attendue qui n'est jamais survenue : %s" % motif)
+
+
+## Reçoit les erreurs du moteur (script, `push_error`, chargement). Les rappels peuvent
+## venir d'un autre fil, d'où le verrou. Les avertissements ne sont pas des erreurs.
+class JournalErreurs:
+	extends Logger
+
+	var _verrou := Mutex.new()
+	var _erreurs: Array[Dictionary] = []
+
+	func prendre() -> Array[Dictionary]:
+		_verrou.lock()
+		var recues := _erreurs.duplicate()
+		_erreurs.clear()
+		_verrou.unlock()
+		return recues
+
+	func _log_error(
+		_fonction: String,
+		fichier: String,
+		ligne: int,
+		code: String,
+		rationale: String,
+		_editeur: bool,
+		type: int,
+		_traces: Array[ScriptBacktrace]
+	) -> void:
+		if type == Logger.ERROR_TYPE_WARNING:
+			return
+		var message := code if rationale.is_empty() else "%s %s" % [code, rationale]
+		_verrou.lock()
+		_erreurs.append({"message": message.strip_edges(), "lieu": "%s:%d" % [fichier, ligne]})
+		_verrou.unlock()
