@@ -572,7 +572,8 @@ signal etat_arene_recu(octets: PackedByteArray); signal etat_global_recu(octets:
 
 ### Task 3.3 : Serveur autoritaire — `sonnet`
 - [ ] **Objectif :** ENet, boucle à pas fixe, intentions validées, états envoyés à 15 Hz et 2 Hz.
-- **Fichiers (crée) :** `reseau/serveur.gd`, `tests/unitaires/test_serveur.gd`.
+- **Débit adaptatif (décision de l'agent principal, mesures de T3.1) :** un état d'arène pèse ~9 octets par ennemi (300 ennemis ≈ 2,8 à 3,5 Ko ; 1 000 ≈ 9 à 10 Ko). Par client, la fréquence d'envoi de l'état d'arène s'adapte à la taille du dernier paquet pour tenir `reseau.budget_octets_s` (nouvelle clé de `data/partie.json`, 50 000, validée par `Donnees`) : `hz = clamp(budget / taille, hz_min, hz_arene)` avec `hz_min = 5` (nouvelle clé `reseau.hz_min`). Le combat est automatique, l'interpolation lisse : la fréquence plus basse ne gêne pas le joueur. Tests : 300 ennemis → 15 Hz ; 1 000 ennemis → ≤ 5,6 Hz et ≥ 5 Hz ; débit mesuré sur 10 s simulées ≤ budget + un paquet.
+- **Fichiers (crée) :** `reseau/serveur.gd`, `tests/unitaires/test_serveur.gd` ; **modifie** `data/partie.json` et `sim/donnees.gd` (deux clés `reseau.budget_octets_s` et `reseau.hz_min`, avec leur validation et leurs tests dans `test_donnees.gd`).
 - **Lire :** spec §3, §4 ; `reseau/canal.gd`, `reseau/protocole.gd`, `reseau/salon.gd`, `sim/partie.gd` (API publique uniquement).
 - **Interfaces :**
 ```gdscript
