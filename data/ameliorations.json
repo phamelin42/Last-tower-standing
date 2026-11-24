@@ -1,0 +1,545 @@
+[
+ {
+  "id": "affutage_fin",
+  "nom": "Affûtage fin",
+  "description": "Les lames coupent mieux ; dégâts tranchants en hausse.",
+  "rarete": "commune",
+  "prix": 70,
+  "effets": [
+   {
+    "stat": "degats_type",
+    "type_degats": "tranchant",
+    "valeur": 0.1,
+    "categorie": "A"
+   }
+  ]
+ },
+ {
+  "id": "pointes_trempees",
+  "nom": "Pointes trempées",
+  "description": "Des pointes trempées dans l’huile ; dégâts perçants en hausse.",
+  "rarete": "commune",
+  "prix": 70,
+  "effets": [
+   {
+    "stat": "degats_type",
+    "type_degats": "percant",
+    "valeur": 0.1,
+    "categorie": "A"
+   }
+  ]
+ },
+ {
+  "id": "encre_d_arcane",
+  "nom": "Encre d’arcane",
+  "description": "Des runes retracées à l’encre vive ; dégâts magiques en hausse.",
+  "rarete": "commune",
+  "prix": 75,
+  "effets": [
+   {
+    "stat": "degats_type",
+    "type_degats": "magique",
+    "valeur": 0.1,
+    "categorie": "A"
+   }
+  ]
+ },
+ {
+  "id": "poudre_noire",
+  "nom": "Poudre noire",
+  "description": "Une poudre plus fine ; dégâts de siège en hausse.",
+  "rarete": "commune",
+  "prix": 75,
+  "effets": [
+   {
+    "stat": "degats_type",
+    "type_degats": "siege",
+    "valeur": 0.1,
+    "categorie": "A"
+   }
+  ]
+ },
+ {
+  "id": "poussiere_d_entropie",
+  "nom": "Poussière d’entropie",
+  "description": "Un soupçon de désordre ; dégâts du chaos en hausse.",
+  "rarete": "commune",
+  "prix": 70,
+  "effets": [
+   {
+    "stat": "degats_type",
+    "type_degats": "chaos",
+    "valeur": 0.1,
+    "categorie": "A"
+   }
+  ]
+ },
+ {
+  "id": "forge_du_maitre",
+  "nom": "Forge du maître",
+  "description": "Le maître forgeron reprend vos lames ; gros bonus tranchant.",
+  "rarete": "rare",
+  "prix": 450,
+  "effets": [
+   {
+    "stat": "degats_type",
+    "type_degats": "tranchant",
+    "valeur": 0.25,
+    "categorie": "B"
+   }
+  ]
+ },
+ {
+  "id": "carquois_sans_fond",
+  "nom": "Carquois sans fond",
+  "description": "Un carquois toujours plein ; gros bonus perçant.",
+  "rarete": "rare",
+  "prix": 450,
+  "effets": [
+   {
+    "stat": "degats_type",
+    "type_degats": "percant",
+    "valeur": 0.25,
+    "categorie": "B"
+   }
+  ]
+ },
+ {
+  "id": "grimoire_des_cimes",
+  "nom": "Grimoire des cimes",
+  "description": "Des sorts écrits au sommet des monts ; gros bonus magique.",
+  "rarete": "rare",
+  "prix": 460,
+  "effets": [
+   {
+    "stat": "degats_type",
+    "type_degats": "magique",
+    "valeur": 0.25,
+    "categorie": "B"
+   }
+  ]
+ },
+ {
+  "id": "poudriere_renforcee",
+  "nom": "Poudrière renforcée",
+  "description": "Une réserve plus sûre et plus grosse ; gros bonus de siège.",
+  "rarete": "rare",
+  "prix": 460,
+  "effets": [
+   {
+    "stat": "degats_type",
+    "type_degats": "siege",
+    "valeur": 0.25,
+    "categorie": "B"
+   }
+  ]
+ },
+ {
+  "id": "coeur_du_desordre",
+  "nom": "Cœur du désordre",
+  "description": "Le chaos bat à votre rythme ; gros bonus de chaos.",
+  "rarete": "rare",
+  "prix": 450,
+  "effets": [
+   {
+    "stat": "degats_type",
+    "type_degats": "chaos",
+    "valeur": 0.25,
+    "categorie": "B"
+   }
+  ]
+ },
+ {
+  "id": "etincelle_d_ame",
+  "nom": "Étincelle d’âme",
+  "description": "Toutes les armes cognent un peu plus fort.",
+  "rarete": "peu_commune",
+  "prix": 260,
+  "effets": [
+   {
+    "stat": "degats_global",
+    "valeur": 0.08,
+    "categorie": "C"
+   }
+  ]
+ },
+ {
+  "id": "couronne_de_rouages",
+  "nom": "Couronne de rouages",
+  "description": "Un diadème d’engrenages qui décuple toutes vos armes.",
+  "rarete": "epique",
+  "prix": 900,
+  "effets": [
+   {
+    "stat": "degats_global",
+    "valeur": 0.2,
+    "categorie": "C"
+   }
+  ]
+ },
+ {
+  "id": "renfort_de_poutres",
+  "nom": "Renfort de poutres",
+  "description": "Des poutres neuves consolident la tour.",
+  "rarete": "commune",
+  "prix": 80,
+  "effets": [
+   {
+    "stat": "pv_max",
+    "valeur": 150
+   }
+  ]
+ },
+ {
+  "id": "fondations_de_pierre",
+  "nom": "Fondations de pierre",
+  "description": "Une assise de pierre qui encaisse bien plus de coups.",
+  "rarete": "peu_commune",
+  "prix": 240,
+  "effets": [
+   {
+    "stat": "pv_max",
+    "valeur": 300
+   }
+  ]
+ },
+ {
+  "id": "mousse_de_guerison",
+  "nom": "Mousse de guérison",
+  "description": "Une mousse vivace referme les fissures de la tour.",
+  "rarete": "commune",
+  "prix": 90,
+  "effets": [
+   {
+    "stat": "regen",
+    "valeur": 1.5
+   }
+  ]
+ },
+ {
+  "id": "seve_d_ambre",
+  "nom": "Sève d’ambre",
+  "description": "Une résine épaisse recolle la tour à vue d’œil.",
+  "rarete": "rare",
+  "prix": 480,
+  "effets": [
+   {
+    "stat": "regen",
+    "valeur": 4.0
+   }
+  ]
+ },
+ {
+  "id": "plaques_de_laiton",
+  "nom": "Plaques de laiton",
+  "description": "Des plaques clouées sur les murs absorbent les coups.",
+  "rarete": "commune",
+  "prix": 90,
+  "effets": [
+   {
+    "stat": "armure",
+    "valeur": 3
+   }
+  ]
+ },
+ {
+  "id": "cuirasse_de_bronze",
+  "nom": "Cuirasse de bronze",
+  "description": "Une lourde cuirasse enveloppe la tour.",
+  "rarete": "peu_commune",
+  "prix": 280,
+  "effets": [
+   {
+    "stat": "armure",
+    "valeur": 8
+   }
+  ]
+ },
+ {
+  "id": "meurtrieres_biaisees",
+  "nom": "Meurtrières biaisées",
+  "description": "Des ouvertures en biais font dévier une partie des attaques.",
+  "rarete": "peu_commune",
+  "prix": 260,
+  "effets": [
+   {
+    "stat": "esquive",
+    "valeur": 0.08
+   }
+  ]
+ },
+ {
+  "id": "herisson_de_fer",
+  "nom": "Hérisson de fer",
+  "description": "Des piques de fer renvoient une part des coups reçus.",
+  "rarete": "commune",
+  "prix": 100,
+  "effets": [
+   {
+    "stat": "epines",
+    "valeur": 0.3
+   }
+  ]
+ },
+ {
+  "id": "couronne_d_epines",
+  "nom": "Couronne d’épines",
+  "description": "Qui frappe la tour se blesse autant qu’elle.",
+  "rarete": "rare",
+  "prix": 440,
+  "effets": [
+   {
+    "stat": "epines",
+    "valeur": 1.0
+   }
+  ]
+ },
+ {
+  "id": "oeil_de_lynx",
+  "nom": "Œil de lynx",
+  "description": "Un viseur affûté augmente les coups critiques.",
+  "rarete": "peu_commune",
+  "prix": 240,
+  "effets": [
+   {
+    "stat": "critique_chance",
+    "valeur": 0.05
+   }
+  ]
+ },
+ {
+  "id": "de_de_fortune",
+  "nom": "Dé de fortune",
+  "description": "Le sort sourit : les critiques deviennent fréquents.",
+  "rarete": "rare",
+  "prix": 500,
+  "effets": [
+   {
+    "stat": "critique_chance",
+    "valeur": 0.15
+   }
+  ]
+ },
+ {
+  "id": "balancier_rapide",
+  "nom": "Balancier rapide",
+  "description": "Un balancier huilé accélère toutes les armes.",
+  "rarete": "peu_commune",
+  "prix": 250,
+  "effets": [
+   {
+    "stat": "cadence",
+    "valeur": 0.1
+   }
+  ]
+ },
+ {
+  "id": "engrenage_affole",
+  "nom": "Engrenage affolé",
+  "description": "Un engrenage emballé fait tirer les armes bien plus vite.",
+  "rarete": "epique",
+  "prix": 850,
+  "effets": [
+   {
+    "stat": "cadence",
+    "valeur": 0.25
+   }
+  ]
+ },
+ {
+  "id": "double_encoche",
+  "nom": "Double encoche",
+  "description": "Chaque arme tire un projectile de plus par salve.",
+  "rarete": "rare",
+  "prix": 520,
+  "effets": [
+   {
+    "stat": "tirs_multiples",
+    "valeur": 1
+   }
+  ]
+ },
+ {
+  "id": "eclats_multiples",
+  "nom": "Éclats multiples",
+  "description": "Les impacts projettent des éclats sur les ennemis voisins.",
+  "rarete": "peu_commune",
+  "prix": 270,
+  "effets": [
+   {
+    "stat": "eclaboussure",
+    "valeur": 0.2
+   }
+  ]
+ },
+ {
+  "id": "lentille_fixe",
+  "nom": "Lentille fixe",
+  "description": "Une lentille concentre les armes sur une seule cible.",
+  "rarete": "peu_commune",
+  "prix": 250,
+  "effets": [
+   {
+    "stat": "focalisation",
+    "valeur": 0.25
+   }
+  ]
+ },
+ {
+  "id": "gorgee_de_sang",
+  "nom": "Gorgée de sang",
+  "description": "Chaque coup porté rend un peu de vie à la tour.",
+  "rarete": "peu_commune",
+  "prix": 280,
+  "effets": [
+   {
+    "stat": "vol_de_vie_coup",
+    "valeur": 0.02
+   }
+  ]
+ },
+ {
+  "id": "calice_des_vaincus",
+  "nom": "Calice des vaincus",
+  "description": "Chaque ennemi tombé verse quelques points de vie à la tour.",
+  "rarete": "rare",
+  "prix": 400,
+  "effets": [
+   {
+    "stat": "vol_de_vie_mort",
+    "valeur": 8
+   }
+  ]
+ },
+ {
+  "id": "cagnotte_du_guet",
+  "nom": "Cagnotte du guet",
+  "description": "Le guet met un peu de côté : revenu fixe en hausse.",
+  "rarete": "commune",
+  "prix": 90,
+  "effets": [
+   {
+    "stat": "revenu_fixe",
+    "valeur": 4
+   }
+  ]
+ },
+ {
+  "id": "atelier_de_tisserands",
+  "nom": "Atelier de tisserands",
+  "description": "Un atelier qui rapporte régulièrement de l’or.",
+  "rarete": "rare",
+  "prix": 450,
+  "effets": [
+   {
+    "stat": "revenu_fixe",
+    "valeur": 10
+   }
+  ]
+ },
+ {
+  "id": "placement_de_rente",
+  "nom": "Placement de rente",
+  "description": "Un petit capital dont le rapport grossit avec le temps.",
+  "rarete": "peu_commune",
+  "prix": 280,
+  "effets": [
+   {
+    "stat": "revenu_croissant",
+    "valeur": 1
+   }
+  ]
+ },
+ {
+  "id": "livre_de_comptes",
+  "nom": "Livre de comptes",
+  "description": "Des comptes tenus au centime gonflent tout votre revenu.",
+  "rarete": "rare",
+  "prix": 480,
+  "effets": [
+   {
+    "stat": "revenu_mult",
+    "valeur": 0.1
+   }
+  ]
+ },
+ {
+  "id": "fonderie_de_pieces",
+  "nom": "Fonderie de pièces",
+  "description": "Une fonderie de pièces multiplie vos rentrées d’or.",
+  "rarete": "epique",
+  "prix": 900,
+  "effets": [
+   {
+    "stat": "revenu_mult",
+    "valeur": 0.25
+   }
+  ]
+ },
+ {
+  "id": "prime_du_guet",
+  "nom": "Prime du guet",
+  "description": "Le guet augmente la prime versée pour chaque ennemi.",
+  "rarete": "peu_commune",
+  "prix": 270,
+  "effets": [
+   {
+    "stat": "prime_mult",
+    "valeur": 0.15
+   }
+  ]
+ },
+ {
+  "id": "chasse_aux_trophees",
+  "nom": "Chasse aux trophées",
+  "description": "Chaque dépouille vaut nettement plus d’or.",
+  "rarete": "rare",
+  "prix": 500,
+  "effets": [
+   {
+    "stat": "prime_mult",
+    "valeur": 0.4
+   }
+  ]
+ },
+ {
+  "id": "tirelire_d_honneur",
+  "nom": "Tirelire d’honneur",
+  "description": "Quinze pièces de plus tous les dix ennemis abattus.",
+  "rarete": "peu_commune",
+  "prix": 260,
+  "effets": [
+   {
+    "stat": "bonus_elim",
+    "tous_les": 10,
+    "or": 15
+   }
+  ]
+ },
+ {
+  "id": "bourse_de_rebut",
+  "nom": "Bourse de rebut",
+  "description": "Une relance gratuite de la boutique à chaque manche.",
+  "rarete": "commune",
+  "prix": 110,
+  "effets": [
+   {
+    "stat": "relance_gratuite",
+    "valeur": 1
+   }
+  ]
+ },
+ {
+  "id": "jeton_de_l_arriere_boutique",
+  "nom": "Jeton de l’arrière-boutique",
+  "description": "Ouvre un choix d’amélioration plutôt que le hasard.",
+  "rarete": "peu_commune",
+  "prix": 300,
+  "effets": [
+   {
+    "stat": "marche_noir",
+    "valeur": 1
+   }
+  ]
+ }
+]
