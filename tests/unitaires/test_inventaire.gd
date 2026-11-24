@@ -230,7 +230,7 @@ func test_statistiques_additives_et_compteurs() -> void:
 	verifier_egal(s.tirs_multiples, 2)
 
 
-func test_les_statistiques_reflètent_la_vente_d_une_arme_mais_pas_des_ameliorations() -> void:
+func test_vendre_une_arme_ne_touche_pas_aux_ameliorations() -> void:
 	var inv := _inventaire_avec(
 		[_amelio("x", [_degats("magique", 0.1, "A")])] as Array, ["x"] as Array[String]
 	)
