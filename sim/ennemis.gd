@@ -134,16 +134,17 @@ func _tuer(i: int) -> void:
 
 
 ## Dégâts après efficacité type/armure, appliquée ici et nulle part ailleurs : les statuts
-## (poison, brûlure) retirent leurs PV tels quels. Rend le montant infligé avant plafonnement
-## par les PV restants (un coup mortel garde donc son efficacité) ; 0 pour un mort, un indice
-## inconnu ou un montant négatif, nul ou NaN, qui ne soigne jamais.
+## (poison, brûlure) retirent leurs PV tels quels. Rend les dégâts effectivement infligés,
+## plafonnés aux PV restants (c'est ce montant qui nourrit le score et le vol de vie) ; 0 pour
+## un mort, un indice inconnu ou un montant négatif, nul ou NaN, qui ne soigne jamais.
 func infliger(i: int, montant: float, type_degats: int) -> float:
 	if not _vivant(i) or not montant > 0.0:
 		return 0.0
-	var reels := (
+	var apres := (
 		minf(montant, DEGATS_MAX) * Combat.efficacite(_table_efficacite, type_degats, armure[i])
 	)
-	pv[i] -= reels
+	var reels := minf(apres, pv[i])
+	pv[i] -= apres
 	if pv[i] <= 0.0:
 		_tuer(i)
 	return reels
