@@ -1,0 +1,7 @@
+{
+	"poids": [
+		{"manche": 1, "commune": 70, "peu_commune": 25, "rare": 5, "epique": 0}
+	],
+	"relance": {"cout_depart": 50, "increment": 25},
+	"marche_noir": {"raretes_max": "rare"}
+}
