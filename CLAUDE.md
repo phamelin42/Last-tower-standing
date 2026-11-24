@@ -66,3 +66,5 @@ Spécification : `docs/superpowers/specs/2026-11-24-jeu-tour-design.md`. Plan :
 - Les sommes SHA-512 de Godot sont sur la release GitHub `godotengine/godot-builds`, pas sur downloads.godotengine.org.
 - Le paquet gdtoolkit ne s'installe pas avec `pip` dans le Python du système (PEP 668) : utiliser le venv de `tools/install-gdtoolkit.sh`.
 - `tools/verifier.sh --etape controle` échoue tant que `tests/lanceur.gd` n'existe pas : ce n'est pas une régression.
+- `.gdlintrc` est en YAML (`max-line-length: 100`), pas en `clé=valeur` : sinon gdlint plante.
+- Toute erreur de script ou `push_error` pendant un test le fait échouer ; `attendre_erreur(motif)` déclare une erreur voulue. Godot l'imprime quand même sur stderr.
