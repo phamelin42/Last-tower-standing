@@ -65,6 +65,10 @@ Spécification : `docs/superpowers/specs/2026-11-24-jeu-tour-design.md`. Plan :
 
 - Les sommes SHA-512 de Godot sont sur la release GitHub `godotengine/godot-builds`, pas sur downloads.godotengine.org.
 - Le paquet gdtoolkit ne s'installe pas avec `pip` dans le Python du système (PEP 668) : utiliser le venv de `tools/install-gdtoolkit.sh`.
-- `tools/verifier.sh --etape controle` échoue tant que `tests/lanceur.gd` n'existe pas : ce n'est pas une régression.
+- Un nouveau `class_name` reste inconnu tant que `godot --headless --path . --import` n'a pas tourné : le lancer avant le premier test.
+- Les avertissements de typage sont des erreurs : typer aussi les variables de boucle (`for i: int in …`) et ne rien inférer d'un `Variant`.
+- Les noms d'enums des JSON sont comparés tels quels, accents compris (« perçant », « siège », « légère », « fortifiée ») ; toute autre graphie est refusée.
+- Un test qui dépend d'une classe encore à venir va dans un fichier de test séparé, pour ne pas bloquer les autres.
+- `.claude/` porte un `.gdignore` et est exclu de gdlint : les worktrees des agents y vivent.
 - `.gdlintrc` est en YAML (`max-line-length: 100`), pas en `clé=valeur` : sinon gdlint plante.
 - Toute erreur de script ou `push_error` pendant un test le fait échouer ; `attendre_erreur(motif)` déclare une erreur voulue. Godot l'imprime quand même sur stderr.
