@@ -41,6 +41,8 @@ func apres_chaque() -> void:
 		if is_instance_valid(noeud):
 			noeud.get_parent().remove_child(noeud)
 			noeud.free()
+	if InputMap.has_action(TableauScores.ACTION_SCORES):
+		InputMap.erase_action(TableauScores.ACTION_SCORES)
 	TranslationServer.remove_translation(_traduction)
 	TranslationServer.set_locale(_locale_avant)
 
@@ -256,28 +258,70 @@ func test_noms_les_plus_longs_ne_debordent_pas() -> void:
 	)
 
 
-func test_tab_maintenu_affiche_le_tableau() -> void:
+func test_action_scores_maintenue_affiche_le_tableau() -> void:
+	InputMap.add_action(TableauScores.ACTION_SCORES)
 	verifier_faux(_scores.visible, "caché au départ")
-	_scores.definir_maintenu(true)
-	verifier(_scores.visible, "visible tant que Tab est maintenu")
-	_scores.definir_maintenu(false)
-	verifier_faux(_scores.visible, "caché dès que Tab est relâché")
+	Input.action_press(TableauScores.ACTION_SCORES)
+	_scores._process(0.0)
+	verifier(_scores.visible, "visible tant que l'action est maintenue")
+	Input.action_release(TableauScores.ACTION_SCORES)
+	_scores._process(0.0)
+	verifier_faux(_scores.visible, "caché dès que l'action est relâchée")
 
 
-func test_touche_tab_pilote_l_affichage_et_les_autres_touches_non() -> void:
-	var tab := InputEventKey.new()
-	tab.keycode = KEY_TAB
-	tab.pressed = true
-	_scores._unhandled_input(tab)
-	verifier(_scores.visible, "Tab enfoncé affiche le tableau")
-	tab.pressed = false
-	_scores._unhandled_input(tab)
-	verifier_faux(_scores.visible, "Tab relâché le cache")
-	var autre := InputEventKey.new()
-	autre.keycode = KEY_A
-	autre.pressed = true
-	_scores._unhandled_input(autre)
-	verifier_faux(_scores.visible, "une autre touche ne l'affiche pas")
+func test_sans_action_declaree_le_tableau_reste_cache_sans_erreur() -> void:
+	verifier_faux(InputMap.has_action(TableauScores.ACTION_SCORES), "action absente au départ")
+	_scores._process(0.0)
+	verifier_faux(_scores.visible, "sans action, rien ne s'affiche")
+
+
+func test_chaque_famille_convoi_et_boss_sont_nommes_en_boucle() -> void:
+	var donnees := Donnees.charger()
+	verifier_non_nul(donnees, "les données réelles doivent se charger")
+	if donnees == null:
+		return
+	_hud.configurer(donnees)
+	var nb := donnees.familles.size()
+	for index: int in range(0, nb + 2):
+		var vue := _vue(3, 0, 1000.0, 1000.0)
+		vue.prochaine_famille = index
+		vue.prochaine_armure = Types.Armure.LEGERE
+		_hud.afficher(vue)
+		var nom := ""
+		if index < nb:
+			var famille: Dictionary = donnees.familles[index]
+			nom = famille["nom"]
+		elif index == nb:
+			nom = donnees.convoi["nom"]
+		else:
+			nom = donnees.boss["nom"]
+		verifier(not nom.is_empty(), "l'index %d doit avoir un nom" % index)
+		_affiche_partie(_hud, nom, "la prochaine entité d'index %d est nommée" % index)
+		_affiche_partie(_hud, Hud.libelle_armure(Types.Armure.LEGERE), "son armure reste annoncée")
+
+
+func test_armes_sur_la_capacite_zero_trois_huit() -> void:
+	var donnees := Donnees.charger()
+	verifier_non_nul(donnees, "les données réelles doivent se charger")
+	if donnees == null:
+		return
+	verifier_egal(int(donnees.partie["emplacements_armes"]), NB_EMPLACEMENTS_TEST)
+	_hud.configurer(donnees)
+	for n: int in [0, 3, NB_EMPLACEMENTS_TEST]:
+		var vue := _vue(3, 0, 1000.0, 1000.0)
+		vue.armes = _armes(n)
+		_hud.afficher(vue)
+		_affiche(_hud, "%d / %d" % [n, NB_EMPLACEMENTS_TEST], "%d arme(s) sur la capacité" % n)
+
+
+func test_sans_configuration_le_hud_reste_lisible_sans_erreur() -> void:
+	var vue := _vue(3, 0, 1000.0, 1000.0)
+	vue.prochaine_famille = 2
+	vue.prochaine_armure = Types.Armure.LEGERE
+	vue.armes = _armes(2)
+	_hud.afficher(vue)
+	_affiche(_hud, Hud.libelle_armure(Types.Armure.LEGERE), "l'armure seule, sans nom")
+	_affiche(_hud, "2", "le nombre d'armes, sans capacité")
 
 
 # --- Textes ----------------------------------------------------------------------------------
