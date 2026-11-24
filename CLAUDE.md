@@ -1,0 +1,68 @@
+# Jeu de tour multijoueur (nom provisoire « jeu-tour »)
+
+Règles communes à tous les projets de Phil (copie de `phamelin42/claude-context`, ne pas la modifier ici ; ce fichier l'emporte en cas de désaccord) : @.claude/CLAUDE.commun.md
+
+## Le projet
+
+Jeu de survie à tour, multijoueur, sous Godot 4.7.2 en GDScript typé. Une course entre économie,
+dégâts et survie face à une difficulté planifiée ; une boutique aléatoire donne un build différent à
+chaque partie. Il reprend seulement les mécaniques de la map Warcraft 3 « Tower Survivors » ; noms,
+chiffres, textes et graphismes sont originaux, aucun fichier de la map n'est réutilisé.
+
+Spécification : `docs/superpowers/specs/2026-11-24-jeu-tour-design.md`. Plan :
+`docs/superpowers/plans/2026-11-24-jeu-tour-plan.md`. Chaque tâche cite ses paragraphes.
+
+## Commandes
+
+| Commande                                                       | Rôle                                                                       |
+| -------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| `tools/verifier.sh`                                            | Toutes les étapes de la CI, arrêt à la première rouge                      |
+| `tools/verifier.sh --etape <nom>`                              | Une étape : `import`, `lint`, `format`, `tests`, `controle`, `integration` |
+| `tools/install-godot.sh`                                       | Installe Godot 4.7.2 (somme SHA-512 vérifiée)                              |
+| `tools/install-gdtoolkit.sh`                                   | Installe gdlint et gdformat 4.x dans un venv                               |
+| `godot --headless --path . --script res://tests/lanceur.gd --` | Lanceur de tests (`-- --filtre test_<fichier>` pour un test ciblé)         |
+
+## Structure
+
+- `project.godot` : configuration ; les avertissements de typage manquant sont des erreurs.
+- `data/*.json` : armes, améliorations, ennemis, manches, économie, efficacité. Tous les chiffres
+  d'équilibrage vivent ici, validés au chargement.
+- `sim/` : simulation pure (`RefCounted`), à pas fixe de 20 Hz, sans nœud ni réseau.
+  `partie.gd` est son API publique.
+- `reseau/` : ENet (serveur, client, protocole compact). Il n'appelle que l'API publique de `sim/partie.gd`.
+- `visuels/` : rendu 3D, caméra, effets. Les primitives Godot et les matériaux sont dans `visuels/apparence.gd`.
+- `ui/` : menus, salon, HUD, boutique, tableau des scores, écran de fin.
+- `i18n/*.csv` : tous les textes visibles (colonne `fr`).
+- `tests/` : `lanceur.gd`, `tests/unitaires/test_*.gd`, `tests/integration/`.
+- `tools/` : installeurs et `verifier.sh`.
+
+## Règles de dépendance
+
+- `sim/` ne dépend de rien d'autre que `data/`. Il ne connaît ni `reseau/`, ni `visuels/`, ni `ui/`.
+- `visuels/` et `ui/` lisent l'état d'arène ; ils n'écrivent jamais dans `sim/` directement.
+- `reseau/` ne parle à la simulation que par `sim/partie.gd`.
+
+## Règles pour les agents
+
+- GDScript typé partout : variables, paramètres, retours. Pas de type `Variant` implicite.
+- Identifiants de code en français sans accent ou en anglais ; `class_name` en PascalCase, fichiers
+  en snake_case. Textes visibles en français, avec espaces insécables avant `: ; ? !` et dans « ».
+- Un test décrit ce que le joueur doit obtenir. Une énumération se teste en entier, en boucle.
+  Toute source de hasard dans un test reçoit une graine fixe.
+- Écrire le test, le voir échouer pour la bonne raison, puis implémenter.
+- Ne toucher qu'aux fichiers de sa tâche. Une interface fausse chez un voisin se signale, elle ne se corrige pas.
+- Avant de rendre une tâche : `tools/verifier.sh` vert, `gdlint` et `gdformat --check` verts sur ce qui a changé.
+
+## Écarts au contexte commun
+
+- Pas de Node, npm, Angular, Fuda, Playwright ni Vitest. Le hook de session installe Godot et gdtoolkit, pas Node.
+- GDScript typé au lieu de TypeScript ; gdlint et gdformat au lieu d'ESLint et Prettier.
+- Tests par le lanceur maison `tests/lanceur.gd`, sans GUT ni gdUnit (interdits : dépendance téléchargée depuis GitHub).
+- Prettier ne sert qu'au Markdown : `npx -y prettier@3.9.10 --check <fichiers .md>` avant de pousser.
+- Les contrôles d'accessibilité et de bundle du contexte commun ne s'appliquent pas.
+
+## Pièges déjà rencontrés
+
+- Les sommes SHA-512 de Godot sont sur la release GitHub `godotengine/godot-builds`, pas sur downloads.godotengine.org.
+- Le paquet gdtoolkit ne s'installe pas avec `pip` dans le Python du système (PEP 668) : utiliser le venv de `tools/install-gdtoolkit.sh`.
+- `tools/verifier.sh --etape controle` échoue tant que `tests/lanceur.gd` n'existe pas : ce n'est pas une régression.
