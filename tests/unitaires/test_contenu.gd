@@ -3,7 +3,7 @@ extends CasDeTest
 ## original, et être équilibré par rareté. Ces tests lisent les JSON sans passer par `Donnees`
 ## (qui est testé à part dans `test_contenu_donnees.gd`).
 
-const TYPES: Array[String] = ["tranchant", "percant", "magique", "siege", "chaos"]
+const TYPES: Array[String] = ["tranchant", "perçant", "magique", "siège", "chaos"]
 const RARETES: Array[String] = ["commune", "peu_commune", "rare", "epique"]
 const KINDS_EFFET: Array[String] = [
 	"cible_unique", "zone", "rebond", "onde", "barrage", "mine", "piege", "aura"

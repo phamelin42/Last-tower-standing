@@ -23,7 +23,7 @@
   "effets": [
    {
     "stat": "degats_type",
-    "type_degats": "percant",
+    "type_degats": "perçant",
     "valeur": 0.1,
     "categorie": "A"
    }
@@ -53,7 +53,7 @@
   "effets": [
    {
     "stat": "degats_type",
-    "type_degats": "siege",
+    "type_degats": "siège",
     "valeur": 0.1,
     "categorie": "A"
    }
@@ -98,7 +98,7 @@
   "effets": [
    {
     "stat": "degats_type",
-    "type_degats": "percant",
+    "type_degats": "perçant",
     "valeur": 0.25,
     "categorie": "B"
    }
@@ -128,7 +128,7 @@
   "effets": [
    {
     "stat": "degats_type",
-    "type_degats": "siege",
+    "type_degats": "siège",
     "valeur": 0.25,
     "categorie": "B"
    }
