@@ -1,2 +1,6 @@
 max-line-length: 100
 max-public-methods: 40
+excluded_directories: !!set
+  .git: null
+  .godot: null
+  .claude: null

@@ -1,0 +1,11 @@
+{
+	"lignes": ["tranchant", "perçant", "magique", "siège", "chaos"],
+	"colonnes": ["légère", "moyenne", "lourde", "fortifiée", "aucune", "boss"],
+	"valeurs": [
+		[1, 2, 1, 1, 1, 1],
+		[2, 1, 1, 1, 1, 1],
+		[1, 1, 2, 1, 1, 1],
+		[1, 1, 1, 2, 1, 1],
+		[1, 1, 1, 1, 1, 1]
+	]
+}
