@@ -28,9 +28,8 @@
 3. **Tests d'abord** (TDD) : écrire le test, le voir échouer pour la bonne raison, implémenter, le voir passer. Tests ciblés : `T --filtre test_<fichier>` avec `T = godot --headless --path . --script res://tests/lanceur.gd --`.
 4. **Ne toucher qu'aux fichiers de sa tâche** (liste « Fichiers »). Une interface manquante ou fausse chez un voisin : le signaler dans le rapport, ne pas la corriger.
 5. Un test décrit **ce que le joueur doit obtenir**, pas ce que fait le code ; il ne fige jamais un comportement douteux. Une énumération (« chaque famille », « chaque type », « 1 à 8 joueurs ») se teste **en entier, en boucle**. Données de test : les plus longs libellés réels.
-6. Commits découpés par intention, message **en français à l'impératif** (« Ajoute… », « Corrige… »), première ligne ≤ 72 caractères, terminés par ces deux lignes exactement :
+6. Commits découpés par intention, message **en français à l'impératif** (« Ajoute… », « Corrige… »), première ligne ≤ 72 caractères, terminés par deux lignes : la ligne `Co-Authored-By:` **de ton propre modèle**, telle que ton environnement te la donne (un agent Haiku signe Haiku, un agent Sonnet signe Sonnet), puis exactement :
    ```
-   Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
    Claude-Session: https://claude.ai/code/session_01FhwUoeWipkh43S9RGFfnwA
    ```
 7. Jamais de garde-fou désactivé (règle gdlint coupée, test ignoré, `--no-verify`). Une graine fixe dans tout test qui tire au hasard.
