@@ -965,7 +965,7 @@ avant l'écran « Rejoindre »).
 
 ### Task 7.3 : Annonce et liste dans le jeu — `sonnet`
 
-- [ ] **Objectif :** l'hôte annonce son salon à l'annuaire tant qu'il est ouvert (s'il l'a rendu
+- [x] **Objectif :** l'hôte annonce son salon à l'annuaire tant qu'il est ouvert (s'il l'a rendu
       public, case cochée par défaut) ; « Rejoindre une partie » affiche les salons du réseau local et
       ceux de l'annuaire, sans doublon, avec leur origine en texte. Adresse de l'annuaire dans les
       réglages, avec une valeur par défaut.
@@ -997,8 +997,10 @@ avant l'écran « Rejoindre »).
   arrive avant le client local de l'hôte, il devient hôte. Réserver ce rôle au client local
   (jeton tiré à la création du salon) : traité par T7.2b (ADR 001, décision 5). « Retour au salon » recrée le salon et fait revenir les
   autres par la liste ; un vrai retour sans reconnexion demande `Client.retourner_au_salon()`.
-- **Annuaire** : lot 7, lancé le 25/11/2026 en parallèle du lot 5 ; ADR validé le 25/11/2026, T7.3 en
-  dernier (décision de Phil).
+- **Annuaire** : lot 7 terminé le 25/11/2026 (T7.0 à T7.4, T7.3 en dernier, décision de Phil). Reste
+  à Phil le lancement du service sur le VPS (liste dans la PR de T7.4). Aucun délai global sur la
+  tentative UPnP : une box qui répond à la découverte puis se fige retarderait l'annonce sans message
+  (délai maximal avant d'annoncer le port local, à décider).
 - **Images des offres** : 17 offres sur 70 ont une image approchante (Ravenmore et LudicArts n’ont
   pas leur objet : sablier, tirelire, trébuchet…), validée telle quelle par Phil le 25/11/2026. Liste
   dans `ImagesOffres.RAPPROCHEMENTS_FAIBLES` ; à reprendre si un pack peint gratuit les a.
