@@ -20,6 +20,8 @@ const ACCELERATION_MAX: int = 60
 const INTENTIONS_PAR_SECONDE: int = 30
 const INTENTIONS_PAR_PAS: int = 10
 const DELAI_BONJOUR_S: float = 5.0
+## Laisse partir le refus (fiable) avant de couper : couper aussitôt le jette avec la file.
+const DELAI_COUPURE_S: float = 0.5
 const BONJOURS_INVALIDES_MAX: int = 3
 ## Un à-coup de la machine ne doit pas faire simuler des minutes d'un coup.
 const DT_MAX: float = 0.5
@@ -44,6 +46,7 @@ var _acc_global: float = 0.0
 var _taille_globale: int = 0
 var _fin_signalee: bool = false
 var _liaisons: Array[Array] = []
+var _coupures: Dictionary = {}
 
 
 class _Pair:
@@ -134,6 +137,7 @@ func arreter() -> void:
 		if is_inside_tree() and multiplayer.multiplayer_peer == _peer:
 			multiplayer.multiplayer_peer = null
 	_peer = null
+	_coupures = {}
 	_actif = false
 
 
@@ -205,7 +209,7 @@ func pair_deconnecte(pair: int) -> void:
 
 func _couper(pair: int) -> void:
 	if _actif and _peer != null:
-		_peer.disconnect_peer(pair)
+		_coupures[pair] = DELAI_COUPURE_S
 	pair_deconnecte(pair)
 
 
@@ -379,6 +383,14 @@ func tick(dt: float) -> void:
 
 
 func _horloge_pairs(dt: float) -> void:
+	for pair: int in _coupures.keys():
+		var reste := float(_coupures[pair]) - dt
+		if reste > 0.0:
+			_coupures[pair] = reste
+			continue
+		_coupures.erase(pair)
+		if _peer != null and _peer.get_peer(pair) != null:
+			_peer.disconnect_peer(pair)
 	var muets: Array[int] = []
 	for pair: int in _pairs:
 		var p := _pairs[pair] as _Pair
