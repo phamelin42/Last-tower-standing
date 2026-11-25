@@ -90,7 +90,8 @@ class PasserelleUpnp:
 		return _upnp.delete_port_mapping(port_externe, "UDP")
 
 
-## Une adresse « externe » privée, partagée (CGNAT) ou locale n'est pas joignable d'Internet.
+## Une adresse « externe » privée, partagée (CGNAT), locale, nulle (WAN coupé : `0.0.0.0`) ou
+## réservée (multicast et au-delà) n'est pas joignable d'Internet.
 static func adresse_privee(ip: String) -> bool:
 	var morceaux := ip.split(".")
 	if morceaux.size() != 4:
@@ -98,7 +99,9 @@ static func adresse_privee(ip: String) -> bool:
 	var a := morceaux[0].to_int()
 	var b := morceaux[1].to_int()
 	return (
-		a == 10
+		a == 0
+		or a >= 224
+		or a == 10
 		or a == 127
 		or (a == 172 and b >= 16 and b <= 31)
 		or (a == 192 and b == 168)

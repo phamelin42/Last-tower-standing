@@ -143,6 +143,10 @@ func test_adresse_externe_non_publique_est_un_echec_sans_rien_ouvrir() -> void:
 		"100.127.1.1",
 		"169.254.3.3",
 		"127.0.0.1",
+		"0.0.0.0",
+		"0.1.2.3",
+		"224.0.0.1",
+		"255.255.255.255",
 	]
 	for ip: String in privees:
 		var box := Double.new()
