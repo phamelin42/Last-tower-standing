@@ -4,6 +4,8 @@ extends CasDeTest
 ## qui arrive hors de propos : pair inconnu, message après le lancement, octets de bruit.
 
 const NOM_24 := "Ælfwyn Müller-Østerga日本語"
+const JETON := [1, 2, 3, 4, 5, 6, 7, 8]
+const AUTRE_JETON := [1, 2, 3, 4, 5, 6, 7, 9]
 
 
 func _salon_de(n: int) -> Salon:
@@ -325,9 +327,6 @@ func test_les_vitesses_du_salon_sont_celles_des_donnees() -> void:
 
 
 # --- Jeton d'hôte ------------------------------------------------------------------------------
-
-const JETON := [1, 2, 3, 4, 5, 6, 7, 8]
-const AUTRE_JETON := [1, 2, 3, 4, 5, 6, 7, 9]
 
 
 func _salon_a_jeton() -> Salon:

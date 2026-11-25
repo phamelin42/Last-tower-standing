@@ -524,7 +524,9 @@ func test_avec_jeton_le_client_local_est_hote_meme_si_un_autre_arrive_avant() ->
 	)
 	verifier(local.est_hote(), "le client local est l'hôte")
 	verifier(
-		await _jusqua(func() -> bool: return autre.salon != null and autre.salon.joueurs.size() == 2),
+		await _jusqua(
+			func() -> bool: return autre.salon != null and autre.salon.joueurs.size() == 2
+		),
 		"l'autre voit le salon à deux"
 	)
 	verifier_faux(autre.est_hote(), "l'autre n'est pas hôte")
@@ -535,7 +537,9 @@ func test_un_client_au_mauvais_jeton_n_est_pas_hote() -> void:
 	serveur.jeton_hote = PackedByteArray([1, 1, 1, 1, 1, 1, 1, 1])
 	serveur.preparer(d)
 	var c := _nouveau_client("C")
-	verifier_egal(c.connecter("127.0.0.1", port, "Aki", PackedByteArray([2, 2, 2, 2, 2, 2, 2, 2])), OK)
+	verifier_egal(
+		c.connecter("127.0.0.1", port, "Aki", PackedByteArray([2, 2, 2, 2, 2, 2, 2, 2])), OK
+	)
 	await _jusqua(func() -> bool: return serveur.salon.joueurs.size() == 1)
 	verifier_egal(serveur.salon.hote, -1)
 	verifier_faux(c.est_hote())
