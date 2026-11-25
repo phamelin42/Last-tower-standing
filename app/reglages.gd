@@ -14,6 +14,8 @@ const FIN := "; fin\n"
 const TAILLE_MAX_FICHIER := 65536
 const NOM_MAX := 24
 const ADRESSE_MAX := 255
+## L'annuaire des parties en ligne (ADR 001, décision 16). Vide, il est désactivé.
+const ANNUAIRE_DEFAUT := "annuaire-lts.phamelin.fr:7779"
 const ECHELLES: Array[float] = [1.0, 1.25, 1.5]
 const TAILLE_TEXTE_BASE := 16
 const SENSIBILITE_MIN := 0.5
@@ -25,6 +27,9 @@ var plein_ecran: bool = false
 var sensibilite_zoom: float = 1.0
 var nom_joueur: String = ""
 var derniere_adresse: String = ""
+var annuaire_adresse: String = ANNUAIRE_DEFAUT
+## Case « Partie publique » de la création d'un salon, cochée par défaut (décision de Phil).
+var salon_public: bool = true
 ## Compteur d'images par seconde (T5.1b) : éteint tant que la joueuse ne le demande pas.
 var afficher_ips: bool = false
 
@@ -45,6 +50,8 @@ static func charger(chemin: String = CHEMIN_DEFAUT) -> Reglages:
 	r.sensibilite_zoom = _nombre(cfg, "sensibilite_zoom", r.sensibilite_zoom)
 	r.nom_joueur = _texte(cfg, "nom_joueur", r.nom_joueur)
 	r.derniere_adresse = _texte(cfg, "derniere_adresse", r.derniere_adresse)
+	r.annuaire_adresse = _texte(cfg, "annuaire_adresse", r.annuaire_adresse)
+	r.salon_public = _booleen(cfg, "salon_public", r.salon_public)
 	r.afficher_ips = _booleen(cfg, "afficher_ips", r.afficher_ips)
 	r.normaliser()
 	return r
@@ -61,6 +68,8 @@ func sauver(chemin: String = CHEMIN_DEFAUT) -> bool:
 	cfg.set_value(SECTION, "sensibilite_zoom", sensibilite_zoom)
 	cfg.set_value(SECTION, "nom_joueur", nom_joueur)
 	cfg.set_value(SECTION, "derniere_adresse", derniere_adresse)
+	cfg.set_value(SECTION, "annuaire_adresse", annuaire_adresse)
+	cfg.set_value(SECTION, "salon_public", salon_public)
 	cfg.set_value(SECTION, "afficher_ips", afficher_ips)
 	var temporaire := chemin + ".tmp"
 	var fichier := FileAccess.open(temporaire, FileAccess.WRITE)
@@ -85,6 +94,7 @@ func normaliser() -> void:
 	sensibilite_zoom = clampf(sensibilite_zoom, SENSIBILITE_MIN, SENSIBILITE_MAX)
 	nom_joueur = texte_propre(nom_joueur, NOM_MAX)
 	derniere_adresse = texte_propre(derniere_adresse, ADRESSE_MAX)
+	annuaire_adresse = texte_propre(annuaire_adresse, ADRESSE_MAX)
 
 
 ## Un niveau d'échelle prend la valeur permise la plus proche (1,0, 1,25 ou 1,5).

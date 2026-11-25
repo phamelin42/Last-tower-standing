@@ -47,14 +47,23 @@ le port UDP 7778.
 
 ### Jouer par Internet
 
-Pour qu'un joueur extérieur au réseau local rejoigne votre salon :
+L'hôte clique sur « Créer une partie » : le jeu demande lui-même à la box d'ouvrir le port de jeu
+(UPnP, en UDP, redirection retirée quand le salon se ferme). Avec la case « Partie publique »
+(cochée par défaut), le salon est aussi annoncé à l'annuaire ; les autres joueurs le trouvent alors
+dans « Rejoindre une partie », sans rien saisir. Voir [l'annuaire](#annuaire-des-parties-en-ligne).
+
+Si la box refuse ou n'a pas d'UPnP, le salon affiche « Votre box n’a pas ouvert le port : les
+joueurs extérieurs ne pourront pas vous rejoindre » ; il reste jouable en réseau local. Pour
+accepter des joueurs extérieurs malgré tout :
 
 1. Sur votre box, redirigez le port **7777 en UDP** vers l'ordinateur qui héberge.
 2. Autorisez le port 7777 en UDP dans le pare-feu de cette machine.
 3. Donnez votre adresse IP publique aux autres joueurs. Ils la saisissent dans « Rejoindre une
    partie », avec le port 7777.
 
-Le jeu ne passe pas les NAT tout seul : sans redirection de port, la connexion échoue.
+Un port de jeu inférieur à 1 024 n'est jamais annoncé à l'annuaire : choisissez 1 024 ou plus pour
+être listé. Derrière un partage de connexion de l'opérateur (CGNAT), aucune redirection ne suffit :
+l'annuaire ne joint pas votre partie et le salon le dit.
 
 ## Serveur dédié
 
@@ -132,8 +141,14 @@ docker compose -f service-annuaire/compose.yaml up -d --build
 
 Il écoute sur le port 7779 en TCP (réseau de l’hôte, pour voir l’adresse IP réelle des joueurs).
 Le pare-feu du serveur doit autoriser ce port en entrée et laisser sortir l’UDP, pour la
-vérification des salons. Le menu du jeu ne contacte pas encore l’annuaire : pour l’instant, on
-joue toujours en réseau local ou par adresse IP directe.
+vérification des salons.
+
+Côté jeu, la case « Partie publique » de la création d’un salon (cochée par défaut) annonce le
+salon à l’annuaire ; « Rejoindre une partie » liste les salons du réseau local et de l’annuaire.
+Le jeu ne contacte l’annuaire qu’à l’ouverture de « Rejoindre » et à l’actualisation de la liste,
+jamais en arrière-plan. Son adresse (`annuaire-lts.phamelin.fr:7779` par défaut) se règle dans
+l’écran des réglages ; vide, l’annuaire est désactivé. Détails dans
+[`docs/jouer.md`](docs/jouer.md#lannuaire-des-parties-en-ligne).
 
 ## Développer
 
@@ -161,8 +176,6 @@ Les chiffres d'équilibrage sont dans `data/*.json`, validés au chargement.
 ## À venir
 
 - **Graphismes 2D pixel art** avec l’ancienne version CC0 du pack Tiny Swords de Pixel Frog.
-- **Salons en ligne dans le menu** et ouverture du port par UPnP : en attendant, on joue en
-  réseau local ou par adresse IP directe.
 
 ## Licence
 

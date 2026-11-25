@@ -69,7 +69,7 @@ port local).
 ## Protocole
 
 Constantes de `AnnuaireProtocole` : `MAGIE = 0x41`, `VERSION = 1` (version de l'annuaire, distincte
-de `Protocole.VERSION` du jeu, valant 2 aujourd'hui), `PORT_DEFAUT = 7779` (TCP). Entiers
+de `Protocole.VERSION` du jeu, valant 4 depuis T7.2b), `PORT_DEFAUT = 7779` (TCP). Entiers
 petit-boutistes, comme `LecteurOctets`. Tout octet reçu est une donnée non fiable : invalide, trop
 grand ou tronqué, il est refusé sans exception.
 
@@ -129,7 +129,9 @@ occupée un instant ; l'`ENetMultiplayerPeer` du serveur n'émet ni `peer_conne
 (`PLACES_ENET`) existe justement pour qu'elle ne prenne pas celle d'un joueur.
 
 Garde-fous de la sonde (elle est une capacité d'envoi de paquets) : jamais vers une adresse non
-publique (boucle locale, privée, lien local, CGNAT 100.64/10, multicast, non spécifiée : réponse 6),
+publique (boucle locale, privée, lien local, CGNAT 100.64/10, multicast, non spécifiée, réservées et de
+documentation : 192.0.0.0/24, 192.0.2.0/24, 198.18.0.0/15, 198.51.100.0/24, 203.0.113.0/24,
+240.0.0.0/4 ; réponse 6),
 une sonde par couple (IP, port) : un succès reste valable 120 s (re-vérification ensuite), un échec
 30 s ; sur une entrée existante, une réponse 7 à la re-vérification ne la supprime pas et la
 prolonge une fois (comme une annonce acceptée) ; une deuxième réponse 7 de suite, sans sonde réussie
@@ -227,7 +229,9 @@ La redirection UPnP et le jeton sont liés à la **session** (`SessionReseau`), 
   d'UPnP.
 - **Port déclaré** : `port_externe` si UPnP a réussi, sinon le port de jeu local (l'hôte l'a
   peut-être ouvert à la main, comme le décrit le README). La sonde tranche : réponse 2 si le port
-  n'est pas joignable, et l'hôte le voit.
+  n'est pas joignable, et l'hôte le voit. Un port de jeu inférieur à 1 024 n'est jamais annoncé (borne
+  du codec, décision 8) : la partie reste jouable en réseau local et par adresse IP, et le jeu le dit
+  à l'hôte à la création.
 - **Pendant la partie** : l'annonce est retirée (RETRAIT) au lancement, mais la session reste
   ouverte et les joueurs connectés : la redirection continue d'être renouvelée (une partie longue,
   mode sans fin compris, ne perd pas son port).
@@ -248,7 +252,9 @@ par un signal appelé en différé, et l'écran de création ne gèle jamais. R�
   NAT, CGNAT) : échec.
 - **Bail fini** de 3 600 s, renouvelé toutes les 1 800 s tant que la session est ouverte (partie en
   cours comprise). Si la box refuse un bail fini, repli sur un bail 0 (permanent) ; sinon, un
-  plantage laisserait la redirection ouverte. Avec le bail fini, elle expire seule.
+  plantage laisserait la redirection ouverte. Avec le bail fini, elle expire seule. Un renouvellement
+  raté est retenté 60 s plus tard, puis toutes les 60 s tant qu'il échoue (bien avant l'expiration
+  du bail) ; le jeu continue.
 - **Fermeture** : `delete_port_mapping` en quittant le salon et à la fermeture du jeu (on scrute
   `is_alive()` du fil jusqu'à 2 s, puis on l'abandonne : le bail fini expire seul). Jamais
   d'écriture de l'ancien état sur disque.
@@ -300,21 +306,21 @@ par un signal appelé en différé, et l'écran de création ne gèle jamais. R�
   recopie la somme de la ligne de `SHA512-SUMS.txt` que lit `install-godot.sh`, et ajoute un test
   qui échoue si la version du Dockerfile diffère de celle du script (un garde-fou non branché ne
   garde rien).
-- **Réseau** : aucun reverse proxy, car le service doit voir l'IP source réelle.
+- **Réseau** : aucun reverse proxy, car le service doit voir l'IP source réelle.
   **`network_mode: host` est retenu** parce qu'il lève un doute, au prix de l'isolation réseau du
-  conteneur. Observé en T7.4, dans le conteneur de vérification (sans conclusion pour un vrai VPS) :
+  conteneur. Observé en T7.4, dans le conteneur de vérification (sans conclusion pour un vrai VPS) :
   en réseau en pont, la source vue par le relais de la boucle locale était la passerelle 172.18.0.1,
-  et la sonde UDP échouait (cause non élucidée) ; en mode hôte, le service voit l'IP réelle et la
-  sonde aboutit. Conséquence : Docker ne publie aucun port, le pare-feu du VPS s'applique et doit
+  et la sonde UDP échouait (cause non élucidée) ; en mode hôte, le service voit l'IP réelle et la
+  sonde aboutit. Conséquence : Docker ne publie aucun port, le pare-feu du VPS s'applique et doit
   donc ouvrir 7779/TCP en entrée (indispensable). L'option `--autoriser-prive`, réservée à ce
   contrôle et aux tests (elle désactive le seul rejet des adresses non publiques), n'est jamais dans
   le `compose.yaml` livré.
 - **`docker compose`** (T7.4, `service-annuaire/compose.yaml`) : `restart: unless-stopped`, système
   de fichiers en lecture seule avec un `tmpfs` sur le dossier utilisateur de Godot (`/home/annuaire/.local/share/godot`), journal borné, contrôle de santé par ouverture TCP du port.
 - **Sous-domaine** : retenu `annuaire-lts.phamelin.fr`, CNAME vers `vpsHost` (`api.phamelin.fr`),
-  seule forme qu'`infra` exprime pour un projet `target: "vps"` ; même adresse finale, aucun proxy **si** `api.phamelin.fr` n'est pas derrière un reverse proxy (hypothèse non vérifiée : si un proxy HTTP(S) y écoute, il ne voit pas le port 7779/TCP en mode hôte ; à vérifier par Phil).
-  Déclaré dans `infra` par une PR (T7.4). Constat : vérifié en T7.4, entrée `target: "vps"` dans
-  `projects.json` ; un enregistrement manuel chez OVH est exclu (§ 1 du contexte commun).
+  seule forme qu'`infra` exprime pour un projet `target: "vps"` ; même adresse finale, aucun proxy **si** `api.phamelin.fr` n'est pas derrière un reverse proxy (hypothèse non vérifiée : si un proxy HTTP(S) y écoute, il ne voit pas le port 7779/TCP en mode hôte ; à vérifier par Phil).
+  Déclaré dans `infra` par une PR (T7.4). Constat : vérifié en T7.4, entrée `target: "vps"` dans
+  `projects.json` ; un enregistrement manuel chez OVH est exclu (§ 1 du contexte commun).
 - **Écart au contexte commun, résolu** : le § 20 de `CLAUDE.commun.md` disait « ni `infra` » pour
   last-tower-standing, alors que le lot 7 (décision plus récente de Phil) demande ce sous-domaine.
   Le § 20 de `claude-context` a été corrigé par la PR #13 (fusionnée, commit 747aefb) : « `infra` ne
@@ -411,7 +417,7 @@ réseau local a le même nom et le même port ; l'entrée locale l'emporte. Ori
    proxy).
 3. **Sous-domaine** : `annuaire-lts.phamelin.fr`, CNAME vers `vpsHost` (`api.phamelin.fr`), seule
    forme qu'`infra` exprime pour un projet `target: "vps"` ; même adresse finale, aucun proxy **si** `api.phamelin.fr` n'est pas derrière un reverse proxy (hypothèse non vérifiée : si un proxy HTTP(S) y écoute, il ne voit pas le port 7779/TCP en mode hôte ; à vérifier par Phil).
-   Vérifié en T7.4 (entrée `target: "vps"`) ; enregistrement manuel chez OVH exclu (§ 1 du contexte
+   Vérifié en T7.4 (entrée `target: "vps"`) ; enregistrement manuel chez OVH exclu (§ 1 du contexte
    commun).
 4. **Joignabilité** : sonde ENet depuis le VPS, avant de lister, puis toutes les 120 s ; échec = pas
    listé ou retiré. Écartés : ping UDP propre, aucune vérification.
