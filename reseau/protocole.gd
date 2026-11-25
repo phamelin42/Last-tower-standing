@@ -19,8 +19,11 @@ enum Intention {
 }
 
 ## 2 : ajout de `RESULTAT` (réponse du serveur à chaque intention).
-## 3 : un octet de plus par événement d'arène (genre et statut de l'arme).
-const VERSION: int = 3
+## 3 : un octet de plus par événement d'arène (genre et statut de l'arme, T5.3b).
+## 4 : le bonjour porte un jeton d'hôte (0 ou 8 octets, T7.2b).
+const VERSION: int = 4
+## Taille du jeton d'hôte ; un bonjour sans jeton en porte 0.
+const JETON_OCTETS: int = 8
 const MAX_ENNEMIS: int = 2000
 const MAX_EVENEMENTS: int = 64
 const MAX_TAILLE: int = 65536
@@ -48,7 +51,7 @@ const _OCTETS_ENNEMI: int = 9
 const _OCTETS_EVENEMENT: int = 12
 const _OCTETS_JOUEUR_MIN: int = 18
 const _MAX_NOM_OCTETS: int = MAX_NOM * 4
-const _MAX_BONJOUR: int = 3 + _MAX_NOM_OCTETS + 8
+const _MAX_BONJOUR: int = 3 + _MAX_NOM_OCTETS + 8 + 1 + JETON_OCTETS
 const _MAX_INTENTION: int = 7 + MAX_TEXTE_OCTETS
 const _MAX_REFUS: int = 2 + MAX_MOTIF_OCTETS
 const _TAILLE_RESULTAT: int = 3
@@ -57,20 +60,26 @@ const _GENRES_EVENEMENT: Array[String] = ["tir", "impact", "mort"]
 # --- Bonjour ---------------------------------------------------------------------------------
 
 
-## `u8 type · u8 version · u8 n + nom UTF-8 · i64 empreinte`. Le nom est tronqué à 24 caractères
-## par l'émetteur (et nettoyé de ses caractères de contrôle).
-static func encoder_bonjour(nom: String, empreinte: int) -> PackedByteArray:
+## `u8 type · u8 version · u8 n + nom UTF-8 · i64 empreinte · u8 m + jeton`. Le nom est tronqué à
+## 24 caractères par l'émetteur (et nettoyé de ses caractères de contrôle). Le jeton d'hôte vaut 0
+## octet (client ordinaire) ou 8 ; l'encodeur écrit celui qu'on lui donne (au plus 255 octets)
+## pour que les tests forgent des bonjours faux, le décodeur n'en accepte que deux tailles.
+static func encoder_bonjour(
+	nom: String, empreinte: int, jeton: PackedByteArray = PackedByteArray()
+) -> PackedByteArray:
 	var octets := _nom_en_octets(nom)
-	var e := _Ecrivain.new(_MAX_BONJOUR)
+	var e := _Ecrivain.new(_MAX_BONJOUR + 255)
 	e.u8(Msg.BONJOUR)
 	e.u8(VERSION)
 	e.u8(octets.size())
 	e.octets(octets)
 	e.i64(empreinte)
+	e.u8(jeton.size())
+	e.octets(jeton.slice(0, 255))
 	return e.fin()
 
 
-## `{version, nom, empreinte}`, ou `{}` si le paquet est invalide, de version différente
+## `{version, nom, empreinte, jeton}`, ou `{}` si le paquet est invalide, de version différente
 ## (voir `version_bonjour`), ou si le nom dépasse 24 caractères.
 static func decoder_bonjour(b: PackedByteArray) -> Dictionary:
 	if b.size() > _MAX_BONJOUR:
@@ -80,9 +89,15 @@ static func decoder_bonjour(b: PackedByteArray) -> Dictionary:
 		return {}
 	var nom := l.texte(l.u8(), MAX_NOM)
 	var empreinte := l.i64()
+	var taille_jeton := l.u8()
+	if not l.ok or (taille_jeton != 0 and taille_jeton != JETON_OCTETS):
+		return {}
+	var jeton := PackedByteArray()
+	for i: int in taille_jeton:
+		jeton.append(l.u8())
 	if not l.ok or l.reste() != 0:
 		return {}
-	return {"version": VERSION, "nom": nom, "empreinte": empreinte}
+	return {"version": VERSION, "nom": nom, "empreinte": empreinte, "jeton": jeton}
 
 
 ## Version annoncée par un paquet `BONJOUR` (même d'une autre version), -1 si ce n'en est pas un :

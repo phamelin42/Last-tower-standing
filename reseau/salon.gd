@@ -18,10 +18,16 @@ var graine_fixe: bool = false
 ## Joueur le plus ancien du salon, -1 s'il est vide : il règle les options et lance la partie.
 var hote: int = -1
 var lancee: bool = false
+## Jeton d'hôte du salon hébergé par un joueur (8 octets), vide pour le serveur dédié. Quand il est
+## posé, seul le pair qui le présente devient hôte et personne ne reprend le rôle à son départ.
+## Il ne sort jamais du salon : ni sérialisé, ni journalisé.
+var jeton_hote: PackedByteArray = PackedByteArray()
 var motif_refus: String = ""
 
 
-func ajouter(id: int, nom: String) -> bool:
+## `jeton` : celui du bonjour. Sans `jeton_hote`, le premier pair devient hôte ; avec, seul le
+## premier pair qui présente le bon jeton le devient (un autre porteur du même jeton reste joueur).
+func ajouter(id: int, nom: String, jeton: PackedByteArray = PackedByteArray()) -> bool:
 	var motif := _motif_admission(id, nom)
 	if not motif.is_empty():
 		return _refuser(motif)
@@ -29,7 +35,7 @@ func ajouter(id: int, nom: String) -> bool:
 	if propre.is_empty():
 		propre = _nom_par_defaut()
 	joueurs[id] = {"nom": _nom_unique(propre), "pret": false}
-	if hote == -1:
+	if hote == -1 and _donne_le_role(jeton):
 		hote = id
 	return true
 
@@ -42,9 +48,12 @@ func retirer(id: int) -> bool:
 	joueurs.erase(id)
 	if id == hote:
 		hote = -1
-		for suivant: int in joueurs:
-			hote = suivant
-			break
+		# Le salon hébergé n'a pas de repli : l'hôte parti ferme le serveur, et le rôle reste
+		# réservé au porteur du jeton, y compris s'il revient.
+		if jeton_hote.is_empty():
+			for suivant: int in joueurs:
+				hote = suivant
+				break
 	return true
 
 
@@ -165,6 +174,10 @@ static func depuis_octets(b: PackedByteArray) -> Salon:
 
 
 # --- Internes --------------------------------------------------------------------------------
+
+
+func _donne_le_role(jeton: PackedByteArray) -> bool:
+	return jeton_hote.is_empty() or jeton == jeton_hote
 
 
 func _motif_admission(id: int, nom: String) -> String:

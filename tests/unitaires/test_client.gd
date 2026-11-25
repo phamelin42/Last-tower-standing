@@ -498,3 +498,48 @@ func test_un_resultat_valide_est_relaye_pour_chaque_genre_et_code() -> void:
 			verifier_egal(e.resultats.size(), attendus)
 			verifier_egal(e.dernier_resultat()[1], k)
 			verifier(not String(e.dernier_resultat()[0]).is_empty())
+
+
+# --- Jeton d'hôte ------------------------------------------------------------------------------
+
+
+func test_avec_jeton_le_client_local_est_hote_meme_si_un_autre_arrive_avant() -> void:
+	verifier(_monter_serveur(), "un port libre")
+	var jeton := PackedByteArray([21, 22, 23, 24, 25, 26, 27, 28])
+	serveur.jeton_hote = jeton
+	serveur.preparer(d)
+	var autre := _nouveau_client("Autre")
+	var local := _nouveau_client("Local")
+	verifier_egal(autre.connecter("127.0.0.1", port, "Bo"), OK)
+	verifier(
+		await _jusqua(func() -> bool: return autre.salon != null or serveur.nb_pairs() == 1),
+		"l'autre est connecté"
+	)
+	await _jusqua(func() -> bool: return serveur.salon.joueurs.size() == 1)
+	verifier_egal(serveur.salon.hote, -1, "personne n'est hôte avant le client local")
+	verifier_egal(local.connecter("127.0.0.1", port, "Aki", jeton), OK)
+	verifier(
+		await _jusqua(func() -> bool: return local.salon != null and local.salon.hote != -1),
+		"le client local reçoit le salon avec un hôte"
+	)
+	verifier(local.est_hote(), "le client local est l'hôte")
+	verifier(
+		await _jusqua(
+			func() -> bool: return autre.salon != null and autre.salon.joueurs.size() == 2
+		),
+		"l'autre voit le salon à deux"
+	)
+	verifier_faux(autre.est_hote(), "l'autre n'est pas hôte")
+
+
+func test_un_client_au_mauvais_jeton_n_est_pas_hote() -> void:
+	verifier(_monter_serveur(), "un port libre")
+	serveur.jeton_hote = PackedByteArray([1, 1, 1, 1, 1, 1, 1, 1])
+	serveur.preparer(d)
+	var c := _nouveau_client("C")
+	verifier_egal(
+		c.connecter("127.0.0.1", port, "Aki", PackedByteArray([2, 2, 2, 2, 2, 2, 2, 2])), OK
+	)
+	await _jusqua(func() -> bool: return serveur.salon.joueurs.size() == 1)
+	verifier_egal(serveur.salon.hote, -1)
+	verifier_faux(c.est_hote())

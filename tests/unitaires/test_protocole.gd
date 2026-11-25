@@ -231,6 +231,7 @@ func _bonjour_avec_nom(nom: PackedByteArray) -> PackedByteArray:
 	var b := PackedByteArray([Protocole.Msg.BONJOUR, Protocole.VERSION, nom.size()])
 	b.append_array(nom)
 	b.resize(b.size() + 8)
+	b.append(0)
 	return b
 
 

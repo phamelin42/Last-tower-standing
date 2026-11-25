@@ -203,7 +203,8 @@ création. On prend donc **les deux mesures** :
    parti ferme le serveur). « Retour au salon » (`app/principal.gd:354-364`) ferme la session puis
    en crée une neuve, donc un nouvel appel à `heberger` : le jeton est tiré de nouveau à chaque
    `heberger`. `rouvrir_salon` ne sert qu'au serveur dédié, qui n'a pas de jeton. Le bonjour change
-   de format : `Protocole.VERSION` passe de 2 à 3 (`reseau/protocole.gd`, `test_protocole.gd`,
+   de format : `Protocole.VERSION` passe de 3 à 4 (la version 3 a été prise par T5.3b du lot 5, pour l'octet
+   d'arme ajouté aux événements d'arène) (`reseau/protocole.gd`, `test_protocole.gd`,
    `test_salon.gd`, `test_serveur.gd`, `test_client.gd` mis à jour). **Le serveur dédié reste
    inchangé** : il n'a pas de client local, donc aucun jeton n'y est configuré ; sans jeton,
    l'ancienne règle (le premier pair devient hôte, repli sur le suivant) s'applique.
@@ -346,7 +347,7 @@ aucun ne code d'octets à la main. Chaque nouveau `.gd` s'accompagne de son `.ui
 | `app/principal.gd`, `app/arguments.gd`                                                                                                                                                                                                                                                   | Aiguillage de `--annuaire` vers la scène                                                                                                                                                                                                                                | T7.1 modifie         |
 | `service-annuaire/Dockerfile`, `.dockerignore`                                                                                                                                                                                                                                           | Image (voir Déploiement)                                                                                                                                                                                                                                                | T7.1 crée            |
 | `tests/unitaires/test_annuaire_protocole.gd`, `test_annuaire_service.gd`, `test_annuaire_serveur.gd`, `test_annuaire_dockerfile.gd`                                                                                                                                                      | Aller-retour de chaque message ; fuzz à graine fixe (tailles, tronqués, UTF-8 invalide, contrôles, champs hors bornes) ; expiration ; débit ; IP vue et non déclarée ; sonde simulée puis réelle en boucle locale ; version différente ; cohérence Dockerfile et script | T7.1 crée            |
-| `reseau/protocole.gd`, `reseau/salon.gd`, `reseau/serveur.gd`, `reseau/client.gd`, `app/session_reseau.gd` (tirage et remise du jeton), `tests/unitaires/test_protocole.gd`, `test_salon.gd`, `test_serveur.gd`, `test_client.gd`, `test_serveur_dedie.gd` (inchangé : doit rester vert) | Jeton d'hôte optionnel, `Protocole.VERSION` = 3 ; **serveur dédié inchangé** (sans jeton, règle du premier pair)                                                                                                                                                        | T7.2b modifie        |
+| `reseau/protocole.gd`, `reseau/salon.gd`, `reseau/serveur.gd`, `reseau/client.gd`, `app/session_reseau.gd` (tirage et remise du jeton), `tests/unitaires/test_protocole.gd`, `test_salon.gd`, `test_serveur.gd`, `test_client.gd`, `test_serveur_dedie.gd` (inchangé : doit rester vert) | Jeton d'hôte optionnel, `Protocole.VERSION` = 4 ; **serveur dédié inchangé** (sans jeton, règle du premier pair)                                                                                                                                                        | T7.2b modifie        |
 | `reseau/upnp_hote.gd`                                                                                                                                                                                                                                                                    | `UpnpHote` : fil dédié, signal `tentative_terminee(port_externe: int)` émis à la fin de la tentative, réussie ou non (0 si échec) et **fourni par T7.2**, découverte, bail, ouverture et fermeture du port, `port_externe` ; double de `UPNP`                           | T7.2 crée            |
 | `app/session_reseau.gd`, `ui/connexion_ui.gd` (page de création), `i18n/textes_salon.csv`                                                                                                                                                                                                | Appel d'`UpnpHote`, message d'échec                                                                                                                                                                                                                                     | T7.2 modifie         |
 | `tests/unitaires/test_upnp_hote.gd`                                                                                                                                                                                                                                                      | Succès, refus de bail, conflit de port, aucune passerelle, fermeture au départ                                                                                                                                                                                          | T7.2 crée            |
@@ -371,8 +372,8 @@ réseau local a le même nom et le même port ; l'entrée locale l'emporte. Ori
 - Un seul processus Godot, un seul lanceur de tests ; un service de plus à héberger et à surveiller
   sur le VPS.
 - Le jeu en ligne dépend du VPS pour **trouver** un salon, jamais pour y **jouer**.
-- La décision 5 étant validée, `Protocole.VERSION` passe à 3 : les clients et serveurs de version 2
-  ne se parlent plus (déjà géré par `motif_version`).
+- La décision 5 étant validée, `Protocole.VERSION` passe à 4 (la 3 a été prise par T5.3b du lot 5) : les
+  clients et serveurs de version 2 ou 3 ne se parlent plus (déjà géré par `motif_version`).
 - La sonde fait du VPS un émetteur de paquets ENet : d'où TCP, les rejets d'adresses non publiques
   et les plafonds.
 - L'IP des hôtes publics est visible de tous les consultants : assumé, signalé dans la notice.
@@ -410,7 +411,7 @@ réseau local a le même nom et le même port ; l'entrée locale l'emporte. Ori
    dans `infra` à vérifier en T7.4 ; enregistrement manuel chez OVH exclu (§ 1 du contexte commun).
 4. **Joignabilité** : sonde ENet depuis le VPS, avant de lister, puis toutes les 120 s ; échec = pas
    listé ou retiré. Écartés : ping UDP propre, aucune vérification.
-5. **Rôle d'hôte** : jeton d'hôte optionnel (bonjour en version 3, **suppression du repli « premier
+5. **Rôle d'hôte** : jeton d'hôte optionnel (bonjour en version 4, **suppression du repli « premier
    pair restant » pour le salon hébergé**, serveur dédié inchangé) **et** annonce après
    enregistrement de l'hôte ; nouvelle tâche T7.2b avant T7.2 et T7.3. Écarté : ordre seul (laisse
    le créneau d'usurpation).

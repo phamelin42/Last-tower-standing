@@ -4,6 +4,8 @@ extends CasDeTest
 ## qui arrive hors de propos : pair inconnu, message après le lancement, octets de bruit.
 
 const NOM_24 := "Ælfwyn Müller-Østerga日本語"
+const JETON := [1, 2, 3, 4, 5, 6, 7, 8]
+const AUTRE_JETON := [1, 2, 3, 4, 5, 6, 7, 9]
 
 
 func _salon_de(n: int) -> Salon:
@@ -322,3 +324,83 @@ func test_les_vitesses_du_salon_sont_celles_des_donnees() -> void:
 		verifier_proche(Arguments.VITESSES[i], float(voulues[i]), 0.0001, "argument %d" % i)
 	# ×1, ×2, ×4 : un facteur de durée, donc ×4 = durées divisées par quatre.
 	verifier_proche(Salon.VITESSES[2], 0.25, 0.0001)
+
+
+# --- Jeton d'hôte ------------------------------------------------------------------------------
+
+
+func _salon_a_jeton() -> Salon:
+	var s := Salon.new()
+	s.jeton_hote = PackedByteArray(JETON)
+	return s
+
+
+func test_avec_jeton_seul_le_porteur_du_bon_jeton_devient_hote() -> void:
+	var s := _salon_a_jeton()
+	verifier(s.ajouter(5, "Autre", PackedByteArray()), "un autre pair arrive avant")
+	verifier_egal(s.hote, -1, "personne n'est hôte sans le jeton")
+	verifier(s.ajouter(1, "Local", PackedByteArray(JETON)))
+	verifier_egal(s.hote, 1)
+	verifier(s.joueurs.has(5), "l'autre reste joueur")
+
+
+func test_un_jeton_absent_vide_trop_court_trop_long_ou_faux_n_ouvre_pas_le_role() -> void:
+	var faux: Array[PackedByteArray] = [
+		PackedByteArray(),
+		PackedByteArray(JETON).slice(0, 7),
+		PackedByteArray(JETON) + PackedByteArray([9]),
+		PackedByteArray(AUTRE_JETON),
+		PackedByteArray([0, 0, 0, 0, 0, 0, 0, 0]),
+	]
+	for i: int in faux.size():
+		var s := _salon_a_jeton()
+		verifier(s.ajouter(2, "Pair", faux[i]), "admis comme joueur, cas %d" % i)
+		verifier_egal(s.hote, -1, "cas %d" % i)
+		verifier_faux(s.demarrer(2), "personne ne lance, cas %d" % i)
+		verifier_faux(s.regler(2, 2, 0.5, 0, false), "personne ne règle, cas %d" % i)
+
+
+func test_sans_jeton_configure_un_jeton_presente_ne_change_rien() -> void:
+	var s := Salon.new()
+	verifier(s.ajouter(3, "A", PackedByteArray(AUTRE_JETON)))
+	verifier_egal(s.hote, 3, "règle du premier pair du serveur dédié")
+
+
+func test_deux_porteurs_du_meme_jeton_seul_le_premier_enregistre_est_hote() -> void:
+	var s := _salon_a_jeton()
+	verifier(s.ajouter(1, "Un", PackedByteArray(JETON)))
+	verifier(s.ajouter(2, "Deux", PackedByteArray(JETON)))
+	verifier_egal(s.hote, 1)
+
+
+func test_l_hote_qui_part_ne_laisse_la_main_a_personne_avec_un_jeton() -> void:
+	var s := _salon_a_jeton()
+	s.ajouter(1, "Local", PackedByteArray(JETON))
+	s.ajouter(2, "B", PackedByteArray())
+	s.ajouter(3, "C", PackedByteArray())
+	verifier(s.retirer(1))
+	verifier_egal(s.hote, -1, "pas de repli")
+	s.marquer_pret(2, true)
+	s.marquer_pret(3, true)
+	verifier_faux(s.demarrer(2), "le premier restant ne lance pas")
+	verifier_faux(s.demarrer(3))
+
+
+func test_le_client_local_qui_revient_avec_son_jeton_retrouve_le_role() -> void:
+	var s := _salon_a_jeton()
+	s.ajouter(1, "Local", PackedByteArray(JETON))
+	s.ajouter(2, "B", PackedByteArray())
+	s.retirer(1)
+	verifier(s.ajouter(4, "Local", PackedByteArray(JETON)))
+	verifier_egal(s.hote, 4)
+
+
+func test_le_salon_envoye_apres_l_arrivee_du_porteur_du_jeton_se_relit_avec_lui_pour_hote() -> void:
+	var s := _salon_a_jeton()
+	s.ajouter(2, "B", PackedByteArray())
+	s.ajouter(1, "Local", PackedByteArray(JETON))
+	var relu := Salon.depuis_octets(s.vers_octets())
+	verifier(relu != null, "salon valide")
+	if relu != null:
+		verifier_egal(relu.hote, 1)
+		verifier_egal(relu.joueurs.size(), 2)

@@ -926,12 +926,12 @@ avant l'écran « Rejoindre »).
 
 ### Task 7.2b : Jeton d'hôte — `sonnet`
 
-- [ ] **Objectif :** réserver le rôle d'hôte au client local. `SessionReseau.heberger` tire un jeton de
+- [x] **Objectif :** réserver le rôle d'hôte au client local. `SessionReseau.heberger` tire un jeton de
       8 octets (`Crypto.generate_random_bytes`) et le remet au `Serveur` et au `Client` local ; le
       bonjour du client local le porte ; quand un jeton est configuré, `Salon.ajouter` ne donne le rôle
       d'hôte qu'à un pair dont le jeton correspond. Sans jeton (serveur dédié, inchangé), l'ancienne
       règle du premier pair et le repli de `Salon.retirer` restent. Pour le salon hébergé, le repli
-      est supprimé. `Protocole.VERSION` passe à 3. « Retour au salon » crée une session neuve, donc un
+      est supprimé. `Protocole.VERSION` passe à 4 (la 3 est prise par T5.3b). « Retour au salon » crée une session neuve, donc un
       nouveau jeton.
 - **Fichiers (modifie) :** `reseau/protocole.gd`, `reseau/salon.gd`, `reseau/serveur.gd`,
   `reseau/client.gd`, `app/session_reseau.gd`.
