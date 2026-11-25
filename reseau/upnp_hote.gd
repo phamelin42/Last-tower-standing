@@ -15,18 +15,23 @@ const DELAI_DECOUVERTE_MS := 2000
 const BAIL_S := 3600
 const PERIODE_RENOUVELLEMENT_S := 1800.0
 const DELAI_FERMETURE_S := 2.0
+## Après un renouvellement raté : bien avant l'expiration du bail de 3 600 s.
+const DELAI_REESSAI_S := 60.0
 const PORT_ALEATOIRE_MIN := 49152
 const PORT_ALEATOIRE_MAX := 65535
 const DESCRIPTION := "Last Tower Standing"
 
 ## Fils dont la fermeture a dépassé le délai : gardés en vie ici, un `Thread` libéré en cours
-## d'exécution plante le moteur. Chacun finit seul (la commande « fermer » est déjà postée).
+## d'exécution plante le moteur. Chacun finit seul (la commande « fermer » est déjà postée) et ne
+## dépend plus du nœud : tout ce qu'il utilise est dans son `Travailleur`.
 static var _abandonnes: Array[Thread] = []
 
 ## La box vue par l'hôte ; remplacée par un double dans les tests.
 var passerelle: Passerelle = null
 ## Période du renouvellement (secondes), réglable pour les tests.
 var periode_renouvellement: float = PERIODE_RENOUVELLEMENT_S
+## Nouvel essai après un renouvellement raté : bien avant l'expiration du bail (décision 17).
+var delai_reessai: float = DELAI_REESSAI_S
 ## Attente maximale de la fin du fil à la fermeture (secondes).
 var delai_fermeture: float = DELAI_FERMETURE_S
 ## Tire le port du second essai ; graine fixée dans les tests.
@@ -35,19 +40,13 @@ var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 var port_externe: int = 0
 
 var _fil: Thread = null
-var _semaphore: Semaphore = Semaphore.new()
-var _mutex: Mutex = Mutex.new()
-var _commandes: Array[String] = []
-var _annule: bool = false
-var _port_interne: int = 0
-# Écrits par le fil seul ; lus ici une fois l'appel différé arrivé ou le fil terminé.
-var _ouvert: int = 0
-var _bail: int = BAIL_S
-var _resultat: int = 0
+var _travailleur: Travailleur = null
 var _livree: bool = false
 var _ferme: bool = false
 var _ecoule: float = 0.0
-var _renouvellements: int = 0
+var _en_cours: bool = false
+var _apres_echec: bool = false
+var _faits_vus: int = 0
 
 
 ## Adaptateur de la classe `UPNP` : seul endroit qui la touche, remplacé par un double en test.
@@ -138,23 +137,24 @@ func demarrer(port_interne: int) -> void:
 	fils_abandonnes()
 	if passerelle == null:
 		passerelle = PasserelleUpnp.new()
-	_port_interne = port_interne
+	_travailleur = Travailleur.new(passerelle, rng, port_interne)
 	_fil = Thread.new()
-	_fil.start(_boucle)
-	_poster("ouvrir")
+	# Le fil retient le travailleur par son `Callable` : libérer ce nœud ne libère rien de ce qu'il
+	# utilise.
+	_fil.start(_travailleur.boucle)
+	_travailleur.poster("ouvrir")
 
 
 ## Referme le port et arrête le fil. Sans danger si appelée deux fois. Attend le fil jusqu'à
-## `delai_fermeture` puis l'abandonne : le bail fini expire seul.
-func fermer() -> void:
+## `delai_fermeture` puis l'abandonne : le bail fini expire seul. `silencieux` : pas de signal
+## (sortie du jeu, personne n'écoute plus).
+func fermer(silencieux: bool = false) -> void:
 	if _ferme:
 		return
 	_ferme = true
-	_mutex.lock()
-	_annule = true
-	_mutex.unlock()
 	if _fil != null:
-		_poster("fermer")
+		_travailleur.annuler()
+		_travailleur.poster("fermer")
 		var fin := Time.get_ticks_msec() + int(delai_fermeture * 1000.0)
 		while _fil.is_alive() and Time.get_ticks_msec() < fin:
 			OS.delay_msec(2)
@@ -165,128 +165,181 @@ func fermer() -> void:
 		_fil = null
 	port_externe = 0
 	# Une tentative coupée ou jamais livrée dit quand même son échec, une seule fois.
-	_resultat = 0
-	_livrer()
+	_livrer(0, not silencieux)
 
 
 func _exit_tree() -> void:
-	fermer()
+	fermer(true)
 
 
 func _process(delta: float) -> void:
-	if _ferme or not _livree or port_externe <= 0 or _bail <= 0:
+	if _ferme or _travailleur == null:
+		return
+	if not _livree:
+		if _travailleur.tentative_finie():
+			_livrer(_travailleur.resultat_tentative(), true)
+		return
+	if port_externe <= 0 or _travailleur.bail_fini() <= 0:
+		return
+	var faits := _travailleur.renouvellements_finis()
+	if faits != _faits_vus:
+		_faits_vus = faits
+		_en_cours = false
+		_ecoule = 0.0
+		_apres_echec = not _travailleur.dernier_renouvellement_reussi()
+		if _apres_echec:
+			renouvellement_echoue.emit()
+	if _en_cours:
 		return
 	_ecoule += delta
-	if _ecoule < periode_renouvellement:
-		return
-	_ecoule = 0.0
-	_mutex.lock()
-	var deja := _renouvellements > 0
-	_mutex.unlock()
-	if not deja:
-		_poster("renouveler")
+	if _ecoule >= (delai_reessai if _apres_echec else periode_renouvellement):
+		_en_cours = true
+		_travailleur.poster("renouveler")
 
 
-func _poster(commande: String) -> void:
-	_mutex.lock()
-	_commandes.append(commande)
-	if commande == "renouveler":
-		_renouvellements += 1
-	_mutex.unlock()
-	_semaphore.post()
-
-
-func _livrer() -> void:
+func _livrer(port: int, emettre: bool) -> void:
 	if _livree:
 		return
 	_livree = true
-	_mutex.lock()
-	var port := _resultat
-	_mutex.unlock()
 	port_externe = port
-	tentative_terminee.emit(port)
+	if emettre:
+		tentative_terminee.emit(port)
 
 
-func _signaler_echec_renouvellement() -> void:
-	if not _ferme:
-		renouvellement_echoue.emit()
+## Tout ce que le fil dédié utilise : état partagé et boucle. Un `RefCounted`, pour que le fil
+## le garde en vie même quand le nœud a été libéré.
+class Travailleur:
+	extends RefCounted
 
+	var _passerelle: Passerelle
+	var _rng: RandomNumberGenerator
+	var _port_interne: int
+	var _semaphore: Semaphore = Semaphore.new()
+	var _mutex: Mutex = Mutex.new()
+	var _commandes: Array[String] = []
+	var _annule: bool = false
+	var _termine: bool = false
+	var _resultat: int = 0
+	var _bail: int = BAIL_S
+	var _faits: int = 0
+	var _dernier_ok: bool = true
+	# Propres au fil : jamais lus ailleurs.
+	var _ouvert: int = 0
 
-# --- Fil dédié ---------------------------------------------------------------------------------
+	func _init(box: Passerelle, tirage: RandomNumberGenerator, port_interne: int) -> void:
+		_passerelle = box
+		_rng = tirage
+		_port_interne = port_interne
 
-
-func _boucle() -> void:
-	while true:
-		_semaphore.wait()
+	func poster(commande: String) -> void:
 		_mutex.lock()
-		var commande: String = _commandes.pop_front()
+		_commandes.append(commande)
 		_mutex.unlock()
-		match commande:
-			"ouvrir":
-				_ouvrir()
-			"renouveler":
-				_renouveler()
-			"fermer":
-				_fermer_le_port()
-				return
+		_semaphore.post()
 
+	func annuler() -> void:
+		_mutex.lock()
+		_annule = true
+		_mutex.unlock()
 
-func _est_annule() -> bool:
-	_mutex.lock()
-	var annule := _annule
-	_mutex.unlock()
-	return annule
+	func tentative_finie() -> bool:
+		_mutex.lock()
+		var fini := _termine
+		_mutex.unlock()
+		return fini
 
+	func resultat_tentative() -> int:
+		_mutex.lock()
+		var r := _resultat
+		_mutex.unlock()
+		return r
 
-func _ouvrir() -> void:
-	var port := 0 if _est_annule() else _tenter()
-	_mutex.lock()
-	_resultat = port
-	_mutex.unlock()
-	_livrer.call_deferred()
+	func bail_fini() -> int:
+		_mutex.lock()
+		var b := _bail
+		_mutex.unlock()
+		return b
 
+	func renouvellements_finis() -> int:
+		_mutex.lock()
+		var n := _faits
+		_mutex.unlock()
+		return n
 
-func _tenter() -> int:
-	if passerelle.decouvrir(DELAI_DECOUVERTE_MS) != OK:
-		return 0
-	# Fermeture demandée pendant la découverte : ne rien ouvrir que `fermer` devrait refermer.
-	if _est_annule():
-		return 0
-	if adresse_privee(passerelle.adresse_externe()):
-		return 0
-	var code := _ajouter(_port_interne)
-	if est_conflit(code) and not _est_annule():
-		# Un seul nouvel essai, sur un port tiré hors des ports courants.
-		var autre := _port_interne
-		while autre == _port_interne:
-			autre = rng.randi_range(PORT_ALEATOIRE_MIN, PORT_ALEATOIRE_MAX)
-		code = _ajouter(autre)
-	return _ouvert if code == OK else 0
+	func dernier_renouvellement_reussi() -> bool:
+		_mutex.lock()
+		var ok := _dernier_ok
+		_mutex.unlock()
+		return ok
 
+	func boucle() -> void:
+		while true:
+			_semaphore.wait()
+			_mutex.lock()
+			var commande: String = _commandes.pop_front()
+			_mutex.unlock()
+			match commande:
+				"ouvrir":
+					_ouvrir()
+				"renouveler":
+					_renouveler()
+				"fermer":
+					_fermer_le_port()
+					return
 
-## Bail fini d'abord ; si la box le refuse (autrement que par un conflit), bail 0.
-func _ajouter(port_ext: int) -> int:
-	var code := passerelle.ajouter(port_ext, _port_interne, BAIL_S)
-	if code != OK and not est_conflit(code):
-		code = passerelle.ajouter(port_ext, _port_interne, 0)
+	func _est_annule() -> bool:
+		_mutex.lock()
+		var annule := _annule
+		_mutex.unlock()
+		return annule
+
+	func _ouvrir() -> void:
+		var port := 0 if _est_annule() else _tenter()
+		_mutex.lock()
+		_resultat = port
+		_termine = true
+		_mutex.unlock()
+
+	func _tenter() -> int:
+		if _passerelle.decouvrir(DELAI_DECOUVERTE_MS) != OK:
+			return 0
+		# Fermeture demandée pendant la découverte : ne rien ouvrir que `fermer` devrait refermer.
+		if _est_annule():
+			return 0
+		if UpnpHote.adresse_privee(_passerelle.adresse_externe()):
+			return 0
+		var code := _ajouter(_port_interne)
+		if UpnpHote.est_conflit(code) and not _est_annule():
+			# Un seul nouvel essai, sur un port tiré hors des ports courants.
+			var autre := _port_interne
+			while autre == _port_interne:
+				autre = _rng.randi_range(PORT_ALEATOIRE_MIN, PORT_ALEATOIRE_MAX)
+			code = _ajouter(autre)
+		return _ouvert if code == OK else 0
+
+	## Bail fini d'abord ; si la box le refuse (autrement que par un conflit), bail 0.
+	func _ajouter(port_ext: int) -> int:
+		var code := _passerelle.ajouter(port_ext, _port_interne, BAIL_S)
+		if code != OK and not UpnpHote.est_conflit(code):
+			code = _passerelle.ajouter(port_ext, _port_interne, 0)
+			if code == OK:
+				_mutex.lock()
+				_bail = 0
+				_mutex.unlock()
 		if code == OK:
-			_bail = 0
-	if code == OK:
-		_ouvert = port_ext
-	return code
+			_ouvert = port_ext
+		return code
 
+	func _renouveler() -> void:
+		var ok := true
+		if _ouvert > 0 and not _est_annule():
+			ok = _passerelle.ajouter(_ouvert, _port_interne, bail_fini()) == OK
+		_mutex.lock()
+		_dernier_ok = ok
+		_faits += 1
+		_mutex.unlock()
 
-func _renouveler() -> void:
-	_mutex.lock()
-	_renouvellements -= 1
-	_mutex.unlock()
-	if _ouvert <= 0 or _est_annule():
-		return
-	if passerelle.ajouter(_ouvert, _port_interne, _bail) != OK:
-		_signaler_echec_renouvellement.call_deferred()
-
-
-func _fermer_le_port() -> void:
-	if _ouvert > 0:
-		passerelle.supprimer(_ouvert)
-		_ouvert = 0
+	func _fermer_le_port() -> void:
+		if _ouvert > 0:
+			_passerelle.supprimer(_ouvert)
+			_ouvert = 0

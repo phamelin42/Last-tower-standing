@@ -394,3 +394,21 @@ func test_chaque_tentative_emet_une_seule_fois_en_boucle_sur_tous_les_scenarios(
 		await attendre_images(2)
 		verifier_egal(_terminees, [sc["attendu"]], sc["nom"])
 		verifier_faux(h.fil_actif(), sc["nom"])
+
+
+func test_noeud_libere_apres_l_abandon_le_fil_finit_et_referme_ce_qu_il_a_ouvert() -> void:
+	var box := Double.new()
+	box.barrage = Semaphore.new()
+	var h := _hote(box)
+	h.delai_fermeture = 0.1
+	h.demarrer(PORT_JEU)
+	box.entree.wait()
+	h.fermer()
+	verifier_egal(UpnpHote.fils_abandonnes(), 1, "le fil est abandonné, la box est lente")
+	# Ce que fait la session juste après `fermer` : le nœud disparaît, le fil tourne encore.
+	arbre.root.remove_child(h)
+	h.free()
+	box.barrage.post()
+	var fini := await _jusqua(func() -> bool: return UpnpHote.fils_abandonnes() == 0)
+	verifier(fini, "le fil abandonné se termine proprement")
+	verifier_egal(box.appels_suppression, [PORT_JEU], "la redirection ouverte tard est refermée")
