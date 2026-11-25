@@ -26,12 +26,12 @@ const COUCHE_DESSUS: int = 0
 const COUCHE_SOL: int = 1
 
 ## Taille d'un impact sans rayon, en pixels du monde.
-const TAILLE_IMPACT: float = 56.0
-const TAILLE_PROJECTILE: float = 22.0
-const EPAISSEUR_TRAIT: float = 5.0
-const ARC_DYNAMITE: float = 46.0
-const ECHELLE_FLECHE: float = 1.3
-const ECHELLE_DYNAMITE: float = 0.8
+const TAILLE_IMPACT: float = 90.0
+const TAILLE_PROJECTILE: float = 40.0
+const EPAISSEUR_TRAIT: float = 8.0
+const ARC_DYNAMITE: float = 70.0
+const ECHELLE_FLECHE: float = 2.0
+const ECHELLE_DYNAMITE: float = 1.3
 ## Écart (px) en deçà duquel un impact « est » l'endroit d'une mine ou d'un piège.
 const TOLERANCE_SOL: float = 2.0
 ## Rayon d'une explosion de mort, en unités de jeu.
@@ -46,7 +46,9 @@ const CASE_FEU: int = 128
 const IMAGES_FEU: int = 7
 ## Où les flammes touchent le sol dans leur case : le pied du boss.
 const PIED_FEU: float = 106.0
-const ECHELLE_FLAMME_BOSS: float = 0.28
+## La flamme dépasse sous les pieds du boss, que son corps large cacherait sinon.
+const DECALAGE_FLAMME: float = 10.0
+const ECHELLE_FLAMME_BOSS: float = 0.5
 const IMAGES_FEU_PAR_SECONDE: float = 10.0
 const CASE_EXPLOSION: int = 192
 const IMAGES_EXPLOSION: int = 9
@@ -108,7 +110,7 @@ static func creer_flamme() -> Sprite2D:
 	flamme.texture = load(Apparence2D.RACINE + FEUILLE_FEU) as Texture2D
 	flamme.region_enabled = true
 	flamme.region_rect = Rect2(0.0, 0.0, CASE_FEU, CASE_FEU)
-	flamme.offset = Vector2(0.0, CASE_FEU * 0.5 - PIED_FEU)
+	flamme.offset = Vector2(0.0, CASE_FEU * 0.5 - PIED_FEU + DECALAGE_FLAMME)
 	flamme.show_behind_parent = true
 	flamme.scale = Vector2.ONE * ECHELLE_FLAMME_BOSS
 	return flamme
@@ -213,7 +215,7 @@ func ajouter(evenement: Dictionary) -> bool:
 
 ## Une explosion du pack à `ou` (unités de jeu) : la mort d'un tonneau ou d'un artificier.
 func exploser(ou: Vector2) -> bool:
-	return not _explosion(Apparence2D.vers_pixels(ou), RAYON_MORT, Color.WHITE).is_empty()
+	return not _explosion(Apparence2D.vers_pixels(ou), RAYON_MORT).is_empty()
 
 
 func avancer(delta: float) -> void:
@@ -292,7 +294,7 @@ func _burst(type_degats: int, genre: String, ou: Vector2, rayon: float, couleur:
 	var explose: bool = type_degats == Types.TypeDegats.SIEGE or genre == "zone" or rayon > 0.0
 	var cree: bool = false
 	if explose:
-		cree = not _explosion(ou, taille * 0.5 / Apparence2D.PX_PAR_UNITE, couleur).is_empty()
+		cree = not _explosion(ou, taille * 0.5 / Apparence2D.PX_PAR_UNITE).is_empty()
 	if type_degats != Types.TypeDegats.SIEGE:
 		var effet: Dictionary = _creer(
 			IMPACTS[type_degats], "burst", DUREE_IMPACT, couleur, COUCHE_DESSUS
@@ -338,8 +340,10 @@ func _statut(statut: String, ou: Vector2) -> bool:
 
 
 ## `rayon` en unités de jeu. Rend un dictionnaire vide si le plafond est atteint.
-func _explosion(ou: Vector2, rayon: float, couleur: Color) -> Dictionary:
-	var effet: Dictionary = _creer("explosion", "image", DUREE_EXPLOSION, couleur, COUCHE_DESSUS)
+func _explosion(ou: Vector2, rayon: float) -> Dictionary:
+	var effet: Dictionary = _creer(
+		"explosion", "image", DUREE_EXPLOSION, Color.WHITE, COUCHE_DESSUS
+	)
 	if effet.is_empty():
 		return {}
 	effet["depart"] = ou
@@ -496,7 +500,7 @@ func _image(effet: Dictionary, noeud: Sprite2D, forme: String, t: float, taille:
 	noeud.scale = Vector2.ONE * taille / visible_px
 
 
-## Échelle qui donne à une forme dessinée (carré de côté `_COTE`) la taille voulue en pixels.
+## Échelle qui donne à une forme (texture de 32 px, 64 px pour l'anneau) la taille voulue en pixels.
 func _echelle(forme: String, taille: float) -> float:
 	match forme:
 		"anneau":
