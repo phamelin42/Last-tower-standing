@@ -495,12 +495,20 @@ func _afficher_carte(i: int, offre: Dictionary, vue: VueArene) -> void:
 	_notes[i].tooltip_text = _notes[i].text
 
 
+## « Relancer » sur une ligne, le prix sur la suivante : le retour à la ligne est voulu, pour que
+## le prix ne se coupe jamais au milieu (« 50 » / « or »).
+func _libelle_relance(detail: String) -> String:
+	return tr("BOUTIQUE_RELANCER") + "\n" + detail
+
+
 func _afficher_relance(vue: VueArene) -> void:
 	if vue.relances_gratuites > 0:
-		_relance.text = tr("BOUTIQUE_RELANCER_GRATUITE")
+		_relance.text = _libelle_relance(tr("BOUTIQUE_RELANCER_GRATUITE"))
 		_note_relance.text = ""
 		return
-	_relance.text = tr("BOUTIQUE_RELANCER_COUT") % Nombres.groupe(vue.cout_relance)
+	_relance.text = _libelle_relance(
+		tr("BOUTIQUE_RELANCER_COUT") % Nombres.groupe(vue.cout_relance)
+	)
 	_note_relance.text = tr("BOUTIQUE_OR_INSUFFISANT") if vue.argent < vue.cout_relance else ""
 
 
