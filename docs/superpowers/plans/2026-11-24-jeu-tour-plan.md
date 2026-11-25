@@ -794,7 +794,7 @@ crédité dans `CREDITS.md` (le crédit est facultatif en CC0, mais on cite touj
 
 ### Task 5.1 : Arène 2D — `sonnet`
 
-- [ ] **Objectif :** `visuels/arene_2d.gd` remplace l’arène 3D : terrain, tour au centre, ennemis
+- [x] **Objectif :** `visuels/arene_2d.gd` remplace l’arène 3D : terrain, tour au centre, ennemis
       animés (marche, attaque, mort), tri en profondeur, `Camera2D` avec zoom borné, même contrat
       (`SourceVue`, interpolation). Performance : 1 000 ennemis visibles sans chute sous 60 images/s
       (pool de sprites ou `MultiMeshInstance2D` avec atlas animé par nuanceur), mesurée. Captures de
@@ -802,6 +802,7 @@ crédité dans `CREDITS.md` (le crédit est facultatif en CC0, mais on cite touj
       **Fait, fusionné par la PR #7** : unités à ×1,9, tour à ×2,1, ennemi translucide devant la tour,
       images recadrées. Reste la preuve des 60 images/s : 22,6 images/s en rendu logiciel sous Xvfb,
       à mesurer sur une vraie carte graphique.
+      **60 images/s constants mesurés par Phil le 25/11/2026** (banc à 1 000 ennemis, T5.1b).
 
 ### Task 5.1b : Compteur d’images par seconde et banc d’essai — `sonnet`
 
@@ -993,12 +994,12 @@ avant l'écran « Rejoindre »).
 
 **Parallélisme :** trois sessions, chacune sur ses fichiers, plus une passe finale.
 
-- **Simulation** (`sim/`, `data/`, `reseau/`, `app/source_vue.gd`, `app/source_locale.gd`), à lancer tout de suite, tâches à la suite : T8.1, T8.2, T8.3, T8.4, T8.5, T8.6, T8.7, T8.8, T8.9, T8.10. Un fichier (`sim/donnees.gd`, `sim/arene.gd`, `sim/tir.gd`, `data/ennemis.json`…) passe d'une tâche à la suivante ; entre sessions, chaque fichier n'a qu'une tâche propriétaire par moment.
-- **Rendu** (`visuels/`, `sons/`, `assets/sons/`, `assets/maison/`, `project.godot`) : T8.11, T8.12, T8.13, puis T8.14 (attend Phil), T8.15 (indépendante de la planche), T8.16 (après la validation de Phil). Démarre quand T8.1 est fusionnée.
+- **Simulation** (`sim/`, `data/`, `reseau/`, `app/source_vue.gd`, `app/source_locale.gd`), à lancer tout de suite, tâches à la suite : T8.1, T8.2, T8.3, T8.4 **avec T8.11** (décision de pilotage, pour le couplage ci-dessous), T8.5, T8.6, T8.7, T8.8, T8.9, T8.10. Un fichier (`sim/donnees.gd`, `sim/arene.gd`, `sim/tir.gd`, `data/ennemis.json`…) passe d'une tâche à la suivante ; entre sessions, chaque fichier n'a qu'une tâche propriétaire par moment.
+- **Rendu** (`visuels/`, `sons/`, `assets/sons/`, `project.godot`) : T8.14 (attend Phil) et T8.15 (indépendante de la planche) dès que T8.1 est fusionnée, puis T8.12 et T8.13 dès que T8.4 et T8.11 sont fusionnées, puis T8.16 (après la validation de Phil). T8.11 est faite par la session Simulation.
 - **Interface** (`ui/`, `i18n/`, `assets/polices/`, `app/reglages.gd`, `app/jeu.gd`) : T8.17, T8.18, T8.19, T8.20. Démarre quand T8.1 est fusionnée ; T8.20 attend T8.10 et T8.13.
 - **Passe finale** : T8.21, quand tout est fusionné.
 - **Dépendances :** T8.1 aucune · T8.2 T8.1 · T8.3 T8.1 · T8.4 T8.1 · T8.5 T8.4 · T8.6 T8.4 · T8.7 T8.1, T8.4 · T8.8 T8.4 à T8.7 · T8.9 T8.1 · T8.10 T8.2, T8.9 · T8.11 T8.1, T8.4 (PR commune avec T8.4) · T8.12 T8.1, T8.11 · T8.13 T8.1, T8.12 · T8.14 T8.1 (**attend Phil**) · T8.15 T8.1, T8.3 · T8.16 T8.3, T8.13, T8.14 validée par Phil · T8.17 aucune · T8.18 T8.1, T8.6, T8.9, T8.17 · T8.19 T8.1, T8.3, T8.13, T8.17, T8.18 · T8.20 T8.9, T8.10, T8.13, T8.17, T8.18, T8.19 · T8.21 toutes.
-- **Couplage à respecter :** T8.4 change les identifiants des familles (24 au lieu de 8) et casse `Apparence.ENTITES` et `Effets.FAMILLES_EXPLOSIVES` tant que T8.11 n'est pas faite. Les deux ne vont vers `main` **qu'ensemble** : la session qui finit la seconde ouvre la PR commune (ou la première reste en brouillon). Même règle pour T8.3 et T8.19 au sujet de `emplacements_armes` : T8.3 cesse de l'exiger mais laisse la clé dans `data/partie.json`, T8.18 et T8.19 cessent de la lire, T8.21 la supprime.
+- **Couplage à respecter :** T8.4 change les identifiants des familles (24 au lieu de 8) et casse `Apparence.ENTITES` et `Effets.FAMILLES_EXPLOSIVES` tant que T8.11 n'est pas faite. Les deux ne vont vers `main` **qu'ensemble** : dans une seule PR de la session Simulation, qui touche alors `visuels/apparence.gd`, `visuels/effets.gd` et `assets/maison/` le temps de T8.11. Même règle pour T8.3 et T8.19 au sujet de `emplacements_armes` : T8.3 cesse de l'exiger mais laisse la clé dans `data/partie.json`, T8.18 et T8.19 cessent de la lire, T8.21 la supprime.
 - **Fichiers partagés, un seul propriétaire :** `CREDITS.md` appartient à T8.21 (les autres tâches y écrivent leurs lignes dans leur rapport) ; `project.godot` (actions de touches) à T8.13 ; `ui/theme.gd` à l'Interface, `i18n/*.csv` à l'Interface (les textes visibles des autres sessions y passent par les clés existantes ou sont demandés à l'Interface dans le rapport).
 
 **Choix du plan faute d'information dans la conception** (à relire par Phil) :
