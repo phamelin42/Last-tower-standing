@@ -778,16 +778,18 @@ changent pas : seule la couche `visuels/` passe de la 3D à la 2D. Le pack est t
 (itch.io passe par un navigateur), puis versionné dans `assets/tiny_swords/` avec sa licence, et
 crédité dans `CREDITS.md` (le crédit est facultatif en CC0, mais on cite toujours la source).
 
-**Parallélisme :** T5.0, puis T5.1, puis {T5.2, T5.3, T5.4, T5.6} en parallèle, puis T5.5.
+**Parallélisme :** T5.0, puis T5.1, puis {T5.2, T5.3, T5.4, T5.6, T5.7} en parallèle, puis T5.5.
 
 ### Task 5.0 : Inventaire du pack et correspondance — `sonnet`
 
-- [ ] **Objectif :** inventaire de l’archive CC0 (unités, couleurs, animations et leurs images,
+- [x] **Objectif :** inventaire de l’archive CC0 (unités, couleurs, animations et leurs images,
       bâtiments, terrain, effets, éléments d’interface, tailles en pixels) dans `docs/tiny_swords.md`,
       et proposition de correspondance : la tour du joueur, les 8 familles (une armure chacune, avec
       une volante et deux à distance), le convoi, le boss. Ce qui manque est comblé par des variantes
       de couleur ou d’échelle, ou des sprites faits par nous dans le même style, signalés comme tels.
       Planche de captures pour validation par Phil **avant** T5.1.
+      **Fait, validé par Phil le 25/11/2026** : `docs/tiny_swords.md` (décisions en tête). Les
+      quatre renommages sont appliqués dans `data/ennemis.json`, identifiants compris.
 
 ### Task 5.1 : Arène 2D — `sonnet`
 
@@ -824,6 +826,14 @@ crédité dans `CREDITS.md` (le crédit est facultatif en CC0, mais on cite touj
 - [ ] **Objectif :** sons CC0 d’une autre source (le pack n’en a pas) : tirs, impacts, achat,
       relance, PV bas, début de manche, boss, victoire, défaite, musique d’ambiance ; volume des
       réglages appliqué.
+
+### Task 5.7 : Sprite maison de l’unité volante — `sonnet`
+
+- [ ] **Objectif :** les « Mites de laiton » n’ont aucun sprite dans le pack. Dessiner, par un
+      script versionné (`tools/`), une feuille de vol (6 images) et de mort dans le style du pack :
+      contour, palette du pack, ombre détachée du corps. Publiée sous CC0 avec le jeu et listée dans
+      `CREDITS.md` comme faite par nous. Elle remplace le gobelin violet ×0,7 de T5.1. Planche relue
+      par Phil.
 
 ---
 
