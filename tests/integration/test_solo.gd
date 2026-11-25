@@ -246,30 +246,84 @@ func test_en_solo_l_observation_n_est_pas_proposee_et_l_ouvrir_donne_un_message_
 	_liberer(jeu)
 
 
-func test_la_victoire_propose_rejouer_et_le_menu_et_le_mode_sans_fin_reste_grise() -> void:
+func _donnees_boss_proche() -> Donnees:
+	return (
+		AidesPartie
+		. donnees(
+			{
+				"partie.json":
+				[
+					[["preparation_s"], 1.0],
+					[["manche_s"], 4.0],
+					[["manche_boss"], 3.0],
+					[["tour", "pv"], 1000000.0],
+				],
+				"ennemis.json": [[["boss", "pv"], 50.0]],
+				"economie.json": [[["or_depart"], OR_ABONDANT]],
+			}
+		)
+	)
+
+
+func _bouton_sans_fin(jeu: Jeu) -> Button:
+	for noeud: Node in jeu.fin.find_children("*", "Button", true, false):
+		if noeud.get_meta("action", "") == "continuer_sans_fin":
+			return noeud as Button
+	return null
+
+
+func test_la_victoire_active_continuer_sans_fin_qui_relance_les_manches() -> void:
 	var jeu := _jeu_direct()
-	verifier(jeu.demarrer_solo(_donnees, GRAINE, 0.5))
-	_avancer(jeu, 1.0)
-	jeu._sur_globale(_vue_globale_victorieuse())
-	verifier(jeu.fin.visible)
+	verifier(jeu.demarrer_solo(_donnees_boss_proche(), GRAINE, 0.5))
+	var locale := jeu.source as SourceLocale
+	BotAchat.jouer(locale._partie, SourceLocale.ID_LOCAL, 3)
+	var gagne := _avancer_jusqua(jeu, func() -> bool: return jeu.fin.visible)
+	verifier(gagne, "le boss tombe : l'écran de fin s'ouvre")
 	verifier_egal(
 		jeu.fin.actions_visibles(), PackedStringArray(["continuer_sans_fin", "rejouer", "quitter"])
 	)
 	verifier_contient(
 		jeu.fin.textes(), CsvTextes.lire("res://i18n/textes_fin.csv")["FIN_VICTOIRE_TITRE"]
 	)
-	var trouve := false
 	for noeud: Node in jeu.fin.find_children("*", "Button", true, false):
-		var bouton := noeud as Button
-		if bouton.get_meta("action", "") == "continuer_sans_fin":
-			trouve = true
-			verifier(bouton.disabled, "sans fin désactivé")
-			verifier_egal(
-				bouton.tooltip_text, CsvTextes.lire("res://i18n/textes_menu.csv")["MENU_BIENTOT"]
-			)
-		else:
-			verifier_faux(bouton.disabled, "les autres boutons restent actifs")
-	verifier(trouve)
+		verifier_faux((noeud as Button).disabled, "tous les boutons sont actifs")
+	var bouton := _bouton_sans_fin(jeu)
+	verifier_non_nul(bouton)
+	verifier_egal(bouton.tooltip_text, "", "plus d'infobulle « bientôt »")
+	var resultats: Array = []
+	jeu.source.resultat_intention.connect(
+		func(genre: String, code: int) -> void: resultats.append([genre, code])
+	)
+	bouton.pressed.emit()
+	verifier_egal(resultats, [["continuer_sans_fin", Types.Resultat.OK]], "l'intention est émise")
+	verifier_faux(jeu.fin.visible, "l'écran de fin se ferme")
+	_avancer(jeu, 2.0)
+	verifier_faux(jeu.fin.visible, "une vue de victoire en retard ne le rouvre pas")
+	verifier(jeu.boutique.visible, "la boutique rouvre")
+	verifier(jeu._derniere_vue.sans_fin)
+	verifier_egal(jeu._derniere_vue.phase, Types.Phase.MANCHE)
+	verifier(jeu._derniere_vue.manche > 3, "les manches reprennent au-delà du boss")
+	verifier_contient(_textes_hud(jeu), "∞", "le HUD affiche le mode sans fin")
+	_liberer(jeu)
+
+
+func _textes_hud(jeu: Jeu) -> String:
+	var textes := ""
+	for noeud: Node in jeu.hud.find_children("*", "Label", true, false):
+		textes += (noeud as Label).text + "|"
+	return textes
+
+
+func test_la_victoire_propose_rejouer_et_le_menu_avec_un_mode_sans_fin_actif() -> void:
+	var jeu := _jeu_direct()
+	verifier(jeu.demarrer_solo(_donnees, GRAINE, 0.5))
+	_avancer(jeu, 1.0)
+	jeu._sur_globale(_vue_globale_victorieuse())
+	verifier(jeu.fin.visible)
+	var bouton := _bouton_sans_fin(jeu)
+	verifier_non_nul(bouton)
+	verifier_faux(bouton.disabled, "sans fin actif dès l'écran de victoire")
+	verifier_egal(bouton.tooltip_text, "")
 	_liberer(jeu)
 
 
