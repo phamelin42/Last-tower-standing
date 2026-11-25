@@ -1,0 +1,51 @@
+# TEMPORAIRE : boucle de reproduction du plantage de l'import à froid. Retiré avant la fusion.
+name: Diag import
+
+on:
+  push:
+    branches: [diagnostic-import-glibc]
+
+permissions:
+  contents: read
+
+jobs:
+  boucle:
+    name: ${{ matrix.variante }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        variante: [base, threads_off, arena1, un_coeur, sans_textures]
+    env:
+      N: 60
+    steps:
+      - uses: actions/checkout@v7
+      - run: tools/install-godot.sh
+      - name: Boucle d'imports à froid
+        run: |
+          nproc; ldd --version | head -1
+          echo "variante=${{ matrix.variante }}"
+          crashs=0; autres=0
+          for i in $(seq 1 "$N"); do
+            D=$(mktemp -d)
+            git archive HEAD | tar -x -C "$D"
+            cd "$D"
+            pre=""
+            case "${{ matrix.variante }}" in
+              threads_off) printf '\n[editor]\n\nimport/use_multiple_threads=false\n' >> project.godot ;;
+              arena1) export MALLOC_ARENA_MAX=1 ;;
+              un_coeur) pre="taskset -c 0" ;;
+              sans_textures) rm -rf assets/tiny_swords ;;
+            esac
+            set +e
+            $pre godot --headless --path . --import > "$D/sortie.txt" 2>&1
+            code=$?
+            set -e
+            if [ "$code" -eq 134 ] || [ "$code" -eq 139 ]; then
+              crashs=$((crashs+1)); echo "run $i : code $code"; tail -n 4 "$D/sortie.txt"
+            elif [ "$code" -ne 0 ]; then
+              autres=$((autres+1)); echo "run $i : code $code (autre)"; tail -n 4 "$D/sortie.txt"
+            fi
+            cd "$GITHUB_WORKSPACE"
+          done
+          echo "RESULTAT ${{ matrix.variante }} : $crashs plantages, $autres autres échecs sur $N"
