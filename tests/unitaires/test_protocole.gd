@@ -581,7 +581,7 @@ func test_taille_d_un_etat_arene_suit_la_formule() -> void:
 			+ 3 * v.armes.size()
 			+ 3 * v.ameliorations.size()
 			+ 9 * nb
-			+ 11 * 5
+			+ 12 * 5
 		)
 		verifier_egal(Protocole.encoder_etat_arene(v, _catalogue).size(), attendu, "%d" % nb)
 
