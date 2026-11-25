@@ -26,6 +26,7 @@ var source: SourceVue = null
 var en_reseau: bool = false
 var arene: Arene2D = null
 var camera: CameraArene2D = null
+var _sons: LecteurSons = null
 
 var _donnees: Donnees = null
 var _facteur: float = 1.0
@@ -77,6 +78,9 @@ func _ready() -> void:
 	fin.quitter.connect(_demander_menu)
 	fin.observer.connect(_observer)
 	fin.continuer_sans_fin.connect(_continuer_sans_fin)
+	_sons = LecteurSons.new()
+	_sons.name = "Sons"
+	add_child(_sons)
 	_placer()
 
 
@@ -88,6 +92,7 @@ func demarrer_solo(donnees: Donnees, graine: int, facteur_duree: float) -> bool:
 	_donnees = donnees
 	_facteur = facteur_duree
 	_appliquer_reglages()
+	_sons.demarrer_ambiance()
 	if source == null:
 		source = SourceLocale.new()
 		source.name = "Source"
@@ -104,6 +109,7 @@ func demarrer_reseau(donnees: Donnees, src: SourceVue) -> bool:
 	_donnees = donnees
 	en_reseau = true
 	_appliquer_reglages()
+	_sons.demarrer_ambiance()
 	source = src
 	_brancher(src)
 	_monter()
@@ -153,6 +159,7 @@ func _appliquer_reglages() -> void:
 	var r := Reglages.charger(chemin_reglages)
 	_sensibilite = r.sensibilite_zoom
 	appliquer_fenetre(get_window(), r)
+	BusAudio.appliquer_volume(r.volume_general)
 
 
 ## Remet l'écran comme au premier instant d'une partie.
@@ -172,6 +179,7 @@ func _vider_ecran() -> void:
 
 func _sur_arene(vue: VueArene) -> void:
 	_derniere_vue = vue
+	_sons.traiter(vue)
 	hud.afficher(vue)
 	boutique.afficher(vue)
 	boutique.visible = _boutique_active()
