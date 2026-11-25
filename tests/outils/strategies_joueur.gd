@@ -14,7 +14,7 @@ const ACHATS_MAX_PAR_APPEL := 24
 ## Or gardé de côté par les stratégies actives, pour ne pas se vider sur une relance.
 const RESERVE := 60
 ## La « bonne » stratégie investit dans l'économie jusqu'à cette manche, puis dans les dégâts.
-const MANCHES_ECONOMIE := 6
+const MANCHES_ECONOMIE := 8
 const MANCHE_DEFENSE := 14
 const ARMES_VISEES := 8
 
@@ -32,6 +32,8 @@ static func jouer(
 			return achetes
 		if v.marche_noir_ouvert:
 			_marche_noir(p, d, id, nom, v.manche)
+		if nom == BONNE and v.manche >= MANCHES_ECONOMIE and _remplacer(p, d, id, v):
+			continue
 		var index := _choisir(nom, v, d)
 		if index >= 0:
 			var offre: Dictionary = v.offres[index]
@@ -43,6 +45,29 @@ static func jouer(
 			continue
 		return achetes
 	return achetes
+
+
+## Arsenal plein : vend la plus faible arme si une offre la dépasse nettement en dégâts estimés.
+static func _remplacer(p: Partie, d: Donnees, id: int, v: VueArene) -> bool:
+	if v.armes.size() < ARMES_VISEES:
+		return false
+	var faible := -1
+	var dps_faible := INF
+	for i: int in v.armes.size():
+		var dps := Equilibrage.dps_estime(d.armes[str(v.armes[i]["id"])])
+		if dps < dps_faible:
+			dps_faible = dps
+			faible = i
+	var arme_faible: Dictionary = d.armes[str(v.armes[faible]["id"])]
+	var vente := int(float(arme_faible["prix"]) * float(d.partie["vente_ratio"]))
+	for offre: Dictionary in v.offres:
+		if bool(offre["vendu"]) or int(offre["genre"]) != Types.Genre.ARME:
+			continue
+		var cand: Dictionary = d.armes[str(offre["id"])]
+		if int(offre["prix"]) > v.argent + vente or Equilibrage.dps_estime(cand) < dps_faible * 2.0:
+			continue
+		return p.intention_vendre(id, faible) == Types.Resultat.OK
+	return false
 
 
 static func _marche_noir(p: Partie, d: Donnees, id: int, nom: String, manche: int) -> void:
@@ -181,5 +206,5 @@ static func _valeur_amelioration(
 ## L'économie ne vaut quelque chose que tôt ; la « bonne » stratégie la privilégie.
 static func _valeur_revenu(nom: String, manche: int) -> float:
 	if nom == BONNE:
-		return 12.0 if manche < MANCHE_DEFENSE else 2.0
+		return 25.0 if manche < MANCHE_DEFENSE else 2.0
 	return 6.0 if manche < 15 else 1.5
