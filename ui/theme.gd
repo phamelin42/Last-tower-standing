@@ -273,8 +273,8 @@ static func _construire() -> Theme:
 	var ruban := _tranches(TEX_RUBAN, 56, 12, 56, 20, 0, Color.WHITE)
 	ruban.content_margin_left = 64.0
 	ruban.content_margin_right = 64.0
-	ruban.content_margin_top = 2.0
-	ruban.content_margin_bottom = 8.0
+	ruban.content_margin_top = 10.0
+	ruban.content_margin_bottom = 20.0
 	t.set_stylebox("normal", TYPE_RUBAN, ruban)
 	t.set_type_variation("Carte", "PanelContainer")
 	t.set_stylebox("panel", "Carte", _tranches(TEX_PANNEAU, 16, 16, 16, 16, 12, TEINTE_CARTE))

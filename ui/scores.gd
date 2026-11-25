@@ -38,8 +38,7 @@ func _init() -> void:
 	var contenu := VBoxContainer.new()
 	panneau.add_child(contenu)
 	_titre = _etiquette(false)
-	_titre.theme_type_variation = ThemeJeu.TYPE_RUBAN
-	_titre.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_titre.theme_type_variation = "Titre"
 	_titre.add_theme_font_size_override("font_size", ThemeJeu.TAILLE_TITRE)
 	contenu.add_child(_titre)
 	_tableau = GridContainer.new()
