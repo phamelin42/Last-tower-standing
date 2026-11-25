@@ -90,6 +90,7 @@ var ennemis_famille: PackedByteArray
 var ennemis_pv: PackedByteArray     # ratio × 255
 var ennemis_statuts: PackedByteArray  # bits Types.STATUT_*
 var evenements: Array[Dictionary]   # depuis la vue précédente : {k: "tir"|"impact"|"mort", t: int (tick), de: Vector2, vers: Vector2, type_degats: int, rayon: float}
+# 2026-11-25 (T5.3b) : tir et impact portent aussi, facultatifs, `genre: int` (index dans `VueArene.GENRES_ARME`, 0 = aucun) et `statut: int` (index dans `VueArene.STATUTS_ARME`, 0 = aucun) ; une mort n'en a pas. Protocole version 3 : 12 octets par événement.
 var eliminations: int; var degats_infliges: float; var manche_max: int
 func to_dict() -> Dictionary
 static func from_dict(d: Dictionary) -> VueArene   # null si champ manquant ou de mauvais type

@@ -204,13 +204,25 @@ func ajouter(evenement: Dictionary) -> bool:
 	var vers: Vector2 = evenement.get("vers", Vector2.ZERO)
 	var type_degats: int = evenement.get("type_degats", 0)
 	var rayon: float = evenement.get("rayon", 0.0)
-	var genre: String = evenement.get("genre", "")
-	var statut: String = evenement.get("statut", "")
+	var genre: String = _nom_champ(evenement.get("genre", ""), VueArene.GENRES_ARME)
+	var statut: String = _nom_champ(evenement.get("statut", ""), VueArene.STATUTS_ARME)
 	if type_degats < 0 or type_degats >= PROJECTILES.size():
 		return false
 	if k == "tir":
 		return _tir(type_degats, genre, de, vers)
 	return _impact(type_degats, genre, de, vers, rayon, statut)
+
+
+## Le genre et le statut arrivent en index (simulation, réseau) ; un nom est accepté tel quel. Une
+## valeur hors liste ou d'un autre type vaut « aucun », donc le genre se déduit de l'événement.
+static func _nom_champ(valeur: Variant, noms: Array[String]) -> String:
+	if typeof(valeur) == TYPE_STRING:
+		return valeur
+	if typeof(valeur) == TYPE_INT:
+		var index: int = valeur
+		if index >= 0 and index < noms.size():
+			return noms[index]
+	return ""
 
 
 ## Une explosion du pack à `ou` (unités de jeu) : la mort d'un tonneau ou d'un artificier.
