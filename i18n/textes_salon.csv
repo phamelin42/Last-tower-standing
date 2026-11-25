@@ -46,3 +46,6 @@ CONNEXION_ANNUAIRE_INCOMPATIBLE,Annuaire incompatible : mettez le jeu à jour
 CONNEXION_ACTUALISER,Actualiser
 CONNEXION_PUBLIQUE,Partie publique
 CONNEXION_PUBLIQUE_NOTICE,"Partie publique : votre adresse IP sera transmise à l’annuaire et visible des joueurs qui consultent la liste, tant que le salon est ouvert. Rien n’est conservé ensuite."
+CONNEXION_ANNUAIRE_HOTE_INJOIGNABLE,L’annuaire ne joint pas votre partie : les joueurs extérieurs ne la verront pas dans la liste.
+CONNEXION_ANNUAIRE_HOTE_INCOMPATIBLE,"Annuaire incompatible : mettez le jeu à jour, votre partie n’est pas listée."
+CONNEXION_ANNUAIRE_HOTE_PLEIN,L’annuaire est plein ou a atteint sa limite pour votre adresse : votre partie n’est pas listée pour l’instant.

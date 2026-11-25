@@ -6,6 +6,7 @@ extends CasDeTest
 ## sur la boucle locale (sonde simulée).
 
 const TestServeur := preload("res://tests/unitaires/test_annuaire_serveur.gd")
+const TestUpnp := preload("res://tests/unitaires/test_upnp_hote.gd")
 const TestClient := preload("res://tests/unitaires/test_annuaire_client.gd")
 const LOCAL := "127.0.0.1"
 const DELAI_MS := 8000
@@ -450,3 +451,100 @@ func test_un_annuaire_invalide_dans_les_reglages_dit_indisponible() -> void:
 		)
 	)
 	verifier_egal(p.connexion().lignes_salons().size(), 1)
+
+
+# --- Refus de l'annuaire vus par l'hôte --------------------------------------------------------
+
+
+func _creer_salon_public(p: Principal) -> void:
+	p.menu().champ_nom.text = "Mina"
+	p.menu().bouton_creer.pressed.emit()
+	p.connexion().champ_port_creer.text = str(_port_aleatoire(9, _udp_libre))
+	p.connexion().bouton_creer.pressed.emit()
+
+
+func _hote_jouable(p: Principal) -> bool:
+	return await _jusqua(
+		func() -> bool: return not p.salon().en_attente() and p.salon().lignes_joueurs().size() == 1
+	)
+
+
+func test_un_port_injoignable_est_dit_a_l_hote_et_le_salon_reste_jouable() -> void:
+	_annuaire()
+	_fausse.reussite = false
+	var p := _principal_neuf(_adresse_annuaire())
+	_creer_salon_public(p)
+	var attendu := _t("CONNEXION_ANNUAIRE_HOTE_INJOIGNABLE")
+	verifier(attendu.contains("annuaire") and attendu.contains("extérieurs"), attendu)
+	verifier(await _jusqua(func() -> bool: return p.salon().avertissement() == attendu))
+	verifier(await _hote_jouable(p), "le salon reste jouable en local")
+	verifier(p.salon().bouton_lancer.visible and not p.salon().bouton_lancer.disabled)
+
+
+func test_le_refus_de_l_annuaire_et_l_echec_d_upnp_se_lisent_ensemble() -> void:
+	_annuaire()
+	_fausse.reussite = false
+	var p := _principal_neuf(_adresse_annuaire())
+	var box := TestUpnp.Double.new()
+	box.resultat_decouverte = UPNP.UPNP_RESULT_NO_GATEWAY
+	p.fabrique_passerelle = func() -> UpnpHote.Passerelle: return box
+	_creer_salon_public(p)
+	var attendu := _t("CONNEXION_UPNP_ECHEC") + "\n" + _t("CONNEXION_ANNUAIRE_HOTE_INJOIGNABLE")
+	verifier(await _jusqua(func() -> bool: return p.salon().avertissement() == attendu))
+	verifier(await _hote_jouable(p))
+
+
+func test_chaque_refus_qui_concerne_l_hote_a_son_texte() -> void:
+	var cas := {
+		AnnuaireProtocole.Statut.PLEIN: "CONNEXION_ANNUAIRE_HOTE_PLEIN",
+		AnnuaireProtocole.Statut.INJOIGNABLE: "CONNEXION_ANNUAIRE_HOTE_INJOIGNABLE",
+	}
+	for statut: int in cas:
+		_annuaire_faux(AnnuaireProtocole.encoder_reponse(statut))
+		var p := _principal_neuf(_adresse_annuaire())
+		_creer_salon_public(p)
+		var attendu := _t(cas[statut])
+		verifier(attendu != cas[statut], "la clé existe")
+		verifier(
+			await _jusqua(func() -> bool: return p.salon().avertissement() == attendu),
+			"statut %d" % statut
+		)
+		verifier(await _hote_jouable(p))
+		arbre.root.remove_child(_principal)
+		_principal.free()
+		_principal = null
+		arbre.root.remove_child(_faux)
+		_faux.free()
+		_faux = null
+
+
+func test_une_autre_version_d_annuaire_est_dite_a_l_hote() -> void:
+	_annuaire_faux(
+		PackedByteArray([5, 0, AnnuaireProtocole.MAGIE, AnnuaireProtocole.VERSION + 1, 0x81, 1, 2])
+	)
+	var p := _principal_neuf(_adresse_annuaire())
+	_creer_salon_public(p)
+	var attendu := _t("CONNEXION_ANNUAIRE_HOTE_INCOMPATIBLE")
+	verifier(await _jusqua(func() -> bool: return p.salon().avertissement() == attendu))
+	verifier(await _hote_jouable(p))
+
+
+func test_une_annonce_acceptee_efface_le_refus_et_n_en_affiche_aucun() -> void:
+	_annuaire_faux(AnnuaireProtocole.encoder_reponse(AnnuaireProtocole.Statut.INJOIGNABLE))
+	var p := _principal_neuf(_adresse_annuaire())
+	_creer_salon_public(p)
+	var refus := _t("CONNEXION_ANNUAIRE_HOTE_INJOIGNABLE")
+	verifier(await _jusqua(func() -> bool: return p.salon().avertissement() == refus))
+	_faux.octets = AnnuaireProtocole.encoder_reponse(AnnuaireProtocole.Statut.ACCEPTE)
+	p.session().annuaire.periode_ms = 200
+	p.session().annuaire.intervalle_min_ms = 0
+	verifier(await _jusqua(func() -> bool: return p.salon().avertissement() == ""))
+
+
+func test_un_salon_accepte_ou_non_public_n_affiche_aucun_refus() -> void:
+	_annuaire()
+	var p := _principal_neuf(_adresse_annuaire())
+	_creer_salon_public(p)
+	verifier(await _jusqua(func() -> bool: return _noeud.service.salons().size() == 1))
+	await attendre_images(10)
+	verifier_egal(p.salon().avertissement(), "")

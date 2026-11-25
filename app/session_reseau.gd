@@ -15,6 +15,10 @@ signal tentative_upnp_terminee(port_externe: int)
 ## Le client local est dans le salon et en est l'hôte. Émis une seule fois par `heberger` : c'est
 ## le feu vert de l'annuaire (un salon listé a un hôte présent).
 signal hote_enregistre
+## Ce que l'annuaire a répondu à une annonce, en `AnnuaireProtocole.Statut` (0 : acceptée). Une
+## autre version d'annuaire arrive comme `VERSION_DIFFERENTE`. Un annuaire muet ou illisible n'émet
+## rien : l'hôte n'a pas de raison à lire.
+signal annonce_repondue(statut: int)
 
 const ADRESSE_LOCALE := "127.0.0.1"
 
@@ -285,7 +289,15 @@ func _essayer_annonce_annuaire() -> void:
 	a.adresse = annuaire_adresse
 	add_child(a)
 	annuaire = a
+	a.annonce_terminee.connect(_sur_annonce_terminee)
 	a.demarrer_annonce(_annonce_annuaire)
+
+
+func _sur_annonce_terminee(etat: int, statut: int) -> void:
+	if etat == AnnuaireClient.Etat.OK:
+		annonce_repondue.emit(statut)
+	elif etat == AnnuaireClient.Etat.INCOMPATIBLE:
+		annonce_repondue.emit(AnnuaireProtocole.Statut.VERSION_DIFFERENTE)
 
 
 ## Ce que l'annuaire reçoit : l'annonce locale, avec le port que les autres joueurs peuvent

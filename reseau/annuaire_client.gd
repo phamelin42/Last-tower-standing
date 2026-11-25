@@ -28,7 +28,12 @@ const STATUT_AUCUN: int = -1
 ## `hote:port` de l'annuaire ; vide le désactive.
 var adresse: String = ""
 var version_jeu: int = Protocole.VERSION
-var periode_ms: int = PERIODE_ANNONCE_MS
+## Raccourcir la période s'applique à l'annonce en attente, pas seulement à la suivante.
+var periode_ms: int = PERIODE_ANNONCE_MS:
+	set(valeur):
+		periode_ms = valeur
+		if _dernier_envoi_ms > 0:
+			_prochaine_ms = mini(_prochaine_ms, _dernier_envoi_ms + valeur)
 var intervalle_min_ms: int = INTERVALLE_MIN_MS
 var delai_connexion_ms: int = DELAI_CONNEXION_MS
 var delai_reponse_annonce_ms: int = DELAI_REPONSE_ANNONCE_MS

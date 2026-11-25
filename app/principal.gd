@@ -47,6 +47,9 @@ var _session: SessionReseau = null
 var _chercheur: Decouverte = null
 var _annuaire: AnnuaireClient = null
 var _salons_annuaire: Array[Dictionary] = []
+## Les lignes d'avertissement de l'écran du salon, par origine (`upnp`, `annuaire`) : elles se
+## lisent ensemble, aucune n'écrase l'autre.
+var _avertissements: Dictionary = {}
 var _nom_joueur: String = ""
 var _parametres_hote: Array = []
 var _erreur_creation: String = ""
@@ -390,6 +393,8 @@ func _nouvelle_session() -> SessionReseau:
 	_session.partie_demarree.connect(_sur_partie_demarree)
 	_session.connexion_perdue.connect(_sur_perte)
 	_session.tentative_upnp_terminee.connect(_sur_upnp)
+	_session.annonce_repondue.connect(_sur_reponse_annuaire)
+	_avertissements = {}
 	if fabrique_passerelle.is_valid():
 		_session.fabrique_passerelle = fabrique_passerelle
 	return _session
@@ -449,7 +454,32 @@ func _rejoindre(adresse: String, port: int) -> void:
 
 ## La box a répondu : sans port ouvert, l'hôte le lit sur le salon (le réseau local fonctionne).
 func _sur_upnp(port_obtenu: int) -> void:
-	_salon.afficher_avertissement(tr("CONNEXION_UPNP_ECHEC") if port_obtenu == 0 else "")
+	_avertir("upnp", tr("CONNEXION_UPNP_ECHEC") if port_obtenu == 0 else "")
+
+
+## L'annuaire a jugé l'annonce : seuls les refus qui disent pourquoi la partie n'est pas listée
+## (port injoignable, autre version, annuaire plein) s'affichent ; un refus passager (débit,
+## sondes occupées) laisse la ligne telle quelle, une annonce acceptée l'efface.
+func _sur_reponse_annuaire(statut: int) -> void:
+	var cles := {
+		AnnuaireProtocole.Statut.VERSION_DIFFERENTE: "CONNEXION_ANNUAIRE_HOTE_INCOMPATIBLE",
+		AnnuaireProtocole.Statut.INJOIGNABLE: "CONNEXION_ANNUAIRE_HOTE_INJOIGNABLE",
+		AnnuaireProtocole.Statut.PLEIN: "CONNEXION_ANNUAIRE_HOTE_PLEIN",
+	}
+	if statut == AnnuaireProtocole.Statut.ACCEPTE:
+		_avertir("annuaire", "")
+	elif cles.has(statut):
+		_avertir("annuaire", tr(str(cles[statut])))
+
+
+func _avertir(origine: String, texte: String) -> void:
+	_avertissements[origine] = texte
+	var lignes := PackedStringArray()
+	for cle: String in ["upnp", "annuaire"]:
+		var ligne := str(_avertissements.get(cle, ""))
+		if not ligne.is_empty():
+			lignes.append(ligne)
+	_salon.afficher_avertissement("\n".join(lignes))
 
 
 func _sur_salon(s: Salon) -> void:
