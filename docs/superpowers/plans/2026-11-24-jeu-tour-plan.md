@@ -699,7 +699,7 @@ Toutes les méthodes de `SourceVue` envoient `Protocole.encoder_intention` ; les
 
 ### Task 3.7 : Test d'intégration serveur + 2 robots — `sonnet`
 
-- [ ] **Objectif :** un vrai serveur sans interface et deux clients robots jouent une partie accélérée jusqu'au bout.
+- [x] **Objectif :** un vrai serveur sans interface et deux clients robots jouent une partie accélérée jusqu'au bout.
 - **Fichiers (crée) :** `tools/integration.sh`, `tests/integration/robot.gd`, `tests/integration/test_reseau_complet.gd` (test unitaire du protocole bout en bout sur boucle locale, dans le même processus).
 - **Lire :** `reseau/serveur.gd`, `reseau/client.gd`, `reseau/serveur_dedie.gd`, `tools/verifier.sh`.
 - **Interfaces :** `tools/integration.sh` : choisit un port libre, lance `godot --headless --path . -- --serveur --port P --graine 42 --acceleration 30 --quitter-a-la-fin` en arrière-plan, lance deux fois `godot --headless --path . --script res://tests/integration/robot.gd -- --port P --nom A|B --strategie achat|passif`, attend jusqu'à 120 s ; code 0 **si et seulement si** les trois processus sortent à 0, le journal ne contient ni `ERROR` ni `SCRIPT ERROR` ni `WARNING: ... leaked`, et le journal du serveur contient `fin` ; tue les processus restants à la sortie (`trap`) et affiche les journaux en cas d'échec. `robot.gd` : `extends SceneTree`, se connecte, se met prêt, **achète tout ce qu'il peut** (A) ou **ne fait rien** (B, éliminé tôt) et, une fois mort, observe l'arène de l'autre (exerce `OBSERVER`) ; sort 0 à la fin de partie, 1 sur perte de connexion inattendue.
@@ -732,7 +732,7 @@ Toutes les méthodes de `SourceVue` envoient `Protocole.encoder_intention` ; les
 
 ### Task 4.3 : Mode sans fin (simulation) — `sonnet`
 
-- [ ] **Objectif :** après la victoire, les manches reprennent et la difficulté continue de monter.
+- [x] **Objectif :** après la victoire, les manches reprennent et la difficulté continue de monter.
 - **Fichiers (modifie) :** `sim/partie.gd`, `tests/unitaires/test_partie.gd` (ajouts de cas) ; **ajoute** `tests/unitaires/test_partie_sans_fin.gd`.
 - **Lire :** `sim/partie.gd`, `data/difficulte.json` (`apres_table`), spec §5.1.
 - **Interfaces :** `intention_continuer_sans_fin(id) -> int` devient effective : `OK` si la phase est `VICTOIRE`, sinon `MAUVAISE_PHASE` ; l'arène repart en manches (numérotation continue 32, 33…, famille tirée comme avant, **plus de boss**), `VueArene.sans_fin = true` ; multiplicateurs au-delà de la table : produit de `apres_table` par manche supplémentaire, résistance bornée par `resistance_plancher` ; un joueur en sans fin qui meurt a pour classement sa manche atteinte.
@@ -750,7 +750,7 @@ Toutes les méthodes de `SourceVue` envoient `Protocole.encoder_intention` ; les
 
 ### Task 4.5 : Crédits et documentation — `haiku`
 
-- [ ] **Objectif :** `CREDITS.md` à jour et `README.md` utilisable.
+- [x] **Objectif :** `CREDITS.md` à jour et `README.md` utilisable.
 - **Fichiers (modifie) :** `CREDITS.md`, `README.md`.
 - **Lire :** spec §2, §7, §8 ; `tools/verifier.sh`, `.github/workflows/ci.yml`.
 - **Interfaces :** `README.md` : présentation, prérequis (Godot 4.7.2, gdtoolkit 4), commandes `tools/verifier.sh`, lancement solo, hébergement, serveur dédié (`--serveur --port`), pare-feu UDP 7777, redirection de port. `CREDITS.md` : Godot (MIT), gdtoolkit (MIT), aucune autre ressource tierce.
@@ -759,7 +759,7 @@ Toutes les méthodes de `SourceVue` envoient `Protocole.encoder_intention` ; les
 
 ### Task 4.6 : Câblage final (observation, fin, sans fin, réglages) — `sonnet`
 
-- [ ] **Objectif :** le parcours complet depuis le menu : solo ou réseau, mort, observation, fin, sans fin.
+- [x] **Objectif :** le parcours complet depuis le menu : solo ou réseau, mort, observation, fin, sans fin.
 - **Fichiers (modifie) :** `app/jeu.gd`, `app/menu_principal.gd`, `scenes/jeu.tscn`, `scenes/principal.tscn`, `tests/integration/test_solo.gd`.
 - **Lire :** toutes les interfaces des lots 2 à 4.
 - **Interfaces :** `Jeu` choisit `SourceLocale` ou `Client` ; sur `vue_arene_recue` avec `phase == DEFAITE` affiche `FinUi.afficher_defaite` puis `ObservationUi` ; `VICTOIRE` → `afficher_victoire` ; `partie_terminee` → classement ; les réglages (`Reglages.charger()`) s'appliquent au démarrage (échelle d'interface, plein écran, zoom) ; le menu ajoute « Héberger », « Rejoindre » (→ `ConnexionUi`, `SalonUi`) et « Réglages ».
@@ -768,69 +768,62 @@ Toutes les méthodes de `SourceVue` envoient `Protocole.encoder_intention` ; les
 
 ---
 
-# Lot 5 — Habillage médiéval fantastique réaliste (décision de Phil du 25/11/2026)
+# Lot 5 — Habillage 2D pixel art avec Tiny Swords CC0 (décisions de Phil du 25/11/2026)
 
-**Direction :** médiéval fantastique **réaliste** ; les packs stylisés (Kenney et équivalents) sont
-écartés. Les modèles sont **faits par nous**, par scripts Blender (outil libre), avec des textures et
-des éclairages **CC0** réalistes (Poly Haven, ambientCG). Les créatures animées de façon réaliste
-dépassent ce qu'un script produit : on vise des silhouettes lisibles en vue plongeante, des
-matières crédibles et une lumière soignée, plutôt que le détail fin. Licences : seulement CC0 ou
-équivalent, chaque ressource listée dans `CREDITS.md`.
+**Direction :** le jeu passe en **2D pixel art vue de dessus**, avec l’**ancienne version CC0** du
+pack « Tiny Swords » de Pixel Frog. La version actuelle et le pack d’ennemis interdisent la
+redistribution et ne peuvent pas entrer dans ce dépôt public. L’essai 3D réaliste (Blender, Poly
+Haven) a été écarté par Phil. La simulation (déjà un plan 2D), le réseau, la boutique et le HUD ne
+changent pas : seule la couche `visuels/` passe de la 3D à la 2D. Le pack est téléchargé par Phil
+(itch.io passe par un navigateur), puis versionné dans `assets/tiny_swords/` avec sa licence, et
+crédité dans `CREDITS.md` (le crédit est facultatif en CC0, mais on cite toujours la source).
 
-**Parallélisme :** T5.0 seule, et rien d'autre avant la validation de Phil. Puis T5.1, puis
-{T5.2, T5.3, T5.4, T5.6, T5.7} en parallèle, puis T5.5 et T5.8.
+**Parallélisme :** T5.0, puis T5.1, puis {T5.2, T5.3, T5.4, T5.6} en parallèle, puis T5.5.
 
-### Task 5.0 : Essai jetable (validé par Phil le 25/11/2026) — `sonnet`
+### Task 5.0 : Inventaire du pack et correspondance — `sonnet`
 
-- [ ] **Objectif :** juger le style avant de s'engager. Une tour de garde en pierre, un carré de sol
-      et un ennemi (un golem de pierre ou d'argile, plus facile à rendre réaliste qu'une créature de
-      chair), modélisés par script Blender, texturés en CC0, rendus dans Godot (rendu de compatibilité
-      sous Xvfb) à l'angle de la caméra du jeu et en gros plan. **Rien dans le dépôt** : tout dans le
-      scratchpad. Les captures vont à Phil, qui valide ou réoriente.
+- [ ] **Objectif :** inventaire de l’archive CC0 (unités, couleurs, animations et leurs images,
+      bâtiments, terrain, effets, éléments d’interface, tailles en pixels) dans `docs/tiny_swords.md`,
+      et proposition de correspondance : la tour du joueur, les 8 familles (une armure chacune, avec
+      une volante et deux à distance), le convoi, le boss. Ce qui manque est comblé par des variantes
+      de couleur ou d’échelle, ou des sprites faits par nous dans le même style, signalés comme tels.
+      Planche de captures pour validation par Phil **avant** T5.1.
 
-### Task 5.1 : Chaîne de fabrication des modèles — `sonnet`
+### Task 5.1 : Arène 2D — `sonnet`
 
-- [ ] **Objectif :** `tools/modeles/` : installation épinglée de Blender (somme vérifiée, comme
-      Godot), scripts Python Blender reproductibles, un par modèle, qui produisent des `.glb` dans
-      `assets/modeles/` ; un script qui télécharge les textures et éclairages CC0 nécessaires, avec
-      leur source et leur licence, et régénère la section correspondante de `CREDITS.md`. Une étape de
-      `tools/verifier.sh` vérifie que chaque `.glb` suivi a son script et sa ligne de crédits.
+- [ ] **Objectif :** `visuels/arene_2d.gd` remplace l’arène 3D : terrain, tour au centre, ennemis
+      animés (marche, attaque, mort), tri en profondeur, `Camera2D` avec zoom borné, même contrat
+      (`SourceVue`, interpolation). Performance : 1 000 ennemis visibles sans chute sous 60 images/s
+      (pool de sprites ou `MultiMeshInstance2D` avec atlas animé par nuanceur), mesurée. Captures de
+      contrôle aux trois résolutions.
 
-### Task 5.2 : La tour — `sonnet`
+### Task 5.2 : Terrain et décor — `sonnet`
 
-- [ ] **Objectif :** la tour de garde en pierre et bois, avec des variantes visuelles selon les armes
-      équipées si c'est simple (bannières, braseros).
+- [ ] **Objectif :** sol en tuiles (herbe, chemins, rochers, eau en bordure), décor qui ne gêne pas
+      la lecture des ennemis ; le cercle d’apparition reste visible.
 
-### Task 5.3 : Le terrain et l'ambiance — `sonnet`
+### Task 5.3 : Effets — `haiku`
 
-- [ ] **Objectif :** sol (herbe, terre, pierres), bordure d'arène, ciel ou HDRI CC0, lumière du jour,
-      ombres, brume légère, tout en restant lisible en vue plongeante.
+- [ ] **Objectif :** tirs, impacts, morts et explosions avec les effets du pack, par type de dégâts,
+      plafond d’effets conservé.
 
-### Task 5.4 : Les ennemis — `sonnet`
+### Task 5.4 : Interface aux couleurs du pack — `sonnet`
 
-- [ ] **Objectif :** un modèle par famille (8), le convoi et le boss. Les familles se distinguent par
-      la **silhouette** (jamais la couleur seule). L'animation reste simple : balancement ou marche
-      procédurale par nuanceur ou par os simples, compatible avec `MultiMeshInstance3D`.
+- [ ] **Objectif :** le thème de l’interface reprend les éléments du pack (bannières, boutons,
+      rubans) s’ils sont dans la version CC0, avec une police libre (OFL) ; contrastes AA et tests de
+      mise en page conservés.
 
-### Task 5.5 : Projectiles, impacts et morts — `sonnet`
+### Task 5.5 : Bascule et nettoyage — `sonnet`
 
-- [ ] **Objectif :** effets par type de dégâts (particules sobres), plafond d'effets conservé.
+- [ ] **Objectif :** `visuels/apparence.gd` devient la correspondance entité → sprites ; le test de
+      garde vérifie que seuls `apparence.gd` et `assets/tiny_swords/` portent les ressources
+      graphiques ; l’arène 3D est retirée ; `CREDITS.md` à jour ; captures finales relues.
 
 ### Task 5.6 : Sons — `haiku`
 
-- [ ] **Objectif :** sons CC0 (tirs par type, impacts, achat, relance, alerte de PV bas, début de
-      manche, boss, victoire, défaite) et une musique d'ambiance CC0 ; volume des réglages appliqué.
-
-### Task 5.7 : Interface médiévale — `sonnet`
-
-- [ ] **Objectif :** thème de l'interface (parchemin, bois, métal) et police libre (licence OFL),
-      contrastes AA conservés, sans régression des tests de mise en page.
-
-### Task 5.8 : Bascule d'`Apparence` — `sonnet`
-
-- [ ] **Objectif :** `visuels/apparence.gd` charge les `.glb` quand ils existent et retombe sur les
-      primitives sinon ; le test de garde des primitives est adapté. Captures de contrôle aux trois
-      résolutions.
+- [ ] **Objectif :** sons CC0 d’une autre source (le pack n’en a pas) : tirs, impacts, achat,
+      relance, PV bas, début de manche, boss, victoire, défaite, musique d’ambiance ; volume des
+      réglages appliqué.
 
 ---
 
@@ -906,5 +899,5 @@ son port par **UPnP** (classe `UPNP` intégrée à Godot), avec un message clair
   (jeton tiré à la création du salon). « Retour au salon » recrée le salon et fait revenir les
   autres par la liste ; un vrai retour sans reconnexion demande `Client.retourner_au_salon()`.
 - **Annuaire** : voir le lot 7, en dernier.
-- **Reste des lots 3 et 4** : T3.7, T4.3 (mode sans fin, son bouton est
+- **Lots 3 et 4** : terminés (T3.7, T4.3, T4.5 et T4.6 fusionnés par la PR #2).
   désactivé en attendant), T4.5.

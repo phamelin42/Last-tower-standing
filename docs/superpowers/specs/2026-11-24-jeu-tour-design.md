@@ -26,10 +26,7 @@ ou se protéger), et la boutique aléatoire donne un build différent à chaque 
   (`BoxMesh`, `CylinderMesh`, `SphereMesh`, `CapsuleMesh`, `PrismMesh`, `TorusMesh`) avec des
   `StandardMaterial3D`. Toute la correspondance « entité → apparence » passe par un seul
   endroit (`visuels/`), pour qu'un modèle CC0 puisse remplacer une primitive plus tard sans
-  toucher au code de jeu. **Direction visuelle visée (Phil, 25/11/2026)** : médiéval fantastique
-  réaliste ; les packs stylisés (Kenney…) sont écartés. Piste à valider : modèles faits par nous
-  (scripts Blender, outil libre) avec textures et éclairages CC0 réalistes (Poly Haven,
-  ambientCG).
+  toucher au code de jeu. **Direction visuelle (Phil, 25/11/2026)** : **2D pixel art, vue de dessus**, avec l’**ancienne version CC0** du pack « Tiny Swords » de Pixel Frog (fichier « TS_old version_CC0 Licensed » de https://pixelfrog-assets.itch.io/tiny-swords). La version actuelle du pack interdit la redistribution et ne peut donc pas entrer dans ce dépôt public. L’essai 3D réaliste (Blender, Poly Haven) a été écarté par Phil. La simulation, le réseau et l’interface ne changent pas : seul le rendu passe de la 3D à la 2D.
 - **Multijoueur : le même que l'original (Phil)** : 1 à 8 joueurs, chacun sa tour, son arène,
   ses ennemis et son or. Aucune interaction directe entre les arènes ; on se compare au tableau
   des scores, et le dernier en vie gagne.

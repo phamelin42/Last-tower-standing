@@ -33,6 +33,9 @@ var _sensibilite: float = 1.0
 var _derniere_vue: VueArene = null
 var _globale: VueGlobale = null
 var _fin_affichee: bool = false
+## Vrai dès que la source a accepté « continuer sans fin » : une vue de victoire arrivée en retard
+## (réseau) ne doit pas rouvrir l'écran de fin.
+var _sans_fin: bool = false
 var _observe: bool = false
 var _pause: PanelContainer = null
 var _reprendre: Button = null
@@ -73,7 +76,7 @@ func _ready() -> void:
 	fin.rejouer.connect(_rejouer)
 	fin.quitter.connect(_demander_menu)
 	fin.observer.connect(_observer)
-	# « Continuer sans fin » : désactivé jusqu'au mode sans fin (T4.3), on ne l'écoute pas.
+	fin.continuer_sans_fin.connect(_continuer_sans_fin)
 	_placer()
 
 
@@ -111,6 +114,7 @@ func _brancher(src: SourceVue) -> void:
 	src.vue_arene_recue.connect(_sur_arene)
 	src.vue_globale_recue.connect(_sur_globale)
 	src.connexion_perdue.connect(_sur_perte)
+	src.resultat_intention.connect(_sur_resultat)
 
 
 func _sur_perte(motif: String) -> void:
@@ -156,6 +160,7 @@ func _vider_ecran() -> void:
 	_derniere_vue = null
 	_globale = null
 	_fin_affichee = false
+	_sans_fin = false
 	_observe = false
 	fin.visible = false
 	observation.visible = false
@@ -172,7 +177,7 @@ func _sur_arene(vue: VueArene) -> void:
 	boutique.visible = _boutique_active()
 	if vue.phase == Types.Phase.DEFAITE:
 		_montrer_fin(false)
-	elif vue.phase == Types.Phase.VICTOIRE:
+	elif vue.phase == Types.Phase.VICTOIRE and not _sans_fin:
 		_montrer_fin(true)
 
 
@@ -217,16 +222,12 @@ func _montrer_fin(victoire: bool) -> void:
 	_placer()
 
 
-## Le mode sans fin n'existe pas encore : son bouton reste là, grisé, avec une infobulle. En
-## réseau, « Rejouer » devient « Retour au salon ».
+## En réseau, « Rejouer » devient « Retour au salon ».
 func _adapter_boutons_fin() -> void:
 	var rejouer_bouton: Button = null
 	for noeud: Node in fin.find_children("*", "Button", true, false):
 		var bouton := noeud as Button
-		if bouton.get_meta("action", "") == ACTION_SANS_FIN:
-			bouton.disabled = true
-			bouton.tooltip_text = tr("MENU_BIENTOT")
-		elif bouton.get_meta("action", "") == ACTION_REJOUER:
+		if bouton.get_meta("action", "") == ACTION_REJOUER:
 			rejouer_bouton = bouton
 			if en_reseau:
 				bouton.text = tr("SALON_RETOUR_SALON")
@@ -236,6 +237,23 @@ func _adapter_boutons_fin() -> void:
 			or (get_viewport().gui_get_focus_owner() as Button).disabled
 		):
 			rejouer_bouton.grab_focus()
+
+
+func _continuer_sans_fin() -> void:
+	if source != null:
+		source.continuer_sans_fin()
+
+
+## La source a répondu : si « sans fin » est accepté, l'écran de victoire cède la place à la partie.
+func _sur_resultat(genre: String, code: int) -> void:
+	if genre != "continuer_sans_fin" or code != Types.Resultat.OK:
+		return
+	_sans_fin = true
+	_fin_affichee = false
+	fin.visible = false
+	boutique.visible = _boutique_active()
+	hud.modulate.a = 1.0
+	_placer()
 
 
 func _observer() -> void:
