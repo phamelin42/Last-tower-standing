@@ -82,6 +82,36 @@ Pour une partie solo reproductible, les options `--graine N` et `--vitesse X` (X
 godot --path . -- --graine 42 --vitesse 0.5
 ```
 
+## Mesurer les images par seconde
+
+Le jeu vise **60 images par seconde au minimum avec 1 000 ennemis visibles**. Deux outils le
+vérifient sur votre machine.
+
+**Le compteur** affiche les images par seconde actuelles, le minimum des 5 dernières secondes et le
+nombre d'ennemis visibles, en haut à gauche sous la barre du haut, dans le menu comme en partie.
+
+- **F3** l'affiche ou le masque pour la séance en cours, sans toucher au réglage enregistré.
+- **Réglages**, case « Afficher les images par seconde » (éteinte par défaut) : le compteur
+  s'affiche à chaque lancement du jeu tant qu'elle est cochée.
+
+**Le banc d'essai** ouvre, à la place du menu, une arène où 1 000 ennemis des huit familles avancent
+vers la tour, sans partie ni réseau. Le compteur y est affiché d'office. Au bout de 30 s, un résumé
+(moyenne, minimum, nombre d'ennemis) s'écrit en bas de l'écran et dans la console ; les 2 premières
+secondes ne comptent pas (chargement des images). Échap quitte.
+
+- En ligne de commande : `godot --path . -- --banc-ips` (1 000 ennemis), ou
+  `godot --path . -- --banc-ips 2000` pour un autre nombre (de 1 à 5 000).
+- Depuis l'éditeur : menu Projet, Paramètres du projet, Application, Run, champ « Main Run Args »
+  (arguments de la ligne de commande), y mettre `-- --banc-ips 1000`, puis lancer avec F5. Penser à
+  vider le champ ensuite : il est enregistré dans `project.godot`.
+
+**Ce qu'il faut lire** : un minimum d'au moins 60 img/s sur 5 s avec 1 000 ennemis (ligne
+« min. 5 s » du compteur, ou « minimum » du résumé). La synchronisation verticale plafonne les
+images à la fréquence de l'écran (60 Hz le plus souvent) : un compteur collé à 60 est un bon
+résultat, pas une limite du jeu. Pour mesurer la marge, la désactiver :
+`godot --path . --disable-vsync -- --banc-ips`. Sans carte graphique réelle (serveur, conteneur),
+le rendu est logiciel et le chiffre n'a aucune valeur.
+
 ## Développer
 
 - `tools/verifier.sh` : rejoue toutes les étapes de la CI (import, uid, lint, format, tests,
