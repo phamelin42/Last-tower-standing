@@ -13,12 +13,13 @@ extends RefCounted
 ## `t` d'un événement n'est pas transmis (il vaut le `tick` du message) ; les événements au-delà de
 ## `MAX_EVENEMENTS` sont abandonnés (effets visuels seulement).
 
-enum Msg { BONJOUR = 1, ETAT_ARENE, ETAT_GLOBAL, INTENTION, SALON, REFUS }
+enum Msg { BONJOUR = 1, ETAT_ARENE, ETAT_GLOBAL, INTENTION, SALON, REFUS, RESULTAT }
 enum Intention {
 	ACHETER = 1, RELANCER, VENDRE, MARCHE_NOIR, OBSERVER, SANS_FIN, QUITTER, PRET, OPTIONS
 }
 
-const VERSION: int = 1
+## 2 : ajout de `RESULTAT` (réponse du serveur à chaque intention).
+const VERSION: int = 2
 const MAX_ENNEMIS: int = 2000
 const MAX_EVENEMENTS: int = 64
 const MAX_TAILLE: int = 65536
@@ -49,6 +50,7 @@ const _MAX_NOM_OCTETS: int = MAX_NOM * 4
 const _MAX_BONJOUR: int = 3 + _MAX_NOM_OCTETS + 8
 const _MAX_INTENTION: int = 7 + MAX_TEXTE_OCTETS
 const _MAX_REFUS: int = 2 + MAX_MOTIF_OCTETS
+const _TAILLE_RESULTAT: int = 3
 const _GENRES_EVENEMENT: Array[String] = ["tir", "impact", "mort"]
 
 # --- Bonjour ---------------------------------------------------------------------------------
@@ -163,11 +165,43 @@ static func decoder_refus(b: PackedByteArray) -> String:
 	return motif
 
 
+## `u8 type · u8 genre · u8 code` : ce que le serveur a répondu à une intention (`genre` =
+## `Intention`, `code` = `Types.Resultat`). Vide si l'un des deux est hors bornes.
+static func encoder_resultat(genre: int, code: int) -> PackedByteArray:
+	if genre < Intention.ACHETER or genre > Intention.OPTIONS:
+		return PackedByteArray()
+	if code < Types.Resultat.OK or code > Types.Resultat.NON_DISPONIBLE:
+		return PackedByteArray()
+	var e := _Ecrivain.new(_TAILLE_RESULTAT)
+	e.u8(Msg.RESULTAT)
+	e.u8(genre)
+	e.u8(code)
+	return e.fin()
+
+
+## `{genre, code}`, ou `{}` si le paquet est invalide.
+static func decoder_resultat(b: PackedByteArray) -> Dictionary:
+	if b.size() != _TAILLE_RESULTAT:
+		return {}
+	var l := LecteurOctets.new(b)
+	if l.u8() != Msg.RESULTAT:
+		return {}
+	var genre := l.u8()
+	var code := l.u8()
+	if not l.ok or l.reste() != 0:
+		return {}
+	if genre < Intention.ACHETER or genre > Intention.OPTIONS:
+		return {}
+	if code < Types.Resultat.OK or code > Types.Resultat.NON_DISPONIBLE:
+		return {}
+	return {"genre": genre, "code": code}
+
+
 ## Type du message (`Msg`) d'un paquet, -1 s'il est vide, trop grand ou de type inconnu.
 static func type_de(b: PackedByteArray) -> int:
 	if b.is_empty() or b.size() > MAX_TAILLE:
 		return -1
-	if b[0] < Msg.BONJOUR or b[0] > Msg.REFUS:
+	if b[0] < Msg.BONJOUR or b[0] > Msg.RESULTAT:
 		return -1
 	return b[0]
 

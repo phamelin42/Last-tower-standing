@@ -296,6 +296,8 @@ func traiter_intention(pair: int, octets: PackedByteArray) -> int:
 		resultat = _hors_phase()
 	else:
 		resultat = _intention_de_jeu(pair, genre, arg, String(i["texte"]))
+	# Au seul expéditeur : le client apprend ainsi pourquoi un achat échoue.
+	_envoyer(pair, "rpc_resultat", Protocole.encoder_resultat(genre, resultat))
 	return resultat
 
 

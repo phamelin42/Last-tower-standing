@@ -11,6 +11,7 @@ signal etat_arene_recu(octets: PackedByteArray)
 signal etat_global_recu(octets: PackedByteArray)
 signal salon_recu(octets: PackedByteArray)
 signal refus_recu(octets: PackedByteArray)
+signal resultat_recu(octets: PackedByteArray)
 
 @rpc("any_peer", "reliable")
 func rpc_bonjour(octets: PackedByteArray) -> void:
@@ -40,3 +41,8 @@ func rpc_salon(octets: PackedByteArray) -> void:
 @rpc("authority", "reliable")
 func rpc_refus(octets: PackedByteArray) -> void:
 	refus_recu.emit(octets)
+
+
+@rpc("authority", "reliable")
+func rpc_resultat(octets: PackedByteArray) -> void:
+	resultat_recu.emit(octets)

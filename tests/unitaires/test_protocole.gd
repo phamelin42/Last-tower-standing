@@ -309,7 +309,7 @@ func test_bonjour_mal_forme_est_refuse() -> void:
 
 
 func test_bonjour_de_version_differente_est_refuse_avec_un_motif_clair() -> void:
-	for v: int in [0, 2, 3, 255]:
+	for v: int in [0, Protocole.VERSION - 1, Protocole.VERSION + 1, 255]:
 		var b := _bonjour_version(v)
 		verifier_egal(Protocole.decoder_bonjour(b), {}, "version %d" % v)
 		verifier_egal(Protocole.version_bonjour(b), v)
@@ -383,7 +383,8 @@ func test_type_de_reconnait_chaque_message_et_refuse_le_reste() -> void:
 	verifier_egal(Protocole.type_de(arene), Protocole.Msg.ETAT_ARENE)
 	verifier_egal(Protocole.type_de(PackedByteArray()), -1)
 	verifier_egal(Protocole.type_de(PackedByteArray([0])), -1)
-	verifier_egal(Protocole.type_de(PackedByteArray([7])), -1)
+	verifier_egal(Protocole.type_de(PackedByteArray([8])), -1)
+	verifier_egal(Protocole.type_de(Protocole.encoder_resultat(1, 0)), Protocole.Msg.RESULTAT)
 	var gros := PackedByteArray()
 	gros.resize(Protocole.MAX_TAILLE + 1)
 	gros[0] = Protocole.Msg.BONJOUR
@@ -661,7 +662,13 @@ func test_etat_arene_avec_octets_en_trop_ou_trop_long_est_refuse() -> void:
 func test_etat_arene_de_type_inconnu_ou_d_un_autre_message_est_refuse() -> void:
 	var valide := Protocole.encoder_etat_arene(_vue(5), _catalogue)
 	for t: int in [
-		0, Protocole.Msg.BONJOUR, Protocole.Msg.ETAT_GLOBAL, Protocole.Msg.SALON, 7, 255
+		0,
+		Protocole.Msg.BONJOUR,
+		Protocole.Msg.ETAT_GLOBAL,
+		Protocole.Msg.SALON,
+		Protocole.Msg.RESULTAT,
+		8,
+		255
 	]:
 		var b := valide.duplicate()
 		b[0] = t
@@ -745,7 +752,7 @@ func test_65536_octets_de_bruit_sont_refuses_pour_chaque_decodeur() -> void:
 	bruit.resize(65536)
 	for i in bruit.size():
 		bruit[i] = rng.randi() % 256
-	for t in range(Protocole.Msg.BONJOUR, Protocole.Msg.REFUS + 1):
+	for t in range(Protocole.Msg.BONJOUR, Protocole.Msg.RESULTAT + 1):
 		bruit[0] = t
 		verifier_nul(_arene(bruit), "arène, type %d" % t)
 		verifier_nul(Protocole.decoder_etat_global(bruit))
