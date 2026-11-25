@@ -90,6 +90,16 @@ func _refus(pair: int) -> Array[String]:
 	return out
 
 
+func _resultats(pair: int) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	for e: Dictionary in sorties:
+		if int(e["pair"]) == pair and String(e["rpc"]) == "rpc_resultat":
+			var r := Protocole.decoder_resultat(e["octets"])
+			verifier_faux(r.is_empty(), "tout résultat émis se décode")
+			out.append(r)
+	return out
+
+
 func _vivant(s: Serveur, joueur: int) -> bool:
 	for j: Dictionary in s.partie.vue_globale().joueurs:
 		if int(j["id"]) == joueur:
@@ -604,3 +614,95 @@ func test_arreter_sans_demarrer_est_sans_effet() -> void:
 	s.arreter()
 	verifier_faux(s.est_actif())
 	s.free()
+
+
+# --- Résultat des intentions -----------------------------------------------------------------
+
+
+func test_chaque_genre_d_intention_renvoie_son_code_au_seul_expediteur() -> void:
+	var s := _serveur()
+	var ids := _lancer(s, 2)
+	var genres: Array[int] = []
+	for g: int in range(Protocole.Intention.ACHETER, Protocole.Intention.OPTIONS + 1):
+		if g != Protocole.Intention.QUITTER:
+			genres.append(g)
+	var attendus := {
+		Protocole.Intention.RELANCER: Types.Resultat.OK,
+		Protocole.Intention.OBSERVER: Types.Resultat.INDICE_INVALIDE,
+		Protocole.Intention.PRET: Types.Resultat.MAUVAISE_PHASE,
+		Protocole.Intention.OPTIONS: Types.Resultat.MAUVAISE_PHASE,
+		Protocole.Intention.SANS_FIN: Types.Resultat.NON_DISPONIBLE,
+	}
+	for genre: int in genres:
+		for k: int in 2:
+			var expediteur := ids[k]
+			var autre := ids[1 - k]
+			_attendre(s, 1.0)
+			sorties.clear()
+			var arg := autre if genre == Protocole.Intention.OBSERVER else 99
+			var texte := "inconnue" if genre == Protocole.Intention.MARCHE_NOIR else ""
+			var retour := _intention(s, expediteur, genre, arg, texte)
+			var recus := _resultats(expediteur)
+			verifier_egal(recus.size(), 1, "genre %d : un résultat" % genre)
+			if recus.size() == 1:
+				verifier_egal(recus[0], {"genre": genre, "code": retour}, "genre %d" % genre)
+			verifier_egal(_resultats(autre).size(), 0, "genre %d : rien pour l'autre" % genre)
+			if attendus.has(genre) and genre != Protocole.Intention.RELANCER:
+				verifier_egal(retour, attendus[genre], "code du genre %d" % genre)
+
+
+func test_resultats_ok_refus_de_boutique_et_mort_arrivent_au_bon_client() -> void:
+	var s := _serveur()
+	_connecter(s, 5)
+	sorties.clear()
+	_intention(s, 5, Protocole.Intention.ACHETER, 0)
+	_attendre(s, 1.0)
+	verifier_egal(
+		_resultats(5),
+		(
+			[{"genre": Protocole.Intention.ACHETER, "code": Types.Resultat.MAUVAISE_PHASE}]
+			as Array[Dictionary]
+		),
+		"avant la partie"
+	)
+	sorties.clear()
+	_intention(s, 5, Protocole.Intention.PRET, 1)
+	verifier_egal(_resultats(5)[0]["code"], Types.Resultat.OK, "prêt accepté")
+	_attendre(s, 1.0)
+	sorties.clear()
+	_intention(s, 5, Protocole.Intention.QUITTER)
+	verifier_egal(_resultats(5)[0], {"genre": Protocole.Intention.QUITTER, "code": 0})
+	_attendre(s, 1.0)
+	sorties.clear()
+	_intention(s, 5, Protocole.Intention.ACHETER, 0)
+	verifier_egal(_resultats(5)[0]["code"], Types.Resultat.ARENE_MORTE, "après la mort")
+
+
+func test_une_intention_ignoree_limitee_ou_deformee_n_a_pas_de_resultat() -> void:
+	var s := _serveur()
+	var ids := _lancer(s, 1)
+	sorties.clear()
+	s.traiter_intention(999, Protocole.encoder_intention(Protocole.Intention.RELANCER, 0))
+	s.traiter_intention(ids[0], PackedByteArray([1, 2, 3]))
+	var rafale := Protocole.encoder_intention(Protocole.Intention.RELANCER, 0)
+	for i: int in 100:
+		s.traiter_intention(ids[0], rafale)
+	var n := _resultats(ids[0]).size()
+	verify_borne(n)
+	verifier_egal(_resultats(999).size(), 0)
+
+
+func verify_borne(n: int) -> void:
+	verifier(
+		n <= Serveur.INTENTIONS_PAR_PAS, "les intentions limitées n'ont pas de réponse : %d" % n
+	)
+
+
+func test_un_ancien_client_de_version_precedente_est_refuse_avec_un_motif() -> void:
+	var s := _serveur()
+	var ancien := _bonjour("Aki")
+	ancien[1] = Protocole.VERSION - 1
+	s.pair_connecte(5)
+	verifier_faux(s.traiter_bonjour(5, ancien))
+	verifier_egal(_refus(5), [Protocole.motif_version(Protocole.VERSION - 1)] as Array[String])
+	verifier_egal(s.joueur_de(5), -1)

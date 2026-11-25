@@ -13,6 +13,11 @@ const HAUTEUR_LIGNE := 48.0
 const TAILLE_TEXTE := 16
 const TAILLE_TITRE := 28
 const COLONNES_CLASSEMENT := 5
+## Largeur de chaque colonne du classement : sans elle, les libellés tronqués se réduisent à rien.
+const LARGEURS_COLONNES: Array[float] = [72.0, 220.0, 112.0, 152.0, 112.0]
+const VOILE := Color(0.05, 0.08, 0.09, 0.62)
+## Hauteur au-delà de laquelle le classement défile (plus de joueurs que la fenêtre n'en porte).
+const HAUTEUR_CLASSEMENT_MAX := 240.0
 ## Les dégâts sont des flottants : on les plafonne avant de les arrondir, pour qu'une valeur
 ## démesurée ne fasse pas déborder l'entier 64 bits.
 const ENTIER_MAX := 9.0e18
@@ -20,34 +25,60 @@ const ENTIER_MAX := 9.0e18
 const ACTIONS_DEFAITE: Array[String] = ["observer", "rejouer", "quitter"]
 const ACTIONS_VICTOIRE: Array[String] = ["continuer_sans_fin", "rejouer", "quitter"]
 
+## Panneau opaque centré de l'écran de fin.
+var panneau: PanelContainer
 var _titre: Label
 var _recap: GridContainer
 var _classement_titre: Label
 var _vide: Label
+var _defilement: ScrollContainer
 var _tableau: GridContainer
+var _actions_courantes: Array[String] = []
 var _mention: Label
 var _actions: HBoxContainer
 var _noms: Array[Label] = []
 var _globale: VueGlobale = null
+var _defaite: bool = false
 var _id_local: int = -1
 
 
 func _init() -> void:
+	theme = ThemeJeu.creer()
 	add_theme_font_size_override("font_size", TAILLE_TEXTE)
+	set_anchors_preset(Control.PRESET_FULL_RECT)
+	# Le voile estompe la partie et l'empêche de recevoir les clics pendant l'écran de fin.
+	var voile := ColorRect.new()
+	voile.name = "Voile"
+	voile.color = VOILE
+	voile.set_anchors_preset(Control.PRESET_FULL_RECT)
+	add_child(voile)
+	var centre := CenterContainer.new()
+	centre.set_anchors_preset(Control.PRESET_FULL_RECT)
+	centre.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(centre)
+	panneau = PanelContainer.new()
+	panneau.name = "Panneau"
+	panneau.add_theme_stylebox_override("panel", ThemeJeu.boite_panneau())
+	centre.add_child(panneau)
 	var contenu := VBoxContainer.new()
-	add_child(contenu)
+	panneau.add_child(contenu)
 	_titre = _etiquette("", false, TAILLE_TITRE)
+	_titre.theme_type_variation = "Titre"
 	contenu.add_child(_titre)
 	_recap = GridContainer.new()
-	_recap.columns = 2
+	_recap.columns = 6
 	contenu.add_child(_recap)
 	_classement_titre = _etiquette("", false)
 	contenu.add_child(_classement_titre)
 	_vide = _etiquette("", false)
 	contenu.add_child(_vide)
+	_defilement = ScrollContainer.new()
+	_defilement.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	contenu.add_child(_defilement)
 	_tableau = GridContainer.new()
 	_tableau.columns = COLONNES_CLASSEMENT
-	contenu.add_child(_tableau)
+	_tableau.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_defilement.add_child(_tableau)
 	_mention = _etiquette("", false)
 	contenu.add_child(_mention)
 	_actions = HBoxContainer.new()
@@ -55,14 +86,19 @@ func _init() -> void:
 
 
 ## Défaite : le bilan de la joueuse, le classement, et l'observation des autres arènes.
-func afficher_defaite(vue: VueArene, globale: VueGlobale) -> void:
+## L'observation n'est proposée que s'il reste un autre joueur en vie (jamais en solo).
+func afficher_defaite(vue: VueArene, globale: VueGlobale, id_local: int = -1) -> void:
 	_titre.text = tr("FIN_DEFAITE_TITRE")
-	_afficher_bilan(vue, globale, ACTIONS_DEFAITE)
+	_defaite = true
+	_id_local = id_local
+	_afficher_bilan(vue, globale, _actions_defaite(globale, id_local))
 
 
 ## Victoire : le bilan, le classement, et la suite possible en mode sans fin.
-func afficher_victoire(vue: VueArene, globale: VueGlobale) -> void:
+func afficher_victoire(vue: VueArene, globale: VueGlobale, id_local: int = -1) -> void:
 	_titre.text = tr("FIN_VICTOIRE_TITRE")
+	_defaite = false
+	_id_local = id_local
 	_afficher_bilan(vue, globale, ACTIONS_VICTOIRE)
 
 
@@ -71,6 +107,23 @@ func afficher_classement(globale: VueGlobale, id_local: int) -> void:
 	_globale = globale
 	_id_local = id_local
 	_rafraichir_classement()
+	if _defaite:
+		var voulues := _actions_defaite(globale, id_local)
+		if voulues != _actions_courantes:
+			_rafraichir_actions(voulues)
+
+
+## Vrai s'il reste en vie un joueur autre que la joueuse locale : le seul cas où l'observation a
+## quelque chose à montrer.
+static func observation_possible(globale: VueGlobale, id_local: int) -> bool:
+	if globale == null:
+		return false
+	for joueur: Dictionary in globale.joueurs:
+		var id: int = joueur["id"]
+		var vivant: bool = joueur["vivant"]
+		if vivant and id != id_local:
+			return true
+	return false
 
 
 ## Les actions visibles, dans l'ordre d'affichage.
@@ -132,23 +185,32 @@ func _rafraichir_classement() -> void:
 	_noms.clear()
 	_mention.text = ""
 	_mention.visible = false
-	var joueurs: Array[Dictionary] = [] if _globale == null else _globale.joueurs
+	var joueurs: Array[Dictionary] = []
+	if _globale != null:
+		joueurs = _globale.joueurs
 	var classes := _selon_classement(joueurs)
 	var vide := classes.is_empty()
 	_vide.visible = vide
 	_vide.text = tr("FIN_CLASSEMENT_VIDE") if vide else ""
-	_tableau.visible = not vide
+	_defilement.visible = not vide
 	if vide:
 		return
+	var colonne := 0
 	for entete: String in [
 		"FIN_RANG", "FIN_JOUEUR", "FIN_MANCHE", "FIN_ELIMINATIONS", "FIN_DEGATS"
 	]:
-		_tableau.add_child(_etiquette(tr(entete), false))
+		var titre := _etiquette(tr(entete), false)
+		titre.custom_minimum_size.x = LARGEURS_COLONNES[colonne]
+		_tableau.add_child(titre)
+		colonne += 1
 	var rang := 0
 	for joueur: Dictionary in classes:
 		rang += 1
 		_ajouter_ligne(rang, joueur)
 	_afficher_mention(joueurs)
+	_defilement.custom_minimum_size.y = minf(
+		_tableau.get_combined_minimum_size().y, HAUTEUR_CLASSEMENT_MAX
+	)
 
 
 func _ajouter_ligne(rang: int, joueur: Dictionary) -> void:
@@ -162,11 +224,16 @@ func _ajouter_ligne(rang: int, joueur: Dictionary) -> void:
 		affiche = "%s (%s)" % [nom, tr("FIN_VOUS")]
 	var libelle_nom := _etiquette(affiche, true)
 	_noms.append(libelle_nom)
-	_tableau.add_child(_etiquette(str(rang), false))
-	_tableau.add_child(libelle_nom)
-	_tableau.add_child(_etiquette(Nombres.groupe(manche), false))
-	_tableau.add_child(_etiquette(Nombres.groupe(eliminations), false))
-	_tableau.add_child(_etiquette(Nombres.groupe(_entier(degats)), false))
+	var cellules: Array[Label] = [
+		_etiquette(str(rang), false),
+		libelle_nom,
+		_etiquette(Nombres.groupe(manche), false),
+		_etiquette(Nombres.groupe(eliminations), false),
+		_etiquette(Nombres.groupe(_entier(degats)), false),
+	]
+	for i: int in cellules.size():
+		cellules[i].custom_minimum_size.x = LARGEURS_COLONNES[i]
+		_tableau.add_child(cellules[i])
 
 
 ## La mention ne paraît que si le dernier rempart désigne un joueur de cette partie.
@@ -195,7 +262,16 @@ func _selon_classement(joueurs: Array[Dictionary]) -> Array[Dictionary]:
 	return sortie
 
 
+func _actions_defaite(globale: VueGlobale, id_local: int) -> Array[String]:
+	var sortie: Array[String] = []
+	for action: String in ACTIONS_DEFAITE:
+		if action != "observer" or observation_possible(globale, id_local):
+			sortie.append(action)
+	return sortie
+
+
 func _rafraichir_actions(actions: Array[String]) -> void:
+	_actions_courantes = actions.duplicate()
 	_vider(_actions)
 	for action: String in actions:
 		var bouton := Button.new()

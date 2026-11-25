@@ -6,8 +6,9 @@ extends RefCounted
 ## ressources par seconde quand les ennemis affluent.
 
 const ECHELLE: float = 0.02
-## Fond d'interface (washi clair) sur lequel les textes de rareté doivent rester lisibles.
-const FOND_INTERFACE := Color("#faf7f0")
+## Fond des cartes de la boutique (même valeur que `ThemeJeu.ENCRE_CARTE`, vérifiée par un test)
+## sur lequel les textes de rareté doivent rester lisibles.
+const FOND_INTERFACE := Color("#26343a")
 ## Altitude d'un volant au-dessus du sol, en mètres.
 const FLOTTAISON_VOLANT: float = 1.5
 ## Couleur du repli : une entité sans apparence se voit tout de suite, elle ne disparaît pas.
@@ -102,13 +103,13 @@ static func forme_projectile(type_degats: int) -> Mesh:
 static func couleur_rarete(r: int) -> Color:
 	match r:
 		Types.Rarete.COMMUNE:
-			return Color("#4a4458")
+			return Color("#c3c9cc")
 		Types.Rarete.PEU_COMMUNE:
-			return Color("#2e6b3a")
+			return Color("#7bd88f")
 		Types.Rarete.RARE:
-			return Color("#1f5f8b")
+			return Color("#72b8ff")
 		Types.Rarete.EPIQUE:
-			return Color("#7a2e8e")
+			return Color("#d6a3ff")
 	return COULEUR_REPLI
 
 
@@ -139,6 +140,25 @@ static func cle_libelle_rarete(r: int) -> String:
 		Types.Rarete.EPIQUE:
 			return "rarete.epique"
 	return ""
+
+
+## Couleur d'un texte d'armure sur le fond des panneaux : plus claire que celle du matériau 3D,
+## qui n'a pas à porter de texte. Le nom et le symbole restent affichés avec elle.
+static func couleur_texte_armure(a: int) -> Color:
+	match a:
+		Types.Armure.LEGERE:
+			return Color("#8fd18b")
+		Types.Armure.MOYENNE:
+			return Color("#f0c85a")
+		Types.Armure.LOURDE:
+			return Color("#7bb8e6")
+		Types.Armure.FORTIFIEE:
+			return Color("#c79be6")
+		Types.Armure.AUCUNE:
+			return Color("#b5afc0")
+		Types.Armure.BOSS:
+			return Color("#ff8a78")
+	return COULEUR_REPLI
 
 
 static func couleur_armure(a: int) -> Color:

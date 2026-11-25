@@ -12,17 +12,34 @@ const LARGEUR_MAX := 960.0
 const HAUTEUR_LIGNE := 48.0
 const TAILLE_TEXTE := 16
 const COLONNES := 6
+## Largeur de chaque colonne : un libellé tronqué ne doit pas se réduire à rien.
+const LARGEURS_COLONNES: Array[float] = [200.0, 88.0, 136.0, 104.0, 88.0, 128.0]
 
+## Panneau opaque du tableau (le fond ne laisse rien lire derrière lui).
+var panneau: PanelContainer
 var _tableau: GridContainer
 var _titre: Label
 
 
 func _init() -> void:
+	theme = ThemeJeu.creer()
 	add_theme_font_size_override("font_size", TAILLE_TEXTE)
 	visible = false
+	set_anchors_preset(Control.PRESET_FULL_RECT)
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var centre := CenterContainer.new()
+	centre.set_anchors_preset(Control.PRESET_FULL_RECT)
+	centre.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(centre)
+	panneau = PanelContainer.new()
+	panneau.name = "Panneau"
+	panneau.add_theme_stylebox_override("panel", ThemeJeu.boite_panneau())
+	centre.add_child(panneau)
 	var contenu := VBoxContainer.new()
-	add_child(contenu)
+	panneau.add_child(contenu)
 	_titre = _etiquette(false)
+	_titre.theme_type_variation = "Titre"
+	_titre.add_theme_font_size_override("font_size", ThemeJeu.TAILLE_TITRE)
 	contenu.add_child(_titre)
 	_tableau = GridContainer.new()
 	_tableau.columns = COLONNES
@@ -44,6 +61,7 @@ func afficher(vue: VueGlobale, id_local: int) -> void:
 	for enfant: Node in _tableau.get_children():
 		_tableau.remove_child(enfant)
 		enfant.free()
+	var colonne := 0
 	for entete: String in [
 		"SCORES_JOUEUR",
 		"SCORES_MANCHE",
@@ -52,7 +70,10 @@ func afficher(vue: VueGlobale, id_local: int) -> void:
 		"SCORES_REVENU",
 		"SCORES_ETAT",
 	]:
-		_tableau.add_child(_etiquette(false, tr(entete)))
+		var titre := _etiquette(false, tr(entete))
+		titre.custom_minimum_size.x = LARGEURS_COLONNES[colonne]
+		_tableau.add_child(titre)
+		colonne += 1
 	for joueur: Dictionary in vue.joueurs:
 		_ajouter_ligne(joueur, id_local)
 
@@ -73,8 +94,10 @@ func _ajouter_ligne(joueur: Dictionary, id_local: int) -> void:
 		Nombres.groupe(joueur["revenu"]),
 		etat,
 	]
-	for texte: String in cellules:
-		_tableau.add_child(_etiquette(true, texte))
+	for i: int in cellules.size():
+		var cellule := _etiquette(true, cellules[i])
+		cellule.custom_minimum_size.x = LARGEURS_COLONNES[i]
+		_tableau.add_child(cellule)
 
 
 func _etiquette(tronquable: bool, texte: String = "") -> Label:

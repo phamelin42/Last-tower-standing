@@ -8,13 +8,13 @@ extends Node
 signal retour_menu(motif: String)
 
 const SCENE_ARENE := "res://scenes/arene_3d.tscn"
-const MARGE := 16.0
 ## Un cran de molette déplace le zoom de ce pas, multiplié par la sensibilité des réglages.
 const PAS_ZOOM := 0.05
 const ACTION_MENU := "menu_jeu"
 const ACTION_SANS_FIN := "continuer_sans_fin"
 const ACTION_REJOUER := "rejouer"
 const HAUTEUR_CONTROLE := 48.0
+const OPACITE_HUD_FIN := 0.35
 
 ## Fichier des réglages : le lanceur de tests le remplace par un dossier temporaire.
 var chemin_reglages: String = Reglages.CHEMIN_DEFAUT
@@ -60,6 +60,9 @@ static func appliquer_fenetre(fenetre: Window, r: Reglages) -> void:
 
 
 func _ready() -> void:
+	_racine.theme = ThemeJeu.creer()
+	# Hors du sol de l'arène, le fond reprend l'encre de l'interface plutôt que le gris par défaut.
+	RenderingServer.set_default_clear_color(ThemeJeu.JAUGE_FOND)
 	fin.visible = false
 	_construire_pause()
 	_racine.resized.connect(_placer)
@@ -126,6 +129,7 @@ func _vider_ecran() -> void:
 	observation.visible = false
 	scores.visible = false
 	boutique.visible = true
+	hud.modulate.a = 1.0
 	_pause.visible = false
 
 
@@ -133,7 +137,7 @@ func _sur_arene(vue: VueArene) -> void:
 	_derniere_vue = vue
 	hud.afficher(vue)
 	boutique.afficher(vue)
-	boutique.visible = source.cible_observee() == source.id_local()
+	boutique.visible = _boutique_active()
 	if vue.phase == Types.Phase.DEFAITE:
 		_montrer_fin(false)
 	elif vue.phase == Types.Phase.VICTOIRE:
@@ -167,11 +171,15 @@ func _montrer_fin(victoire: bool) -> void:
 		return
 	_fin_affichee = true
 	var vue := _derniere_vue if _derniere_vue != null else VueArene.new()
+	var id_local := source.id_local() if source != null else -1
 	if victoire:
-		fin.afficher_victoire(vue, _globale)
+		fin.afficher_victoire(vue, _globale, id_local)
 	else:
-		fin.afficher_defaite(vue, _globale)
+		fin.afficher_defaite(vue, _globale, id_local)
 	fin.visible = true
+	# La partie est finie : la boutique disparaît (et ne reçoit plus d'entrée), le HUD s'estompe.
+	boutique.visible = false
+	hud.modulate.a = OPACITE_HUD_FIN
 	observation.visible = false
 	_adapter_boutons_fin()
 	_placer()
@@ -260,30 +268,32 @@ func _unhandled_input(event: InputEvent) -> void:
 # --- Mise en page ----------------------------------------------------------------------------
 
 
-## Chaque panneau garde son contenu dans un conteneur : on le place d'après la taille de ce
-## contenu (les `Control` racine des panneaux n'ont pas de taille propre).
+## La boutique ne sert qu'à la joueuse vivante qui regarde sa propre arène, partie en cours.
+func _boutique_active() -> bool:
+	return not _fin_affichee and source.cible_observee() == source.id_local()
+
+
 func _placer() -> void:
-	if _racine == null:
-		return
-	var zone := _racine.size
-	hud.position = Vector2(MARGE, MARGE)
-	var bas := _taille_contenu(boutique)
-	boutique.position = Vector2(MARGE, maxf(MARGE, zone.y - bas.y - MARGE))
-	var haut := _taille_contenu(scores)
-	scores.position = Vector2(maxf(MARGE, (zone.x - haut.x) * 0.5), MARGE)
+	if _racine != null:
+		placer_dans(_racine.size)
+
+
+## Barre du HUD en haut, bandeau de la boutique en bas, arène visible entre les deux : la caméra
+## centre la tour dans cette zone libre. Les panneaux modaux se centrent d'eux-mêmes.
+func placer_dans(zone: Vector2) -> void:
+	var hauteur_hud := hud.hauteur_barre()
+	var hauteur_boutique := boutique.rect_bandeau_minimal().y
+	var rects := MiseEnPage.calculer(zone, hauteur_hud, hauteur_boutique)
+	var rect_hud: Rect2 = rects["hud"]
+	var libre: Rect2 = rects["libre"]
+	hud.position = rect_hud.position
+	hud.size = rect_hud.size
+	boutique.definir_zone_libre(libre)
+	if camera != null:
+		camera.cadrer(libre, zone)
 	observation.position = Vector2(
-		maxf(MARGE, zone.x - observation.custom_minimum_size.x - MARGE), MARGE
+		maxf(MiseEnPage.MARGE, zone.x - observation.custom_minimum_size.x - MiseEnPage.MARGE),
+		libre.position.y + MiseEnPage.MARGE
 	)
-	var centre := _taille_contenu(fin)
-	fin.position = ((zone - centre) * 0.5).max(Vector2(MARGE, MARGE))
 	var menu := _pause.get_combined_minimum_size()
-	_pause.position = ((zone - menu) * 0.5).max(Vector2(MARGE, MARGE))
-
-
-static func _taille_contenu(panneau: Control) -> Vector2:
-	var taille := Vector2.ZERO
-	for enfant: Node in panneau.get_children():
-		var controle := enfant as Control
-		if controle != null:
-			taille = taille.max(controle.get_combined_minimum_size())
-	return taille
+	_pause.position = MiseEnPage.centrer(zone, menu).position
