@@ -1,0 +1,6 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://ui/salon_ui.gd" id="1_salon"]
+
+[node name="Salon" type="Control"]
+script = ExtResource("1_salon")

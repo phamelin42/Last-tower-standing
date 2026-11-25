@@ -1,10 +1,12 @@
 class_name MenuPrincipal
 extends Control
-## Menu principal : « Jouer seul », « Multijoueur » (désactivé tant que le lot réseau n'est pas
-## fini), « Réglages » et « Quitter », avec le nom du joueur. Il n'ouvre rien lui-même : il
-## annonce ce que la joueuse demande, `Principal` agit.
+## Menu principal : « Jouer seul », « Créer une partie », « Rejoindre une partie », « Réglages » et
+## « Quitter », avec le nom du joueur. Il n'ouvre rien lui-même : il annonce ce que la joueuse
+## demande, `Principal` agit.
 
 signal solo_demande(nom: String)
+signal creer_demande(nom: String)
+signal rejoindre_demande(nom: String)
 signal quitter_demande
 ## Les réglages ont changé (écran des réglages) : `Principal` les applique à la fenêtre.
 signal reglages_modifies(r: Reglages)
@@ -18,7 +20,8 @@ const ESPACEMENT := 12
 ## Fichier des réglages : le lanceur de tests le remplace par un dossier temporaire.
 var chemin_reglages: String = Reglages.CHEMIN_DEFAUT
 var bouton_solo: Button
-var bouton_multijoueur: Button
+var bouton_creer: Button
+var bouton_rejoindre: Button
 var bouton_reglages: Button
 var bouton_quitter: Button
 var champ_nom: LineEdit
@@ -73,10 +76,8 @@ func _init() -> void:
 	_accueil.add_child(champ_nom)
 
 	bouton_solo = _bouton("JouerSeul", "MENU_JOUER_SEUL", _sur_solo)
-	bouton_multijoueur = _bouton("Multijoueur", "MENU_MULTIJOUEUR", Callable())
-	# Désactivé : le réseau n'est pas branché (lot 3). L'infobulle dit pourquoi.
-	bouton_multijoueur.disabled = true
-	bouton_multijoueur.tooltip_text = tr("MENU_BIENTOT")
+	bouton_creer = _bouton("Creer", "MENU_CREER", _sur_creer)
+	bouton_rejoindre = _bouton("Rejoindre", "MENU_REJOINDRE", _sur_rejoindre)
 	bouton_reglages = _bouton("Reglages", "MENU_REGLAGES", _sur_reglages)
 	bouton_quitter = _bouton("Quitter", "MENU_QUITTER", quitter_demande.emit)
 	_message = Label.new()
@@ -138,6 +139,14 @@ func ouvrir_reglages() -> void:
 
 func _sur_solo() -> void:
 	solo_demande.emit(nom_joueur())
+
+
+func _sur_creer() -> void:
+	creer_demande.emit(nom_joueur())
+
+
+func _sur_rejoindre() -> void:
+	rejoindre_demande.emit(nom_joueur())
 
 
 func _sur_reglages() -> void:

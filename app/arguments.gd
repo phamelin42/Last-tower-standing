@@ -9,7 +9,7 @@ const PORT_MAX := 65535
 ## Une graine absente vaut -1 : la partie en tire une au hasard.
 const GRAINE_DEFAUT := -1
 const VITESSE_DEFAUT := 1.0
-const VITESSES: Array[float] = [1.0, 0.66, 0.5]
+const VITESSES: Array[float] = [1.0, 0.5, 0.25]
 const ENTIER_MAX_CHIFFRES := 15
 
 

@@ -1,0 +1,38 @@
+keys,fr
+SALON_TITRE,Salon
+SALON_JOUEURS,Joueurs
+SALON_HOTE,Hôte
+SALON_PRET,Prêt
+SALON_PAS_PRET,Pas prêt
+SALON_VOUS,(vous)
+SALON_BOUTON_PRET,Je suis prêt
+SALON_BOUTON_PAS_PRET,Je ne suis plus prêt
+SALON_VITESSE,Vitesse de la partie :
+SALON_VITESSE_FIXEE,Vitesse de la partie : %s (réglée par l’hôte)
+SALON_LANCER,Lancer la partie
+SALON_ATTENTE,En attente des autres joueurs…
+SALON_PRET_A_LANCER,Tout le monde est prêt.
+SALON_QUITTER,Quitter le salon
+SALON_RETOUR_SALON,Retour au salon
+SALON_CONNEXION,Connexion en cours…
+SALON_ANNONCE_HOTE,Salon « %s » (port %d)
+CONNEXION_CREER_TITRE,Créer une partie
+CONNEXION_NOM_SALON,Nom du salon :
+CONNEXION_NOM_SALON_DEFAUT,Salon de %s
+CONNEXION_PORT,Port :
+CONNEXION_CREER,Créer le salon
+CONNEXION_RETOUR,Retour
+CONNEXION_REJOINDRE_TITRE,Rejoindre une partie
+CONNEXION_SALONS_LOCAUX,Salons du réseau local :
+CONNEXION_AUCUN_SALON,Aucun salon trouvé pour l’instant. Vous pouvez aussi saisir une adresse.
+CONNEXION_SALON_LIGNE,%s — %d sur %d joueurs
+CONNEXION_REJOINDRE,Rejoindre
+CONNEXION_ADRESSE,Adresse IP de l’hôte :
+CONNEXION_REJOINDRE_ADRESSE,Rejoindre cette adresse
+CONNEXION_ERREUR_PORT,Le port doit être un nombre entre 1 et 65535.
+CONNEXION_ERREUR_ADRESSE,Saisissez l’adresse de l’hôte.
+CONNEXION_ERREUR_ADRESSE_FORME,L’adresse ne doit contenir ni espace ni caractère de contrôle.
+CONNEXION_ERREUR_NOM,Donnez un nom au salon (24 caractères au plus).
+CONNEXION_ERREUR_PORT_PRIS,Le port %d est déjà utilisé sur cet ordinateur. Choisissez-en un autre.
+CONNEXION_ERREUR_CREATION,Impossible de créer le salon (code %d).
+CONNEXION_DECOUVERTE_INDISPONIBLE,La recherche automatique est indisponible (port 7778 occupé) : saisissez une adresse.

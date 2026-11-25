@@ -156,18 +156,18 @@ func test_seul_l_hote_regle_les_options() -> void:
 	verifier_faux(s.regler(99, 99, 0.5, 5, true), "un pair inconnu")
 	verifier_faux(s.regler(2, 1, 0.5, 5, true), "usurpation de l'id de l'hôte")
 	verifier_proche(s.vitesse, 1.0, 0.0001)
-	verifier(s.regler(1, 1, 0.66, 12345, true))
-	verifier_proche(s.vitesse, 0.66, 0.0001)
+	verifier(s.regler(1, 1, 0.25, 12345, true))
+	verifier_proche(s.vitesse, 0.25, 0.0001)
 	verifier_egal(s.graine, 12345)
 	verifier(s.graine_fixe)
 
 
 func test_vitesse_hors_des_trois_valeurs_est_refusee() -> void:
 	var s := _salon_de(1)
-	for v: float in [0.0, -1.0, 0.7, 0.65, 2.0, 1.01, NAN, INF, -INF]:
+	for v: float in [0.0, -1.0, 0.7, 0.66, 0.65, 2.0, 1.01, NAN, INF, -INF]:
 		verifier_faux(s.regler(1, 1, v, 0, false), "vitesse %s" % str(v))
 		verifier_proche(s.vitesse, 1.0, 0.0001, "inchangée")
-	for v: float in [1.0, 0.66, 0.5]:
+	for v: float in [1.0, 0.5, 0.25]:
 		verifier(s.regler(1, 1, v, 0, false), "vitesse %s" % str(v))
 		verifier_proche(s.vitesse, v, 0.0001)
 
@@ -249,7 +249,7 @@ func _egaux(a: Salon, b: Salon) -> bool:
 
 func test_aller_retour_pour_chaque_effectif_et_chaque_vitesse() -> void:
 	for n: int in range(0, Salon.MAX_JOUEURS + 1):
-		for v: float in [1.0, 0.66, 0.5]:
+		for v: float in [1.0, 0.5, 0.25]:
 			var s := _salon_de(n)
 			if n > 0:
 				s.marquer_pret(1, true)
@@ -307,6 +307,18 @@ func test_un_octet_corrompu_donne_un_refus_ou_un_salon_valide() -> void:
 		verifier(r.joueurs.size() <= Salon.MAX_JOUEURS)
 		verifier(r.joueurs.is_empty() or r.joueurs.has(r.hote), "hôte parmi les joueurs, k=%d" % k)
 		var ok := false
-		for v: float in [1.0, 0.66, 0.5]:
+		for v: float in [1.0, 0.5, 0.25]:
 			ok = ok or absf(r.vitesse - v) < 0.0001
 		verifier(ok, "vitesse valide, k=%d" % k)
+
+
+func test_les_vitesses_du_salon_sont_celles_des_donnees() -> void:
+	var d := Donnees.charger()
+	verifier_non_nul(d)
+	var voulues: Array = d.partie["vitesses_partie"]
+	verifier_egal(Salon.VITESSES.size(), voulues.size())
+	for i: int in voulues.size():
+		verifier_proche(Salon.VITESSES[i], float(voulues[i]), 0.0001, "vitesse %d" % i)
+		verifier_proche(Arguments.VITESSES[i], float(voulues[i]), 0.0001, "argument %d" % i)
+	# ×1, ×2, ×4 : un facteur de durée, donc ×4 = durées divisées par quatre.
+	verifier_proche(Salon.VITESSES[2], 0.25, 0.0001)
