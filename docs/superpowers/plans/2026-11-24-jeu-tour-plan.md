@@ -843,9 +843,12 @@ crédité dans `CREDITS.md` (le crédit est facultatif en CC0, mais on cite touj
 
 ### Task 5.6 : Sons — `haiku`
 
-- [ ] **Objectif :** sons CC0 d’une autre source (le pack n’en a pas) : tirs, impacts, achat,
+- [x] **Objectif :** sons CC0 d’une autre source (le pack n’en a pas) : tirs, impacts, achat,
       relance, PV bas, début de manche, boss, victoire, défaite, musique d’ambiance ; volume des
       réglages appliqué.
+      **Fait (25/11/2026)** : dix sons du « 400+ Sounds Pack » (CC0) dans `assets/sons/`, origine
+      dans `assets/sons/SOURCES.md` ; musique d’ambiance reportée par Phil le 25/11/2026 (le pack n’a
+      pas de boucle), elle reste un silence de substitution.
 
 ### Task 5.7 : Sprite maison de l’unité volante — `sonnet`
 
