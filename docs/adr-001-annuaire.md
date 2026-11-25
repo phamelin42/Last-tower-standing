@@ -301,17 +301,18 @@ par un signal appelé en différé, et l'écran de création ne gèle jamais. R�
   qui échoue si la version du Dockerfile diffère de celle du script (un garde-fou non branché ne
   garde rien).
 - **Réseau** : aucun reverse proxy, car le service doit voir l'IP source réelle.
-  **`network_mode: host` est retenu** (vérifié de bout en bout en T7.4) : avec un port publié (en pont), la source
-  vue est 172.18.0.1 (proxy utilisateur de Docker) et la sonde UDP échoue ; en mode hôte, le
-  service voit l'IP réelle et la sonde aboutit. Conséquence : aucun port n'est publié par Docker, le
-  pare-feu du VPS s'applique et doit donc ouvrir 7779/TCP en entrée (indispensable). L'option
-  `--autoriser-prive`, réservée à ce contrôle et aux tests (elle désactive le seul rejet des
-  adresses non publiques), n'est jamais dans le `compose.yaml` livré.
+  **`network_mode: host` est retenu** parce qu'il lève un doute, au prix de l'isolation réseau du
+  conteneur. Observé en T7.4, dans le conteneur de vérification (sans conclusion pour un vrai VPS) :
+  en réseau en pont, la source vue par le relais de la boucle locale était la passerelle 172.18.0.1,
+  et la sonde UDP échouait (cause non élucidée) ; en mode hôte, le service voit l'IP réelle et la
+  sonde aboutit. Conséquence : Docker ne publie aucun port, le pare-feu du VPS s'applique et doit
+  donc ouvrir 7779/TCP en entrée (indispensable). L'option `--autoriser-prive`, réservée à ce
+  contrôle et aux tests (elle désactive le seul rejet des adresses non publiques), n'est jamais dans
+  le `compose.yaml` livré.
 - **`docker compose`** (T7.4, `service-annuaire/compose.yaml`) : `restart: unless-stopped`, système
-  de fichiers en lecture seule avec un `tmpfs` sur le dossier utilisateur de Godot (T7.4 le
-  localise), journal borné, contrôle de santé par ouverture TCP du port.
+  de fichiers en lecture seule avec un `tmpfs` sur le dossier utilisateur de Godot (`/home/annuaire/.local/share/godot`), journal borné, contrôle de santé par ouverture TCP du port.
 - **Sous-domaine** : retenu `annuaire-lts.phamelin.fr`, CNAME vers `vpsHost` (`api.phamelin.fr`),
-  seule forme qu'`infra` exprime pour un projet `target: "vps"` ; même adresse finale, aucun proxy.
+  seule forme qu'`infra` exprime pour un projet `target: "vps"` ; même adresse finale, aucun proxy **si** `api.phamelin.fr` n'est pas derrière un reverse proxy (hypothèse non vérifiée : si un proxy HTTP(S) y écoute, il ne voit pas le port 7779/TCP en mode hôte ; à vérifier par Phil).
   Déclaré dans `infra` par une PR (T7.4). Constat : vérifié en T7.4, entrée `target: "vps"` dans
   `projects.json` ; un enregistrement manuel chez OVH est exclu (§ 1 du contexte commun).
 - **Écart au contexte commun, résolu** : le § 20 de `CLAUDE.commun.md` disait « ni `infra` » pour
@@ -409,7 +410,7 @@ réseau local a le même nom et le même port ; l'entrée locale l'emporte. Ori
 2. **Port du service** : 7779/TCP (7777 jeu UDP, 7778 découverte locale). Écarté : 443 (inutile sans
    proxy).
 3. **Sous-domaine** : `annuaire-lts.phamelin.fr`, CNAME vers `vpsHost` (`api.phamelin.fr`), seule
-   forme qu'`infra` exprime pour un projet `target: "vps"` ; même adresse finale, aucun proxy.
+   forme qu'`infra` exprime pour un projet `target: "vps"` ; même adresse finale, aucun proxy **si** `api.phamelin.fr` n'est pas derrière un reverse proxy (hypothèse non vérifiée : si un proxy HTTP(S) y écoute, il ne voit pas le port 7779/TCP en mode hôte ; à vérifier par Phil).
    Vérifié en T7.4 (entrée `target: "vps"`) ; enregistrement manuel chez OVH exclu (§ 1 du contexte
    commun).
 4. **Joignabilité** : sonde ENet depuis le VPS, avant de lister, puis toutes les 120 s ; échec = pas

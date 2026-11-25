@@ -16,9 +16,10 @@ services:
     cap_drop: [ALL]
     security_opt: ["no-new-privileges:true"]
     # Réseau de l'hôte, sans publication de port : le service doit voir l'IP source réelle de qui
-    # annonce ou consulte, et sonder le salon depuis l'IP du VPS. La publication Docker la masque
-    # (172.x par le proxy utilisateur, hairpin impossible pour la sonde UDP). Le pare-feu de l'hôte
-    # s'applique, ce que la publication contourne. Port d'écoute : 7779/TCP.
+    # annonce ou consulte, et sonder le salon depuis l'IP du VPS. Observé dans le conteneur de
+    # vérification : par le relais de la boucle locale, la source vue était la passerelle 172.x, et
+    # la sonde UDP échouait en réseau en pont (cause non élucidée). Le mode hôte lève ce doute, au
+    # prix de l'isolation réseau ; le pare-feu de l'hôte s'applique alors. Port : 7779/TCP.
     network_mode: host
     # Ouverture TCP du port, sans rien envoyer.
     healthcheck:
