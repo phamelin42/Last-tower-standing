@@ -64,12 +64,12 @@ ne vise que l'IP de l'émetteur, donc elle est inoffensive pour un tiers. Le por
 ## Protocole
 
 Constantes de `AnnuaireProtocole` : `MAGIE = 0x41`, `VERSION = 1` (version de l'annuaire, distincte
-de `Protocole.VERSION` du jeu, valant 2 aujourd'hui), `PORT_DEFAUT = 7779` (TCP). Entiers en petit
-boutisse, comme `LecteurOctets`. Tout octet reçu est une donnée non fiable : invalide, trop grand ou
+de `Protocole.VERSION` du jeu, valant 2 aujourd'hui), `PORT_DEFAUT = 7779` (TCP). Entiers petit-boutistes, comme
+`LecteurOctets`. Tout octet reçu est une donnée non fiable : invalide, trop grand ou
 tronqué, il est refusé sans exception.
 
-**Cadre** : `u16 taille · corps`. La taille est contrôlée avant toute lecture du corps (voir l'ordre
-des contrôles plus bas). Le corps commence toujours par `u8 magie · u8 version · u8 type`. **Le
+**Cadre** : `u16 taille · corps`. La taille est contrôlée avant de lire le reste du corps après l'en-tête (voir l'ordre des
+contrôles plus bas). Le corps commence toujours par `u8 magie · u8 version · u8 type`. **Le
 préfixe `u16` et ces 3 octets ne changent jamais**, pour qu'une version inconnue reste
 reconnaissable.
 
@@ -91,7 +91,8 @@ reconnaissable.
 - **Statuts de REPONSE** : 0 accepté · 1 version d'annuaire différente · 2 port injoignable · 3
   débit dépassé · 4 message invalide · 5 annuaire plein ou quota par IP atteint · 6 adresse non
   publique · 7 service occupé (sondes saturées, réessayer à la période suivante).
-- **Version différente** : le service répond `magie · VERSION du service · 0x81 · statut 1 · VERSION`
+- **Version différente** : le service répond, avec son préfixe `u16 taille` (valant 5),
+  `magie · VERSION du service · 0x81 · statut 1 · VERSION`
   quelle que soit la requête, sans en lire le reste, puis ferme. Un client qui reçoit une version
   autre que la sienne n'interprète rien d'autre et affiche « Annuaire incompatible : mettez le jeu
   à jour » ; le réseau local et l'IP saisie restent disponibles. Un changement de format incrémente
@@ -99,7 +100,7 @@ reconnaissable.
   du jeu marque en texte (« autre version ») un salon dont `version_jeu` diffère de la sienne.
 - **Cycle** : l'hôte annonce **immédiatement** à l'ouverture du salon, puis toutes les **10 s**
   (trois annonces par fenêtre d'expiration), et à chaque changement du nombre de joueurs (dans la
-  limite de débit). Il envoie RETRAIT en fermant le salon ou au lancement de la partie (comme
+  limite de débit ; un changement survenu pendant l'attente d'une réponse est envoyé dès la réponse). Il envoie RETRAIT en fermant le salon ou au lancement de la partie (comme
   `SessionReseau._annonce`, qui n'annonce plus rien une fois la partie lancée). Sans RETRAIT, l'entrée
   expire **30 s après la dernière annonce**. RETRAIT n'agit que sur l'entrée de la clé
   (IP source, port) de l'émetteur.
@@ -123,7 +124,7 @@ occupée un instant ; l'`ENetMultiplayerPeer` du serveur n'émet ni `peer_conne
 
 Garde-fous de la sonde (elle est une capacité d'envoi de paquets) : jamais vers une adresse non
 publique (boucle locale, privée, lien local, CGNAT 100.64/10, multicast, non spécifiée : réponse 6),
-une sonde par couple (IP, port) toutes les 30 s (le résultat de la dernière est réutilisé entre-temps),
+une sonde par couple (IP, port) : un succès reste valable 120 s (re-vérification ensuite), un échec 30 s ; sur une entrée existante, une réponse 7 à la re-vérification ne la supprime pas et la prolonge comme une annonce acceptée,
 **4 sondes simultanées** au plus, aucune sonde sur une annonce invalide ou refusée par le débit.
 Quand 4 sondes sont en cours, une annonce qui en exigerait une cinquième reçoit tout de suite la
 réponse 7 : **pas de file d'attente** ; l'hôte réessaie à sa période suivante (10 s). Le service
@@ -157,23 +158,23 @@ L'hôte n'envoie pas une nouvelle annonce tant que la précédente attend sa ré
 
 Le service applique ces contrôles dans cet ordre et s'arrête au premier qui échoue.
 
-| N°  | Contrôle                                                                                    | Si échec                                                                                                  |
-| --- | ------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| 1   | IP mise de côté (5 min)                                                                     | Fermeture à l'acceptation, sans lire ni répondre                                                          |
-| 2   | 64 connexions, ou 4 pour cette IP                                                           | Fermeture, sans réponse                                                                                   |
-| 3   | Préfixe `u16` reçu en 3 s ; taille ≥ 3                                                      | Fermeture, sans réponse ; compte comme message invalide                                                   |
-| 4   | Les 3 octets d'en-tête reçus en 3 s (même si la taille dépasse 128, on ne lit rien de plus) | Fermeture, sans réponse ; invalide                                                                        |
-| 5   | `magie`                                                                                     | Fermeture, sans réponse ; invalide                                                                        |
-| 6   | `version` différente                                                                        | REPONSE 1, fermeture ; ne compte pas comme invalide (un cadre de version future peut dépasser 128 octets) |
-| 7   | Taille ≤ 128 octets, reste du corps reçu en 3 s                                             | REPONSE 4 (ou fermeture si le délai passe) ; invalide                                                     |
-| 8   | Type connu                                                                                  | REPONSE 4 ; invalide                                                                                      |
-| 9   | Seau à jetons du type                                                                       | REPONSE 3                                                                                                 |
-| 10  | Décodage et bornes de champ                                                                 | REPONSE 4 ; invalide                                                                                      |
-| 11  | Adresse source publique (ANNONCE)                                                           | REPONSE 6                                                                                                 |
-| 12  | Quota (3 par IP, 100 au total ; une mise à jour d'entrée existante en est exemptée)         | REPONSE 5                                                                                                 |
-| 13  | Sonde (ANNONCE) : résultat récent réutilisé, sinon 4 sondes au plus                         | REPONSE 7 si saturé ; REPONSE 2 si échec ; sinon REPONSE 0                                                |
+| N°  | Contrôle                                                                                                               | Si échec                                                                                                  |
+| --- | ---------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| 1   | IP mise de côté (5 min)                                                                                                | Fermeture à l'acceptation, sans lire ni répondre                                                          |
+| 2   | 64 connexions, ou 4 pour cette IP                                                                                      | Fermeture, sans réponse                                                                                   |
+| 3   | Préfixe `u16` reçu dans les 3 s depuis l'acceptation ; taille ≥ 3                                                      | Fermeture, sans réponse ; compte comme message invalide                                                   |
+| 4   | Les 3 octets d'en-tête reçus dans les 3 s depuis l'acceptation (même si la taille dépasse 128, on ne lit rien de plus) | Fermeture, sans réponse ; invalide                                                                        |
+| 5   | `magie`                                                                                                                | Fermeture, sans réponse ; invalide                                                                        |
+| 6   | `version` différente                                                                                                   | REPONSE 1, fermeture ; ne compte pas comme invalide (un cadre de version future peut dépasser 128 octets) |
+| 7   | Taille ≤ 128 octets, reste du corps reçu dans les 3 s depuis l'acceptation                                             | REPONSE 4 (ou fermeture si le délai passe) ; invalide                                                     |
+| 8   | Type connu                                                                                                             | REPONSE 4 ; invalide                                                                                      |
+| 9   | Seau à jetons du type                                                                                                  | REPONSE 3                                                                                                 |
+| 10  | Décodage et bornes de champ                                                                                            | REPONSE 4 ; invalide                                                                                      |
+| 11  | Adresse source publique (ANNONCE)                                                                                      | REPONSE 6                                                                                                 |
+| 12  | Quota (3 par IP, 100 au total ; une mise à jour d'entrée existante en est exemptée)                                    | REPONSE 5                                                                                                 |
+| 13  | Sonde (ANNONCE) : résultat récent réutilisé, sinon 4 sondes au plus                                                    | REPONSE 7 si saturé ; REPONSE 2 si échec ; sinon REPONSE 0                                                |
 
-RETRAIT et LISTE s'arrêtent après le contrôle 10 (RETRAIT répond toujours 0, même sans entrée). La 6ᵉ
+RETRAIT et LISTE s'arrêtent après le contrôle 10 (RETRAIT répond 0, même sans entrée, sauf débit dépassé : 3). La 6ᵉ
 erreur « invalide » en 60 s met l'IP de côté.
 
 ## Rôle d'hôte
