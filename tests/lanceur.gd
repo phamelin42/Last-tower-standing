@@ -4,8 +4,14 @@ extends SceneTree
 ##     [--filtre motif] [--dossier res://tests] [--controle]
 
 
+## Les tests attendent que l'arbre tourne : `_ready`, RPC, `await process_frame` n'existent pas
+## avant la première image.
 func _initialize() -> void:
-	quit(_lancer(OS.get_cmdline_user_args()))
+	process_frame.connect(_demarrer, CONNECT_ONE_SHOT)
+
+
+func _demarrer() -> void:
+	quit(await _lancer(OS.get_cmdline_user_args()))
 
 
 func _lancer(args: PackedStringArray) -> int:
@@ -33,7 +39,7 @@ func _lancer(args: PackedStringArray) -> int:
 
 	var moteur := MoteurDeTests.new()
 	var chemins := moteur.decouvrir(dossier, filtre, controle)
-	var bilan := moteur.executer(chemins, filtre, self)
+	var bilan := await moteur.executer(chemins, filtre, self)
 	var lignes: PackedStringArray = bilan["lignes"]
 	for ligne in lignes:
 		print(ligne)

@@ -8,12 +8,18 @@ extends RefCounted
 ## ne sont pas égaux, même imbriqués : un test qui attend un entier ne doit pas
 ## passer sur un flottant. Pour comparer des flottants, utiliser `verifier_proche`.
 
-## Fourni par le lanceur, pour instancier des nœuds.
+## Délai maximal d'une méthode `test_*` (secondes), attentes comprises. Au-delà, elle échoue.
+const DELAI_MAX_DEFAUT := 10.0
+
+## Fourni par le lanceur : l'arbre est actif, un nœud ajouté reçoit `_ready`.
 var arbre: SceneTree
+## Un test peut le réduire (dans `avant_chaque`) pour borner une attente voulue courte.
+var delai_max: float = DELAI_MAX_DEFAUT
 var echecs: Array[String] = []
 var nb_assertions: int = 0
 ## Motifs des erreurs voulues, pas encore survenues (voir `attendre_erreur`).
 var erreurs_attendues: Array[String] = []
+var _noeuds_initiaux: Array[Node] = []
 
 
 func avant_chaque() -> void:
@@ -22,6 +28,24 @@ func avant_chaque() -> void:
 
 func apres_chaque() -> void:
 	pass
+
+
+## Attend `n` images : à `await`er (`await attendre_images(3)`).
+func attendre_images(n: int) -> void:
+	for i: int in n:
+		await arbre.process_frame
+
+
+## Appelé par le moteur avant la méthode : retient les nœuds déjà sous la racine.
+func noter_noeuds_initiaux() -> void:
+	_noeuds_initiaux = arbre.root.get_children()
+
+
+## Appelé par le moteur après `apres_chaque` : libère ce que le test a ajouté sous la racine.
+func liberer_ajouts() -> void:
+	for noeud: Node in arbre.root.get_children():
+		if not noeud in _noeuds_initiaux:
+			noeud.queue_free()
 
 
 ## Toute erreur journalisée pendant la méthode (erreur de script, `push_error`) la fait
