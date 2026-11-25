@@ -59,6 +59,20 @@ const SCHEMA_EVENEMENT: Dictionary = {
 	"rayon": TYPE_FLOAT,
 }
 
+## Champs facultatifs d'un événement : une mort n'a pas d'arme, donc ni genre ni statut. Présents,
+## ils sont des entiers : index dans `GENRES_ARME` / `STATUTS_ARME` (0 = aucun).
+const CHAMPS_EVENEMENT_FACULTATIFS: Dictionary = {"genre": TYPE_INT, "statut": TYPE_INT}
+
+## Genre de l'effet d'arme (`kind` de `data/armes.json`) qui a produit l'événement. L'ordre est
+## figé : le protocole en transporte l'index. Ajouter à la fin seulement, et monter la version.
+const GENRES_ARME: Array[String] = [
+	"", "cible_unique", "zone", "rebond", "aura", "onde", "barrage", "piege", "mine"
+]
+## Statut principal posé par l'arme (`statuts[].kind`), même règle d'ordre.
+const STATUTS_ARME: Array[String] = [
+	"", "poison", "brulure", "givre", "etourdissement", "vol_de_vie"
+]
+
 var tick: int = 0
 var manche: int = 0
 var phase: int = 0
@@ -172,7 +186,7 @@ static func _valide(d: Dictionary) -> bool:
 		return false
 	if not _liste_conforme(d["armes"], SCHEMA_ARME):
 		return false
-	if not _liste_conforme(d["evenements"], SCHEMA_EVENEMENT):
+	if not _evenements_conformes(d["evenements"]):
 		return false
 	if not _ameliorations_valides(d["ameliorations"]):
 		return false
@@ -190,12 +204,54 @@ static func _valide(d: Dictionary) -> bool:
 	)
 
 
+## Index d'un `kind` d'effet dans `GENRES_ARME` ; 0 (aucun) s'il est inconnu.
+static func genre_depuis_nom(kind: String) -> int:
+	return maxi(GENRES_ARME.find(kind), 0)
+
+
+## Index d'un `kind` de statut dans `STATUTS_ARME` ; 0 (aucun) s'il est inconnu.
+static func statut_depuis_nom(kind: String) -> int:
+	return maxi(STATUTS_ARME.find(kind), 0)
+
+
+## Un événement : les champs du schéma, plus `genre` et `statut` s'ils sont là et dans leur liste.
+## Tout autre champ est refusé.
+static func _evenement_conforme(e: Dictionary) -> bool:
+	if not _conforme(e, SCHEMA_EVENEMENT):
+		return false
+	var attendus := SCHEMA_EVENEMENT.size()
+	for cle: String in CHAMPS_EVENEMENT_FACULTATIFS:
+		if not e.has(cle):
+			continue
+		attendus += 1
+		if typeof(e[cle]) != TYPE_INT:
+			return false
+		var valeur: int = e[cle]
+		var borne := GENRES_ARME.size() if cle == "genre" else STATUTS_ARME.size()
+		if valeur < 0 or valeur >= borne:
+			return false
+	return e.size() == attendus
+
+
 static func _conforme(d: Dictionary, schema: Dictionary) -> bool:
 	for cle: String in schema:
 		if not d.has(cle):
 			return false
 		var attendu: int = schema[cle]
 		if typeof(d[cle]) != attendu:
+			return false
+	return true
+
+
+static func _evenements_conformes(valeur: Variant) -> bool:
+	if typeof(valeur) != TYPE_ARRAY:
+		return false
+	var liste: Array = valeur
+	for item: Variant in liste:
+		if typeof(item) != TYPE_DICTIONARY:
+			return false
+		var entree: Dictionary = item
+		if not _evenement_conforme(entree):
 			return false
 	return true
 
