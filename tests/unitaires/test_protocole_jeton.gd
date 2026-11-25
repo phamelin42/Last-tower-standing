@@ -1,5 +1,5 @@
 extends CasDeTest
-## Le jeton d'hôte dans le bonjour (protocole version 3) : 0 ou 8 octets, tout le reste est refusé.
+## Le jeton d'hôte dans le bonjour (protocole version 4) : 0 ou 8 octets, tout le reste est refusé.
 
 const NOM_24 := "Ælfwyn Müller-Østerga日本語"
 const JETON := [1, 2, 3, 4, 5, 6, 7, 8]
@@ -25,8 +25,8 @@ func _jeton_de(n: int) -> PackedByteArray:
 	return j
 
 
-func test_la_version_du_protocole_est_3() -> void:
-	verifier_egal(Protocole.VERSION, 3)
+func test_la_version_du_protocole_est_4() -> void:
+	verifier_egal(Protocole.VERSION, 4)
 
 
 func test_bonjour_sans_jeton_donne_un_jeton_vide() -> void:
@@ -59,10 +59,12 @@ func test_bonjour_avec_jeton_tronque_a_chaque_octet_est_refuse() -> void:
 	verifier_egal(Protocole.decoder_bonjour(_avec_octet_en_plus(valide)), {}, "octet en trop")
 
 
-func test_un_bonjour_de_version_2_recoit_le_refus_de_version() -> void:
-	var b := Protocole.encoder_bonjour("Phil", 42)
-	b[1] = 2
-	verifier_egal(Protocole.decoder_bonjour(b), {})
-	verifier_egal(Protocole.version_bonjour(b), 2)
-	var motif := Protocole.motif_version(2)
-	verifier(motif.contains("2") and motif.contains("3"), motif)
+func test_un_bonjour_de_version_2_ou_3_recoit_le_refus_de_version() -> void:
+	# 3 : le format de T5.3b, sans jeton dans le bonjour.
+	for ancienne: int in [2, 3]:
+		var b := Protocole.encoder_bonjour("Phil", 42)
+		b[1] = ancienne
+		verifier_egal(Protocole.decoder_bonjour(b), {}, "version %d" % ancienne)
+		verifier_egal(Protocole.version_bonjour(b), ancienne)
+		var motif := Protocole.motif_version(ancienne)
+		verifier(motif.contains(str(ancienne)) and motif.contains("4"), motif)

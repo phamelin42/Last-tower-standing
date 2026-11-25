@@ -112,10 +112,12 @@ func test_sans_jeton_configure_la_regle_du_premier_pair_reste() -> void:
 	verifier_egal(s.salon.hote, 5)
 
 
-func test_un_bonjour_de_version_2_est_refuse_avec_le_motif_de_version() -> void:
-	var s := _serveur()
-	var vieux := _bonjour("Aki")
-	vieux[1] = 2
-	s.pair_connecte(5)
-	verifier_faux(s.traiter_bonjour(5, vieux))
-	verifier_egal(_refus(5), [Protocole.motif_version(2)] as Array[String])
+func test_un_bonjour_de_version_2_ou_3_est_refuse_avec_le_motif_de_version() -> void:
+	for ancienne: int in [2, 3]:
+		sorties = []
+		var s := _serveur()
+		var vieux := _bonjour("Aki")
+		vieux[1] = ancienne
+		s.pair_connecte(5)
+		verifier_faux(s.traiter_bonjour(5, vieux), "version %d" % ancienne)
+		verifier_egal(_refus(5), [Protocole.motif_version(ancienne)] as Array[String])
