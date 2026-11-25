@@ -24,8 +24,8 @@ var nom_joueur: String = ""
 var source: SourceVue = null
 ## Vrai quand la source est un `Client` fourni de l'extérieur (jamais libéré par `Jeu`).
 var en_reseau: bool = false
-var arene: Arene3D = null
-var camera: CameraArene = null
+var arene: Arene2D = null
+var camera: CameraArene2D = null
 var _sons: LecteurSons = null
 
 var _donnees: Donnees = null

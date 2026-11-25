@@ -799,7 +799,7 @@ crédité dans `CREDITS.md` (le crédit est facultatif en CC0, mais on cite touj
       (`SourceVue`, interpolation). Performance : 1 000 ennemis visibles sans chute sous 60 images/s
       (pool de sprites ou `MultiMeshInstance2D` avec atlas animé par nuanceur), mesurée. Captures de
       contrôle aux trois résolutions.
-      **Fait sur `arene-2d` (PR #7)** : unités à ×1,9, tour à ×2,1, ennemi translucide devant la tour,
+      **Fait, fusionné par la PR #7** : unités à ×1,9, tour à ×2,1, ennemi translucide devant la tour,
       images recadrées. Reste la preuve des 60 images/s : 22,6 images/s en rendu logiciel sous Xvfb,
       à mesurer sur une vraie carte graphique.
 
@@ -810,9 +810,9 @@ crédité dans `CREDITS.md` (le crédit est facultatif en CC0, mais on cite touj
 
 ### Task 5.3 : Effets — `haiku`
 
-- [ ] **Objectif :** tirs, impacts, morts et explosions avec les effets du pack, par type de dégâts,
+- [x] **Objectif :** tirs, impacts, morts et explosions avec les effets du pack, par type de dégâts,
       plafond d’effets conservé.
-      **Fait sur `arene-2d` (PR #7)**, en `sonnet` (rendu à juger). Les événements ne portaient ni le genre
+      **Fait, fusionné par la PR #7**, en `sonnet` (rendu à juger). Les événements ne portaient ni le genre
       d’arme ni le statut : voir T5.3b.
 
 ### Task 5.3b : Genre d’arme et statut dans les événements de tir — `sonnet`
@@ -826,10 +826,10 @@ crédité dans `CREDITS.md` (le crédit est facultatif en CC0, mais on cite touj
 
 ### Task 5.4 : Interface aux couleurs du pack — `sonnet`
 
-- [ ] **Objectif :** le thème de l’interface reprend les éléments du pack (bannières, boutons,
+- [x] **Objectif :** le thème de l’interface reprend les éléments du pack (bannières, boutons,
       rubans) s’ils sont dans la version CC0, avec une police libre (OFL) ; contrastes AA et tests de
       mise en page conservés.
-      **Fait sur `arene-2d` (PR #7)** : boutons, bannières et rubans du pack, police Tiny5 (OFL) avec
+      **Fait, fusionné par la PR #7** : boutons, bannières et rubans du pack, police Tiny5 (OFL) avec
       repli DejaVu Sans pour les symboles.
 
 ### Task 5.5 : Bascule et nettoyage — `sonnet`
