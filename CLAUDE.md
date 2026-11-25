@@ -72,3 +72,5 @@ Spécification : `docs/superpowers/specs/2026-11-24-jeu-tour-design.md`. Plan :
 - `.claude/` porte un `.gdignore` et est exclu de gdlint : les worktrees des agents y vivent.
 - `.gdlintrc` est en YAML (`max-line-length: 100`), pas en `clé=valeur` : sinon gdlint plante.
 - Toute erreur de script ou `push_error` pendant un test le fait échouer ; `attendre_erreur(motif)` déclare une erreur voulue. Godot l'imprime quand même sur stderr.
+- Le lanceur lance les tests au premier `process_frame` : l'arbre est actif (`_ready`, RPC, `await arbre.process_frame` ou `attendre_images(n)` fonctionnent). Une méthode `test_*` peut `await` ;
+  au-delà de `delai_max` (10 s) elle échoue, et le moteur libère les nœuds qu'elle a ajoutés sous `arbre.root`.
