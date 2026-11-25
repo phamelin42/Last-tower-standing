@@ -31,7 +31,7 @@ Spécification : `docs/superpowers/specs/2026-11-24-jeu-tour-design.md`. Plan :
 - `sim/` : simulation pure (`RefCounted`), à pas fixe de 20 Hz, sans nœud ni réseau.
   `partie.gd` est son API publique.
 - `reseau/` : ENet (serveur, client, protocole compact). Il n'appelle que l'API publique de `sim/partie.gd`.
-- `visuels/` : rendu 3D, caméra, effets. Les primitives Godot et les matériaux sont dans `visuels/apparence.gd`.
+- `visuels/` : rendu 2D pixel art (Tiny Swords), caméra, décor, effets. La correspondance entité → sprites est dans `visuels/apparence.gd`.
 - `ui/` : menus, salon, HUD, boutique, tableau des scores, écran de fin.
 - `i18n/*.csv` : tous les textes visibles (colonne `fr`).
 - `tests/` : `lanceur.gd`, `tests/unitaires/test_*.gd`, `tests/integration/`.
