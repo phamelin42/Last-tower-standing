@@ -187,6 +187,17 @@ func test_coup_tranchant_sur_armure_moyenne_fait_exactement_le_double() -> void:
 	_p(e.pv[_i(id)], 80.0, 0.0001, "ni 4 fois (appliqué deux fois) ni 1 fois")
 
 
+func test_degats_rendus_sont_plafonnes_aux_pv_restants() -> void:
+	# 100 ×2 sur 30 PV : seuls 30 points sont réellement retirés, ce qui nourrit le score et
+	# le vol de vie.
+	var id := _ajouter(Vector2(500, 0), 30.0, Types.Armure.MOYENNE)
+	_p(e.infliger(_i(id), 100.0, Types.TypeDegats.TRANCHANT), 30.0, 0.0001)
+	verifier_egal(e.taille, 0)
+	var autre := _ajouter(Vector2(500, 0), 30.0, Types.Armure.MOYENNE)
+	e.infliger(_i(autre), 5.0, Types.TypeDegats.CHAOS)
+	_p(e.infliger(_i(autre), 100.0, Types.TypeDegats.CHAOS), 25.0, 0.0001, "reste 25")
+
+
 func test_efficacite_des_trente_couples_dans_infliger() -> void:
 	var doubles := {
 		Types.TypeDegats.TRANCHANT: Types.Armure.MOYENNE,
