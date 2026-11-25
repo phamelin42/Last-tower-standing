@@ -14,8 +14,10 @@ Chaque ressource tierce (licence libre uniquement) est listée ici.
 
 ## Tiny Swords : seulement l'ancienne version CC0
 
-- Seule l'ancienne version du pack, « Update 010 », publiée sous CC0, est dans le dépôt. Sa
-  licence et sa provenance sont dans `assets/tiny_swords/LICENCE.md`.
+- Seule l'ancienne version du pack, « Update 010 », est dans le dépôt. Sa licence CC0 tient au
+  libellé que l'auteur donne au fichier sur la page du pack (« TS_old version_CC0 Licensed ») :
+  l'archive ne contient aucun texte de licence. Licence, provenance et empreinte de l'archive sont
+  dans `assets/tiny_swords/LICENCE.md`.
 - **La version actuelle du pack interdit la redistribution des fichiers et ne doit jamais entrer
   dans le dépôt**, même modifiée.
 - Tant que le lot 5 n'est pas terminé, l'arène affichée reste faite de primitives Godot
