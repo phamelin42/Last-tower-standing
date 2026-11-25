@@ -7,6 +7,9 @@ signal vue_arene_recue(vue: VueArene)
 signal vue_globale_recue(vue: VueGlobale)
 signal resultat_intention(genre: String, code: int)  # Types.Resultat
 signal connexion_perdue(motif: String)
+## L'arène d'un autre joueur, regardée de son vivant (`regarder`) ; `vue_arene_recue` reste celle
+## du joueur local, ou de la cible observée après sa mort.
+signal vue_regardee_recue(id_joueur: int, vue: VueArene)
 
 
 ## Identifiant du joueur local ; -1 tant que la base n'est pas redéfinie.
@@ -35,8 +38,20 @@ func choisir_marche_noir(_id_amelioration: String) -> void:
 	pass
 
 
+## `observer` reste réservé au joueur mort.
 func observer(_id_joueur: int) -> void:
 	pass
+
+
+## Regarde l'arène d'un autre joueur sans quitter la sienne ; -1 : cesser. Sans effet en solo.
+## Stub : T8.10 le relie au réseau et à la simulation.
+func regarder(_id_joueur: int) -> void:
+	pass
+
+
+## Identifiant du joueur regardé ; -1 si aucun.
+func id_regarde() -> int:
+	return -1
 
 
 func continuer_sans_fin() -> void:

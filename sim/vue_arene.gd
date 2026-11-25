@@ -17,6 +17,10 @@ const SCHEMA: Dictionary = {
 	"tour_pv": TYPE_FLOAT,
 	"tour_pv_max": TYPE_FLOAT,
 	"tour_armure": TYPE_FLOAT,
+	"tour_mana": TYPE_FLOAT,
+	"tour_mana_max": TYPE_FLOAT,
+	"prochaines_familles": TYPE_PACKED_INT32_ARRAY,
+	"prochaines_armures": TYPE_PACKED_BYTE_ARRAY,
 	"argent": TYPE_INT,
 	"revenu": TYPE_INT,
 	"revenu_dans": TYPE_FLOAT,
@@ -59,9 +63,17 @@ const SCHEMA_EVENEMENT: Dictionary = {
 	"rayon": TYPE_FLOAT,
 }
 
-## Champs facultatifs d'un événement : une mort n'a pas d'arme, donc ni genre ni statut. Présents,
-## ils sont des entiers : index dans `GENRES_ARME` / `STATUTS_ARME` (0 = aucun).
-const CHAMPS_EVENEMENT_FACULTATIFS: Dictionary = {"genre": TYPE_INT, "statut": TYPE_INT}
+## Champs facultatifs d'un événement : une mort n'a pas d'arme, donc ni genre, ni statut, ni arme.
+## Présents, ils sont des entiers : index dans `GENRES_ARME` / `STATUTS_ARME` (0 = aucun), et
+## `arme` = index de l'arme dans `Donnees.ids_catalogue`.
+const CHAMPS_EVENEMENT_FACULTATIFS: Dictionary = {
+	"genre": TYPE_INT, "statut": TYPE_INT, "arme": TYPE_INT
+}
+
+## Familles annoncées pour la manche suivante : trois au plus (la majoritaire en premier).
+const FAMILLES_SUIVANTES_MAX := 3
+## Plus grand index d'arme transportable (le réseau le code sur 16 bits, 0xFFFF = aucune).
+const INDEX_ARME_MAX := 0xFFFE
 
 ## Genre de l'effet d'arme (`kind` de `data/armes.json`) qui a produit l'événement. L'ordre est
 ## figé : le protocole en transporte l'index. Ajouter à la fin seulement, et monter la version.
@@ -83,6 +95,12 @@ var sans_fin: bool = false
 var tour_pv: float = 0.0
 var tour_pv_max: float = 0.0
 var tour_armure: float = 0.0
+var tour_mana: float = 0.0
+var tour_mana_max: float = 0.0
+## 0 à 3 index de `Donnees.familles` (majoritaire en premier), `[index du convoi]` pour le convoi ;
+## `prochaines_armures` a la même taille. `prochaine_famille` en est le premier élément.
+var prochaines_familles: PackedInt32Array = PackedInt32Array()
+var prochaines_armures: PackedByteArray = PackedByteArray()
 var argent: int = 0
 var revenu: int = 0
 var revenu_dans: float = 0.0
@@ -115,6 +133,10 @@ func to_dict() -> Dictionary:
 		"tour_pv": tour_pv,
 		"tour_pv_max": tour_pv_max,
 		"tour_armure": tour_armure,
+		"tour_mana": tour_mana,
+		"tour_mana_max": tour_mana_max,
+		"prochaines_familles": prochaines_familles.duplicate(),
+		"prochaines_armures": prochaines_armures.duplicate(),
 		"argent": argent,
 		"revenu": revenu,
 		"revenu_dans": revenu_dans,
@@ -150,6 +172,12 @@ static func from_dict(d: Dictionary) -> VueArene:
 	vue.tour_pv = d["tour_pv"]
 	vue.tour_pv_max = d["tour_pv_max"]
 	vue.tour_armure = d["tour_armure"]
+	vue.tour_mana = d["tour_mana"]
+	vue.tour_mana_max = d["tour_mana_max"]
+	var familles_suivantes: PackedInt32Array = d["prochaines_familles"]
+	vue.prochaines_familles = familles_suivantes.duplicate()
+	var armures_suivantes: PackedByteArray = d["prochaines_armures"]
+	vue.prochaines_armures = armures_suivantes.duplicate()
 	vue.argent = d["argent"]
 	vue.revenu = d["revenu"]
 	vue.revenu_dans = d["revenu_dans"]
@@ -190,6 +218,13 @@ static func _valide(d: Dictionary) -> bool:
 		return false
 	if not _ameliorations_valides(d["ameliorations"]):
 		return false
+	var familles_suivantes: PackedInt32Array = d["prochaines_familles"]
+	var armures_suivantes: PackedByteArray = d["prochaines_armures"]
+	if (
+		familles_suivantes.size() > FAMILLES_SUIVANTES_MAX
+		or armures_suivantes.size() != familles_suivantes.size()
+	):
+		return false
 	var ids: PackedInt32Array = d["ennemis_id"]
 	var nombre: int = ids.size()
 	var positions: PackedVector2Array = d["ennemis_pos"]
@@ -227,7 +262,11 @@ static func _evenement_conforme(e: Dictionary) -> bool:
 		if typeof(e[cle]) != TYPE_INT:
 			return false
 		var valeur: int = e[cle]
-		var borne := GENRES_ARME.size() if cle == "genre" else STATUTS_ARME.size()
+		var borne := INDEX_ARME_MAX + 1
+		if cle == "genre":
+			borne = GENRES_ARME.size()
+		elif cle == "statut":
+			borne = STATUTS_ARME.size()
 		if valeur < 0 or valeur >= borne:
 			return false
 	return e.size() == attendus

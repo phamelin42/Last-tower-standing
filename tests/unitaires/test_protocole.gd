@@ -56,6 +56,7 @@ func _brut_catalogue() -> Dictionary:
 					"description": "Une amélioration de test.",
 					"rarete": "commune",
 					"prix": 100 + i,
+					"categorie": "amelioration",
 					"effets":
 					[
 						{
