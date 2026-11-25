@@ -28,11 +28,12 @@
 | `crochet-helper`              | Pattern Reader / Fil, lecteur de patrons (sans back-end, pilote auto)  |
 | `phil-mp`                     | Micro-produits : un template, N produits (Ionic, SEO)                  |
 | `petit-bac`                   | Mono-repo Petit Bac (Socket.IO, Material) et Carnet de voyage (NestJS) |
+| `last-tower-standing`         | Last Tower Standing : survie à tour multijoueur (Godot 4.7, GDScript)  |
 | `infra`                       | DNS OVH et projets Vercel, pilotés par `projects.json`                 |
 
 Les projets se ressemblent volontairement : en cas de doute sur une façon de faire, regarder
 comment le projet jumeau l'a résolue (flag-quizz ↔ capital-quizz, site-template → tout nouveau
-site, crochet-helper ↔ phil-mp, lois-votes pour un serveur) plutôt que d'inventer.
+site, crochet-helper ↔ phil-mp, lois-votes pour un serveur, last-tower-standing pour un jeu Godot) plutôt que d'inventer.
 
 ## 2. Langue et rédaction
 
@@ -139,6 +140,11 @@ fin, une fois les décisions et les chiffres arrêtés.
 - **Jamais de garde-fou désactivé pour passer** : pas de règle de lint coupée, pas de test en
   `skip`, pas de contrôle de build contourné, pas de `--no-verify` sans raison écrite. On corrige
   la cause.
+- **Un échec intermittent n'est ni « rare » ni « défaut de l'outil » sur la foi du local** :
+  compter sa fréquence dans l'historique de la CI, le rejouer dans ses conditions (checkout neuf,
+  `HOME` vierge), l'amplifier (plus de fichiers, de threads) jusqu'à un taux exploitable, puis
+  corriger ou contourner. Une relance n'est pas un correctif (last-tower-standing : noté « une
+  fois sur 150 », le plantage de l'import Godot cassait deux CI sur trois).
 - **Un garde-fou non branché ne garde rien** : tout test ou contrôle créé contre une régression
   (axe, reflow, budget, contraste…) tourne dans la CI ou dans `verify`.
 - Avant tout push, même de Markdown seul, même par l'API GitHub :
@@ -191,6 +197,10 @@ fin, une fois les décisions et les chiffres arrêtés.
 - `push_files` (API GitHub) écrit le fichier **entier** : relire un fichier partagé et vivant depuis
   `origin/main` juste avant, sinon on écrase le travail d'un autre. Préférer `git push`.
 - Push refusé (403) : ne pas réessayer en boucle ; livrer autrement (bundle git) et le dire.
+- La CI d'une PR teste sa fusion avec le `main` du moment, pas la seule tête de la branche : un
+  échec qu'on ne reproduit pas se rejoue après `git merge origin/main`, et on regarde si les autres
+  PR ouvertes échouent de même (last-tower-standing : un lot fusionné entre-temps faisait planter
+  l'import de Godot).
 - Un hook `pre-push` qui lance `verify:ci` a besoin du navigateur : `PW_CHROMIUM=… git push`.
 - Un clone `--depth 1` (dépôt ajouté par `add_repo`) ne suit que `main` : même après `git push -u`,
   le hook de fin de session crie aux « commits non poussés ». Après le premier push :
@@ -495,7 +505,9 @@ fin, une fois les décisions et les chiffres arrêtés.
   affirmation (« un contrôle de marque existe », « ces libellés sont des INCI »). Deux défauts de
   spec n'ont été vus qu'à la relecture de tâche.
 - Agents en parallèle : une branche par agent, créée depuis la branche d'intégration à jour,
-  fusionnée avant la vague suivante.
+  fusionnée avant la vague suivante. Avant de lancer un agent ou une session sur une tâche, lister
+  les PR et branches ouvertes et les sessions en cours (`list_sessions`) : une tâche déjà prise ne
+  se relance pas (trois sessions du lot 5 de last-tower-standing ont doublé une PR en brouillon).
 - **Sous-agents économes, l'agent principal pilote** (Phil, 24/11/2026) : tout travail délégable
   (recherche, lecture de gros fichiers, tâches mécaniques, git, vérifications) part chez un
   sous-agent sur un modèle moins gourmand (`haiku` pour le mécanique, `sonnet` pour ce qui demande
@@ -504,6 +516,8 @@ fin, une fois les décisions et les chiffres arrêtés.
 - Chaîne implémenteur → relecteur de tâche → relecture ciblée → relecture finale : à garder (elle a
   trouvé des défauts réels), mais l'implémenteur reçoit d'emblée la liste des cas adverses et les
   tâches liées sont regroupées. Ordre de grandeur de ce travail : 35 à 45 appels d'agents par PR.
+- Une retouche faite d'après des numéros de ligne devinés a coupé un paragraphe d'ADR : l'agent qui
+  réécrit un document relit le `git diff` de sa passe pour vérifier qu'aucun texte n'a disparu.
 - **Le contexte se met à jour au fil de l'eau** (décision de Phil du 30/10/2026) : à chaque
   nouvelle demande ou information importante à garder en mémoire (décision, préférence, règle,
   piège), l'agent l'écrit tout de suite là où elle vaut, sans attendre la fin : dans le
@@ -548,3 +562,8 @@ Ces projets s'écartent volontairement d'une règle ci-dessus ; leur `CLAUDE.md`
   requête externe à l'exécution.
 - **design-system-fuda** : textes Storybook en anglais, une seule story par composant avec un
   contrôle par `input`, captures visuelles versionnées.
+- **last-tower-standing** : Godot 4.7 et GDScript typé, sans Node, Angular, Fuda ni Playwright ;
+  gdlint et gdformat au lieu d'ESLint et Prettier (Prettier pour le Markdown seul) ; tests par un
+  lanceur maison (`tests/lanceur.gd`) ; hook de session qui installe Godot et gdtoolkit ; pas un
+  site, donc ni Umami ni SEO ; `infra` ne déclare que le sous-domaine de l'annuaire des parties
+  (lot 7, service sur le VPS).
