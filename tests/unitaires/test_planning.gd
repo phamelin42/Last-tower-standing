@@ -11,11 +11,32 @@ const ACC_PV := 1.3
 const ACC_DEGATS := 1.2
 const ACC_VITESSE := 1.05
 
+## La difficulté réglée dans `data/difficulte.json` change à chaque passe d'équilibrage : ces tests
+## vérifient la mécanique (paliers, croissance par manche, accélérations) sur une table uniforme
+## fixe, pas les chiffres du jeu.
+const TABLE_UNIFORME: Array = [
+	{"manche": 1, "pv": 1.0, "degats": 1.0, "vitesse": 1.0, "resistance_controle": 1.0}
+]
+const APRES_TABLE: Dictionary = {
+	"pv": PV_PAR_MANCHE,
+	"degats": DEGATS_PAR_MANCHE,
+	"vitesse": VITESSE_PAR_MANCHE,
+	"resistance_controle": RESISTANCE_PAR_MANCHE,
+}
+
 var d: Donnees
 
 
 func avant_chaque() -> void:
-	d = Donnees.charger()
+	d = AidesPartie.donnees(
+		{
+			"difficulte.json":
+			[
+				[["paliers"], TABLE_UNIFORME.duplicate(true)],
+				[["apres_table"], APRES_TABLE.duplicate()]
+			]
+		}
+	)
 
 
 func _tirages(graine: int, manches: int) -> Array[int]:

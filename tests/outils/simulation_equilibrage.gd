@@ -10,9 +10,10 @@ const DUREE_MAX_S := 4000.0
 const JOUEUR := 1
 
 
+## `manche_arret` > 0 : la partie s’arrête dès cette manche atteinte (garde rapide).
 ## Résultat : {manche, victoire, duree_s, degats_par_manche, famille_par_manche, achats,
 ## eliminations}.
-static func jouer(d: Donnees, graine: int, strategie: String) -> Dictionary:
+static func jouer(d: Donnees, graine: int, strategie: String, manche_arret: int = 0) -> Dictionary:
 	var p := Partie.new(d, AidesPartie.config(graine))
 	p.ajouter_joueur(JOUEUR, "Robot")
 	p.demarrer()
@@ -42,6 +43,8 @@ static func jouer(d: Donnees, graine: int, strategie: String) -> Dictionary:
 			degats_par_manche[v.manche] = deja + pv_avant - v.tour_pv
 		pv_avant = v.tour_pv
 		famille_par_manche[v.manche + 1] = v.prochaine_famille
+		if manche_arret > 0 and manche_max >= manche_arret:
+			break
 		if v.phase == Types.Phase.VICTOIRE:
 			victoire = true
 			break
