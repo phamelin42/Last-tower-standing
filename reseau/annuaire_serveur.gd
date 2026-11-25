@@ -33,6 +33,10 @@ var horloge: Callable = Callable():
 		sonde.horloge = valeur
 ## Adresse de l'autre bout d'une connexion (`StreamPeerTCP.get_connected_host` par défaut).
 var source_adresse: Callable = Callable()
+## Écriture sur le pair : `(pair: StreamPeerTCP, octets: PackedByteArray) -> Array` au format de
+## `put_partial_data` (`[erreur, octets envoyés]`). Les tests la remplacent pour simuler un pair
+## dont le tampon d'envoi est plein : en boucle locale, le noyau absorbe toute réponse.
+var ecriture: Callable = Callable()
 ## Sortie du journal (`print` par défaut) : des compteurs agrégés, jamais une IP.
 var journal: Callable = Callable()
 
@@ -217,7 +221,7 @@ func _poursuivre_ecriture(c: _Connexion, t: int) -> void:
 	if c.terminee or c.etat != Etat.ECRITURE:
 		return
 	while c.ecrit < c.a_ecrire.size():
-		var envoi := c.pair.put_partial_data(c.a_ecrire.slice(c.ecrit))
+		var envoi := _envoyer(c.pair, c.a_ecrire.slice(c.ecrit))
 		if envoi[0] != OK or int(envoi[1]) <= 0:
 			return
 		c.ecrit += int(envoi[1])
@@ -258,6 +262,12 @@ func _journaliser() -> void:
 		journal.call(texte)
 	else:
 		print(texte)
+
+
+func _envoyer(pair: StreamPeerTCP, octets: PackedByteArray) -> Array:
+	if ecriture.is_valid():
+		return ecriture.call(pair, octets)
+	return pair.put_partial_data(octets)
 
 
 func _adresse_de(pair: StreamPeerTCP) -> String:

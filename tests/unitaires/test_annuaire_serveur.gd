@@ -644,6 +644,35 @@ func test_un_client_qui_ne_lit_pas_une_liste_ni_ne_ferme_rend_sa_place_apres_la_
 	_nettoyer_noeud()
 
 
+func test_une_reponse_qui_ne_peut_pas_partir_est_abandonnee_a_7_secondes() -> void:
+	_monter()
+	# Le tampon d'envoi du pair est plein : aucun octet ne part (en boucle locale, le noyau
+	# absorberait la réponse et l'état d'écriture ne durerait pas).
+	_noeud.ecriture = func(_pair: StreamPeerTCP, _octets: PackedByteArray) -> Array: return [OK, 0]
+	var port := _ouvrir_noeud()
+	var c := await _connecter(port)
+	c.put_data(AnnuaireProtocole.encoder_liste())
+	for i: int in 10:
+		await arbre.process_frame
+	verifier_egal(_noeud.nb_connexions(), 1, "réponse bloquée, connexion tenue")
+	_t[0] += 1_000
+	await arbre.process_frame
+	await arbre.process_frame
+	verifier_egal(
+		_noeud.nb_connexions(), 1, "la grâce ne s'applique pas avant la fin de l'écriture"
+	)
+	_t[0] += 5_999
+	await arbre.process_frame
+	await arbre.process_frame
+	verifier_egal(_noeud.nb_connexions(), 1, "encore ouverte à 6,999 s")
+	_t[0] += 1
+	var tampon := await _lire(c, 30)
+	verifier(tampon.is_empty(), "rien n'a pu être écrit")
+	verifier(c.get_status() != StreamPeerTCP.STATUS_CONNECTED, "fermée par le service")
+	verifier_egal(_noeud.nb_connexions(), 0, "la place est rendue à 7 s")
+	_nettoyer_noeud()
+
+
 func test_la_soixante_cinquieme_connexion_est_fermee_sans_reponse() -> void:
 	_monter()
 	var port := _ouvrir_noeud()
