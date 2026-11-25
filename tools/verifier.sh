@@ -24,7 +24,7 @@ lanceur() {
 # `.uid` absent de l'index est recréé par Godot dans une autre copie, et la fusion échoue.
 # `.claude/` est ignoré (worktrees des agents).
 verifier_uid() {
-	local manquants orphelins gd_attendus uid_suivis
+	local manquants orphelins gd_attendus uid_suivis doublons
 	lister_suivis() {
 		git ls-files -- "$1" | { grep -v '^\.claude/' || true; } | LC_ALL=C sort
 	}
@@ -32,8 +32,21 @@ verifier_uid() {
 	uid_suivis=$(lister_suivis '*.gd.uid')
 	manquants=$(LC_ALL=C comm -23 <(printf '%s\n' "$gd_attendus" | sed '/^$/d') <(printf '%s\n' "$uid_suivis" | sed '/^$/d'))
 	orphelins=$(LC_ALL=C comm -13 <(printf '%s\n' "$gd_attendus" | sed '/^$/d') <(printf '%s\n' "$uid_suivis" | sed '/^$/d'))
+	# Deux fichiers qui portent le même uid font signaler « UID duplicate » à l'import, et Godot
+	# en réattribue un au hasard : on refuse le doublon dès qu'il est suivi par git.
+	doublons=$(
+		{
+			git ls-files -z -- '*.import' | xargs -0 grep -h '^uid=' | sed 's/^uid=//; s/"//g'
+			git ls-files -z -- '*.gd.uid' | { grep -zv '^\.claude/' || true; } | xargs -0 cat
+		} | sed '/^$/d' | LC_ALL=C sort | uniq -d
+	)
+	if [[ -n "$doublons" ]]; then
+		echo "étape uid : uid en double dans les fichiers suivis :" >&2
+		sed 's/^/  /' <<<"$doublons" >&2
+		return 1
+	fi
 	if [[ -z "$manquants" && -z "$orphelins" ]]; then
-		echo "étape uid : chaque .gd suivi a son .uid suivi"
+		echo "étape uid : chaque .gd suivi a son .uid suivi, aucun uid en double"
 		return 0
 	fi
 	if [[ -n "$manquants" ]]; then
