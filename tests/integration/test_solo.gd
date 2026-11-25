@@ -7,7 +7,8 @@ const GRAINE := 2024
 const PAS := 1.0
 const PAS_MAX := 4000
 const OR_ABONDANT := 1000000
-const ACTIONS_DEFAITE: Array[String] = ["observer", "rejouer", "quitter"]
+## En solo, personne n'est en vie après la défaite : l'observation n'est pas proposée.
+const ACTIONS_DEFAITE: Array[String] = ["rejouer", "quitter"]
 
 var _donnees: Donnees
 var _noeuds_avant: int = 0
@@ -226,11 +227,13 @@ func test_rejouer_lance_une_partie_neuve_sans_fuite() -> void:
 	verifier_egal(_nombre_noeuds(), _noeuds_avant)
 
 
-func test_la_defaite_propose_d_observer_et_sans_autre_joueur_un_message_sans_erreur() -> void:
+func test_en_solo_l_observation_n_est_pas_proposee_et_l_ouvrir_donne_un_message_sans_erreur(
+) -> void:
 	var jeu := _jeu_direct()
 	verifier(jeu.demarrer_solo(_donnees, GRAINE, 0.5))
 	_jusqua_la_defaite(jeu)
-	jeu.fin.presser("observer")
+	verifier_faux(jeu.fin.actions_visibles().has("observer"), "personne à observer en solo")
+	jeu._observer()
 	verifier_faux(jeu.fin.visible)
 	verifier(jeu.observation.visible, "l'observation prend la place")
 	var textes: Array[String] = []

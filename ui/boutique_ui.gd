@@ -14,8 +14,17 @@ const ACTION_RELANCER := "boutique_relancer"
 const NB_OFFRES := 4
 const HAUTEUR_CONTROLE := 48.0
 const TAILLE_TEXTE := 16
-const LARGEUR_CARTE := 240.0
-const LARGEUR_TEXTE := 200.0
+const LARGEUR_CARTE := 200.0
+const LARGEUR_TEXTE := 150.0
+## Largeur de la colonne d'actions (relance, message) et du panneau des armes.
+const LARGEUR_ACTIONS := 172.0
+const LARGEUR_COTE := 300.0
+const LARGEUR_NOM_ARME := 110.0
+const LARGEUR_VENTE := 140.0
+const LIGNES_DESCRIPTION := 3
+const HAUTEUR_NOTE := 24.0
+const MARGE := 8
+const MARGE_COTE := ThemeJeu.MARGE_PANNEAU
 const OPACITE_VENDUE := 0.45
 const SEPARATEUR_NOTES := " · "
 
@@ -55,31 +64,119 @@ var _note_relance: Label
 var _message: Label
 var _noir: VBoxContainer
 var _liste_armes: VBoxContainer
+var _bandeau: PanelContainer
+var _cote: PanelContainer
+var _defilement: ScrollContainer
+var _contenu_cote: VBoxContainer
+var _zone_libre: Rect2 = Rect2()
 
 
 func _init() -> void:
-	var contenu := VBoxContainer.new()
-	add_child(contenu)
-	contenu.add_child(_etiquette("Titre", "BOUTIQUE_TITRE"))
+	theme = ThemeJeu.creer()
+	set_anchors_preset(Control.PRESET_FULL_RECT)
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_construire_bandeau()
+	_construire_cote()
+
+
+## Bandeau du bas : quatre cartes et, à droite, la relance et les messages. Il pousse vers le haut
+## à partir du bord inférieur et ne prend que la hauteur de son contenu.
+func _construire_bandeau() -> void:
+	_bandeau = PanelContainer.new()
+	_bandeau.name = "Bandeau"
+	_bandeau.anchor_left = 0.0
+	_bandeau.anchor_right = 1.0
+	_bandeau.anchor_top = 1.0
+	_bandeau.anchor_bottom = 1.0
+	_bandeau.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	_bandeau.add_theme_stylebox_override("panel", _style_bandeau())
+	add_child(_bandeau)
+	var rangee := HBoxContainer.new()
+	_bandeau.add_child(rangee)
 	var cartes := HBoxContainer.new()
-	contenu.add_child(cartes)
+	cartes.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	rangee.add_child(cartes)
 	for i: int in NB_OFFRES:
 		cartes.add_child(_construire_carte(i))
-	var ligne := HBoxContainer.new()
-	contenu.add_child(ligne)
+	var actions := VBoxContainer.new()
+	actions.name = "Actions"
+	actions.custom_minimum_size = Vector2(LARGEUR_ACTIONS, 0.0)
+	rangee.add_child(actions)
+	var titre := _etiquette("Titre", "BOUTIQUE_TITRE")
+	titre.theme_type_variation = "Titre"
+	titre.add_theme_font_size_override("font_size", TAILLE_TEXTE)
+	actions.add_child(titre)
 	_relance = _bouton(Callable(self, "relancer"))
-	ligne.add_child(_relance)
+	actions.add_child(_relance)
 	_note_relance = _etiquette("NoteRelance")
-	ligne.add_child(_note_relance)
 	_message = _etiquette("Message")
-	contenu.add_child(_message)
+	for libelle: Label in [_note_relance, _message]:
+		libelle.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		libelle.custom_minimum_size = Vector2(LARGEUR_ACTIONS - 8.0, 0.0)
+		libelle.max_lines_visible = 3
+		actions.add_child(libelle)
+
+
+## Panneau compact sur le côté de l'arène : armes équipées à vendre et marché noir. Il se place
+## sous le HUD, au bord droit, et défile si la liste dépasse l'arène visible.
+func _construire_cote() -> void:
+	_cote = PanelContainer.new()
+	_cote.name = "Cote"
+	_cote.anchor_left = 1.0
+	_cote.anchor_right = 1.0
+	_cote.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	_cote.custom_minimum_size = Vector2(LARGEUR_COTE, 0.0)
+	_cote.offset_right = -MiseEnPage.MARGE
+	add_child(_cote)
+	_defilement = ScrollContainer.new()
+	_defilement.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_cote.add_child(_defilement)
+	var colonne := VBoxContainer.new()
+	colonne.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_defilement.add_child(colonne)
+	_contenu_cote = colonne
 	_noir = VBoxContainer.new()
 	_noir.name = "MarcheNoir"
 	_noir.visible = false
-	contenu.add_child(_noir)
-	contenu.add_child(_etiquette("TitreArmes", "BOUTIQUE_ARMES_TITRE"))
+	colonne.add_child(_noir)
+	var titre_armes := _etiquette("TitreArmes", "BOUTIQUE_ARMES_TITRE")
+	titre_armes.add_theme_color_override("font_color", ThemeJeu.LAITON_CLAIR)
+	colonne.add_child(titre_armes)
 	_liste_armes = VBoxContainer.new()
-	contenu.add_child(_liste_armes)
+	colonne.add_child(_liste_armes)
+	_placer_cote()
+
+
+## Fenêtre libre entre le HUD et le bandeau : le panneau des armes s'y loge.
+func definir_zone_libre(libre: Rect2) -> void:
+	_zone_libre = libre
+	_placer_cote()
+
+
+## Rectangle écran du bandeau (cartes, relance, messages).
+func rect_bandeau() -> Rect2:
+	return _bandeau.get_global_rect()
+
+
+## Taille minimale du bandeau : sa hauteur ne dépend que du contenu des cartes.
+func rect_bandeau_minimal() -> Vector2:
+	return _bandeau.get_combined_minimum_size()
+
+
+## Panneaux visibles de la boutique, pour les contrôles de mise en page.
+func panneaux() -> Array[PanelContainer]:
+	return [_bandeau, _cote]
+
+
+func _placer_cote() -> void:
+	_cote.offset_top = _zone_libre.position.y + MiseEnPage.MARGE
+	_cote.offset_bottom = _cote.offset_top
+	var vide := _zone_libre.size.y <= 0.0
+	var disponible := maxf(
+		ThemeJeu.HAUTEUR_CONTROLE, _zone_libre.size.y - 2.0 * MiseEnPage.MARGE - 2.0 * MARGE_COTE
+	)
+	var voulu := _contenu_cote.get_combined_minimum_size().y
+	_defilement.custom_minimum_size = Vector2(0.0, voulu if vide else minf(voulu, disponible))
 
 
 ## Fournit les noms, descriptions et prix de vente, et branche les messages de résultat.
@@ -101,6 +198,7 @@ func afficher(vue: VueArene) -> void:
 	_afficher_relance(vue)
 	_noir.visible = vue.marche_noir_ouvert
 	_afficher_armes(vue)
+	_placer_cote()
 
 
 func acheter_offre(index: int) -> void:
@@ -144,9 +242,11 @@ func _consommer() -> void:
 func _construire_carte(i: int) -> PanelContainer:
 	var carte := PanelContainer.new()
 	carte.name = "Carte%d" % i
+	carte.theme_type_variation = "Carte"
 	carte.custom_minimum_size = Vector2(LARGEUR_CARTE, 0.0)
 	carte.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var colonne := VBoxContainer.new()
+	colonne.add_theme_constant_override("separation", 2)
 	carte.add_child(colonne)
 	var rarete := _etiquette("Rarete%d" % i)
 	var nom := _etiquette("Nom%d" % i)
@@ -157,7 +257,37 @@ func _construire_carte(i: int) -> PanelContainer:
 	for libelle: Label in [rarete, nom, type_degats, description, prix, note]:
 		libelle.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		libelle.custom_minimum_size = Vector2(LARGEUR_TEXTE, 0.0)
-		colonne.add_child(libelle)
+	# Rangées : rareté et prix ; nom (à la ligne s'il est très long) ; type de dégâts et notes ;
+	# description.
+	var haut := HBoxContainer.new()
+	colonne.add_child(haut)
+	for libelle: Label in [rarete, prix]:
+		libelle.autowrap_mode = TextServer.AUTOWRAP_OFF
+		libelle.custom_minimum_size.x = 0.0
+	rarete.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	prix.add_theme_color_override("font_color", ThemeJeu.LAITON_CLAIR)
+	haut.add_child(rarete)
+	haut.add_child(prix)
+	nom.custom_minimum_size.y = _hauteur_ligne()
+	nom.add_theme_color_override("font_color", ThemeJeu.LAITON_CLAIR)
+	colonne.add_child(nom)
+	var bas := HBoxContainer.new()
+	colonne.add_child(bas)
+	for libelle: Label in [type_degats, note]:
+		libelle.autowrap_mode = TextServer.AUTOWRAP_OFF
+		libelle.custom_minimum_size.x = 0.0
+		libelle.clip_text = true
+		libelle.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		libelle.add_theme_color_override("font_color", ThemeJeu.PARCHEMIN_ATTENU)
+	type_degats.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	note.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	note.custom_minimum_size.y = HAUTEUR_NOTE
+	bas.add_child(type_degats)
+	bas.add_child(note)
+	description.max_lines_visible = LIGNES_DESCRIPTION
+	description.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	description.custom_minimum_size.y = LIGNES_DESCRIPTION * _hauteur_ligne()
+	colonne.add_child(description)
 	var achat := _bouton(Callable(self, "acheter_offre").bind(i))
 	achat.text = tr("BOUTIQUE_ACHETER")
 	colonne.add_child(achat)
@@ -170,6 +300,22 @@ func _construire_carte(i: int) -> PanelContainer:
 	_notes.append(note)
 	_achats.append(achat)
 	return carte
+
+
+## Hauteur d'une ligne de texte de 16 px : les zones de texte réservent leurs lignes d'avance, la
+## hauteur des cartes ne change donc pas d'une offre à l'autre.
+static func _hauteur_ligne() -> float:
+	return 26.0
+
+
+func _style_bandeau() -> StyleBoxFlat:
+	var boite := ThemeJeu.boite_panneau()
+	boite.set_content_margin_all(MARGE)
+	boite.set_corner_radius_all(0)
+	boite.border_width_bottom = 0
+	boite.border_width_left = 0
+	boite.border_width_right = 0
+	return boite
 
 
 func _construire_marche_noir() -> void:
@@ -224,6 +370,8 @@ func _afficher_carte(i: int, offre: Dictionary, vue: VueArene) -> void:
 	_noms[i].text = str(entree.get("nom", offre["id"]))
 	_types[i].text = _libelle_type(entree, genre)
 	_descriptions[i].text = str(entree.get("description", ""))
+	_descriptions[i].tooltip_text = _descriptions[i].text
+	_noms[i].tooltip_text = _noms[i].text
 	_prix[i].text = tr("BOUTIQUE_PRIX") % Nombres.groupe(prix)
 	var notes: Array[String] = []
 	if vendu:
@@ -235,6 +383,7 @@ func _afficher_carte(i: int, offre: Dictionary, vue: VueArene) -> void:
 		if genre == Types.Genre.ARME and vue.armes.size() >= _capacite():
 			notes.append(tr("BOUTIQUE_PLEINS"))
 	_notes[i].text = SEPARATEUR_NOTES.join(notes)
+	_notes[i].tooltip_text = _notes[i].text
 
 
 func _afficher_relance(vue: VueArene) -> void:
@@ -266,11 +415,17 @@ func _afficher_armes(vue: VueArene) -> void:
 		var ligne := HBoxContainer.new()
 		var nom := _etiquette("NomArme%d" % i)
 		nom.text = str(entree.get("nom", ids[i]))
-		nom.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		nom.autowrap_mode = TextServer.AUTOWRAP_OFF
+		nom.custom_minimum_size.x = LARGEUR_NOM_ARME
+		nom.clip_text = true
+		nom.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		nom.tooltip_text = nom.text
 		nom.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		ligne.add_child(nom)
 		var vente := _bouton(Callable(self, "_vendre").bind(i))
 		vente.text = tr("BOUTIQUE_VENDRE_PRIX") % Nombres.groupe(_prix_vente(entree))
+		vente.autowrap_mode = TextServer.AUTOWRAP_OFF
+		vente.custom_minimum_size.x = LARGEUR_VENTE
 		ligne.add_child(vente)
 		_liste_armes.add_child(ligne)
 
