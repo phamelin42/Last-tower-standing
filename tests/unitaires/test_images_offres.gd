@@ -135,3 +135,23 @@ func test_le_script_regenere_les_soixante_dix_cases_au_octet_pres() -> void:
 		)
 		verifier(neuf.size() > 0, "%s : case regénérée non vide" % id)
 		verifier(neuf == versionne, "%s : mêmes octets que la case versionnée" % id)
+
+
+func test_chaque_dossier_d_icones_a_sa_licence_et_aucune_icone_versionnee_ne_dort() -> void:
+	for pack: String in ["ravenmore", "ludicarts"]:
+		var dossier: String = "res://assets/icones/%s/" % pack
+		verifier(FileAccess.file_exists(dossier + "LICENCE.md"), "%s : LICENCE.md" % pack)
+	var utilisees: Dictionary = {}
+	for id: String in ImagesOffres.ids():
+		utilisees[ImagesOffres.chemin_icone(String(ImagesOffres.entree(id)["icone"]))] = true
+	for f: String in DirAccess.get_files_at("res://assets/icones/ludicarts/"):
+		if f.ends_with(".png"):
+			var chemin: String = "res://assets/icones/ludicarts/" + f
+			verifier(utilisees.has(chemin), "%s ne sert à aucune offre" % chemin)
+
+
+func test_un_rapprochement_faible_n_est_jamais_un_doublon_ni_une_offre_inconnue() -> void:
+	var vus: Dictionary = {}
+	for id: String in ImagesOffres.RAPPROCHEMENTS_FAIBLES:
+		verifier(not vus.has(id), "%s est listé deux fois" % id)
+		vus[id] = true

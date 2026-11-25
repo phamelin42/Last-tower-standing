@@ -11,6 +11,7 @@ extends RefCounted
 ## trébuchet, de sablier ni de tirelire parmi les 41). L'icône la plus proche est reprise, et
 ## l'offre figure dans `RAPPROCHEMENTS_FAIBLES` pour que Phil tranche sur la planche.
 
+const DOSSIER_RACINE := "res://assets/icones/"
 const DOSSIER_ICONES := "res://assets/icones/ravenmore/"
 const DOSSIER_CASES := "res://assets/icones/cases/"
 
@@ -33,48 +34,48 @@ const OFFRES: Dictionary = {
 	# Armes tranchantes.
 	"lame_de_fil": ["dagger", "brique"],
 	"faucille_a_ressort": ["axe", "brique"],
-	"disque_scie": ["axeDouble", "brique"],
-	"moulinet_de_cuivre": ["axeDouble2", "brique"],
+	"disque_scie": ["ludicarts/lame_courbe", "brique"],
+	"moulinet_de_cuivre": ["ludicarts/lame_feu", "brique"],
 	"guillotine_a_vapeur": ["upg_axe", "brique"],
 	"tourbillon_d_acier": ["upg_axeDouble", "brique"],
 	# Armes perçantes.
 	"arbalete_de_bureau": ["bow", "vert"],
 	"chausse_trape": ["swordWood", "vert"],
-	"carreau_ricochet": ["dagger", "vert"],
-	"herse_de_ressorts": ["shield", "vert"],
+	"carreau_ricochet": ["ludicarts/fleches_givre", "vert"],
+	"herse_de_ressorts": ["ludicarts/bouclier_bois", "vert"],
 	"baliste_de_guet": ["upg_bow", "vert"],
-	"pluie_d_aiguilles": ["upg_spear", "vert"],
+	"pluie_d_aiguilles": ["ludicarts/fleches_feu", "vert"],
 	# Armes magiques.
 	"etincelle_runique": ["wand", "violet"],
 	"orbe_de_brume": ["gemBlue", "violet"],
 	"chaine_d_arcanes": ["scroll", "violet"],
-	"cercle_de_givre": ["potionBlue", "violet"],
+	"cercle_de_givre": ["ludicarts/anneau_vert", "violet"],
 	"nova_d_ambre": ["upg_wand", "violet"],
-	"tempete_astrale": ["upg_spear", "violet"],
+	"tempete_astrale": ["ludicarts/cristal_violet", "violet"],
 	# Armes de siège.
 	"bombarde_de_poche": ["hammer", "brun"],
-	"petard_de_rempart": ["potionRed", "brun"],
+	"petard_de_rempart": ["ludicarts/torche", "brun"],
 	"trebuchet_de_chambre": ["tools", "brun"],
 	"mine_de_forge": ["gemRed", "brun"],
 	"canon_de_cloche": ["upg_helmet", "brun"],
 	"grande_bombarde": ["upg_hammer", "brun"],
 	# Armes du chaos.
 	"de_pipe": ["gemRed", "pourpre"],
-	"sablier_fele": ["x", "pourpre"],
+	"sablier_fele": ["ludicarts/fiole_jaune", "pourpre"],
 	"cornue_instable": ["potionGreen", "pourpre"],
 	"miroir_brise": ["shieldSmall", "pourpre"],
-	"vortex_de_verre": ["gemGreen", "pourpre"],
+	"vortex_de_verre": ["ludicarts/cristal_vert", "pourpre"],
 	"horloge_folle": ["upgShieldSmall", "pourpre"],
 	# Bonus de dégâts d'un type.
 	"affutage_fin": ["sword", "brique"],
 	"forge_du_maitre": ["upg_sword", "brique"],
-	"pointes_trempees": ["potionGreen", "vert"],
+	"pointes_trempees": ["ludicarts/fleches", "vert"],
 	"carquois_sans_fond": ["backpack", "vert"],
-	"encre_d_arcane": ["map", "violet"],
+	"encre_d_arcane": ["ludicarts/parchemin_bleu", "violet"],
 	"grimoire_des_cimes": ["tome", "violet"],
-	"poudre_noire": ["backpack", "brun"],
-	"poudriere_renforcee": ["armor", "brun"],
-	"poussiere_d_entropie": ["potionBlue", "pourpre"],
+	"poudre_noire": ["ludicarts/fiole_rouge", "brun"],
+	"poudriere_renforcee": ["ludicarts/sac", "brun"],
+	"poussiere_d_entropie": ["ludicarts/fiole_violette", "pourpre"],
 	"coeur_du_desordre": ["heart", "pourpre"],
 	# Bonus général de dégâts.
 	"etincelle_d_ame": ["gemBlue", "dore"],
@@ -107,42 +108,27 @@ const OFFRES: Dictionary = {
 	"engrenage_affole": ["tools", "sarcelle"],
 	"double_encoche": ["bow", "sarcelle"],
 	"eclats_multiples": ["gemBlue", "sarcelle"],
-	"lentille_fixe": ["wand", "sarcelle"],
+	"lentille_fixe": ["ludicarts/cristal_vert", "sarcelle"],
 	"bourse_de_rebut": ["backpack", "sarcelle"],
 	"jeton_de_l_arriere_boutique": ["map", "sarcelle"],
 }
 
 ## Offres dont l'icône n'est qu'un rapprochement faible, à faire valider par Phil.
 const RAPPROCHEMENTS_FAIBLES: PackedStringArray = [
-	"disque_scie",
-	"moulinet_de_cuivre",
 	"chausse_trape",
-	"carreau_ricochet",
-	"herse_de_ressorts",
-	"cercle_de_givre",
-	"tempete_astrale",
-	"petard_de_rempart",
 	"trebuchet_de_chambre",
 	"mine_de_forge",
 	"canon_de_cloche",
 	"de_pipe",
 	"sablier_fele",
 	"miroir_brise",
-	"vortex_de_verre",
 	"horloge_folle",
-	"pointes_trempees",
 	"carquois_sans_fond",
-	"encre_d_arcane",
-	"poudre_noire",
-	"poudriere_renforcee",
-	"poussiere_d_entropie",
 	"calice_des_vaincus",
-	"lentille_fixe",
 	"bourse_de_rebut",
 	"jeton_de_l_arriere_boutique",
 	"tirelire_d_honneur",
 	"atelier_de_tisserands",
-	"placement_de_rente",
 	"fonderie_de_pieces",
 	"chasse_aux_trophees",
 	"de_de_fortune",
@@ -165,7 +151,10 @@ static func entree(id: String) -> Dictionary:
 	return {"icone": brut[0], "couleur": brut[1]}
 
 
+## Une icône sans préfixe vient de Ravenmore ; `pack/nom` désigne `assets/icones/<pack>/<nom>.png`.
 static func chemin_icone(icone: String) -> String:
+	if icone.contains("/"):
+		return DOSSIER_RACINE + icone + ".png"
 	return DOSSIER_ICONES + icone + ".png"
 
 
