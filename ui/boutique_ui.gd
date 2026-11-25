@@ -47,6 +47,8 @@ const HAUTEUR_MIN_AMBIANCE := 700.0
 ## Respiration entre la ligne d'effet et l'ambiance, quand celle-ci a sa place.
 const ESPACE_AMBIANCE := 6.0
 const HAUTEUR_NOTE := 24.0
+## Marges verticales du style des boutons (haut et bas) autour du texte.
+const HAUTEUR_MARGES_BOUTON := 36.0
 const MARGE := 8
 const MARGE_COTE := ThemeJeu.MARGE_PANNEAU
 const OPACITE_VENDUE := 0.45
@@ -134,6 +136,9 @@ func _construire_bandeau() -> void:
 	titre.add_theme_font_size_override("font_size", TAILLE_TEXTE)
 	actions.add_child(titre)
 	_relance = _bouton(Callable(self, "relancer"))
+	# « Relancer » puis le prix : deux lignes de 23 px et les marges du bouton (36 px), sinon la
+	# seconde ligne est coupée.
+	_relance.custom_minimum_size.y = 2.0 * HAUTEUR_LIGNE_SERREE + HAUTEUR_MARGES_BOUTON
 	actions.add_child(_relance)
 	_note_relance = _etiquette("NoteRelance")
 	_message = _etiquette("Message")

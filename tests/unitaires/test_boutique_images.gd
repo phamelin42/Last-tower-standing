@@ -292,3 +292,51 @@ func test_chaque_choix_du_marche_noir_montre_son_image() -> void:
 		)
 		verifier(choix[i].text.contains(str(_donnees.ameliorations[ids[i]]["nom"])), "nom écrit")
 		verifier_egal(choix[i].get_theme_constant("icon_max_width"), 40, "image de 40 px")
+
+
+# --- Relance ---------------------------------------------------------------------------------
+
+
+## Le libellé du bouton de relance, avec le prix le plus long (4 chiffres), tient entier dans le
+## bouton : chaque mot passe en largeur et toutes les lignes en hauteur.
+func test_le_libelle_de_relance_tient_dans_son_bouton_a_chaque_resolution() -> void:
+	for zone: Vector2 in RESOLUTIONS:
+		var jeu := await _jeu_a(zone)
+		var vue := _vue([])
+		vue.cout_relance = 1000
+		vue.relances_gratuites = 0
+		jeu.boutique.afficher(vue)
+		await attendre_images(2)
+		jeu.placer_dans(zone)
+		await attendre_images(2)
+		var actions := jeu.boutique.find_child("Actions", true, false) as Control
+		var bouton := actions.find_children("*", "Button", true, false)[0] as Button
+		var boite := bouton.get_theme_stylebox("normal")
+		var police := bouton.get_theme_font("font")
+		var taille := bouton.get_theme_font_size("font_size")
+		var largeur := bouton.size.x - boite.get_minimum_size().x
+		var paragraphe := TextParagraph.new()
+		paragraphe.add_string(bouton.text, police, taille)
+		paragraphe.width = largeur
+		paragraphe.break_flags = (
+			TextServer.BREAK_MANDATORY | TextServer.BREAK_WORD_BOUND | TextServer.BREAK_ADAPTIVE
+		)
+		var dimension := paragraphe.get_size()
+		# Une ligne occupe la hauteur de la police (celle des `Label` de l'interface), pas la mesure
+		# resserrée du paragraphe : c'est elle que le bouton doit pouvoir loger.
+		var lignes := paragraphe.get_line_count()
+		verifier(lignes <= 2, "à %s : deux lignes au plus (%d)" % [zone, lignes])
+		var requis := lignes * police.get_height(taille) + boite.get_minimum_size().y
+		verifier(
+			requis <= bouton.size.y + 0.5,
+			(
+				"à %s : %s px requis pour %d lignes, bouton de %s px"
+				% [zone, requis, lignes, bouton.size.y]
+			)
+		)
+		for mot: String in bouton.text.split(" "):
+			verifier(
+				police.get_string_size(mot, HORIZONTAL_ALIGNMENT_LEFT, -1, taille).x <= largeur,
+				"à %s : le mot « %s » tient en largeur" % [zone, mot]
+			)
+		_liberer(jeu)
