@@ -125,8 +125,15 @@ func afficher(salon: Salon, id_local: int) -> void:
 	for enfant: Node in _joueurs.get_children():
 		_joueurs.remove_child(enfant)
 		enfant.queue_free()
+	# L'hôte en tête, puis les autres : les numéros de pair sont tirés au hasard par ENet, trier
+	# dessus donnerait un ordre qui change d'une partie à l'autre.
 	var ids: Array = salon.joueurs.keys()
-	ids.sort()
+	ids.sort_custom(
+		func(a: int, b: int) -> bool:
+			if (a == salon.hote) != (b == salon.hote):
+				return a == salon.hote
+			return a < b
+	)
 	var autres_prets := true
 	for id: int in ids:
 		var j: Dictionary = salon.joueurs[id]

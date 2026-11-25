@@ -61,6 +61,17 @@ func test_de_un_a_huit_joueurs_chacun_est_liste_avec_son_etat_en_texte() -> void
 			verifier(lignes[i].contains(_t("SALON_PAS_PRET")), "pas prêt en texte : %s" % lignes[i])
 
 
+func test_l_hote_est_en_tete_quel_que_soit_son_numero_de_pair() -> void:
+	var s := Salon.new()
+	s.ajouter(900, "Hôte")
+	s.ajouter(5, "Alix")
+	s.ajouter(300, "Bo")
+	_salon_ui.afficher(s, 5)
+	var lignes := _salon_ui.lignes_joueurs()
+	verifier(lignes[0].begins_with("Hôte"), "l'hôte d'abord : %s" % lignes[0])
+	verifier(lignes[1].begins_with("Alix") and lignes[2].begins_with("Bo"), "puis les autres")
+
+
 func test_un_joueur_n_a_ni_lancer_ni_reglage_de_vitesse_actif() -> void:
 	var s := _salon_de(3)
 	_salon_ui.afficher(s, 2)

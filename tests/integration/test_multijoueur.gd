@@ -333,6 +333,51 @@ func test_par_le_menu_creer_se_decouvre_se_rejoint_et_se_lance() -> void:
 	verifier_egal(int(Performance.get_monitor(Performance.OBJECT_NODE_COUNT)), _noeuds_avant)
 
 
+func test_par_le_menu_retour_au_salon_rouvre_un_salon_neuf_ou_la_joueuse_peut_revenir() -> void:
+	var principal := _principal_neuf()
+	principal.menu().bouton_creer.pressed.emit()
+	principal.connexion().champ_port_creer.text = str(_port_jeu)
+	principal.connexion().bouton_creer.pressed.emit()
+	var salon := principal.salon()
+	var autre := _session()
+	verifier_egal(autre.rejoindre(_donnees, ADRESSE, _port_jeu, "Bo"), OK)
+	var b := Ecoute.new(autre)
+	verifier(await _jusqua(func() -> bool: return salon.lignes_joueurs().size() == 2), "deux")
+	autre.client.pret(true)
+	verifier(await _jusqua(func() -> bool: return not salon.bouton_lancer.disabled), "prêts")
+	salon.bouton_lancer.pressed.emit()
+	verifier(await _jusqua(func() -> bool: return principal.jeu() != null), "la partie s'ouvre")
+
+	# L'écran de fin propose « Retour au salon » : l'hôte retrouve un salon neuf, seul dedans.
+	principal.jeu().retour_salon.emit()
+	verifier(
+		await _jusqua(
+			func() -> bool: return (
+				principal.jeu() == null
+				and salon.visible
+				and not salon.en_attente()
+				and salon.lignes_joueurs().size() == 1
+			)
+		),
+		"l'hôte est dans un salon neuf, avec lui seul"
+	)
+	verifier(salon.est_hote())
+	verifier_faux(principal.session().serveur.salon.lancee, "la nouvelle partie n'a pas démarré")
+	# B, qui avait perdu l'ancien salon, y entre en disant de nouveau bonjour.
+	verifier(await _jusqua(func() -> bool: return not b.perte.is_empty()), "B voit l'ancien partir")
+	var b2 := _session()
+	verifier_egal(b2.rejoindre(_donnees, ADRESSE, _port_jeu, "Bo"), OK)
+	var e2 := Ecoute.new(b2)
+	verifier(
+		await _jusqua(func() -> bool: return salon.lignes_joueurs().size() == 2),
+		"B revient dans le salon rouvert"
+	)
+	verifier(e2.perte.is_empty())
+	_fermer_tout()
+	await attendre_images(4)
+	verifier_egal(int(Performance.get_monitor(Performance.OBJECT_NODE_COUNT)), _noeuds_avant)
+
+
 func test_par_le_menu_port_pris_message_dans_le_dialogue_et_retour_possible() -> void:
 	var occupant := _session()
 	verifier_egal(occupant.heberger(_donnees, _port_jeu, "A", "Mina", _port_udp, [ADRESSE]), OK)
