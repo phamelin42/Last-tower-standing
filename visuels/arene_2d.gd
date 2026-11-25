@@ -18,6 +18,9 @@ const RAYON_SOL: float = 6000.0
 const POINTS_CERCLE: int = 96
 const LARGEUR_CERCLE: float = 4.0
 const VITESSE_VOL: float = 3.0
+## Écart maximal (unités) entre une mort et la dernière position connue de l'ennemi mort : il a
+## pu avancer entre deux vues.
+const PORTEE_MORT: float = 40.0
 const NOM_LARGEUR: float = 260.0
 const NOM_TAILLE: int = 18
 const NOM_CONTOUR: int = 6
@@ -65,6 +68,7 @@ var _arrets: PackedFloat32Array = PackedFloat32Array()
 var _a_distance: PackedByteArray = PackedByteArray()
 var _combat: PackedByteArray = PackedByteArray()
 var _flottements: PackedFloat32Array = PackedFloat32Array()
+var _explosives: PackedByteArray = PackedByteArray()
 var _regions: Array[PackedFloat32Array] = []
 var _decalages: Array[PackedFloat32Array] = []
 var _couvre_x: PackedFloat32Array = PackedFloat32Array()
@@ -74,6 +78,9 @@ var _decalages_mort: PackedFloat32Array = PackedFloat32Array()
 var _morts: Array[Sprite2D] = []
 var _morts_debut: PackedFloat64Array = PackedFloat64Array()
 var _texture_mort: Texture2D = null
+var _effets: Effets2D = null
+## Vue reçue avant la courante : on y retrouve la famille d'un ennemi qui vient de mourir.
+var _vue_precedente: VueArene = null
 
 
 ## Un sprite d'ennemi : retient l'image et le sens affichés pour ne recalculer sa région que
@@ -107,6 +114,10 @@ func _assurer_construite() -> void:
 	_ennemis.name = "Ennemis"
 	_ennemis.y_sort_enabled = true
 	add_child(_ennemis)
+	_effets = Effets2D.new()
+	_effets.name = "Effets"
+	_effets.parent_sol = _ennemis
+	add_child(_effets)
 	_construire_tour()
 	_construire_nom()
 	if donnees != null:
@@ -143,6 +154,8 @@ func reinitialiser() -> void:
 	_assurer_construite()
 	_interpolation.reinitialiser()
 	_dernier_tick = -1
+	_vue_precedente = null
+	_effets.vider()
 	_afficher_echantillon()
 
 
@@ -227,6 +240,7 @@ func sprite_mort(i: int) -> Sprite2D:
 func _process(delta: float) -> void:
 	_assurer_construite()
 	_horloge += delta
+	_effets.avancer(delta)
 	_afficher_echantillon()
 	_ajuster_nom()
 
@@ -241,10 +255,56 @@ func _recevoir(vue: VueArene, temps: float) -> void:
 		return
 	_dernier_tick = vue.tick
 	_interpolation.pousser(vue, temps)
+	var explosifs: Array[Vector2] = []
+	var cherche: bool = false
 	for evenement: Dictionary in vue.evenements:
-		if String(evenement.get("k", "")) == "mort":
-			var ou: Vector2 = evenement.get("de", Vector2.ZERO)
-			_ajouter_mort(ou)
+		match String(evenement.get("k", "")):
+			"mort":
+				if not cherche:
+					cherche = true
+					explosifs = _explosifs_disparus(vue)
+				var ou: Vector2 = evenement.get("de", Vector2.ZERO)
+				var rang: int = _plus_proche(explosifs, ou)
+				if rang >= 0:
+					explosifs.remove_at(rang)
+					_effets.exploser(ou)
+				else:
+					_ajouter_mort(ou)
+			"tir", "impact":
+				_effets.ajouter(evenement)
+	_vue_precedente = vue
+
+
+## Positions, dans la vue précédente, des tonneaux et des artificiers absents de `vue` : ceux
+## qui viennent de mourir (l'événement de mort ne dit pas de quelle famille).
+func _explosifs_disparus(vue: VueArene) -> Array[Vector2]:
+	var liste: Array[Vector2] = []
+	var avant: VueArene = _vue_precedente
+	if avant == null:
+		return liste
+	var presents: Dictionary = {}
+	for id: int in vue.ennemis_id:
+		presents[id] = true
+	var total: int = mini(
+		avant.ennemis_id.size(), mini(avant.ennemis_pos.size(), avant.ennemis_famille.size())
+	)
+	for i: int in total:
+		var f: int = avant.ennemis_famille[i]
+		if f < _explosives.size() and _explosives[f] != 0 and not presents.has(avant.ennemis_id[i]):
+			liste.append(avant.ennemis_pos[i])
+	return liste
+
+
+## Rang de la position la plus proche de `ou` à moins de `PORTEE_MORT` unités, -1 s'il n'y en a pas.
+func _plus_proche(positions: Array[Vector2], ou: Vector2) -> int:
+	var meilleur: int = -1
+	var distance: float = PORTEE_MORT
+	for i: int in positions.size():
+		var d: float = positions[i].distance_to(ou)
+		if d <= distance:
+			distance = d
+			meilleur = i
+	return meilleur
 
 
 func _afficher_echantillon() -> void:
@@ -364,6 +424,8 @@ func _creer_sprite(famille: int) -> Sprite2D:
 		accessoire.position = a["decalage"]
 		accessoire.scale = Vector2.ONE * float(a["echelle"])
 		sprite.add_child(accessoire)
+	if famille == _entrees.size() - 1:
+		sprite.add_child(Effets2D.creer_flamme())
 	_ennemis.add_child(sprite)
 	return sprite
 
@@ -448,6 +510,7 @@ func _preparer_entites() -> void:
 			portee = float(donnees.boss["portee_attaque"])
 		_arrets.append(Apparence2D.distance_arret(portee, rayon_tour))
 		_flottements.append(float(e["flottement"]))
+		_explosives.append(1 if Effets2D.FAMILLES_EXPLOSIVES.has(ids[f]) else 0)
 		_preparer_images(e)
 		_a_distance.append(1 if portee > Apparence2D.PORTEE_CORPS_A_CORPS else 0)
 		# Le convoi (index n) ne combat pas.
