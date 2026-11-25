@@ -2,7 +2,7 @@
  {
   "id": "lame_de_fil",
   "nom": "Lame de fil",
-  "description": "Un fil tendu qui tranche l’ennemi le plus proche.",
+  "description": "Un fil d’acier tendu qui coupe net ce qui approche.",
   "rarete": "commune",
   "prix": 80,
   "type_degats": "tranchant",
@@ -20,7 +20,7 @@
  {
   "id": "faucille_a_ressort",
   "nom": "Faucille à ressort",
-  "description": "Une faux montée sur ressort fauche tout un groupe.",
+  "description": "Un ressort se détend, et la faux balaie tout le groupe.",
   "rarete": "commune",
   "prix": 120,
   "type_degats": "tranchant",
@@ -39,7 +39,7 @@
  {
   "id": "disque_scie",
   "nom": "Disque scie",
-  "description": "Un disque ricoche de cible en cible en laissant des plaies.",
+  "description": "Il ricoche d’un ennemi à l’autre en laissant du venin dans la plaie.",
   "rarete": "peu_commune",
   "prix": 260,
   "type_degats": "tranchant",
@@ -66,7 +66,7 @@
  {
   "id": "moulinet_de_cuivre",
   "nom": "Moulinet de cuivre",
-  "description": "Des lames de cuivre tournent sans cesse autour de la tour.",
+  "description": "Des pales de cuivre tournoient sans relâche autour de la tour.",
   "rarete": "peu_commune",
   "prix": 290,
   "type_degats": "tranchant",
@@ -86,7 +86,7 @@
  {
   "id": "guillotine_a_vapeur",
   "nom": "Guillotine à vapeur",
-  "description": "Une lame de vapeur balaie le terrain en un grand arc.",
+  "description": "Un souffle de lame et de vapeur qui s’élargit depuis la tour.",
   "rarete": "rare",
   "prix": 520,
   "type_degats": "tranchant",
@@ -106,7 +106,7 @@
  {
   "id": "tourbillon_d_acier",
   "nom": "Tourbillon d’acier",
-  "description": "Une salve d’éclats d’acier ; chaque coup rend un peu de vie.",
+  "description": "Des éclats d’acier fusent en rafale et nourrissent la tour.",
   "rarete": "epique",
   "prix": 1000,
   "type_degats": "tranchant",
@@ -133,7 +133,7 @@
  {
   "id": "arbalete_de_bureau",
   "nom": "Arbalète de bureau",
-  "description": "Un carreau précis, tiré depuis un pupitre bricolé.",
+  "description": "Un carreau précis, parti d’un pupitre bricolé.",
   "rarete": "commune",
   "prix": 90,
   "type_degats": "perçant",
@@ -151,7 +151,7 @@
  {
   "id": "chausse_trape",
   "nom": "Chausse-trape",
-  "description": "Des pointes cachées blessent ceux qui marchent dessus.",
+  "description": "Des pointes cachées dans la poussière attendent le passant.",
   "rarete": "commune",
   "prix": 110,
   "type_degats": "perçant",
@@ -171,7 +171,7 @@
  {
   "id": "carreau_ricochet",
   "nom": "Carreau ricochet",
-  "description": "Un trait rebondit entre six ennemis avant de s’éteindre.",
+  "description": "Un trait file d’un ennemi à l’autre et s’essouffle en route.",
   "rarete": "peu_commune",
   "prix": 250,
   "type_degats": "perçant",
@@ -192,7 +192,7 @@
  {
   "id": "herse_de_ressorts",
   "nom": "Herse de ressorts",
-  "description": "Une rangée de piques jaillit et étourdit brièvement.",
+  "description": "Une rangée de piques jaillit et sonne ceux qu’elle touche.",
   "rarete": "peu_commune",
   "prix": 270,
   "type_degats": "perçant",
@@ -218,7 +218,7 @@
  {
   "id": "baliste_de_guet",
   "nom": "Baliste de guet",
-  "description": "Un long trait empoisonné, tiré du sommet de la tour.",
+  "description": "Un long trait trempé de venin, tiré du haut de la tour.",
   "rarete": "rare",
   "prix": 540,
   "type_degats": "perçant",
@@ -242,7 +242,7 @@
  {
   "id": "pluie_d_aiguilles",
   "nom": "Pluie d’aiguilles",
-  "description": "Une averse d’aiguilles couvre toute la zone d’approche.",
+  "description": "Une averse d’aiguilles s’abat sur toute la zone d’approche.",
   "rarete": "epique",
   "prix": 1100,
   "type_degats": "perçant",
@@ -263,7 +263,7 @@
  {
   "id": "etincelle_runique",
   "nom": "Étincelle runique",
-  "description": "Une étincelle gravée de runes frappe à distance moyenne.",
+  "description": "Une étincelle gravée de runes jaillit droit vers sa cible.",
   "rarete": "commune",
   "prix": 70,
   "type_degats": "magique",
@@ -281,7 +281,7 @@
  {
   "id": "orbe_de_brume",
   "nom": "Orbe de brume",
-  "description": "Une brume glacée ralentit tout ce qu’elle englobe.",
+  "description": "Une brume glacée enveloppe le groupe et ralentit ses pas.",
   "rarete": "commune",
   "prix": 130,
   "type_degats": "magique",
@@ -304,7 +304,7 @@
  {
   "id": "chaine_d_arcanes",
   "nom": "Chaîne d’arcanes",
-  "description": "Un arc magique saute entre cinq cibles en s’affaiblissant.",
+  "description": "Un arc magique saute de cible en cible en s’affaiblissant.",
   "rarete": "peu_commune",
   "prix": 240,
   "type_degats": "magique",
@@ -325,7 +325,7 @@
  {
   "id": "cercle_de_givre",
   "nom": "Cercle de givre",
-  "description": "Un cercle runique gèle le sol autour de la tour.",
+  "description": "Un cercle runique gèle l’air autour de la tour.",
   "rarete": "peu_commune",
   "prix": 300,
   "type_degats": "magique",
@@ -375,7 +375,7 @@
  {
   "id": "tempete_astrale",
   "nom": "Tempête astrale",
-  "description": "Des éclairs d’étoiles sautent entre huit cibles et les sonnent.",
+  "description": "Des éclairs d’étoiles sautent entre les cibles et les sonnent.",
   "rarete": "epique",
   "prix": 1150,
   "type_degats": "magique",
@@ -401,7 +401,7 @@
  {
   "id": "bombarde_de_poche",
   "nom": "Bombarde de poche",
-  "description": "Un petit canon qui lance des boulets sur les groupes.",
+  "description": "Un petit canon qui lance ses boulets sur les groupes.",
   "rarete": "commune",
   "prix": 120,
   "type_degats": "siège",
@@ -440,7 +440,7 @@
  {
   "id": "trebuchet_de_chambre",
   "nom": "Trébuchet de chambre",
-  "description": "Un contrepoids propulse un énorme rocher au loin.",
+  "description": "Un contrepoids propulse un rocher pesant très loin.",
   "rarete": "peu_commune",
   "prix": 280,
   "type_degats": "siège",
@@ -459,7 +459,7 @@
  {
   "id": "mine_de_forge",
   "nom": "Mine de forge",
-  "description": "Une charge de forge, enterrée, ravage les ennemis proches.",
+  "description": "Une charge de forge, enterrée, attend le premier qui passe.",
   "rarete": "peu_commune",
   "prix": 260,
   "type_degats": "siège",
@@ -479,7 +479,7 @@
  {
   "id": "canon_de_cloche",
   "nom": "Canon de cloche",
-  "description": "Quatre boulets enflammés pilonnent un même endroit.",
+  "description": "Des boulets enflammés pilonnent un même endroit.",
   "rarete": "rare",
   "prix": 500,
   "type_degats": "siège",
@@ -506,7 +506,7 @@
  {
   "id": "grande_bombarde",
   "nom": "Grande bombarde",
-  "description": "Un tir colossal qui souffle la zone et étourdit.",
+  "description": "Un tir qui souffle la zone entière et laisse les survivants sonnés.",
   "rarete": "epique",
   "prix": 1050,
   "type_degats": "siège",
@@ -530,7 +530,7 @@
  {
   "id": "de_pipe",
   "nom": "Dé pipé",
-  "description": "Un dé truqué dont chaque coup nourrit la tour.",
+  "description": "Un dé truqué roule vers l’ennemi et rend un peu de vie à la tour.",
   "rarete": "commune",
   "prix": 70,
   "type_degats": "chaos",
@@ -554,7 +554,7 @@
  {
   "id": "sablier_fele",
   "nom": "Sablier fêlé",
-  "description": "Un sablier brisé déchire le temps sous les pieds.",
+  "description": "Un éclat de temps piégé dans le sable attend qu’on marche dessus.",
   "rarete": "commune",
   "prix": 110,
   "type_degats": "chaos",
@@ -574,7 +574,7 @@
  {
   "id": "cornue_instable",
   "nom": "Cornue instable",
-  "description": "Une fiole d’alchimie qui explose en nuage toxique.",
+  "description": "Une fiole d’alchimie éclate en nuage toxique.",
   "rarete": "peu_commune",
   "prix": 250,
   "type_degats": "chaos",
@@ -599,7 +599,7 @@
  {
   "id": "miroir_brise",
   "nom": "Miroir brisé",
-  "description": "Les éclats de miroir sautent entre quatre ennemis.",
+  "description": "Les éclats d’un miroir sautent d’un ennemi à l’autre.",
   "rarete": "peu_commune",
   "prix": 270,
   "type_degats": "chaos",
@@ -620,7 +620,7 @@
  {
   "id": "vortex_de_verre",
   "nom": "Vortex de verre",
-  "description": "Une onde de verre pilé ; chaque mort soigne la tour.",
+  "description": "Une onde de verre pilé, et chaque mort rend de la vie à la tour.",
   "rarete": "rare",
   "prix": 530,
   "type_degats": "chaos",
@@ -646,7 +646,7 @@
  {
   "id": "horloge_folle",
   "nom": "Horloge folle",
-  "description": "Sept rouages affolés volent en tous sens et brûlent.",
+  "description": "Des rouages affolés partent en tous sens et brûlent.",
   "rarete": "epique",
   "prix": 950,
   "type_degats": "chaos",

@@ -854,6 +854,25 @@ crédité dans `CREDITS.md` (le crédit est facultatif en CC0, mais on cite touj
       **Fait (25/11/2026)** : `tools/dessiner_guepe.gd` et `assets/maison/guepe_de_laiton.png`. Le
       dessin se lit comme une guêpe : Phil a renommé la famille « Guêpes de laiton ».
 
+### Task 5.8 : Images des offres — `sonnet`
+
+Conception : `docs/superpowers/specs/2026-11-25-boutique-decor-design.md`, section 1 (demande de Phil du
+25/11/2026).
+
+- [x] **T5.8a, objectif :** une image peinte par offre, dans une case colorée par type « comme sur
+      Warcraft », depuis les packs Ravenmore (CC BY 3.0) et LudicArts (CC BY 3.0), composée par
+      `tools/composer_images_offres.gd`, correspondance dans `visuels/images_offres.gd`. **Fait** :
+      planche validée par Phil, 17 images approchantes (voir les suivis).
+- [ ] **T5.8b, objectif :** afficher ces images dans la carte de la boutique, les armes équipées et
+      le marché noir, sans casser la mise en page.
+
+### Task 5.9 : Descriptions des offres — `sonnet`
+
+- [x] **Objectif :** chaque offre affiche une ligne d’effet générée depuis `data/` (chiffres exacts,
+      `ui/description_offre.gd`) puis une phrase d’ambiance originale. Les 70 phrases sont réécrites.
+      **Fait (25/11/2026)** : le ciblage par défaut (le plus proche) n’est pas écrit ; sous 700 px
+      de haut, l’ambiance passe dans l’infobulle.
+
 ---
 
 # Lot 6 — Publication (piste, non planifiée)
@@ -961,4 +980,11 @@ avant l'écran « Rejoindre »).
   autres par la liste ; un vrai retour sans reconnexion demande `Client.retourner_au_salon()`.
 - **Annuaire** : lot 7, lancé le 25/11/2026 en parallèle du lot 5 ; ADR validé le 25/11/2026, T7.3 en
   dernier (décision de Phil).
+- **Images des offres** : 17 offres sur 70 ont une image approchante (Ravenmore et LudicArts n’ont
+  pas leur objet : sablier, tirelire, trébuchet…), validée telle quelle par Phil le 25/11/2026. Liste
+  dans `ImagesOffres.RAPPROCHEMENTS_FAIBLES` ; à reprendre si un pack peint gratuit les a.
+- **Règles de la simulation à vérifier** (relevées en écrivant les descriptions, T5.9) : le givre ne
+  gèle qu’au 8e coup, donc son plafond de 60 % est inatteignable ; les épines ne renvoient que le corps
+  à corps ; les morts par poison ou brûlure ne soignent pas ; `revenu_mult` ne multiplie pas le revenu
+  de base ; l’aura ignore `portee` et `recharge`.
 - **Lots 3 et 4** : terminés (T3.7, T4.3, T4.5 et T4.6 fusionnés par la PR #2).

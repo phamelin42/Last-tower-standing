@@ -158,6 +158,7 @@ func _enregistrer_nom(nom: String) -> void:
 
 func _appliquer_reglages(r: Reglages) -> void:
 	Jeu.appliquer_fenetre(get_window(), r)
+	BusAudio.appliquer_volume(r.volume_general)
 
 
 func _quitter() -> void:
