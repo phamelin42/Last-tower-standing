@@ -866,8 +866,10 @@ Conception : `docs/superpowers/specs/2026-11-25-boutique-decor-design.md`, sect
       Warcraft », depuis les packs Ravenmore (CC BY 3.0) et LudicArts (CC BY 3.0), composée par
       `tools/composer_images_offres.gd`, correspondance dans `visuels/images_offres.gd`. **Fait** :
       planche validée par Phil, 17 images approchantes (voir les suivis).
-- [ ] **T5.8b, objectif :** afficher ces images dans la carte de la boutique, les armes équipées et
+- [x] **T5.8b, objectif :** afficher ces images dans la carte de la boutique, les armes équipées et
       le marché noir, sans casser la mise en page.
+      **Fait (25/11/2026)** : image de 64 à 96 px en tête de carte, 32 px devant chaque arme équipée,
+      40 px dans le marché noir ; décoratives (ni souris ni focus).
 
 ### Task 5.9 : Descriptions des offres — `sonnet`
 
