@@ -9,6 +9,9 @@ signal salon_mis_a_jour(salon: Salon)
 signal partie_demarree
 ## Refus, serveur injoignable ou perdu. Une seule émission par session.
 signal connexion_perdue(motif: String)
+## La redirection UPnP est tentée (réussie ou non) : le port externe obtenu, 0 si échec. Émis une
+## seule fois par `heberger`.
+signal tentative_upnp_terminee(port_externe: int)
 
 const ADRESSE_LOCALE := "127.0.0.1"
 
@@ -22,6 +25,14 @@ var port: int = 0
 var jeton_hote: PackedByteArray = PackedByteArray()
 ## `(n: int) -> PackedByteArray` : source des octets du jeton, remplacée dans les tests.
 var source_octets: Callable = _octets_aleatoires
+## La redirection du port de jeu de la session hébergée, `null` sans salon hébergé.
+var upnp: UpnpHote = null
+## Port externe ouvert par UPnP, 0 tant que la tentative n'a pas réussi.
+var port_externe: int = 0
+## `() -> UpnpHote.Passerelle` : la box à utiliser, remplacée par un double dans les tests. Une
+## valeur nulle (aucune redirection) est celle du mode sans fenêtre : ni les tests ni un serveur
+## sans écran n'interrogent le réseau de la machine.
+var fabrique_passerelle: Callable = _passerelle_par_defaut
 
 var _racines: Array[Node] = []
 var _apis: Array[SceneMultiplayer] = []
@@ -90,6 +101,7 @@ func heberger(
 	decouverte.fournisseur = _annonce
 	# Une annonce impossible (réseau absent) ne gêne pas le salon : on y entre par l'adresse.
 	decouverte.annoncer(port_decouverte, cibles)
+	_ouvrir_port(port_jeu)
 	return OK
 
 
@@ -118,6 +130,7 @@ func fermer() -> void:
 	for api: SceneMultiplayer in _apis:
 		api.multiplayer_peer = null
 	_apis = []
+	_fermer_port()
 	jeton_hote = PackedByteArray()
 	for racine: Node in _racines:
 		if racine.get_parent() != null:
@@ -125,6 +138,43 @@ func fermer() -> void:
 		racine.queue_free()
 	_racines = []
 	_perdue = false
+
+
+static func _passerelle_par_defaut() -> UpnpHote.Passerelle:
+	if DisplayServer.get_name() == "headless":
+		return null
+	return UpnpHote.PasserelleUpnp.new()
+
+
+## Demande à la box d'ouvrir le port, dans un fil dédié : l'interface ne s'arrête jamais dessus.
+func _ouvrir_port(port_jeu: int) -> void:
+	var box: Variant = fabrique_passerelle.call()
+	if not box is UpnpHote.Passerelle:
+		return
+	upnp = UpnpHote.new()
+	upnp.name = "Upnp"
+	upnp.passerelle = box as UpnpHote.Passerelle
+	upnp.tentative_terminee.connect(_sur_tentative_upnp)
+	add_child(upnp)
+	upnp.demarrer(port_jeu)
+
+
+func _fermer_port() -> void:
+	port_externe = 0
+	if upnp == null:
+		return
+	var u := upnp
+	upnp = null
+	# Quitter n'est pas un échec : la fermeture ne doit pas faire croire à un refus de la box.
+	u.tentative_terminee.disconnect(_sur_tentative_upnp)
+	u.fermer()
+	remove_child(u)
+	u.queue_free()
+
+
+func _sur_tentative_upnp(port_obtenu: int) -> void:
+	port_externe = port_obtenu
+	tentative_upnp_terminee.emit(port_obtenu)
 
 
 static func _octets_aleatoires(n: int) -> PackedByteArray:

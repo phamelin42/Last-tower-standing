@@ -36,3 +36,4 @@ CONNEXION_ERREUR_NOM,Donnez un nom au salon (24 caractères au plus).
 CONNEXION_ERREUR_PORT_PRIS,Le port %d est déjà utilisé sur cet ordinateur. Choisissez-en un autre.
 CONNEXION_ERREUR_CREATION,Impossible de créer le salon (code %d).
 CONNEXION_DECOUVERTE_INDISPONIBLE,La recherche automatique est indisponible (port 7778 occupé) : saisissez une adresse.
+CONNEXION_UPNP_ECHEC,Votre box n’a pas ouvert le port : les joueurs extérieurs ne pourront pas vous rejoindre
