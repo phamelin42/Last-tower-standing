@@ -137,6 +137,7 @@ un choix de la session de pilotage, à relire par Phil.
   autorisées par les paliers, dont une majoritaire _(proposition : 60 % des apparitions)_. Le
   tirage est le même pour tous les joueurs d'une partie (graine de partie) ; jamais la même
   famille majoritaire deux manches de suite.
+- **Budget d'une manche** _(proposition)_ : le nombre d'apparitions et leur cadence ne changent pas (spec §5.5) ; seule la composition change. Chaque apparition tire sa famille selon les poids de la manche (60 % pour la majoritaire, le reste partagé), en mélange dans le temps et non par blocs. Boss et convoi gardent leurs règles. En mode sans fin, tous les paliers restent dans le tirage et les multiplicateurs de difficulté continuent (`apres_table`).
 - **Annonce** : la vue globale porte les familles de la manche suivante ; la barre du haut
   montre leurs armures en icônes (texte en infobulle).
 - **Vol retiré** _(Phil)_ : `volante` disparaît des données et de `sim/` ; mines et pièges
@@ -145,6 +146,7 @@ un choix de la session de pilotage, à relire par Phil.
   nouvelles portées d'armes, toutes les armes atteignent la moyenne portée ; seules les armes
   de 750 et plus atteignent l'Archer (à vérifier par la passe d'équilibrage, comme un choix de
   jeu et non un défaut).
+- _(proposition)_ L'Archer n'entre dans le tirage qu'à partir de la manche 5, pour laisser au joueur le temps d'acheter une arme de portée 750 ou plus.
 
 ### 6.2 Portées des armes et vitesse des ennemis (D6)
 
@@ -174,7 +176,7 @@ un choix de la session de pilotage, à relire par Phil.
   mana, le reste va aux PV.
 - _(proposition)_ Ordre : esquive, puis armure, puis mana, puis PV. **1 point de mana absorbe
   1 point de dégât.** La mana se régénère chaque seconde.
-- _(proposition)_ La tour commence avec 0 de mana maximale : la mana vient des améliorations.
+- _(proposition, à confirmer par Phil)_ La tour commence avec 0 de mana maximale : la mana vient des améliorations.
   Nouvelles améliorations dans `data/ameliorations.json` : mana maximale (+), régénération de
   mana (+). Les épines et le vol de vie gardent leur effet actuel.
 - _(Phil)_ Des armes font des **dégâts en fonction de la mana maximale** : un champ d'arme
@@ -199,6 +201,7 @@ un choix de la session de pilotage, à relire par Phil.
   vert qui remonte vers la tour.
 - _(Phil)_ Une **planche** des 30 signatures (captures en jeu ou rendu par un script de `tools/`)
   est validée par Phil **avant** l'intégration en jeu.
+- L'intégration attend cette validation : la planche est une tâche courte à part, marquée « attend Phil », et les signatures entrent en jeu dans une tâche suivante, hors du chemin des autres tâches de la vague 2.
 - Plafond d'effets simultanés conservé ; taille et luminosité suffisantes pour se lire au zoom
   le plus lointain.
 
@@ -271,6 +274,8 @@ par joueur, familles de la manche suivante (jusqu'à 3), carte de densité par a
 d'observer une autre arène de son vivant. Décodage défensif et tests de fuzz comme les versions
 précédentes.
 
+Aucun serveur ni client en version 4 n'est publié (le service d'annuaire du lot 7 n'est pas encore déployé) : la version 5 ne demande aucune coordination de mise en service.
+
 ### 6.12 Passe d'équilibrage
 
 Après les données (6.1 à 6.4) : l'outil d'équilibrage existant (`docs/equilibrage.md`) rejoue
@@ -278,6 +283,10 @@ des parties par robot avec les nouvelles portées, vitesses, familles, paliers e
 qu'une partie reste gagnable et que la difficulté monte sans mur, puis consigne ses chiffres dans
 `docs/equilibrage.md`. Les suivis déjà ouverts (rampe de dégâts, mur de PV après la manche 20)
 sont revus avec ces nouvelles valeurs.
+
+- **Critère** _(proposition)_ : les cibles du robot consignées dans `docs/equilibrage.md` restent atteintes, et le robot de référence n'est pas éliminé avant la manche 20.
+- **Leviers autorisés sans revenir à Phil** : manches d'entrée des paliers et de l'Archer, PV, dégâts et primes par palier, poids des familles, chiffres de la mana et des armes de mana, poids de rareté de la boutique.
+- **Non modifiables sans Phil** : les paliers de portée des armes (500 / 750 / 1 000 / 1 250), la vitesse ×1,5, les portées d'ennemis 350 et 650.
 
 ## 7. Découpage proposé pour le plan (lot 8)
 
