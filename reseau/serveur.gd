@@ -31,6 +31,9 @@ const DT_MAX: float = 0.5
 ## Événements d'arène servis par envoi : le plafond du protocole.
 const TAMPON_PAR_ENVOI: int = TamponEvenements.PAR_ENVOI
 
+## Jeton d'hôte du salon hébergé par un joueur (8 octets) : à poser avant `demarrer` ou `preparer`.
+## Vide pour le serveur dédié, qui garde la règle du premier pair. Jamais journalisé.
+var jeton_hote: PackedByteArray = PackedByteArray()
 ## Nœud `Canal` qui porte les RPC ; à défaut, le parent de ce nœud.
 var canal: Canal = null
 ## `(pair: int, rpc: String, octets: PackedByteArray)` : remplace l'envoi réseau (tests, mesures).
@@ -128,6 +131,7 @@ func preparer(donnees: Donnees, acces: int = 1) -> void:
 	_donnees = donnees
 	acceleration = clampi(acces, 1, ACCELERATION_MAX)
 	salon = Salon.new()
+	salon.jeton_hote = jeton_hote
 	partie = null
 	_pairs = {}
 	_tampons = {}
@@ -142,6 +146,7 @@ func preparer(donnees: Donnees, acces: int = 1) -> void:
 func rouvrir_salon() -> void:
 	partie = null
 	salon = Salon.new()
+	salon.jeton_hote = jeton_hote
 	_fin_signalee = false
 	_vues_du_pas = {}
 	_tampons = {}
@@ -272,7 +277,7 @@ func traiter_bonjour(pair: int, octets: PackedByteArray) -> bool:
 		if p.bonjours_invalides >= BONJOURS_INVALIDES_MAX:
 			_couper(pair)
 		return false
-	if not salon.ajouter(pair, String(b["nom"])):
+	if not salon.ajouter(pair, String(b["nom"]), b["jeton"] as PackedByteArray):
 		return _refuser(pair, salon.motif_refus)
 	p.enregistre = true
 	p.cible = pair
