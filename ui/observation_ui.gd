@@ -15,6 +15,7 @@ const LARGEUR := 360.0
 ## où aucun contrôle ne peut prendre le focus.
 var lecteur_focus: Callable = Callable(self, "_focus_viewport")
 
+var panneau: PanelContainer
 var _source: SourceVue = null
 var _cible: int = -1
 ## Arènes vivantes, triées : l'ordre de « suivant » et « précédent ».
@@ -31,10 +32,16 @@ var _liste: VBoxContainer
 
 
 func _init() -> void:
+	theme = ThemeJeu.creer()
 	custom_minimum_size = Vector2(LARGEUR, 0.0)
 	visible = false
+	panneau = PanelContainer.new()
+	panneau.name = "Panneau"
+	panneau.add_theme_stylebox_override("panel", ThemeJeu.boite_panneau())
+	panneau.custom_minimum_size = Vector2(LARGEUR, 0.0)
+	add_child(panneau)
 	var colonne := VBoxContainer.new()
-	add_child(colonne)
+	panneau.add_child(colonne)
 	colonne.add_child(_etiquette("Titre", "OBSERVATION_TITRE"))
 	_message = _etiquette("Message")
 	colonne.add_child(_message)

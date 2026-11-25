@@ -138,12 +138,49 @@ func test_defaite_annonce_la_defaite_en_texte() -> void:
 	_absent(_t("FIN_VICTOIRE_TITRE"), "pas de victoire affichée après une défaite")
 
 
-func test_defaite_propose_rejouer_observer_et_menu_mais_pas_continuer() -> void:
-	_fin.afficher_defaite(_vue(7, 12, 3400.0), _globale(_joueurs(2)))
+func test_defaite_propose_rejouer_et_menu_mais_pas_continuer() -> void:
+	_fin.afficher_defaite(_vue(7, 12, 3400.0), _globale(_joueurs(2)), 1)
 	var visibles: PackedStringArray = _fin.actions_visibles()
-	for attendu: String in ["rejouer", "observer", "quitter"]:
+	for attendu: String in ["rejouer", "quitter"]:
 		verifier(visibles.has(attendu), "la défaite propose « %s »" % attendu)
 	verifier_faux(visibles.has("continuer_sans_fin"), "pas de mode sans fin après une défaite")
+
+
+## L'observation n'a de sens que s'il reste un autre joueur en vie : en solo, ou quand tous les
+## autres sont éliminés, le bouton n'apparaît pas. Le parcours couvre de un à huit joueurs.
+func test_l_observation_n_est_proposee_que_si_un_autre_joueur_est_en_vie() -> void:
+	for n: int in range(1, 9):
+		for vivants: int in range(0, n):
+			var joueurs := _joueurs(n)
+			# La joueuse locale (id 1) est vaincue ; `vivants` autres joueurs restent en jeu.
+			for i: int in vivants:
+				joueurs[n - 1 - i]["vivant"] = true
+			_fin.afficher_defaite(_vue(7, 1, 1.0), _globale(joueurs), 1)
+			var attendu := vivants > 0
+			verifier_egal(
+				_fin.actions_visibles().has("observer"),
+				attendu,
+				"%d joueur(s), %d autre(s) en vie" % [n, vivants]
+			)
+			verifier((_bouton("observer") != null) == attendu, "le bouton suit l'action")
+
+
+func test_en_solo_le_bouton_d_observation_est_absent_meme_sans_vue_globale() -> void:
+	_fin.afficher_defaite(_vue(2, 0, 10.0), null, 1)
+	verifier_faux(_fin.actions_visibles().has("observer"))
+	verifier_egal(_fin.actions_visibles(), PackedStringArray(["rejouer", "quitter"]))
+
+
+func test_le_bouton_d_observation_apparait_quand_la_vue_globale_montre_un_autre_en_vie() -> void:
+	_fin.afficher_defaite(_vue(2, 0, 10.0), null, 1)
+	verifier_faux(_fin.actions_visibles().has("observer"))
+	var joueurs := _joueurs(2)
+	joueurs[1]["vivant"] = true
+	_fin.afficher_classement(_globale(joueurs), 1)
+	verifier(_fin.actions_visibles().has("observer"), "un autre joueur est resté en jeu")
+	joueurs[1]["vivant"] = false
+	_fin.afficher_classement(_globale(joueurs), 1)
+	verifier_faux(_fin.actions_visibles().has("observer"), "plus personne à observer")
 
 
 func test_victoire_annonce_la_victoire_en_texte() -> void:

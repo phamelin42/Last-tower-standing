@@ -10,9 +10,9 @@ signal quitter_demande
 signal reglages_modifies(r: Reglages)
 
 const HAUTEUR_CONTROLE := 48.0
-const LARGEUR_COLONNE := 360.0
+const LARGEUR_COLONNE := 420.0
 const TAILLE_TEXTE := 16
-const TAILLE_TITRE := 36
+const TAILLE_TITRE := 34
 const ESPACEMENT := 12
 
 ## Fichier des réglages : le lanceur de tests le remplace par un dossier temporaire.
@@ -23,6 +23,8 @@ var bouton_reglages: Button
 var bouton_quitter: Button
 var champ_nom: LineEdit
 
+var _cadre_accueil: PanelContainer
+var _cadre_reglages: PanelContainer
 var _accueil: VBoxContainer
 var _message: Label
 var _reglages: ReglagesUi
@@ -31,22 +33,33 @@ var _bouton_retour: Button
 
 
 func _init() -> void:
+	theme = ThemeJeu.creer()
 	set_anchors_preset(PRESET_FULL_RECT)
 	add_theme_font_size_override("font_size", TAILLE_TEXTE)
+	var fond := ColorRect.new()
+	fond.name = "Fond"
+	fond.color = ThemeJeu.JAUGE_FOND
+	fond.set_anchors_preset(PRESET_FULL_RECT)
+	fond.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(fond)
 	var centre := CenterContainer.new()
 	centre.set_anchors_preset(PRESET_FULL_RECT)
 	add_child(centre)
 
+	_cadre_accueil = PanelContainer.new()
+	_cadre_accueil.name = "CadreAccueil"
+	centre.add_child(_cadre_accueil)
 	_accueil = VBoxContainer.new()
 	_accueil.name = "Accueil"
 	_accueil.custom_minimum_size = Vector2(LARGEUR_COLONNE, 0.0)
 	_accueil.add_theme_constant_override("separation", ESPACEMENT)
-	centre.add_child(_accueil)
+	_cadre_accueil.add_child(_accueil)
 
 	var titre := Label.new()
 	titre.name = "Titre"
 	titre.text = tr("MENU_TITRE")
 	titre.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	titre.theme_type_variation = "Titre"
 	titre.add_theme_font_size_override("font_size", TAILLE_TITRE)
 	_accueil.add_child(titre)
 
@@ -72,10 +85,13 @@ func _init() -> void:
 	_message.visible = false
 	_accueil.add_child(_message)
 
+	_cadre_reglages = PanelContainer.new()
+	_cadre_reglages.name = "CadreReglages"
+	_cadre_reglages.visible = false
+	centre.add_child(_cadre_reglages)
 	_page_reglages = VBoxContainer.new()
 	_page_reglages.name = "PageReglages"
-	_page_reglages.visible = false
-	centre.add_child(_page_reglages)
+	_cadre_reglages.add_child(_page_reglages)
 	_reglages = ReglagesUi.new()
 	_reglages.custom_minimum_size = Vector2(LARGEUR_COLONNE, 0.0)
 	_reglages.modifies.connect(reglages_modifies.emit)
@@ -113,7 +129,7 @@ func afficher_message(texte: String) -> void:
 
 
 func page_reglages_visible() -> bool:
-	return _page_reglages.visible
+	return _cadre_reglages.visible
 
 
 func ouvrir_reglages() -> void:
@@ -125,14 +141,14 @@ func _sur_solo() -> void:
 
 
 func _sur_reglages() -> void:
-	_accueil.visible = false
-	_page_reglages.visible = true
+	_cadre_accueil.visible = false
+	_cadre_reglages.visible = true
 	_bouton_retour.grab_focus()
 
 
 func _sur_retour() -> void:
-	_page_reglages.visible = false
-	_accueil.visible = true
+	_cadre_reglages.visible = false
+	_cadre_accueil.visible = true
 	bouton_solo.grab_focus()
 
 

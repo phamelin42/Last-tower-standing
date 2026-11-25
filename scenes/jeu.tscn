@@ -23,10 +23,10 @@ mouse_filter = 2
 
 [node name="Hud" parent="Interface/Racine" instance=ExtResource("2_hud")]
 
-[node name="Scores" parent="Interface/Racine" instance=ExtResource("3_scores")]
-
 [node name="Boutique" parent="Interface/Racine" instance=ExtResource("4_boutique")]
 
 [node name="Observation" parent="Interface/Racine" instance=ExtResource("5_observation")]
+
+[node name="Scores" parent="Interface/Racine" instance=ExtResource("3_scores")]
 
 [node name="Fin" parent="Interface/Racine" instance=ExtResource("6_fin")]
