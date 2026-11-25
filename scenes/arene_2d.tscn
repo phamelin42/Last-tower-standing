@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://visuels/arene_2d.gd" id="1_arene"]
+[ext_resource type="Script" path="res://visuels/camera_arene_2d.gd" id="2_camera"]
+
+[node name="Arene2D" type="Node2D"]
+script = ExtResource("1_arene")
+
+[node name="Camera" type="Camera2D" parent="."]
+script = ExtResource("2_camera")
