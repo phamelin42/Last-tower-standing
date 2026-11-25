@@ -326,7 +326,7 @@ func _construire_carte(i: int) -> PanelContainer:
 	# effet (toujours entier) puis ambiance (atténuée).
 	# En tête : l'image, puis rareté et prix, nom, type et notes en colonne à sa droite.
 	var entete := HBoxContainer.new()
-	entete.add_theme_constant_override("separation", 2)
+	entete.add_theme_constant_override("separation", 1)
 	colonne.add_child(entete)
 	var image := ImageOffre.creer("Image%d" % i, IMAGE_MIN)
 	entete.add_child(image)
@@ -335,7 +335,7 @@ func _construire_carte(i: int) -> PanelContainer:
 	textes.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	entete.add_child(textes)
 	var haut := HBoxContainer.new()
-	haut.add_theme_constant_override("separation", 0)
+	haut.add_theme_constant_override("separation", 3)
 	textes.add_child(haut)
 	for libelle: Label in [rarete, prix]:
 		libelle.autowrap_mode = TextServer.AUTOWRAP_OFF
