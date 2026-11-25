@@ -768,69 +768,62 @@ Toutes les méthodes de `SourceVue` envoient `Protocole.encoder_intention` ; les
 
 ---
 
-# Lot 5 — Habillage médiéval fantastique réaliste (décision de Phil du 25/11/2026)
+# Lot 5 — Habillage 2D pixel art avec Tiny Swords CC0 (décisions de Phil du 25/11/2026)
 
-**Direction :** médiéval fantastique **réaliste** ; les packs stylisés (Kenney et équivalents) sont
-écartés. Les modèles sont **faits par nous**, par scripts Blender (outil libre), avec des textures et
-des éclairages **CC0** réalistes (Poly Haven, ambientCG). Les créatures animées de façon réaliste
-dépassent ce qu'un script produit : on vise des silhouettes lisibles en vue plongeante, des
-matières crédibles et une lumière soignée, plutôt que le détail fin. Licences : seulement CC0 ou
-équivalent, chaque ressource listée dans `CREDITS.md`.
+**Direction :** le jeu passe en **2D pixel art vue de dessus**, avec l’**ancienne version CC0** du
+pack « Tiny Swords » de Pixel Frog. La version actuelle et le pack d’ennemis interdisent la
+redistribution et ne peuvent pas entrer dans ce dépôt public. L’essai 3D réaliste (Blender, Poly
+Haven) a été écarté par Phil. La simulation (déjà un plan 2D), le réseau, la boutique et le HUD ne
+changent pas : seule la couche `visuels/` passe de la 3D à la 2D. Le pack est téléchargé par Phil
+(itch.io passe par un navigateur), puis versionné dans `assets/tiny_swords/` avec sa licence, et
+crédité dans `CREDITS.md` (le crédit est facultatif en CC0, mais on cite toujours la source).
 
-**Parallélisme :** T5.0 seule, et rien d'autre avant la validation de Phil. Puis T5.1, puis
-{T5.2, T5.3, T5.4, T5.6, T5.7} en parallèle, puis T5.5 et T5.8.
+**Parallélisme :** T5.0, puis T5.1, puis {T5.2, T5.3, T5.4, T5.6} en parallèle, puis T5.5.
 
-### Task 5.0 : Essai jetable (validé par Phil le 25/11/2026) — `sonnet`
+### Task 5.0 : Inventaire du pack et correspondance — `sonnet`
 
-- [ ] **Objectif :** juger le style avant de s'engager. Une tour de garde en pierre, un carré de sol
-      et un ennemi (un golem de pierre ou d'argile, plus facile à rendre réaliste qu'une créature de
-      chair), modélisés par script Blender, texturés en CC0, rendus dans Godot (rendu de compatibilité
-      sous Xvfb) à l'angle de la caméra du jeu et en gros plan. **Rien dans le dépôt** : tout dans le
-      scratchpad. Les captures vont à Phil, qui valide ou réoriente.
+- [ ] **Objectif :** inventaire de l’archive CC0 (unités, couleurs, animations et leurs images,
+      bâtiments, terrain, effets, éléments d’interface, tailles en pixels) dans `docs/tiny_swords.md`,
+      et proposition de correspondance : la tour du joueur, les 8 familles (une armure chacune, avec
+      une volante et deux à distance), le convoi, le boss. Ce qui manque est comblé par des variantes
+      de couleur ou d’échelle, ou des sprites faits par nous dans le même style, signalés comme tels.
+      Planche de captures pour validation par Phil **avant** T5.1.
 
-### Task 5.1 : Chaîne de fabrication des modèles — `sonnet`
+### Task 5.1 : Arène 2D — `sonnet`
 
-- [ ] **Objectif :** `tools/modeles/` : installation épinglée de Blender (somme vérifiée, comme
-      Godot), scripts Python Blender reproductibles, un par modèle, qui produisent des `.glb` dans
-      `assets/modeles/` ; un script qui télécharge les textures et éclairages CC0 nécessaires, avec
-      leur source et leur licence, et régénère la section correspondante de `CREDITS.md`. Une étape de
-      `tools/verifier.sh` vérifie que chaque `.glb` suivi a son script et sa ligne de crédits.
+- [ ] **Objectif :** `visuels/arene_2d.gd` remplace l’arène 3D : terrain, tour au centre, ennemis
+      animés (marche, attaque, mort), tri en profondeur, `Camera2D` avec zoom borné, même contrat
+      (`SourceVue`, interpolation). Performance : 1 000 ennemis visibles sans chute sous 60 images/s
+      (pool de sprites ou `MultiMeshInstance2D` avec atlas animé par nuanceur), mesurée. Captures de
+      contrôle aux trois résolutions.
 
-### Task 5.2 : La tour — `sonnet`
+### Task 5.2 : Terrain et décor — `sonnet`
 
-- [ ] **Objectif :** la tour de garde en pierre et bois, avec des variantes visuelles selon les armes
-      équipées si c'est simple (bannières, braseros).
+- [ ] **Objectif :** sol en tuiles (herbe, chemins, rochers, eau en bordure), décor qui ne gêne pas
+      la lecture des ennemis ; le cercle d’apparition reste visible.
 
-### Task 5.3 : Le terrain et l'ambiance — `sonnet`
+### Task 5.3 : Effets — `haiku`
 
-- [ ] **Objectif :** sol (herbe, terre, pierres), bordure d'arène, ciel ou HDRI CC0, lumière du jour,
-      ombres, brume légère, tout en restant lisible en vue plongeante.
+- [ ] **Objectif :** tirs, impacts, morts et explosions avec les effets du pack, par type de dégâts,
+      plafond d’effets conservé.
 
-### Task 5.4 : Les ennemis — `sonnet`
+### Task 5.4 : Interface aux couleurs du pack — `sonnet`
 
-- [ ] **Objectif :** un modèle par famille (8), le convoi et le boss. Les familles se distinguent par
-      la **silhouette** (jamais la couleur seule). L'animation reste simple : balancement ou marche
-      procédurale par nuanceur ou par os simples, compatible avec `MultiMeshInstance3D`.
+- [ ] **Objectif :** le thème de l’interface reprend les éléments du pack (bannières, boutons,
+      rubans) s’ils sont dans la version CC0, avec une police libre (OFL) ; contrastes AA et tests de
+      mise en page conservés.
 
-### Task 5.5 : Projectiles, impacts et morts — `sonnet`
+### Task 5.5 : Bascule et nettoyage — `sonnet`
 
-- [ ] **Objectif :** effets par type de dégâts (particules sobres), plafond d'effets conservé.
+- [ ] **Objectif :** `visuels/apparence.gd` devient la correspondance entité → sprites ; le test de
+      garde vérifie que seuls `apparence.gd` et `assets/tiny_swords/` portent les ressources
+      graphiques ; l’arène 3D est retirée ; `CREDITS.md` à jour ; captures finales relues.
 
 ### Task 5.6 : Sons — `haiku`
 
-- [ ] **Objectif :** sons CC0 (tirs par type, impacts, achat, relance, alerte de PV bas, début de
-      manche, boss, victoire, défaite) et une musique d'ambiance CC0 ; volume des réglages appliqué.
-
-### Task 5.7 : Interface médiévale — `sonnet`
-
-- [ ] **Objectif :** thème de l'interface (parchemin, bois, métal) et police libre (licence OFL),
-      contrastes AA conservés, sans régression des tests de mise en page.
-
-### Task 5.8 : Bascule d'`Apparence` — `sonnet`
-
-- [ ] **Objectif :** `visuels/apparence.gd` charge les `.glb` quand ils existent et retombe sur les
-      primitives sinon ; le test de garde des primitives est adapté. Captures de contrôle aux trois
-      résolutions.
+- [ ] **Objectif :** sons CC0 d’une autre source (le pack n’en a pas) : tirs, impacts, achat,
+      relance, PV bas, début de manche, boss, victoire, défaite, musique d’ambiance ; volume des
+      réglages appliqué.
 
 ---
 
