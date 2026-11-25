@@ -699,7 +699,7 @@ Toutes les méthodes de `SourceVue` envoient `Protocole.encoder_intention` ; les
 
 ### Task 3.7 : Test d'intégration serveur + 2 robots — `sonnet`
 
-- [ ] **Objectif :** un vrai serveur sans interface et deux clients robots jouent une partie accélérée jusqu'au bout.
+- [x] **Objectif :** un vrai serveur sans interface et deux clients robots jouent une partie accélérée jusqu'au bout.
 - **Fichiers (crée) :** `tools/integration.sh`, `tests/integration/robot.gd`, `tests/integration/test_reseau_complet.gd` (test unitaire du protocole bout en bout sur boucle locale, dans le même processus).
 - **Lire :** `reseau/serveur.gd`, `reseau/client.gd`, `reseau/serveur_dedie.gd`, `tools/verifier.sh`.
 - **Interfaces :** `tools/integration.sh` : choisit un port libre, lance `godot --headless --path . -- --serveur --port P --graine 42 --acceleration 30 --quitter-a-la-fin` en arrière-plan, lance deux fois `godot --headless --path . --script res://tests/integration/robot.gd -- --port P --nom A|B --strategie achat|passif`, attend jusqu'à 120 s ; code 0 **si et seulement si** les trois processus sortent à 0, le journal ne contient ni `ERROR` ni `SCRIPT ERROR` ni `WARNING: ... leaked`, et le journal du serveur contient `fin` ; tue les processus restants à la sortie (`trap`) et affiche les journaux en cas d'échec. `robot.gd` : `extends SceneTree`, se connecte, se met prêt, **achète tout ce qu'il peut** (A) ou **ne fait rien** (B, éliminé tôt) et, une fois mort, observe l'arène de l'autre (exerce `OBSERVER`) ; sort 0 à la fin de partie, 1 sur perte de connexion inattendue.
@@ -732,7 +732,7 @@ Toutes les méthodes de `SourceVue` envoient `Protocole.encoder_intention` ; les
 
 ### Task 4.3 : Mode sans fin (simulation) — `sonnet`
 
-- [ ] **Objectif :** après la victoire, les manches reprennent et la difficulté continue de monter.
+- [x] **Objectif :** après la victoire, les manches reprennent et la difficulté continue de monter.
 - **Fichiers (modifie) :** `sim/partie.gd`, `tests/unitaires/test_partie.gd` (ajouts de cas) ; **ajoute** `tests/unitaires/test_partie_sans_fin.gd`.
 - **Lire :** `sim/partie.gd`, `data/difficulte.json` (`apres_table`), spec §5.1.
 - **Interfaces :** `intention_continuer_sans_fin(id) -> int` devient effective : `OK` si la phase est `VICTOIRE`, sinon `MAUVAISE_PHASE` ; l'arène repart en manches (numérotation continue 32, 33…, famille tirée comme avant, **plus de boss**), `VueArene.sans_fin = true` ; multiplicateurs au-delà de la table : produit de `apres_table` par manche supplémentaire, résistance bornée par `resistance_plancher` ; un joueur en sans fin qui meurt a pour classement sa manche atteinte.
@@ -750,7 +750,7 @@ Toutes les méthodes de `SourceVue` envoient `Protocole.encoder_intention` ; les
 
 ### Task 4.5 : Crédits et documentation — `haiku`
 
-- [ ] **Objectif :** `CREDITS.md` à jour et `README.md` utilisable.
+- [x] **Objectif :** `CREDITS.md` à jour et `README.md` utilisable.
 - **Fichiers (modifie) :** `CREDITS.md`, `README.md`.
 - **Lire :** spec §2, §7, §8 ; `tools/verifier.sh`, `.github/workflows/ci.yml`.
 - **Interfaces :** `README.md` : présentation, prérequis (Godot 4.7.2, gdtoolkit 4), commandes `tools/verifier.sh`, lancement solo, hébergement, serveur dédié (`--serveur --port`), pare-feu UDP 7777, redirection de port. `CREDITS.md` : Godot (MIT), gdtoolkit (MIT), aucune autre ressource tierce.
@@ -759,7 +759,7 @@ Toutes les méthodes de `SourceVue` envoient `Protocole.encoder_intention` ; les
 
 ### Task 4.6 : Câblage final (observation, fin, sans fin, réglages) — `sonnet`
 
-- [ ] **Objectif :** le parcours complet depuis le menu : solo ou réseau, mort, observation, fin, sans fin.
+- [x] **Objectif :** le parcours complet depuis le menu : solo ou réseau, mort, observation, fin, sans fin.
 - **Fichiers (modifie) :** `app/jeu.gd`, `app/menu_principal.gd`, `scenes/jeu.tscn`, `scenes/principal.tscn`, `tests/integration/test_solo.gd`.
 - **Lire :** toutes les interfaces des lots 2 à 4.
 - **Interfaces :** `Jeu` choisit `SourceLocale` ou `Client` ; sur `vue_arene_recue` avec `phase == DEFAITE` affiche `FinUi.afficher_defaite` puis `ObservationUi` ; `VICTOIRE` → `afficher_victoire` ; `partie_terminee` → classement ; les réglages (`Reglages.charger()`) s'appliquent au démarrage (échelle d'interface, plein écran, zoom) ; le menu ajoute « Héberger », « Rejoindre » (→ `ConnexionUi`, `SalonUi`) et « Réglages ».
@@ -899,5 +899,5 @@ son port par **UPnP** (classe `UPNP` intégrée à Godot), avec un message clair
   (jeton tiré à la création du salon). « Retour au salon » recrée le salon et fait revenir les
   autres par la liste ; un vrai retour sans reconnexion demande `Client.retourner_au_salon()`.
 - **Annuaire** : voir le lot 7, en dernier.
-- **Reste des lots 3 et 4** : T3.7, T4.3 (mode sans fin, son bouton est
+- **Lots 3 et 4** : terminés (T3.7, T4.3, T4.5 et T4.6 fusionnés par la PR #2).
   désactivé en attendant), T4.5.
