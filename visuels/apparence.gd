@@ -15,6 +15,15 @@ const COULEUR_REPLI := Color("#ff00ff")
 const COULEUR_CONVOI := Color("#8a5a3c")
 const FACTEUR_BOSS: float = 3.0
 const PV_REFERENCE: float = 40.0
+## Sol : un plan carré de COTE_SOL mètres (le cercle d'apparition, 26 m de rayon, y tient), pavé de
+## cases de COTE_CASE mètres en deux teintes.
+const COTE_SOL: float = 80.0
+const COTE_CASE: float = 2.0
+const COULEUR_CASE_A := Color("#d9d3c1")
+const COULEUR_CASE_B := Color("#cfc8b3")
+## Effets : impact et mort, sans éclairage pour rester lisibles sous toutes les lumières.
+const COULEUR_IMPACT := Color("#ffe9a8")
+const COULEUR_MORT := Color("#ffffff")
 
 static var _cache: Dictionary = {}
 static var _donnees: Donnees = null
@@ -319,3 +328,56 @@ static func _materiau(couleur: Color) -> StandardMaterial3D:
 	var m := StandardMaterial3D.new()
 	m.albedo_color = couleur
 	return m
+
+
+## Projectile d'un type de dégâts : même couleur que le type, sans éclairage (lisible en vol).
+static func materiau_projectile(type_degats: int) -> StandardMaterial3D:
+	return _materiau_effet_partage("projectile:%d" % type_degats, couleur_type(type_degats))
+
+
+## Anneau de l'impact : la forme du projectile chaos, son échelle donne le rayon réel.
+static func forme_impact() -> Mesh:
+	return forme_projectile(Types.TypeDegats.CHAOS)
+
+
+static func materiau_impact() -> StandardMaterial3D:
+	return _materiau_effet_partage("impact", COULEUR_IMPACT)
+
+
+static func materiau_mort() -> StandardMaterial3D:
+	return _materiau_effet_partage("mort", COULEUR_MORT)
+
+
+## Plan du sol : un carré de COTE_SOL mètres, centré sur la tour.
+static func maillage_sol() -> Mesh:
+	if not _cache.has("sol:maillage"):
+		var plan := PlaneMesh.new()
+		plan.size = Vector2.ONE * COTE_SOL
+		_cache["sol:maillage"] = plan
+	return _cache["sol:maillage"] as Mesh
+
+
+## Damier de deux teintes : une texture 2 × 2 répétée sur le plan, en pixels nets.
+static func materiau_sol() -> StandardMaterial3D:
+	if not _cache.has("sol:materiau"):
+		var image := Image.create(2, 2, false, Image.FORMAT_RGB8)
+		image.set_pixel(0, 0, COULEUR_CASE_A)
+		image.set_pixel(1, 1, COULEUR_CASE_A)
+		image.set_pixel(1, 0, COULEUR_CASE_B)
+		image.set_pixel(0, 1, COULEUR_CASE_B)
+		var materiau := StandardMaterial3D.new()
+		materiau.albedo_texture = ImageTexture.create_from_image(image)
+		materiau.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+		materiau.uv1_scale = Vector3.ONE * (COTE_SOL / COTE_CASE / 2.0)
+		_cache["sol:materiau"] = materiau
+	return _cache["sol:materiau"] as StandardMaterial3D
+
+
+static func _materiau_effet_partage(clef: String, couleur: Color) -> StandardMaterial3D:
+	var clef_cache := "materiau_effet:" + clef
+	if not _cache.has(clef_cache):
+		var m := StandardMaterial3D.new()
+		m.albedo_color = couleur
+		m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		_cache[clef_cache] = m
+	return _cache[clef_cache] as StandardMaterial3D
