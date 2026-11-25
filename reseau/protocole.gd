@@ -13,15 +13,20 @@ extends RefCounted
 ## `t` d'un événement n'est pas transmis (il vaut le `tick` du message) ; les événements au-delà de
 ## `MAX_EVENEMENTS` sont abandonnés (effets visuels seulement).
 
-enum Msg { BONJOUR = 1, ETAT_ARENE, ETAT_GLOBAL, INTENTION, SALON, REFUS, RESULTAT }
+enum Msg {
+	BONJOUR = 1, ETAT_ARENE, ETAT_GLOBAL, INTENTION, SALON, REFUS, RESULTAT, ETAT_ARENE_REGARDEE
+}
 enum Intention {
-	ACHETER = 1, RELANCER, VENDRE, MARCHE_NOIR, OBSERVER, SANS_FIN, QUITTER, PRET, OPTIONS
+	ACHETER = 1, RELANCER, VENDRE, MARCHE_NOIR, OBSERVER, SANS_FIN, QUITTER, PRET, OPTIONS, REGARDER
 }
 
 ## 2 : ajout de `RESULTAT` (réponse du serveur à chaque intention).
 ## 3 : un octet de plus par événement d'arène (genre et statut de l'arme, T5.3b).
 ## 4 : le bonjour porte un jeton d'hôte (0 ou 8 octets, T7.2b).
-const VERSION: int = 4
+## 5 : armes jusqu'à 255, mana, familles suivantes (jusqu'à 3), arme et événement `absorption`
+##     dans les événements (14 octets), `dps` et densités dans l'état global, état d'arène
+##     regardée, intention `REGARDER` (lot 8).
+const VERSION: int = 5
 ## Taille du jeton d'hôte ; un bonjour sans jeton en porte 0.
 const JETON_OCTETS: int = 8
 const MAX_ENNEMIS: int = 2000
@@ -33,29 +38,41 @@ const MAX_TEXTE_OCTETS: int = 64
 const MAX_MOTIF_OCTETS: int = 200
 const MAX_JOUEURS: int = 16
 const MAX_OFFRES: int = 8
-const MAX_ARMES: int = 16
+const MAX_ARMES: int = 255
+## Familles annoncées pour la manche suivante.
+const MAX_FAMILLES_SUIVANTES: int = 3
+## Plus grand identifiant de joueur qu'on peut regarder (il tient sur un octet).
+const MAX_ID_REGARDE: int = 255
+## Plus grand index de famille transportable (un octet, 0 à 127).
+const MAX_FAMILLE: int = 127
 
 const ECHELLE_POS: float = 16.0
 const POS_MAX: float = 32767.0 / 16.0
 const ERREUR_POS_MAX: float = 1.0 / 32.0
 
 ## Octets d'un état d'arène sans offre, arme, amélioration, ennemi ni événement.
-const TAILLE_FIXE: int = 53
+const TAILLE_FIXE: int = 60
 const OFFSET_PHASE: int = 5
 const OFFSET_TOUR_PV: int = 11
-const OFFSET_FAMILLE: int = 36
-const OFFSET_ARMURE: int = 37
+const OFFSET_MANA: int = 36
+const OFFSET_NB_FAMILLES: int = 44
+## Famille et armure de la première famille suivante (présentes si `OFFSET_NB_FAMILLES` ≥ 1).
+const OFFSET_FAMILLE: int = 45
+const OFFSET_ARMURE: int = 46
 const OFFSET_NB_JOUEURS: int = 10
 
 const _OCTETS_ENNEMI: int = 9
-const _OCTETS_EVENEMENT: int = 12
-const _OCTETS_JOUEUR_MIN: int = 18
+const _OCTETS_EVENEMENT: int = 14
+const _OCTETS_JOUEUR_MIN: int = 22
+## Octets d'une carte de densité diffusée : identifiant (i32) et 256 cases.
+const _OCTETS_DENSITE: int = 4 + VueGlobale.DENSITE_OCTETS
+const _SANS_ARME: int = 0xFFFF
 const _MAX_NOM_OCTETS: int = MAX_NOM * 4
 const _MAX_BONJOUR: int = 3 + _MAX_NOM_OCTETS + 8 + 1 + JETON_OCTETS
 const _MAX_INTENTION: int = 7 + MAX_TEXTE_OCTETS
 const _MAX_REFUS: int = 2 + MAX_MOTIF_OCTETS
 const _TAILLE_RESULTAT: int = 3
-const _GENRES_EVENEMENT: Array[String] = ["tir", "impact", "mort"]
+const _GENRES_EVENEMENT: Array[String] = ["tir", "impact", "mort", "absorption"]
 
 # --- Bonjour ---------------------------------------------------------------------------------
 
@@ -116,9 +133,11 @@ static func motif_version(version_recue: int) -> String:
 
 
 ## `u8 type · u8 genre · i32 arg · u8 n + texte UTF-8`. Vide si le genre est inconnu ou le texte
-## trop long (64 octets) ou invalide.
+## trop long (64 octets) ou invalide ; pour `REGARDER`, l'argument est -1 (cesser) ou 0 à 255.
 static func encoder_intention(genre: int, arg: int, texte: String = "") -> PackedByteArray:
-	if genre < Intention.ACHETER or genre > Intention.OPTIONS:
+	if genre < Intention.ACHETER or genre > Intention.REGARDER:
+		return PackedByteArray()
+	if genre == Intention.REGARDER and not _id_regarde_valide(arg):
 		return PackedByteArray()
 	var octets := texte.to_utf8_buffer()
 	if octets.size() > MAX_TEXTE_OCTETS or not _texte_sain(texte):
@@ -147,7 +166,9 @@ static func decoder_intention(b: PackedByteArray) -> Dictionary:
 	var texte := l.texte(n, MAX_TEXTE_OCTETS)
 	if not l.ok or l.reste() != 0:
 		return {}
-	if genre < Intention.ACHETER or genre > Intention.OPTIONS:
+	if genre < Intention.ACHETER or genre > Intention.REGARDER:
+		return {}
+	if genre == Intention.REGARDER and not _id_regarde_valide(arg):
 		return {}
 	return {"genre": genre, "arg": arg, "texte": texte}
 
@@ -184,9 +205,9 @@ static func decoder_refus(b: PackedByteArray) -> String:
 ## `u8 type · u8 genre · u8 code` : ce que le serveur a répondu à une intention (`genre` =
 ## `Intention`, `code` = `Types.Resultat`). Vide si l'un des deux est hors bornes.
 static func encoder_resultat(genre: int, code: int) -> PackedByteArray:
-	if genre < Intention.ACHETER or genre > Intention.OPTIONS:
+	if genre < Intention.ACHETER or genre > Intention.REGARDER:
 		return PackedByteArray()
-	if code < Types.Resultat.OK or code > Types.Resultat.NON_DISPONIBLE:
+	if code < Types.Resultat.OK or code > Types.Resultat.ARMES_AU_MAXIMUM:
 		return PackedByteArray()
 	var e := _Ecrivain.new(_TAILLE_RESULTAT)
 	e.u8(Msg.RESULTAT)
@@ -206,9 +227,9 @@ static func decoder_resultat(b: PackedByteArray) -> Dictionary:
 	var code := l.u8()
 	if not l.ok or l.reste() != 0:
 		return {}
-	if genre < Intention.ACHETER or genre > Intention.OPTIONS:
+	if genre < Intention.ACHETER or genre > Intention.REGARDER:
 		return {}
-	if code < Types.Resultat.OK or code > Types.Resultat.NON_DISPONIBLE:
+	if code < Types.Resultat.OK or code > Types.Resultat.ARMES_AU_MAXIMUM:
 		return {}
 	return {"genre": genre, "code": code}
 
@@ -217,7 +238,7 @@ static func decoder_resultat(b: PackedByteArray) -> Dictionary:
 static func type_de(b: PackedByteArray) -> int:
 	if b.is_empty() or b.size() > MAX_TAILLE:
 		return -1
-	if b[0] < Msg.BONJOUR or b[0] > Msg.RESULTAT:
+	if b[0] < Msg.BONJOUR or b[0] > Msg.ETAT_ARENE_REGARDEE:
 		return -1
 	return b[0]
 
@@ -226,12 +247,21 @@ static func type_de(b: PackedByteArray) -> int:
 
 
 ## `u8 type · f32 temps · u8 flags · i32 dernier_rempart · u8 n_joueurs` puis par joueur
-## `[i32 id · u8 n + nom · u16 manche · u16 eliminations · f32 degats · i32 revenu · u8 flags]`,
-## `u8 n_classement · n × i32`. Vide si plus de 16 joueurs ou de 16 rangs.
+## `[i32 id · u8 n + nom · u16 manche · u16 eliminations · f32 degats · f32 dps · i32 revenu ·
+## u8 flags]`, `u8 n_classement · n × i32`, `u8 n_densites · n × [i32 id · 256 octets]`. Vide si
+## plus de 16 joueurs, 16 rangs ou 16 cartes, ou si une carte n'a pas 256 octets.
 static func encoder_etat_global(v: VueGlobale) -> PackedByteArray:
 	if v.joueurs.size() > MAX_JOUEURS or v.classement.size() > MAX_JOUEURS:
 		return PackedByteArray()
-	var capacite := 11 + 1 + 4 * MAX_JOUEURS
+	if v.densites.size() > MAX_JOUEURS:
+		return PackedByteArray()
+	for id: Variant in v.densites:
+		if typeof(id) != TYPE_INT or typeof(v.densites[id]) != TYPE_PACKED_BYTE_ARRAY:
+			return PackedByteArray()
+		var carte_brute: PackedByteArray = v.densites[id]
+		if carte_brute.size() != VueGlobale.DENSITE_OCTETS:
+			return PackedByteArray()
+	var capacite := 11 + 1 + 4 * MAX_JOUEURS + 1 + _OCTETS_DENSITE * v.densites.size()
 	capacite += v.joueurs.size() * (_OCTETS_JOUEUR_MIN + _MAX_NOM_OCTETS)
 	var e := _Ecrivain.new(capacite)
 	e.u8(Msg.ETAT_GLOBAL)
@@ -247,11 +277,17 @@ static func encoder_etat_global(v: VueGlobale) -> PackedByteArray:
 		e.u16(int(j["manche"]))
 		e.u16(int(j["eliminations"]))
 		e.f32(float(j["degats"]))
+		e.f32(float(j.get("dps", 0.0)))
 		e.i32(int(j["revenu"]))
 		e.u8((1 if bool(j["vivant"]) else 0) | (2 if bool(j["victorieux"]) else 0))
 	e.u8(v.classement.size())
 	for rang: int in v.classement:
 		e.i32(rang)
+	e.u8(v.densites.size())
+	for id: int in v.densites:
+		var carte: PackedByteArray = v.densites[id]
+		e.i32(id)
+		e.octets(carte)
 	return e.fin()
 
 
@@ -279,6 +315,7 @@ static func decoder_etat_global(b: PackedByteArray) -> VueGlobale:
 		var manche := l.u16()
 		var eliminations := l.u16()
 		var degats := l.f32()
+		var dps := l.f32()
 		var revenu := l.i32()
 		var drapeaux := l.u8()
 		if not l.ok or drapeaux & ~3 != 0:
@@ -293,6 +330,7 @@ static func decoder_etat_global(b: PackedByteArray) -> VueGlobale:
 					"manche": manche,
 					"eliminations": eliminations,
 					"degats": degats,
+					"dps": dps,
 					"revenu": revenu,
 					"vivant": drapeaux & 1 != 0,
 					"victorieux": drapeaux & 2 != 0,
@@ -304,6 +342,15 @@ static func decoder_etat_global(b: PackedByteArray) -> VueGlobale:
 		return null
 	for i in rangs:
 		v.classement.append(l.i32())
+	var cartes := l.u8()
+	if cartes > MAX_JOUEURS or not l.exiger(_OCTETS_DENSITE * cartes):
+		return null
+	for i in cartes:
+		var id_carte := l.i32()
+		if v.densites.has(id_carte):
+			return null
+		v.densites[id_carte] = b.slice(l.p, l.p + VueGlobale.DENSITE_OCTETS)
+		l.p += VueGlobale.DENSITE_OCTETS
 	if not l.ok or l.reste() != 0:
 		return null
 	return v
@@ -315,7 +362,8 @@ static func decoder_etat_global(b: PackedByteArray) -> VueGlobale:
 ## Voir la spécification (§ 4) pour la disposition. Renvoie un tableau VIDE (refus explicite,
 ## rien n'est envoyé) si l'état n'est pas représentable : plus de 2 000 ennemis, tableaux
 ## d'ennemis de tailles différentes, identifiant absent du catalogue, genre/rareté/phase hors
-## bornes, plus de 16 armes ou 8 offres. Les événements au-delà de 64 sont abandonnés.
+## bornes, plus de 255 armes, 8 offres ou 3 familles suivantes, arme hors catalogue. Les événements
+## au-delà de 64 sont abandonnés.
 static func encoder_etat_arene(v: VueArene, catalogue: PackedStringArray) -> PackedByteArray:
 	var n := v.ennemis_id.size()
 	var coherent := (
@@ -327,11 +375,26 @@ static func encoder_etat_arene(v: VueArene, catalogue: PackedStringArray) -> Pac
 		and v.offres.size() <= MAX_OFFRES
 		and v.armes.size() <= MAX_ARMES
 		and v.ameliorations.size() <= 65535
+		and v.prochaines_familles.size() <= MAX_FAMILLES_SUIVANTES
 		and v.phase >= Types.Phase.PREPARATION
 		and v.phase <= Types.Phase.DEFAITE
 	)
 	if not coherent:
 		return PackedByteArray()
+	# Un état qui ne renseigne que `prochaine_famille` (un producteur d'avant le lot 8) annonce une
+	# seule famille : `prochaines_familles` n'est lu en premier que s'il est rempli.
+	var familles_suivantes := v.prochaines_familles
+	var armures_suivantes := v.prochaines_armures
+	if familles_suivantes.is_empty() and v.prochaine_famille >= 0:
+		familles_suivantes = PackedInt32Array([v.prochaine_famille])
+		armures_suivantes = PackedByteArray([clampi(v.prochaine_armure, 0, Types.Armure.BOSS)])
+	if armures_suivantes.size() != familles_suivantes.size():
+		return PackedByteArray()
+	for i in familles_suivantes.size():
+		if familles_suivantes[i] < 0 or familles_suivantes[i] > MAX_FAMILLE:
+			return PackedByteArray()
+		if armures_suivantes[i] > Types.Armure.BOSS:
+			return PackedByteArray()
 	var indices_offres := PackedInt32Array()
 	var drapeaux_offres := PackedByteArray()
 	for o: Dictionary in v.offres:
@@ -357,15 +420,23 @@ static func encoder_etat_arene(v: VueArene, catalogue: PackedStringArray) -> Pac
 		indices_amelios.append(idx)
 		comptes_amelios.append(clampi(int(v.ameliorations[id]), 0, 255))
 	var genres_evt := PackedByteArray()
+	var armes_evt := PackedInt32Array()
 	var nb_evt := mini(v.evenements.size(), MAX_EVENEMENTS)
 	for i in nb_evt:
 		var g := _GENRES_EVENEMENT.find(String(v.evenements[i]["k"]))
 		if g < 0:
 			return PackedByteArray()
 		genres_evt.append(g)
+		var arme_evt := _SANS_ARME
+		if v.evenements[i].has("arme"):
+			arme_evt = int(v.evenements[i]["arme"])
+			if arme_evt < 0 or arme_evt >= catalogue.size() or arme_evt >= _SANS_ARME:
+				return PackedByteArray()
+		armes_evt.append(arme_evt)
 
 	var taille := (
 		TAILLE_FIXE
+		+ 2 * familles_suivantes.size()
 		+ 5 * indices_offres.size()
 		+ 3 * indices_armes.size()
 		+ 3 * indices_amelios.size()
@@ -387,8 +458,12 @@ static func encoder_etat_arene(v: VueArene, catalogue: PackedStringArray) -> Pac
 	e.u16(_dixiemes(v.revenu_dans))
 	e.u16(v.cout_relance)
 	e.u8(v.relances_gratuites)
-	e.i8(clampi(v.prochaine_famille, -1, 127))
-	e.u8(clampi(v.prochaine_armure, 0, Types.Armure.BOSS))
+	e.f32(v.tour_mana)
+	e.f32(v.tour_mana_max)
+	e.u8(familles_suivantes.size())
+	for i in familles_suivantes.size():
+		e.u8(familles_suivantes[i])
+		e.u8(armures_suivantes[i])
 	e.u8(indices_offres.size())
 	for i in indices_offres.size():
 		e.u8(drapeaux_offres[i])
@@ -426,6 +501,7 @@ static func encoder_etat_arene(v: VueArene, catalogue: PackedStringArray) -> Pac
 		var genre_arme := clampi(int(evt.get("genre", 0)), 0, VueArene.GENRES_ARME.size() - 1)
 		var statut_arme := clampi(int(evt.get("statut", 0)), 0, VueArene.STATUTS_ARME.size() - 1)
 		e.u8(genre_arme | (statut_arme << 4))
+		e.u16(armes_evt[i])
 	e.u16(v.eliminations)
 	e.f32(v.degats_infliges)
 	e.u16(v.manche_max)
@@ -457,16 +533,23 @@ static func decoder_etat_arene(b: PackedByteArray, catalogue: PackedStringArray)
 	v.revenu_dans = float(l.u16()) / 10.0
 	v.cout_relance = l.u16()
 	v.relances_gratuites = l.u8()
-	v.prochaine_famille = l.i8()
-	v.prochaine_armure = l.u8()
-	if (
-		not l.ok
-		or flags & ~3 != 0
-		or v.phase > Types.Phase.DEFAITE
-		or v.prochaine_armure > Types.Armure.BOSS
-		or v.prochaine_famille < -1
-	):
+	v.tour_mana = l.f32()
+	v.tour_mana_max = l.f32()
+	var n_familles := l.u8()
+	if not l.ok or flags & ~3 != 0 or v.phase > Types.Phase.DEFAITE:
 		return null
+	if n_familles > MAX_FAMILLES_SUIVANTES or not l.exiger(2 * n_familles):
+		return null
+	for i in n_familles:
+		var famille := l.u8()
+		var armure := l.u8()
+		if famille > MAX_FAMILLE or armure > Types.Armure.BOSS:
+			return null
+		v.prochaines_familles.append(famille)
+		v.prochaines_armures.append(armure)
+	if n_familles > 0:
+		v.prochaine_famille = v.prochaines_familles[0]
+		v.prochaine_armure = v.prochaines_armures[0]
 
 	var nb_catalogue := catalogue.size()
 	var n_offres := l.u8()
@@ -544,6 +627,9 @@ static func decoder_etat_arene(b: PackedByteArray, catalogue: PackedStringArray)
 		var arme := l.u8()
 		var genre_arme := arme & 0x0F
 		var statut_arme := arme >> 4
+		var index_arme := l.u16()
+		if not l.ok or (index_arme != _SANS_ARME and index_arme >= nb_catalogue):
+			return null
 		if (
 			genre >= _GENRES_EVENEMENT.size()
 			or type_degats > Types.TypeDegats.CHAOS
@@ -551,28 +637,59 @@ static func decoder_etat_arene(b: PackedByteArray, catalogue: PackedStringArray)
 			or statut_arme >= VueArene.STATUTS_ARME.size()
 		):
 			return null
-		(
-			v
-			. evenements
-			. append(
-				{
-					"k": _GENRES_EVENEMENT[genre],
-					"t": v.tick,
-					"de": de,
-					"vers": vers,
-					"type_degats": type_degats,
-					"rayon": rayon,
-					"genre": genre_arme,
-					"statut": statut_arme,
-				}
-			)
-		)
+		var evenement: Dictionary = {
+			"k": _GENRES_EVENEMENT[genre],
+			"t": v.tick,
+			"de": de,
+			"vers": vers,
+			"type_degats": type_degats,
+			"rayon": rayon,
+			"genre": genre_arme,
+			"statut": statut_arme,
+		}
+		if index_arme != _SANS_ARME:
+			evenement["arme"] = index_arme
+		v.evenements.append(evenement)
 	v.eliminations = l.u16()
 	v.degats_infliges = l.f32()
 	v.manche_max = l.u16()
 	if not l.ok or l.reste() != 0:
 		return null
 	return v
+
+
+## `u8 type · u8 id` puis le corps d'un état d'arène (sans son octet de type) : l'arène d'un
+## autre joueur, regardée de son vivant. Vide si l'identifiant n'est pas dans 0 à 255 ou si l'état
+## n'est pas représentable (voir `encoder_etat_arene`).
+static func encoder_etat_arene_regardee(
+	id_joueur: int, v: VueArene, catalogue: PackedStringArray
+) -> PackedByteArray:
+	if id_joueur < 0 or id_joueur > MAX_ID_REGARDE:
+		return PackedByteArray()
+	var etat := encoder_etat_arene(v, catalogue)
+	if etat.is_empty():
+		return PackedByteArray()
+	var sortie := PackedByteArray([Msg.ETAT_ARENE_REGARDEE, id_joueur])
+	sortie.append_array(etat.slice(1))
+	return sortie
+
+
+## `{id: int, vue: VueArene}`, ou `{}` si le paquet est invalide.
+static func decoder_etat_arene_regardee(
+	b: PackedByteArray, catalogue: PackedStringArray
+) -> Dictionary:
+	if b.size() > MAX_TAILLE or b.size() < 2 or b[0] != Msg.ETAT_ARENE_REGARDEE:
+		return {}
+	var etat := PackedByteArray([Msg.ETAT_ARENE])
+	etat.append_array(b.slice(2))
+	var vue := decoder_etat_arene(etat, catalogue)
+	if vue == null:
+		return {}
+	return {"id": b[1], "vue": vue}
+
+
+static func _id_regarde_valide(arg: int) -> bool:
+	return arg == -1 or (arg >= 0 and arg <= MAX_ID_REGARDE)
 
 
 ## Position en 1/16 d'unité, arrondie au plus proche, bornée à l'`i16` ; une valeur non finie
