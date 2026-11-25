@@ -14,7 +14,6 @@ const OR_ABONDANT := 1000000
 ## Part minimale de la hauteur qui reste à l'arène entre la barre et le bandeau.
 const PART_ARENE_MIN := 0.4
 const OPACITE_MIN := 0.9
-const TOLERANCE_ECRAN := 0.02
 
 var _donnees: Donnees
 var _locale_avant: String = ""
@@ -188,20 +187,14 @@ func test_la_tour_est_au_centre_de_l_arene_visible_et_le_cercle_d_apparition_y_t
 		var haut := jeu.hud.rect_barre().end.y
 		var bas := jeu.boutique.rect_bandeau().position.y
 		var libre := Rect2(0.0, haut, zone.x, bas - haut)
-		var aspect := zone.x / zone.y
-		var centre := jeu.camera.projeter(Vector3.ZERO, aspect)
-		var attendu := Vector2(
-			libre.get_center().x / zone.x * 2.0 - 1.0, 1.0 - libre.get_center().y / zone.y * 2.0
-		)
-		verifier_proche(centre.x, attendu.x, TOLERANCE_ECRAN, "tour centrée en x à %s" % zone)
-		verifier_proche(centre.y, attendu.y, TOLERANCE_ECRAN, "tour centrée en y à %s" % zone)
-		var rayon: float = CameraArene.RAYON_APPARITION * Apparence.ECHELLE
+		var centre := jeu.camera.projeter(Vector2.ZERO)
+		var attendu := libre.get_center()
+		verifier_proche(centre.x, attendu.x, 1.0, "tour centrée en x à %s" % zone)
+		verifier_proche(centre.y, attendu.y, 1.0, "tour centrée en y à %s" % zone)
+		var rayon: float = Apparence2D.vers_pixels(Vector2(CameraArene2D.RAYON_APPARITION, 0.0)).x
 		for i: int in 64:
 			var angle: float = TAU * float(i) / 64.0
-			var p := jeu.camera.projeter(
-				Vector3(cos(angle) * rayon, 0.0, sin(angle) * rayon), aspect
-			)
-			var px := Vector2((p.x + 1.0) * 0.5 * zone.x, (1.0 - p.y) * 0.5 * zone.y)
+			var px := jeu.camera.projeter(Vector2.from_angle(angle) * rayon)
 			verifier(
 				libre.grow(1.0).has_point(px),
 				"point %d du cercle d'apparition hors de l'arène visible à %s : %s" % [i, zone, px]
