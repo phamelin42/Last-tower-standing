@@ -1,8 +1,8 @@
 extends CasDeTest
-## La feuille de la Mite de laiton (dessinée par `tools/dessiner_mite.gd`) : 6 images de vol et
+## La feuille de la Guêpe de laiton (dessinée par `tools/dessiner_guepe.gd`) : 6 images de vol et
 ## 4 images de coup, en pixel art net, et regénérable à l'identique.
 
-const CHEMIN := "res://assets/maison/mite_de_laiton.png"
+const CHEMIN := "res://assets/maison/guepe_de_laiton.png"
 const CASE := 192
 const COLONNES := 6
 const LIGNES := 2
@@ -32,7 +32,7 @@ func test_la_feuille_existe_et_fait_1152_sur_384() -> void:
 	verifier_egal(img.get_height(), LIGNES * CASE)
 
 
-func test_chaque_case_attendue_a_une_mite_et_les_autres_sont_vides() -> void:
+func test_chaque_case_attendue_a_une_guepe_et_les_autres_sont_vides() -> void:
 	var img := _charger()
 	if img == null:
 		verifier(false, "feuille absente")
@@ -65,7 +65,7 @@ func test_aucun_pixel_n_est_anticrenele() -> void:
 	verifier(true)
 
 
-func test_la_mite_est_assez_large_pour_se_voir_a_cote_des_gobelins() -> void:
+func test_la_guepe_est_assez_large_pour_se_voir_a_cote_des_gobelins() -> void:
 	var img := _charger()
 	if img == null:
 		verifier(false, "feuille absente")
@@ -110,14 +110,14 @@ func test_l_ombre_est_detachee_du_corps() -> void:
 
 
 func test_le_script_regenere_la_feuille_versionnee_au_octet_pres() -> void:
-	var sortie := dossier_temporaire().path_join("mite.png")
+	var sortie := dossier_temporaire().path_join("guepe.png")
 	var args := PackedStringArray(
 		[
 			"--headless",
 			"--path",
 			ProjectSettings.globalize_path("res://"),
 			"--script",
-			"res://tools/dessiner_mite.gd",
+			"res://tools/dessiner_guepe.gd",
 			"--",
 			"--sortie",
 			sortie,

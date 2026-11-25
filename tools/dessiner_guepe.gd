@@ -1,15 +1,15 @@
 extends SceneTree
-## Dessine la feuille de la Mite de laiton (unité volante), image par image, à partir de formes
+## Dessine la feuille de la Guêpe de laiton (unité volante), image par image, à partir de formes
 ## et de la palette du pack Tiny Swords (couleurs mesurées dans les PNG des gobelins). Aucune image
 ## tierce : la même exécution sort toujours les mêmes octets.
-##   godot --headless --path . --script res://tools/dessiner_mite.gd [-- --sortie <chemin.png>]
+##   godot --headless --path . --script res://tools/dessiner_guepe.gd [-- --sortie <chemin.png>]
 ## Feuille de 6 × 2 cases de 192 px : ligne 0 = vol (6 images), ligne 1 = coup (4 images).
 ## La mort réutilise `Dead.png` du pack.
 
 const CASE := 192
 const COLONNES := 6
 const LIGNES := 2
-const SORTIE_DEFAUT := "res://assets/maison/mite_de_laiton.png"
+const SORTIE_DEFAUT := "res://assets/maison/guepe_de_laiton.png"
 
 const CONTOUR := Color("161c2e")
 const OMBRE := Color("161c2e50")
@@ -61,15 +61,15 @@ func _lancer(args: PackedStringArray) -> int:
 
 
 func _image_de_vol(n: int) -> Image:
-	return _dessiner_mite(0, BALANCE[n], ANGLES_VOL[n], 8)
+	return _dessiner_guepe(0, BALANCE[n], ANGLES_VOL[n], 8)
 
 
 func _image_de_coup(n: int) -> Image:
-	return _dessiner_mite(COUP_DX[n], 0, ANGLES_COUP[n], COUP_LONGUEUR[n])
+	return _dessiner_guepe(COUP_DX[n], 0, ANGLES_COUP[n], COUP_LONGUEUR[n])
 
 
-## Une case : ombre au sol, puis la mite (chaque partie a son propre contour d'un pixel).
-func _dessiner_mite(dx: int, dy: int, angle_ailes: float, longueur_dard: int) -> Image:
+## Une case : ombre au sol, puis la guêpe (chaque partie a son propre contour d'un pixel).
+func _dessiner_guepe(dx: int, dy: int, angle_ailes: float, longueur_dard: int) -> Image:
 	var case_img := _couche()
 	_dessiner_ombre(case_img, 96 + dx / 2)
 	var fig := _couche()

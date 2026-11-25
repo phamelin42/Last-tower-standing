@@ -8,7 +8,7 @@ Chaque ressource tierce (licence libre uniquement) est listée ici.
 | [gdtoolkit 4](https://github.com/Scony/godot-gdscript-toolkit) (gdlint, gdformat) | Bartosz Sokołowski (Scony) et contributeurs   | MIT                                           | Outils de développement : lint et format GDScript (`tools/install-gdtoolkit.sh`), hors du jeu.                                     |
 | Police par défaut de Godot                                                        | Fournie avec le moteur                        | Licence de la police, indiquée dans le moteur | Seule police affichée : aucun fichier de police n'est versionné dans le dépôt.                                                     |
 | [Tiny Swords](https://pixelfrog-assets.itch.io/tiny-swords), « Update 010 »       | Pixel Frog                                    | CC0 1.0                                       | Images du lot 5 (`assets/tiny_swords/`, détail dans `assets/tiny_swords/LICENCE.md`).                                              |
-| Mite de laiton (`assets/maison/`)                                                 | Faite pour ce jeu (`tools/dessiner_mite.gd`)  | CC0 1.0                                       | Sprite de l'unité volante, dessiné par script dans le style et la palette de Tiny Swords (détail dans `assets/maison/LICENCE.md`). |
+| Guêpe de laiton (`assets/maison/`)                                                | Faite pour ce jeu (`tools/dessiner_guepe.gd`) | CC0 1.0                                       | Sprite de l'unité volante, dessiné par script dans le style et la palette de Tiny Swords (détail dans `assets/maison/LICENCE.md`). |
 
 ## Tiny Swords : seulement l'ancienne version CC0
 

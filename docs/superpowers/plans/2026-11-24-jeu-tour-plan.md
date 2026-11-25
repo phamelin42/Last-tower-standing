@@ -829,11 +829,13 @@ crédité dans `CREDITS.md` (le crédit est facultatif en CC0, mais on cite touj
 
 ### Task 5.7 : Sprite maison de l’unité volante — `sonnet`
 
-- [ ] **Objectif :** les « Mites de laiton » n’ont aucun sprite dans le pack. Dessiner, par un
+- [x] **Objectif :** les « Mites de laiton » n’ont aucun sprite dans le pack. Dessiner, par un
       script versionné (`tools/`), une feuille de vol (6 images) et de mort dans le style du pack :
       contour, palette du pack, ombre détachée du corps. Publiée sous CC0 avec le jeu et listée dans
       `CREDITS.md` comme faite par nous. Elle remplace le gobelin violet ×0,7 de T5.1. Planche relue
       par Phil.
+      **Fait (25/11/2026)** : `tools/dessiner_guepe.gd` et `assets/maison/guepe_de_laiton.png`. Le
+      dessin se lit comme une guêpe : Phil a renommé la famille « Guêpes de laiton ».
 
 ---
 
