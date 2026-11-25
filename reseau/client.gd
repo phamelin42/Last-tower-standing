@@ -9,7 +9,7 @@ extends SourceVue
 signal salon_mis_a_jour(salon: Salon)
 signal partie_demarree
 
-## ENet ne répond pas à un client de trop (huit au maximum) : il est indiscernable d'une adresse fausse.
+## ENet ignore un client de trop (huit au plus) : indiscernable d'une adresse fausse.
 const MOTIF_INJOIGNABLE := "Impossible de joindre le serveur (adresse fausse ou salon plein)."
 
 ## Délai sans nouvelles du serveur, en partie, avant de le déclarer perdu.
