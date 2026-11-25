@@ -14,7 +14,10 @@ const SCENE_SERVEUR := "res://scenes/serveur.tscn"
 var arguments: Dictionary = {}
 ## Injectables : données de la partie (sinon `data/`) et fichier de réglages.
 var donnees: Donnees = null
+var dossier_donnees: String = Donnees.DOSSIER_REEL
 var chemin_reglages: String = Reglages.CHEMIN_DEFAUT
+## Sortie du processus : `get_tree().quit(code)` par défaut, remplaçable par les tests.
+var sortie: Callable = Callable()
 ## Découverte des salons : seuls les tests changent le port et les cibles (127.0.0.1).
 var port_decouverte: int = Decouverte.PORT_DECOUVERTE
 var cibles_decouverte: Array[String] = [Decouverte.DIFFUSION]
@@ -37,7 +40,7 @@ static func scene_de_demarrage(args: Dictionary) -> String:
 
 func _ready() -> void:
 	if arguments.is_empty():
-		arguments = Arguments.lire(OS.get_cmdline_user_args())
+		arguments = ServeurDedie.lire_options(OS.get_cmdline_user_args())
 	var messages: Array = arguments["messages"]
 	for message: Variant in messages:
 		print(message)
@@ -75,14 +78,32 @@ func session() -> SessionReseau:
 	return _session
 
 
-## Le serveur dédié n'a pas d'interface : sa scène remplace celle-ci. Si elle manque, on le dit
-## et on sort en erreur plutôt que d'ouvrir un menu qu'un serveur sans écran ne peut pas lire.
+## Le serveur dédié n'a pas d'interface : sa scène remplace le menu, qui n'est pas chargé. Un code
+## de sortie non nul (données absentes, port impossible) ferme le processus, sans quoi un serveur
+## qui n'écoute pas resterait lancé pour rien.
 func _lancer_serveur_dedie(scene: String) -> void:
 	if not ResourceLoader.exists(scene):
 		printerr("Scène du serveur dédié introuvable : %s" % scene)
-		get_tree().quit(1)
+		_sortir(1)
 		return
-	get_tree().change_scene_to_file.call_deferred(scene)
+	var menu_inutile := get_node_or_null("Menu")
+	if menu_inutile != null:
+		remove_child(menu_inutile)
+		menu_inutile.queue_free()
+	var dedie := (load(scene) as PackedScene).instantiate() as ServeurDedie
+	dedie.sortie = _sortir
+	add_child(dedie)
+	var donnees_serveur := donnees if donnees != null else Donnees.charger(dossier_donnees)
+	var code := dedie.lancer(arguments, donnees_serveur)
+	if code != ServeurDedie.CODE_OK:
+		_sortir(code)
+
+
+func _sortir(code: int) -> void:
+	if sortie.is_valid():
+		sortie.call(code)
+	else:
+		get_tree().quit(code)
 
 
 ## La partie en cours, ou `null` quand le menu est affiché.
@@ -93,7 +114,7 @@ func jeu() -> Jeu:
 func _lancer_solo(nom: String) -> void:
 	if _jeu != null:
 		return
-	var d := donnees if donnees != null else Donnees.charger()
+	var d := donnees if donnees != null else Donnees.charger(dossier_donnees)
 	if d == null:
 		_menu.afficher_message(tr("MENU_ERREUR_DONNEES"))
 		return
@@ -161,7 +182,7 @@ func _construire_multijoueur() -> void:
 
 
 func _donnees_du_jeu() -> Donnees:
-	return donnees if donnees != null else Donnees.charger()
+	return donnees if donnees != null else Donnees.charger(dossier_donnees)
 
 
 func _ouvrir_creer(nom: String) -> void:
