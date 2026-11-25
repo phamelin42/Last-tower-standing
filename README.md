@@ -131,8 +131,14 @@ docker compose -f service-annuaire/compose.yaml up -d --build
 
 Il écoute sur le port 7779 en TCP (réseau de l’hôte, pour voir l’adresse IP réelle des joueurs).
 Le pare-feu du serveur doit autoriser ce port en entrée et laisser sortir l’UDP, pour la
-vérification des salons. Le menu du jeu ne contacte pas encore l’annuaire : pour l’instant, on
-joue toujours en réseau local ou par adresse IP directe.
+vérification des salons.
+
+Côté jeu, la case « Partie publique » de la création d’un salon (cochée par défaut) annonce le
+salon à l’annuaire ; « Rejoindre une partie » liste les salons du réseau local et de l’annuaire.
+Le jeu ne contacte l’annuaire qu’à l’ouverture de « Rejoindre » et à l’actualisation de la liste,
+jamais en arrière-plan. Son adresse (`annuaire-lts.phamelin.fr:7779` par défaut) se règle dans
+l’écran des réglages ; vide, l’annuaire est désactivé. Détails dans
+[`docs/jouer.md`](docs/jouer.md#lannuaire-des-parties-en-ligne).
 
 ## Développer
 

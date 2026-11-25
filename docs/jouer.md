@@ -71,6 +71,23 @@ ferme. La partie, elle, se joue toujours directement chez l’hôte.
 
 Vie privée : « Partie publique : votre adresse IP sera transmise à l’annuaire et visible des joueurs qui consultent la liste, tant que le salon est ouvert. Rien n’est conservé ensuite. »
 
-Le menu du jeu ne contacte pas encore l’annuaire : pour l’instant, on rejoint un salon sur le
-réseau local ou par l’adresse IP de l’hôte. Pour héberger un annuaire sur un serveur équipé de
+**Héberger.** Sur la page « Créer une partie », la case « Partie publique » est cochée par défaut : le
+salon est alors annoncé à l’annuaire dès que vous êtes dans votre salon et que votre box a répondu
+(ouverture automatique du port, réussie ou non), puis toutes les 10 secondes, et retiré quand vous
+quittez ou lancez la partie. Décochez-la pour ne rien envoyer. Si l’annuaire ne parvient pas à
+joindre votre partie (port fermé, par exemple derrière un partage de connexion de l’opérateur), le
+salon l’indique en texte et reste jouable en réseau local et par adresse IP. Un serveur dédié n’est
+jamais annoncé.
+
+**Rejoindre.** « Rejoindre une partie » affiche les salons du réseau local et ceux de l’annuaire,
+avec leur origine en texte (« Réseau local » ou « Annuaire »). Un salon d’une autre version du jeu
+est marqué « autre version », sans être caché. Le jeu ne contacte l’annuaire qu’à l’ouverture de
+cette page et quand vous cliquez sur « Actualiser », jamais en arrière-plan. Si l’annuaire est
+injoignable, lent ou d’une autre version, un message le dit et le réseau local comme l’adresse IP
+saisie continuent de marcher.
+
+**Réglage.** L’écran des réglages a un champ « Adresse de l’annuaire » (par défaut
+`annuaire-lts.phamelin.fr:7779`). Le vider désactive l’annuaire : plus rien n’est envoyé ni lu.
+
+Pour héberger un annuaire sur un serveur équipé de
 Docker, voir le [README](../README.md#annuaire-des-parties-en-ligne).
