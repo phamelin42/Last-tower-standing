@@ -1,4 +1,4 @@
-# Icônes des offres, décor de l’arène et descriptions — conception
+# Images des offres, décor de l’arène et descriptions — conception
 
 Demande de Phil (25/11/2026) : des images pour les améliorations, de la décoration sur la map, et une passe sur les descriptions, « qui manquent souvent de sens ». Ce document complète le lot 5 (habillage 2D avec Tiny Swords CC0).
 
@@ -33,9 +33,11 @@ Une boutique qu’on lit d’un coup d’œil, une arène vivante, dans la direc
 
 ## Conception
 
-### 1. Icônes des offres
+### 1. Images des offres
 
-- **Source** : un pack CC0 choisi par Phil. OpenGameArt refuse les requêtes automatiques, donc Phil télécharge l’archive et la dépose dans la session, comme pour Tiny Swords. Le pack est versionné dans `assets/icones/<pack>/` avec un `LICENCE.md` (auteur, URL, licence, date) et crédité dans `CREDITS.md`. Candidats : les packs « idylwilds » (CC0, 32×32) et « 496 pixel art icons » de 7Soul (étiqueté CC0, déclaré domaine public par l’auteur).
+Précision de Phil : « comme sur Warcraft. Un objet dessiné sur une case. Une image en rapport avec la carte. » Chaque offre a donc **son objet dessiné dans une case carrée encadrée**, qui évoque son nom (des poutres pour « Renfort de poutres », des pointes pour « Chausse-trape »). L’image est bien visible sur la carte de la boutique, en tête, autour de 64 à 96 px de côté, à un multiple entier de la taille d’origine.
+
+- **Source** : un pack CC0 choisi par Phil. OpenGameArt refuse les requêtes automatiques, donc Phil télécharge l’archive et la dépose dans la session, comme pour Tiny Swords. Le pack est versionné dans `assets/icones/<pack>/` avec un `LICENCE.md` (auteur, URL, licence, date) et crédité dans `CREDITS.md`. Candidat recommandé : « 496 pixel art icons » de 7Soul (étiqueté CC0, déclaré domaine public par l’auteur), pour son choix d’objets : 70 offres distinctes demandent beaucoup d’objets différents. Les packs « idylwilds » (CC0, 32×32) peuvent compléter.
 - **Harmonisation par script versionné** (`tools/harmoniser_icones.gd`, Godot sans interface) :
   - couleurs ramenées à la palette mesurée dans les feuilles de Tiny Swords ;
   - contour remplacé par la couleur de contour du pack (`#161c2e`, mesurée pour la guêpe) ;
@@ -43,9 +45,10 @@ Une boutique qu’on lit d’un coup d’œil, une arène vivante, dans la direc
 
   Le script écrit les images harmonisées dans `assets/icones/harmonisees/`, toujours les mêmes octets, et un test les régénère pour le vérifier (même méthode que la guêpe).
 
+- **Choix de l’objet** : pour chaque offre, l’objet du pack le plus proche de son nom. Une offre sans objet convenable est signalée sur la planche ; on lui dessine son objet par script, dans le même style, ou Phil choisit autre chose.
 - **Correspondance** : un seul fichier dans `visuels/` associe chaque identifiant d’offre à son icône. La simulation ne connaît pas les images. Un test parcourt toutes les offres de `data/` et vérifie que chacune a une icône existante, et que deux offres n’ont pas la même.
 - **Cadre** : la couleur du cadre dit le type de dégâts pour une arme, la famille pour une amélioration (dégâts, défense, économie, utilitaire). Le texte dit aussi le type : la couleur ne porte jamais seule l’information.
-- **Validation** : une planche des 70 icônes harmonisées, à côté de boutons et rubans de Tiny Swords, relue par Phil avant l’intégration.
+- **Validation** : une planche des 70 images harmonisées, chacune avec le nom de son offre, à côté de boutons et rubans de Tiny Swords, relue par Phil avant l’intégration.
 
 ### 2. Décor de l’arène
 
