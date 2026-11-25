@@ -17,9 +17,24 @@ const TAILLE_TEXTE := 16
 const LARGEUR_CARTE := 200.0
 const LARGEUR_TEXTE := 150.0
 ## Largeur de la colonne d'actions (relance, message) et du panneau des armes.
-const LARGEUR_ACTIONS := 172.0
+const LARGEUR_ACTIONS := 152.0
 const LARGEUR_COTE := 300.0
-const LARGEUR_NOM_ARME := 110.0
+const LARGEUR_NOM_ARME := 100.0
+## Image de l'offre en tête de carte : la plus grande taille qui tient, entre ces bornes. Elle
+## grandit avec la fenêtre (de 648 à 1080 px de haut) et cède avant le texte quand la place manque.
+const IMAGE_MIN := 64.0
+const IMAGE_MAX := 96.0
+const HAUTEUR_IMAGE_MIN := 648.0
+const HAUTEUR_IMAGE_MAX := 1080.0
+## Ce que la carte prend autour de l'image et du texte : marges du bandeau et de la carte.
+const MARGES_CARTE := 24.0
+## Rareté la plus longue (111 px) et prix le plus long (52 px), côte à côte à droite de l'image.
+const LARGEUR_ENTETE_TEXTE := 165.0
+## Largeur plancher du nom : de quoi tenir un mot, le reste vient de la place laissée par l'image.
+const LARGEUR_MOT_NOM := 48.0
+## Petite image devant le nom d'une arme équipée, et devant un choix du marché noir.
+const IMAGE_ARME := 32.0
+const IMAGE_NOIR := 40.0
 const LARGEUR_VENTE := 140.0
 ## L'ambiance est secondaire : deux lignes, le reste en infobulle. L'effet, lui, n'est jamais coupé.
 const LIGNES_AMBIANCE := 2
@@ -32,6 +47,8 @@ const HAUTEUR_MIN_AMBIANCE := 700.0
 ## Respiration entre la ligne d'effet et l'ambiance, quand celle-ci a sa place.
 const ESPACE_AMBIANCE := 6.0
 const HAUTEUR_NOTE := 24.0
+## Marges verticales du style des boutons (haut et bas) autour du texte.
+const HAUTEUR_MARGES_BOUTON := 36.0
 const MARGE := 8
 const MARGE_COTE := ThemeJeu.MARGE_PANNEAU
 const OPACITE_VENDUE := 0.45
@@ -63,6 +80,7 @@ var _armes_ids: Array[String] = []
 var _cartes: Array[PanelContainer] = []
 var _raretes: Array[Label] = []
 var _noms: Array[Label] = []
+var _images: Array[TextureRect] = []
 var _types: Array[Label] = []
 var _effets: Array[Label] = []
 var _descriptions: Array[Label] = []
@@ -118,6 +136,9 @@ func _construire_bandeau() -> void:
 	titre.add_theme_font_size_override("font_size", TAILLE_TEXTE)
 	actions.add_child(titre)
 	_relance = _bouton(Callable(self, "relancer"))
+	# « Relancer » puis le prix : deux lignes de 23 px et les marges du bouton (36 px), sinon la
+	# seconde ligne est coupée.
+	_relance.custom_minimum_size.y = 2.0 * HAUTEUR_LIGNE_SERREE + HAUTEUR_MARGES_BOUTON
 	actions.add_child(_relance)
 	_note_relance = _etiquette("NoteRelance")
 	_message = _etiquette("Message")
@@ -204,6 +225,24 @@ func configurer(donnees: Donnees, source: SourceVue) -> void:
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_RESIZED:
 		_regler_ambiance()
+		_regler_images()
+
+
+## Taille de l'image d'une carte pour une fenêtre de cette taille : celle que la hauteur permet,
+## ramenée à ce que la largeur laisse au texte, sans jamais sortir des bornes.
+static func taille_image(fenetre: Vector2) -> float:
+	var t := remap(fenetre.y, HAUTEUR_IMAGE_MIN, HAUTEUR_IMAGE_MAX, IMAGE_MIN, IMAGE_MAX)
+	t = clampf(t, IMAGE_MIN, IMAGE_MAX)
+	if fenetre.x > 0.0:
+		var carte := (fenetre.x - LARGEUR_ACTIONS - 2.0 * MARGE) / float(NB_OFFRES)
+		t = minf(t, carte - MARGES_CARTE - LARGEUR_ENTETE_TEXTE)
+	return clampf(floorf(t), IMAGE_MIN, IMAGE_MAX)
+
+
+func _regler_images() -> void:
+	var taille := taille_image(size)
+	for image: TextureRect in _images:
+		ImageOffre.regler_taille(image, taille)
 
 
 ## L'ambiance cède la place à l'effet quand la fenêtre est basse. `max_lines_visible = 0` garde le
@@ -290,8 +329,19 @@ func _construire_carte(i: int) -> PanelContainer:
 		libelle.custom_minimum_size = Vector2(LARGEUR_TEXTE, 0.0)
 	# Rangées : rareté et prix ; nom (à la ligne s'il est très long) ; type de dégâts et notes ;
 	# effet (toujours entier) puis ambiance (atténuée).
+	# En tête : l'image, puis rareté et prix, nom, type et notes en colonne à sa droite.
+	var entete := HBoxContainer.new()
+	entete.add_theme_constant_override("separation", 1)
+	colonne.add_child(entete)
+	var image := ImageOffre.creer("Image%d" % i, IMAGE_MIN)
+	entete.add_child(image)
+	var textes := VBoxContainer.new()
+	textes.add_theme_constant_override("separation", 0)
+	textes.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	entete.add_child(textes)
 	var haut := HBoxContainer.new()
-	colonne.add_child(haut)
+	haut.add_theme_constant_override("separation", 3)
+	textes.add_child(haut)
 	for libelle: Label in [rarete, prix]:
 		libelle.autowrap_mode = TextServer.AUTOWRAP_OFF
 		libelle.custom_minimum_size.x = 0.0
@@ -299,11 +349,12 @@ func _construire_carte(i: int) -> PanelContainer:
 	prix.add_theme_color_override("font_color", ThemeJeu.LAITON_CLAIR)
 	haut.add_child(rarete)
 	haut.add_child(prix)
-	nom.custom_minimum_size.y = _hauteur_ligne()
+	# La colonne de texte n'a plus que la largeur laissée par l'image : le nom passe à la ligne.
+	nom.custom_minimum_size = Vector2(LARGEUR_MOT_NOM, _hauteur_ligne())
 	nom.add_theme_color_override("font_color", ThemeJeu.LAITON_CLAIR)
-	colonne.add_child(nom)
+	textes.add_child(nom)
 	var bas := HBoxContainer.new()
-	colonne.add_child(bas)
+	textes.add_child(bas)
 	for libelle: Label in [type_degats, note]:
 		libelle.autowrap_mode = TextServer.AUTOWRAP_OFF
 		libelle.custom_minimum_size.x = 0.0
@@ -336,6 +387,7 @@ func _construire_carte(i: int) -> PanelContainer:
 	_cartes.append(carte)
 	_raretes.append(rarete)
 	_noms.append(nom)
+	_images.append(image)
 	_types.append(type_degats)
 	# Les infobulles ne s'ouvrent que sur un contrôle qui reçoit la souris : un `Label` l'ignore
 	# par défaut. La carte entière porte celle de l'offre.
@@ -385,6 +437,10 @@ func _construire_marche_noir() -> void:
 		var bouton := _bouton(Callable(self, "_choisir_noir").bind(id))
 		bouton.text = tr("BOUTIQUE_CHOISIR") % str(amelio["nom"])
 		bouton.tooltip_text = _infobulle(amelio, Types.Genre.AMELIORATION)
+		bouton.icon = ImageOffre.texture(id)
+		bouton.expand_icon = true
+		bouton.add_theme_constant_override("icon_max_width", int(IMAGE_NOIR))
+		bouton.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		_noir.add_child(bouton)
 
 
@@ -404,6 +460,7 @@ func _afficher_carte(i: int, offre: Dictionary, vue: VueArene) -> void:
 			_raretes[i], _noms[i], _types[i], _effets[i], _descriptions[i], _prix[i]
 		]:
 			libelle.text = ""
+		_images[i].texture = null
 		_notes[i].text = ""
 		_cartes[i].tooltip_text = ""
 		_types[i].tooltip_text = ""
@@ -413,6 +470,7 @@ func _afficher_carte(i: int, offre: Dictionary, vue: VueArene) -> void:
 	var prix: int = offre["prix"]
 	var vendu: bool = offre["vendu"]
 	var entree := _entree(str(offre["id"]), genre)
+	ImageOffre.poser(_images[i], str(offre["id"]))
 	_raretes[i].text = (
 		"%s %s" % [Apparence.symbole_rarete(rarete), tr(Apparence.cle_libelle_rarete(rarete))]
 	)
@@ -464,6 +522,9 @@ func _afficher_armes(vue: VueArene) -> void:
 	for i: int in ids.size():
 		var entree := _entree(ids[i], Types.Genre.ARME)
 		var ligne := HBoxContainer.new()
+		var image := ImageOffre.creer("ImageArme%d" % i, IMAGE_ARME)
+		ImageOffre.poser(image, ids[i])
+		ligne.add_child(image)
 		var nom := _etiquette("NomArme%d" % i)
 		nom.text = str(entree.get("nom", ids[i]))
 		nom.autowrap_mode = TextServer.AUTOWRAP_OFF
