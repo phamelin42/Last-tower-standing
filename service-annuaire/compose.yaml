@@ -1,0 +1,35 @@
+# Annuaire des parties en ligne (ADR 001). Lancement, depuis la racine du dépôt :
+#   docker compose -f service-annuaire/compose.yaml up -d --build
+# Le service garde tout en mémoire : aucun volume, aucun secret, aucune adresse personnelle.
+services:
+  annuaire:
+    build:
+      context: ..
+      dockerfile: service-annuaire/Dockerfile
+    image: lts-annuaire
+    restart: unless-stopped
+    # Rien n'est écrit dans le conteneur, sauf le dossier utilisateur de Godot (journal du moteur),
+    # en mémoire : il disparaît à l'arrêt.
+    read_only: true
+    tmpfs:
+      - /home/annuaire/.local/share/godot:uid=10001,gid=10001,mode=0700,size=16m
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    # Réseau de l'hôte, sans publication de port : le service doit voir l'IP source réelle de qui
+    # annonce ou consulte, et sonder le salon depuis l'IP du VPS. Observé dans le conteneur de
+    # vérification : par le relais de la boucle locale, la source vue était la passerelle 172.x, et
+    # la sonde UDP échouait en réseau en pont (cause non élucidée). Le mode hôte lève ce doute, au
+    # prix de l'isolation réseau ; le pare-feu de l'hôte s'applique alors. Port : 7779/TCP.
+    network_mode: host
+    # Ouverture TCP du port, sans rien envoyer.
+    healthcheck:
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/7779"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    logging:
+      driver: json-file
+      options:
+        max-size: 1m
+        max-file: "3"
