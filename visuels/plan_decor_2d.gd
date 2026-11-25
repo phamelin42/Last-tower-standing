@@ -35,8 +35,9 @@ const RETOURNEMENTS: Array[int] = [0, 4096, 8192, 12288]
 
 ## Les images du pack. `cellule` : taille d'une image dans la feuille ; `origine` : coin de la
 ## première image ; `ligne` : rangée de l'animation ; `images` : combien de pas ; `boite` : le
-## contenu visible dans une cellule, toutes images confondues (seul lui est dessiné) ; `pieds` : le point de la cellule posé sur la position de
-## l'objet ; `haut` : un objet qui peut cacher quelqu'un, donc jamais dans la zone de marche.
+## contenu visible dans une cellule, toutes images confondues (seul lui est dessiné) ; `pieds` :
+## le point de la cellule posé sur la position de l'objet ; `haut` : un objet qui peut cacher
+## quelqu'un, donc jamais dans la zone de marche.
 const TYPES: Dictionary = {
 	"sapin":
 	{

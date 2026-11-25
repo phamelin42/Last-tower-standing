@@ -1,7 +1,8 @@
 class_name Arene2D
 extends Node2D
-## L'arène vue de dessus en pixel art : sol et décor en tuiles et objets du pack (`Decor2D`, dessinés
-## sous tout le reste), cercle d'apparition, tour au centre avec le nom du joueur dessous, un sprite du pack Tiny Swords par ennemi (réserve de sprites par famille,
+## L'arène vue de dessus en pixel art : sol et décor du pack (`Decor2D`, dessinés sous tout le
+## reste), cercle d'apparition, tour au centre avec le nom du joueur dessous, un sprite du pack
+## Tiny Swords par ennemi (réserve de sprites par famille,
 ## triés en profondeur par Y), morts animées. Elle ne lit que `VueArene`, reçue par les signaux
 ## d'une `SourceVue`, et `Donnees`. Index d'entité : 0 à n-1 les familles, n le convoi, n+1 le boss
 ## (voir `Apparence2D`). Contrat identique à `Arene3D` : `donnees`, `lier`, `reinitialiser`,
