@@ -49,6 +49,7 @@ func apres_chaque() -> void:
 	for action: String in [ObservationUi.ACTION_SUIVANT, ObservationUi.ACTION_PRECEDENT]:
 		if InputMap.has_action(action):
 			InputMap.erase_action(action)
+	InputMap.load_from_project_settings()
 	TranslationServer.remove_translation(_traduction)
 	TranslationServer.set_locale(_locale_avant)
 
@@ -57,6 +58,9 @@ func apres_chaque() -> void:
 
 
 func _lier_action(action: String, touche: Key) -> void:
+	# Les actions existent déjà dans project.godot : le test pose les siennes.
+	if InputMap.has_action(action):
+		InputMap.erase_action(action)
 	InputMap.add_action(action)
 	var evenement := InputEventKey.new()
 	evenement.keycode = touche

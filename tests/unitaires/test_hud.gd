@@ -43,6 +43,7 @@ func apres_chaque() -> void:
 			noeud.free()
 	if InputMap.has_action(TableauScores.ACTION_SCORES):
 		InputMap.erase_action(TableauScores.ACTION_SCORES)
+	InputMap.load_from_project_settings()
 	TranslationServer.remove_translation(_traduction)
 	TranslationServer.set_locale(_locale_avant)
 
@@ -248,6 +249,9 @@ func test_noms_les_plus_longs_ne_debordent_pas() -> void:
 
 
 func test_action_scores_maintenue_affiche_le_tableau() -> void:
+	# Les actions existent déjà dans project.godot : le test pose les siennes.
+	if InputMap.has_action(TableauScores.ACTION_SCORES):
+		InputMap.erase_action(TableauScores.ACTION_SCORES)
 	InputMap.add_action(TableauScores.ACTION_SCORES)
 	verifier_faux(_scores.visible, "caché au départ")
 	Input.action_press(TableauScores.ACTION_SCORES)
@@ -259,6 +263,8 @@ func test_action_scores_maintenue_affiche_le_tableau() -> void:
 
 
 func test_sans_action_declaree_le_tableau_reste_cache_sans_erreur() -> void:
+	# project.godot déclare l'action ; ce test simule son absence.
+	InputMap.erase_action(TableauScores.ACTION_SCORES)
 	verifier_faux(InputMap.has_action(TableauScores.ACTION_SCORES), "action absente au départ")
 	_scores._process(0.0)
 	verifier_faux(_scores.visible, "sans action, rien ne s'affiche")

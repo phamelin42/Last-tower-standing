@@ -1,0 +1,32 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://app/jeu.gd" id="1_jeu"]
+[ext_resource type="PackedScene" path="res://scenes/hud.tscn" id="2_hud"]
+[ext_resource type="PackedScene" path="res://scenes/scores.tscn" id="3_scores"]
+[ext_resource type="PackedScene" path="res://scenes/boutique.tscn" id="4_boutique"]
+[ext_resource type="PackedScene" path="res://scenes/observation.tscn" id="5_observation"]
+[ext_resource type="PackedScene" path="res://scenes/fin.tscn" id="6_fin"]
+
+[node name="Jeu" type="Node"]
+script = ExtResource("1_jeu")
+
+[node name="Interface" type="CanvasLayer" parent="."]
+
+[node name="Racine" type="Control" parent="Interface"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Hud" parent="Interface/Racine" instance=ExtResource("2_hud")]
+
+[node name="Scores" parent="Interface/Racine" instance=ExtResource("3_scores")]
+
+[node name="Boutique" parent="Interface/Racine" instance=ExtResource("4_boutique")]
+
+[node name="Observation" parent="Interface/Racine" instance=ExtResource("5_observation")]
+
+[node name="Fin" parent="Interface/Racine" instance=ExtResource("6_fin")]
