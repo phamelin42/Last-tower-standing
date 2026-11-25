@@ -351,14 +351,7 @@ func test_par_le_menu_retour_au_salon_rouvre_un_salon_neuf_ou_la_joueuse_peut_re
 	# L'écran de fin propose « Retour au salon » : l'hôte retrouve un salon neuf, seul dedans.
 	principal.jeu().retour_salon.emit()
 	verifier(
-		await _jusqua(
-			func() -> bool: return (
-				principal.jeu() == null
-				and salon.visible
-				and not salon.en_attente()
-				and salon.lignes_joueurs().size() == 1
-			)
-		),
+		await _jusqua(func() -> bool: return _salon_neuf_seul(principal)),
 		"l'hôte est dans un salon neuf, avec lui seul"
 	)
 	verifier(salon.est_hote())
@@ -412,9 +405,24 @@ func test_par_le_menu_la_connexion_perdue_en_partie_ramene_au_menu_avec_le_motif
 	var trouve := false
 	for n: Node in principal.menu().find_children("*", "Label", true, false):
 		var l := n as Label
-		trouve = trouve or (l.visible and l.text.begins_with(attendu) and l.text.length() > attendu.length() + 4)
+		trouve = (
+			trouve
+			or (
+				l.visible and l.text.begins_with(attendu) and l.text.length() > attendu.length() + 4
+			)
+		)
 	verifier(trouve, "le motif est lisible au menu")
 	_fermer_tout()
+
+
+func _salon_neuf_seul(principal: Principal) -> bool:
+	var salon := principal.salon()
+	return (
+		principal.jeu() == null
+		and salon.visible
+		and not salon.en_attente()
+		and salon.lignes_joueurs().size() == 1
+	)
 
 
 func _tous_prets(s: SessionReseau) -> bool:
