@@ -11,6 +11,8 @@ const SCENE_CONNEXION := "res://scenes/connexion.tscn"
 const SCENE_SERVEUR := "res://scenes/serveur.tscn"
 ## Annuaire des parties en ligne (`--annuaire`), fourni par `reseau/annuaire_dedie.gd`.
 const SCENE_ANNUAIRE := "res://scenes/annuaire.tscn"
+## Banc d'essai des images par seconde (`--banc-ips`), fourni par `app/banc_ips.gd`.
+const SCENE_BANC := "res://scenes/banc_ips.tscn"
 
 ## Injectable avant `_ready` ; sinon lus sur la ligne de commande.
 var arguments: Dictionary = {}
@@ -32,6 +34,12 @@ var fabrique_passerelle: Callable = Callable()
 var adresse_annuaire: Callable = Callable()
 
 var _menu: MenuPrincipal
+var _banc: BancIps = null
+var _compteur: CompteurIps = null
+## Dernier réglage « afficher les images par seconde » appliqué : F3 n'est défait que par un
+## changement de la case, pas par un autre réglage (volume, échelle…).
+var _ips_applique: bool = false
+var _ips_connu: bool = false
 var _jeu: Jeu = null
 var _connexion: ConnexionUi
 var _salon: SalonUi
@@ -45,11 +53,13 @@ var _erreur_creation: String = ""
 
 
 ## La scène à charger à la place du menu : l'annuaire si `--annuaire`, le serveur dédié si
-## `--serveur`, sinon rien.
+## `--serveur`, le banc d'essai si `--banc-ips`, sinon rien.
 static func scene_de_demarrage(args: Dictionary) -> String:
 	if bool(args.get("annuaire", false)):
 		return SCENE_ANNUAIRE
-	return SCENE_SERVEUR if bool(args.get("serveur", false)) else ""
+	if bool(args.get("serveur", false)):
+		return SCENE_SERVEUR
+	return SCENE_BANC if int(args.get("banc_ips", 0)) > 0 else ""
 
 
 func _ready() -> void:
@@ -59,6 +69,9 @@ func _ready() -> void:
 	for message: Variant in messages:
 		print(message)
 	var scene := scene_de_demarrage(arguments)
+	if scene == SCENE_BANC:
+		_lancer_banc(scene)
+		return
 	if scene == SCENE_ANNUAIRE:
 		_lancer_annuaire(scene)
 		return
@@ -73,6 +86,9 @@ func _ready() -> void:
 	_menu.creer_demande.connect(_ouvrir_creer)
 	_menu.rejoindre_demande.connect(_ouvrir_rejoindre)
 	_construire_multijoueur()
+	_construire_compteur(
+		func() -> int: return CompteurIps.ennemis_visibles(_jeu.arene if _jeu != null else null)
+	)
 	_appliquer_reglages(Reglages.charger(chemin_reglages))
 	if bool(arguments["solo_auto"]):
 		_lancer_solo(_menu.nom_joueur())
@@ -80,6 +96,47 @@ func _ready() -> void:
 
 func menu() -> MenuPrincipal:
 	return _menu
+
+
+## Le banc d'essai ouvert par `--banc-ips`, ou `null`.
+func banc() -> BancIps:
+	return _banc
+
+
+## Le compteur d'images par seconde (absent du serveur dédié et de l'annuaire, sans écran).
+func compteur() -> CompteurIps:
+	return _compteur
+
+
+## Le compteur vit au-dessus de tout (menu, partie, banc) : F3 le montre ou le cache partout.
+func _construire_compteur(ennemis: Callable) -> void:
+	var couche := CanvasLayer.new()
+	couche.name = "Ips"
+	couche.layer = 100
+	add_child(couche)
+	_compteur = CompteurIps.new()
+	_compteur.name = "Compteur"
+	_compteur.fournisseur_ennemis = ennemis
+	couche.add_child(_compteur)
+
+
+## Le banc remplace le menu : le compteur y est affiché d'office, Échap quitte.
+func _lancer_banc(scene: String) -> void:
+	var d := _donnees_du_jeu()
+	if d == null or not ResourceLoader.exists(scene):
+		printerr("Banc d'essai impossible : données ou scène introuvables.")
+		_sortir(1)
+		return
+	var menu_inutile := get_node_or_null("Menu")
+	if menu_inutile != null:
+		remove_child(menu_inutile)
+		menu_inutile.queue_free()
+	_banc = (load(scene) as PackedScene).instantiate() as BancIps
+	_banc.quitter_demande.connect(func() -> void: _sortir(0))
+	add_child(_banc)
+	_banc.lancer(d, int(arguments["banc_ips"]))
+	_construire_compteur(func() -> int: return CompteurIps.ennemis_visibles(_banc.arene))
+	_compteur.definir_visible(true)
 
 
 func connexion() -> ConnexionUi:
@@ -201,6 +258,10 @@ func _enregistrer_salon_public(publique: bool) -> void:
 func _appliquer_reglages(r: Reglages) -> void:
 	Jeu.appliquer_fenetre(get_window(), r)
 	BusAudio.appliquer_volume(r.volume_general)
+	if _compteur != null and (not _ips_connu or r.afficher_ips != _ips_applique):
+		_ips_connu = true
+		_ips_applique = r.afficher_ips
+		_compteur.definir_visible(r.afficher_ips)
 
 
 func _quitter() -> void:

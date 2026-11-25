@@ -803,6 +803,13 @@ crédité dans `CREDITS.md` (le crédit est facultatif en CC0, mais on cite touj
       images recadrées. Reste la preuve des 60 images/s : 22,6 images/s en rendu logiciel sous Xvfb,
       à mesurer sur une vraie carte graphique.
 
+### Task 5.1b : Compteur d’images par seconde et banc d’essai — `sonnet`
+
+- [x] **Objectif :** permettre à Phil de vérifier T5.1 sur son PC (demande du 25/11/2026). Compteur
+      (F3, case des Réglages désactivée par défaut) : images/s, minimum sur 5 s, ennemis visibles.
+      Banc `-- --banc-ips [N]` (1 000 par défaut) : arène et décor, N ennemis répartis qui avancent,
+      vues synthétiques sans partie ni réseau, résumé après 30 s. Marche à suivre dans le `README.md`.
+
 ### Task 5.2 : Terrain et décor — `sonnet`
 
 - [x] **Objectif :** sol en tuiles (herbe, chemins, rochers, eau en bordure), décor qui ne gêne pas
@@ -843,9 +850,12 @@ crédité dans `CREDITS.md` (le crédit est facultatif en CC0, mais on cite touj
 
 ### Task 5.6 : Sons — `haiku`
 
-- [ ] **Objectif :** sons CC0 d’une autre source (le pack n’en a pas) : tirs, impacts, achat,
+- [x] **Objectif :** sons CC0 d’une autre source (le pack n’en a pas) : tirs, impacts, achat,
       relance, PV bas, début de manche, boss, victoire, défaite, musique d’ambiance ; volume des
       réglages appliqué.
+      **Fait (25/11/2026)** : dix sons du « 400+ Sounds Pack » (CC0) dans `assets/sons/`, origine
+      dans `assets/sons/SOURCES.md` ; musique d’ambiance reportée par Phil le 25/11/2026 (le pack n’a
+      pas de boucle), elle reste un silence de substitution.
 
 ### Task 5.7 : Sprite maison de l’unité volante — `sonnet`
 
@@ -962,7 +972,7 @@ avant l'écran « Rejoindre »).
 
 ### Task 7.4 : Déploiement — `haiku`
 
-- [ ] **Objectif :** `docker compose` pour le VPS, sous-domaine ajouté par une PR au dépôt `infra`,
+- [x] **Objectif :** `docker compose` pour le VPS, sous-domaine ajouté par une PR au dépôt `infra`,
       vérification de bout en bout depuis le conteneur (annonce, liste, expiration). Ce qui reste à
       faire sur le VPS lui-même (ports, pare-feu) est donné à Phil en liste numérotée.
 - **Lire :** `docs/adr-001-annuaire.md` (Déploiement, Repli, Sécurité et vie privée, Fichiers et tâches).

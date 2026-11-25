@@ -30,6 +30,8 @@ var derniere_adresse: String = ""
 var annuaire_adresse: String = ANNUAIRE_DEFAUT
 ## Case « Partie publique » de la création d'un salon, cochée par défaut (décision de Phil).
 var salon_public: bool = true
+## Compteur d'images par seconde (T5.1b) : éteint tant que la joueuse ne le demande pas.
+var afficher_ips: bool = false
 
 
 ## Renvoie toujours un réglage utilisable : les valeurs absentes ou invalides prennent leur
@@ -50,6 +52,7 @@ static func charger(chemin: String = CHEMIN_DEFAUT) -> Reglages:
 	r.derniere_adresse = _texte(cfg, "derniere_adresse", r.derniere_adresse)
 	r.annuaire_adresse = _texte(cfg, "annuaire_adresse", r.annuaire_adresse)
 	r.salon_public = _booleen(cfg, "salon_public", r.salon_public)
+	r.afficher_ips = _booleen(cfg, "afficher_ips", r.afficher_ips)
 	r.normaliser()
 	return r
 
@@ -67,6 +70,7 @@ func sauver(chemin: String = CHEMIN_DEFAUT) -> bool:
 	cfg.set_value(SECTION, "derniere_adresse", derniere_adresse)
 	cfg.set_value(SECTION, "annuaire_adresse", annuaire_adresse)
 	cfg.set_value(SECTION, "salon_public", salon_public)
+	cfg.set_value(SECTION, "afficher_ips", afficher_ips)
 	var temporaire := chemin + ".tmp"
 	var fichier := FileAccess.open(temporaire, FileAccess.WRITE)
 	if fichier == null:

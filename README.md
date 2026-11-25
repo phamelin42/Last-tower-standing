@@ -82,6 +82,58 @@ Pour une partie solo reproductible, les options `--graine N` et `--vitesse X` (X
 godot --path . -- --graine 42 --vitesse 0.5
 ```
 
+## Mesurer les images par seconde
+
+Le jeu vise **60 images par seconde au minimum avec 1 000 ennemis visibles**. Deux outils le
+vérifient sur votre machine.
+
+**Le compteur** affiche les images par seconde actuelles, le minimum des 5 dernières secondes et le
+nombre d'ennemis visibles, en haut à gauche sous la barre du haut, dans le menu comme en partie.
+
+- **F3** l'affiche ou le masque pour la séance en cours, sans toucher au réglage enregistré.
+- **Réglages**, case « Afficher les images par seconde » (éteinte par défaut) : le compteur
+  s'affiche à chaque lancement du jeu tant qu'elle est cochée.
+
+**Le banc d'essai** ouvre, à la place du menu, une arène où 1 000 ennemis des huit familles avancent
+vers la tour, sans partie ni réseau. Le compteur y est affiché d'office. Au bout de 30 s, un résumé
+(moyenne, minimum, nombre d'ennemis) s'écrit en bas de l'écran et dans la console ; les 2 premières
+secondes ne comptent pas (chargement des images). Échap quitte.
+
+- En ligne de commande : `godot --path . -- --banc-ips` (1 000 ennemis), ou
+  `godot --path . -- --banc-ips 2000` pour un autre nombre (de 1 à 5 000).
+- Depuis l'éditeur : menu Projet, Paramètres du projet, Application, Run, champ « Main Run Args »
+  (arguments de la ligne de commande), y mettre `-- --banc-ips 1000`, puis lancer avec F5. Penser à
+  vider le champ ensuite : il est enregistré dans `project.godot`.
+
+**Ce qu'il faut lire** : un minimum d'au moins 60 img/s sur 5 s avec 1 000 ennemis (ligne
+« min. 5 s » du compteur, ou « minimum » du résumé). La synchronisation verticale plafonne les
+images à la fréquence de l'écran (60 Hz le plus souvent) : un compteur collé à 60 est un bon
+résultat, pas une limite du jeu. Pour mesurer la marge, la désactiver :
+`godot --path . --disable-vsync -- --banc-ips`. Sans carte graphique réelle (serveur, conteneur),
+le rendu est logiciel et le chiffre n'a aucune valeur.
+
+## Annuaire des parties en ligne
+
+Un petit service, l’annuaire, peut lister les salons publics ouverts. Il ne tient que le nom du
+salon, le nombre de joueurs, le maximum, la version et l’adresse IP et le port de l’hôte ; aucune
+donnée de jeu ne passe par lui, et la partie reste hébergée sur la machine de l’hôte. Chaque
+salon est vérifié par une connexion de test avant d’être listé, et disparaît 30 secondes après sa
+dernière annonce.
+
+Vie privée : « Partie publique : votre adresse IP sera transmise à l’annuaire et visible des joueurs qui consultent la liste, tant que le salon est ouvert. Rien n’est conservé ensuite. »
+
+Le service garde tout en mémoire : aucun disque, aucun journal d’adresses IP. Il se lance sur un
+serveur équipé de Docker, depuis la racine du dépôt :
+
+```
+docker compose -f service-annuaire/compose.yaml up -d --build
+```
+
+Il écoute sur le port 7779 en TCP (réseau de l’hôte, pour voir l’adresse IP réelle des joueurs).
+Le pare-feu du serveur doit autoriser ce port en entrée et laisser sortir l’UDP, pour la
+vérification des salons. Le menu du jeu ne contacte pas encore l’annuaire : pour l’instant, on
+joue toujours en réseau local ou par adresse IP directe.
+
 ## Développer
 
 - `tools/verifier.sh` : rejoue toutes les étapes de la CI (import, uid, lint, format, tests,
@@ -108,8 +160,8 @@ Les chiffres d'équilibrage sont dans `data/*.json`, validés au chargement.
 ## À venir
 
 - **Graphismes 2D pixel art** avec l’ancienne version CC0 du pack Tiny Swords de Pixel Frog.
-- **Annuaire en ligne** des salons, avec ouverture du port par UPnP : en attendant, on joue
-  en réseau local ou par adresse IP directe.
+- **Salons en ligne dans le menu** et ouverture du port par UPnP : en attendant, on joue en
+  réseau local ou par adresse IP directe.
 
 ## Licence
 
