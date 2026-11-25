@@ -67,7 +67,7 @@ static func appliquer_fenetre(fenetre: Window, r: Reglages) -> void:
 
 
 func _ready() -> void:
-	_racine.theme = ThemeJeu.creer()
+	ThemeJeu.appliquer(_racine)
 	# Hors du sol de l'arène, le fond reprend l'encre de l'interface plutôt que le gris par défaut.
 	RenderingServer.set_default_clear_color(ThemeJeu.JAUGE_FOND)
 	fin.visible = false

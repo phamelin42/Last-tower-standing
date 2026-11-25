@@ -43,7 +43,7 @@ var _id_local: int = -1
 
 
 func _init() -> void:
-	theme = ThemeJeu.creer()
+	ThemeJeu.appliquer(self)
 	add_theme_font_size_override("font_size", TAILLE_TEXTE)
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	# Le voile estompe la partie et l'empêche de recevoir les clics pendant l'écran de fin.
@@ -63,7 +63,8 @@ func _init() -> void:
 	var contenu := VBoxContainer.new()
 	panneau.add_child(contenu)
 	_titre = _etiquette("", false, TAILLE_TITRE)
-	_titre.theme_type_variation = "Titre"
+	_titre.theme_type_variation = ThemeJeu.TYPE_RUBAN
+	_titre.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	contenu.add_child(_titre)
 	_recap = GridContainer.new()
 	_recap.columns = 6
