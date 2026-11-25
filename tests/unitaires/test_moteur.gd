@@ -368,7 +368,8 @@ func test_executer_attend_une_methode_asynchrone_avant_de_passer_a_la_suivante()
 
 
 func test_executer_compte_les_assertions_faites_apres_un_await() -> void:
-	var source := "\n\nfunc test_a() -> void:\n\tawait attendre_images(2)\n\tverifier_egal(1, 2, 'apres')\n"
+	var source := "\n\nfunc test_a() -> void:\n\tawait attendre_images(2)\n"
+	source += "\tverifier_egal(1, 2, 'apres')\n"
 	var res := await _executer_source("test_apres_await.gd", source)
 	verifier_egal(res["echecs"], 1)
 	verifier_egal(res["assertions"], 1)
