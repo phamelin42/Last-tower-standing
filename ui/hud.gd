@@ -20,7 +20,7 @@ const LIGNE_ARMES := 6
 const NB_LIGNES := 7
 
 ## Largeur minimale de la valeur de chaque ligne (0 : celle du texte).
-const LARGEURS_VALEUR: Array[float] = [0.0, 72.0, 48.0, 28.0, 48.0, 190.0, 48.0]
+const LARGEURS_VALEUR: Array[float] = [0.0, 64.0, 44.0, 24.0, 44.0, 150.0, 44.0]
 
 var _cles: Array[Label] = []
 var _valeurs: Array[Label] = []

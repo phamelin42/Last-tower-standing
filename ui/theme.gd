@@ -9,7 +9,7 @@ extends RefCounted
 ## mesurent, sur la couleur moyenne des textures.
 
 ## Tailles de base par rôle ; `taille` est le seul endroit où une taille de texte se décide.
-const TAILLES: Dictionary = {"texte": 16, "petit": 14, "titre": 28}
+const TAILLES: Dictionary = {"texte": 16, "petit": 16, "titre": 28}
 const HAUTEUR_CONTROLE := 48.0
 const RAYON := 6
 const FILET := 2
