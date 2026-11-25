@@ -356,12 +356,11 @@ aucun ne code d'octets à la main. Chaque nouveau `.gd` s'accompagne de son `.ui
 | `service-annuaire/compose.yaml`, `README.md`, `docs/jouer.md`                                                                                                                                                                                                                            | Déploiement et notice ; retrait de « À venir »                                                                                                                                                                                                                          | T7.4 crée ou modifie |
 | PR vers `infra` (`projects.json`)                                                                                                                                                                                                                                                        | Sous-domaine                                                                                                                                                                                                                                                            | T7.4                 |
 
-**Ordre** : T7.0 validée, puis **{T7.1, T7.2b}** (fichiers disjoints), puis **T7.2** (après T7.2b :
-les deux touchent `app/session_reseau.gd`), puis T7.3, puis T7.4. Le plan prévoyait {T7.1, T7.2} en
-parallèle ; T7.2b est **proposée** (décision 5). Si Phil la refuse, le jeton passe dans T7.3 ou le
-suivi « rôle d'hôte » de la fin du plan reste ouvert. Si elle est acceptée, elle couvre ce suivi. Le
-plan (lot 7) garde encore « le port vus par le VPS » et {T7.1, T7.2} en parallèle : il sera aligné
-sur cet ADR après la validation de Phil, pas avant.
+**Ordre** (décision de Phil du 25/11/2026) : T7.0 validée, puis **{T7.1, T7.2b}** (fichiers
+disjoints), puis **T7.2** (après T7.2b : les deux touchent `app/session_reseau.gd`), puis **T7.4**,
+puis **T7.3 en dernier**, pour que le lot 5 pose le thème de l'interface avant l'écran
+« Rejoindre ». Le plan prévoyait {T7.1, T7.2} en parallèle ; T7.2b, validée (décision 5), couvre le
+suivi « rôle d'hôte » de la fin du plan. Le plan est aligné sur cet ADR depuis la validation.
 
 **Doublons liste locale et annuaire** (T7.3) : une entrée d'annuaire est masquée si un salon du
 réseau local a le même nom et le même port ; l'entrée locale l'emporte. Origine affichée en texte :
