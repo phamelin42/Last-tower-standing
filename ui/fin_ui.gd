@@ -116,9 +116,9 @@ func _afficher_bilan(vue: VueArene, globale: VueGlobale, actions: Array[String])
 
 func _remplir_recap(vue: VueArene) -> void:
 	_vider(_recap)
-	_ligne_recap(tr("FIN_RECAP_MANCHE"), Hud.nombre(vue.manche_max))
-	_ligne_recap(tr("FIN_RECAP_ELIMINATIONS"), Hud.nombre(vue.eliminations))
-	_ligne_recap(tr("FIN_RECAP_DEGATS"), Hud.nombre(_entier(vue.degats_infliges)))
+	_ligne_recap(tr("FIN_RECAP_MANCHE"), Nombres.groupe(vue.manche_max))
+	_ligne_recap(tr("FIN_RECAP_ELIMINATIONS"), Nombres.groupe(vue.eliminations))
+	_ligne_recap(tr("FIN_RECAP_DEGATS"), Nombres.groupe(_entier(vue.degats_infliges)))
 
 
 func _ligne_recap(libelle: String, valeur: String) -> void:
@@ -164,9 +164,9 @@ func _ajouter_ligne(rang: int, joueur: Dictionary) -> void:
 	_noms.append(libelle_nom)
 	_tableau.add_child(_etiquette(str(rang), false))
 	_tableau.add_child(libelle_nom)
-	_tableau.add_child(_etiquette(Hud.nombre(manche), false))
-	_tableau.add_child(_etiquette(Hud.nombre(eliminations), false))
-	_tableau.add_child(_etiquette(Hud.nombre(_entier(degats)), false))
+	_tableau.add_child(_etiquette(Nombres.groupe(manche), false))
+	_tableau.add_child(_etiquette(Nombres.groupe(eliminations), false))
+	_tableau.add_child(_etiquette(Nombres.groupe(_entier(degats)), false))
 
 
 ## La mention ne paraît que si le dernier rempart désigne un joueur de cette partie.
