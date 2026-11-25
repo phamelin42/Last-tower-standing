@@ -65,11 +65,13 @@ ne vise que l'IP de l'émetteur, donc elle est inoffensive pour un tiers. Le por
 
 Constantes de `AnnuaireProtocole` : `MAGIE = 0x41`, `VERSION = 1` (version de l'annuaire, distincte
 de `Protocole.VERSION` du jeu, valant 2 aujourd'hui), `PORT_DEFAUT = 7779` (TCP). Entiers en petit
-**Cadre** : `u16 taille · corps`. Le corps commence toujours par `u8 magie · u8 version · u8 type`.
-**Le préfixe `u16` et ces 3 octets ne changent jamais**, pour qu'une version inconnue reste
-reconnaissable ; l'ordre des contrôles est fixé plus bas.
-commence toujours par `u8 magie · u8 version · u8 type` (**ces 3 octets ne changent jamais**, pour
-qu'une version inconnue reste reconnaissable).
+boutisse, comme `LecteurOctets`. Tout octet reçu est une donnée non fiable : invalide, trop grand ou
+tronqué, il est refusé sans exception.
+
+**Cadre** : `u16 taille · corps`. La taille est contrôlée avant toute lecture du corps (voir l'ordre
+des contrôles plus bas). Le corps commence toujours par `u8 magie · u8 version · u8 type`. **Le
+préfixe `u16` et ces 3 octets ne changent jamais**, pour qu'une version inconnue reste
+reconnaissable.
 
 | Sens      | Type           | Corps après l'en-tête                                                                     | Taille max du corps |
 | --------- | -------------- | ----------------------------------------------------------------------------------------- | ------------------- |
