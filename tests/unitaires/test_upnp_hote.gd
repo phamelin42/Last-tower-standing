@@ -416,3 +416,43 @@ func test_noeud_libere_apres_l_abandon_le_fil_finit_et_referme_ce_qu_il_a_ouvert
 	var fini := await _jusqua(func() -> bool: return UpnpHote.fils_abandonnes() == 0)
 	verifier(fini, "le fil abandonné se termine proprement")
 	verifier_egal(box.appels_suppression, [PORT_JEU], "la redirection ouverte tard est refermée")
+
+
+func test_renouvellement_rate_est_retente_bien_avant_l_expiration_du_bail() -> void:
+	var box := Double.new()
+	var h := _hote(box)
+	var echecs: Array[int] = [0]
+	h.renouvellement_echoue.connect(func() -> void: echecs[0] += 1)
+	h.periode_renouvellement = 0.05
+	h.delai_reessai = 0.05
+	h.demarrer(PORT_JEU)
+	verifier(await _attendre_fin())
+	box.reponses_ajout = [UPNP.UPNP_RESULT_ACTION_FAILED]
+	verifier(await _jusqua(func() -> bool: return echecs[0] >= 1), "le premier échec est signalé")
+	# La période normale devient très longue : seul le nouvel essai court peut encore renouveler.
+	h.periode_renouvellement = 1000.0
+	var avant := box.appels_ajout.size()
+	verifier(
+		await _jusqua(func() -> bool: return box.appels_ajout.size() > avant),
+		"un nouvel essai part sans attendre la période de 1 800 s"
+	)
+	await attendre_images(10)
+	verifier_egal(echecs[0], 1, "le nouvel essai a réussi : plus d'alerte")
+	verifier(UpnpHote.DELAI_REESSAI_S <= 300.0, "nouvel essai prudent, bien avant 3 600 s")
+
+
+func test_apres_un_renouvellement_reussi_la_periode_normale_reprend() -> void:
+	var box := Double.new()
+	var h := _hote(box)
+	h.periode_renouvellement = 0.05
+	h.delai_reessai = 0.05
+	h.demarrer(PORT_JEU)
+	verifier(await _attendre_fin())
+	box.reponses_ajout = [UPNP.UPNP_RESULT_ACTION_FAILED]
+	verifier(await _jusqua(func() -> bool: return box.appels_ajout.size() >= 3))
+	h.periode_renouvellement = 1000.0
+	h.delai_reessai = 0.01
+	await attendre_images(5)
+	var n := box.appels_ajout.size()
+	await attendre_images(20)
+	verifier_egal(box.appels_ajout.size(), n, "réussi, il n'y a plus de nouvel essai court")
