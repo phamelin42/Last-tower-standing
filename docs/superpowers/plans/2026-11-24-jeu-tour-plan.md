@@ -850,15 +850,18 @@ ADR dédié, avec Phil. Exports Windows et Linux par la CI avant cela.
 
 **Principe :** l'hôte héberge toujours la partie sur sa machine. Un petit service sur le VPS de
 Phil ne fait que tenir **l'annuaire des salons ouverts** : nom, nombre de joueurs, version, et
-l'adresse IP et le port **vus par le VPS** (jamais une adresse déclarée par le client). Une entrée
+l'adresse IP **vue par le VPS** (jamais une adresse déclarée par le client) et le port **déclaré par
+l'hôte** (ADR 001, décision 1). Une entrée
 disparaît 30 s après la dernière annonce. Aucune donnée de jeu ne passe par le VPS. L'hôte ouvre
 son port par **UPnP** (classe `UPNP` intégrée à Godot), avec un message clair si sa box refuse.
 
-**Parallélisme :** T7.0 d'abord, validée par Phil. Puis {T7.1, T7.2}, puis T7.3, puis T7.4.
+**Parallélisme :** T7.0, validée par Phil le 25/11/2026. Puis {T7.1, T7.2b}, puis T7.2, puis T7.4, puis
+T7.3 en dernier (décision de Phil du 25/11/2026, pour laisser le lot 5 poser le thème de l'interface
+avant l'écran « Rejoindre »).
 
 ### Task 7.0 : ADR de l'annuaire — `sonnet`
 
-- [ ] **Objectif :** `docs/adr-001-annuaire.md`. Il décrit le protocole (annonce et liste, bornés en
+- [x] **Objectif :** `docs/adr-001-annuaire.md`. Il décrit le protocole (annonce et liste, bornés en
       taille, version), l'expiration, la limite de débit par IP, la vérification de joignabilité (le
       VPS tente une connexion vers le port annoncé avant de lister le salon), la vie privée (une IP
       publique est une donnée personnelle : gardée seulement tant que le salon est ouvert, aucun
@@ -866,11 +869,34 @@ son port par **UPnP** (classe `UPNP` intégrée à Godot), avec un message clair
       garder une seule pile et le même lanceur de tests), le déploiement (image Docker sur le VPS,
       sous-domaine déclaré dans le dépôt `infra`) et le repli si l'annuaire est injoignable (le réseau
       local et l'IP saisie marchent toujours). **Aucun code avant la validation de Phil.**
+- **Fait :** `docs/adr-001-annuaire.md`, accepté par Phil le 25/11/2026 avec ses 20 décisions.
 
 ### Task 7.1 : Service d'annuaire — `sonnet`
 
 - [ ] **Objectif :** le service et ses tests (décodage défensif avec fuzz, expiration, limite de
       débit, IP vue et non déclarée, vérification de joignabilité simulée), plus son `Dockerfile`.
+- **Lire :** `docs/adr-001-annuaire.md` (Protocole, Joignabilité, Limites de débit et de mémoire, Ordre
+  des contrôles, Déploiement, Fichiers et tâches).
+- **Relevé à la relecture de l'ADR :** écouter explicitement sur `0.0.0.0` et traiter les adresses IPv4
+  mappées `::ffff:a.b.c.d` ; fermer la connexion seulement après l'écriture complète de la réponse,
+  sans RST qui la perde ; la saturation possible de l'annuaire à 34 IP est une limite connue et acceptée.
+
+### Task 7.2b : Jeton d'hôte — `sonnet`
+
+- [ ] **Objectif :** réserver le rôle d'hôte au client local. `SessionReseau.heberger` tire un jeton de
+      8 octets (`Crypto.generate_random_bytes`) et le remet au `Serveur` et au `Client` local ; le
+      bonjour du client local le porte ; quand un jeton est configuré, `Salon.ajouter` ne donne le rôle
+      d'hôte qu'à un pair dont le jeton correspond. Sans jeton (serveur dédié, inchangé), l'ancienne
+      règle du premier pair et le repli de `Salon.retirer` restent. Pour le salon hébergé, le repli
+      est supprimé. `Protocole.VERSION` passe à 3. « Retour au salon » crée une session neuve, donc un
+      nouveau jeton.
+- **Fichiers (modifie) :** `reseau/protocole.gd`, `reseau/salon.gd`, `reseau/serveur.gd`,
+  `reseau/client.gd`, `app/session_reseau.gd`.
+- **Tests :** `tests/unitaires/test_protocole.gd`, `test_salon.gd`, `test_serveur.gd`, `test_client.gd`
+  mis à jour ; `test_serveur_dedie.gd` doit rester vert.
+- **Lire :** `docs/adr-001-annuaire.md` (Rôle d'hôte, point 1 ; Fichiers et tâches).
+- **Relevé à la relecture de l'ADR :** nommer les fichiers `tests/unitaires/test_*.gd` de bonjour et de
+  salon touchés (ceux ci-dessus).
 
 ### Task 7.2 : UPnP chez l'hôte — `sonnet`
 
@@ -878,6 +904,7 @@ son port par **UPnP** (classe `UPNP` intégrée à Godot), avec un message clair
       quittant le salon et à la fermeture du jeu. Un échec n'empêche jamais de jouer en réseau local :
       il affiche « Votre box n'a pas ouvert le port : les joueurs extérieurs ne pourront pas vous
       rejoindre ». Tests avec un double de `UPNP`.
+- **Lire :** `docs/adr-001-annuaire.md` (Cycle de vie de l'hôte, UPnP chez l'hôte).
 
 ### Task 7.3 : Annonce et liste dans le jeu — `sonnet`
 
@@ -885,12 +912,17 @@ son port par **UPnP** (classe `UPNP` intégrée à Godot), avec un message clair
       public, case cochée par défaut) ; « Rejoindre une partie » affiche les salons du réseau local et
       ceux de l'annuaire, sans doublon, avec leur origine en texte. Adresse de l'annuaire dans les
       réglages, avec une valeur par défaut.
+- **Lire :** `docs/adr-001-annuaire.md` (Cycle de vie de l'hôte, Rôle d'hôte point 2, Sécurité et vie
+  privée, Repli, Fichiers et tâches).
+- **Relevé à la relecture de l'ADR :** un salon d'Internet de même nom et de même port qu'un salon local
+  est masqué (décision 13 validée).
 
 ### Task 7.4 : Déploiement — `haiku`
 
 - [ ] **Objectif :** `docker compose` pour le VPS, sous-domaine ajouté par une PR au dépôt `infra`,
       vérification de bout en bout depuis le conteneur (annonce, liste, expiration). Ce qui reste à
       faire sur le VPS lui-même (ports, pare-feu) est donné à Phil en liste numérotée.
+- **Lire :** `docs/adr-001-annuaire.md` (Déploiement, Repli, Sécurité et vie privée, Fichiers et tâches).
 
 ---
 
@@ -906,7 +938,8 @@ son port par **UPnP** (classe `UPNP` intégrée à Godot), avec un message clair
 - **Tests** : avertissement « ObjectDB instances were leaked » à la sortie (tests réseau).
 - **Multijoueur** : le rôle d'hôte revient au premier qui dit bonjour ; si un joueur du réseau
   arrive avant le client local de l'hôte, il devient hôte. Réserver ce rôle au client local
-  (jeton tiré à la création du salon). « Retour au salon » recrée le salon et fait revenir les
+  (jeton tiré à la création du salon) : traité par T7.2b (ADR 001, décision 5). « Retour au salon » recrée le salon et fait revenir les
   autres par la liste ; un vrai retour sans reconnexion demande `Client.retourner_au_salon()`.
-- **Annuaire** : lot 7, lancé le 25/11/2026 en parallèle du lot 5 (décision de Phil).
+- **Annuaire** : lot 7, lancé le 25/11/2026 en parallèle du lot 5 ; ADR validé le 25/11/2026, T7.3 en
+  dernier (décision de Phil).
 - **Lots 3 et 4** : terminés (T3.7, T4.3, T4.5 et T4.6 fusionnés par la PR #2).
