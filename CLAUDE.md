@@ -53,6 +53,20 @@ Spécification : `docs/superpowers/specs/2026-11-24-jeu-tour-design.md`. Plan :
 - Ne toucher qu'aux fichiers de sa tâche. Une interface fausse chez un voisin se signale, elle ne se corrige pas.
 - Avant de rendre une tâche : `tools/verifier.sh` vert, `gdlint` et `gdformat --check` verts sur ce qui a changé.
 
+## Tableau d'avancement en direct
+
+Demandé par Phil le 25/11/2026 : https://claude.ai/artifact/QQaqHHiz3E9tmc5tsgiLa2 (tableau de bord
+privé, lu en direct). Ses lignes vivent dans sa base, pas dans la page :
+`data/avancement/taches/T<lot>.<n>` (`statut` : `a_faire`, `en_cours`, `a_valider` ou `fait` ;
+`pourcentage` ; `etape` ; `attend` ; `pr` ; `maj` en ISO UTC), `data/avancement/lots/L<n>` et
+`data/avancement/suivis/S<n>` (`statut` `ouvert` ou `clos`).
+
+- Dès qu'une tâche change d'état (commencée, PR ouverte, attend Phil, cochée, ajoutée au plan),
+  l'agent principal met à jour sa ligne par `ArtifactData` (`get`, puis `update` avec `if_version`),
+  dans la même étape que le plan. `pourcentage` : 0 à faire, 100 cochée, sinon une estimation dont
+  `etape` dit ce qui reste. Un suivi relevé ou réglé met aussi à jour sa ligne.
+- Ne jamais republier la page pour changer un chiffre : les pages ouvertes suivent la base seules.
+
 ## Écarts au contexte commun
 
 - Pas de Node, npm, Angular, Fuda, Playwright ni Vitest. Le hook de session installe Godot et gdtoolkit, pas Node.
