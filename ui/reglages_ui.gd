@@ -24,6 +24,7 @@ var taille: OptionButton
 var zoom: HSlider
 var nom: LineEdit
 var adresse: LineEdit
+var annuaire: LineEdit
 var afficher_ips: CheckButton
 
 var _r: Reglages = Reglages.new()
@@ -81,6 +82,12 @@ func _init() -> void:
 	adresse.text_submitted.connect(func(_texte: String) -> void: _sur_adresse())
 	adresse.focus_exited.connect(_sur_adresse)
 
+	annuaire = LineEdit.new()
+	annuaire.max_length = Reglages.ADRESSE_MAX
+	_ajouter(colonne, "REGLAGES_ANNUAIRE", annuaire)
+	annuaire.text_submitted.connect(func(_texte: String) -> void: _sur_annuaire())
+	annuaire.focus_exited.connect(_sur_annuaire)
+
 	afficher_ips = CheckButton.new()
 	afficher_ips.text = tr("REGLAGES_AFFICHER_IPS")
 	_ajouter_sans_libelle(colonne, afficher_ips)
@@ -107,6 +114,7 @@ func configurer(r: Reglages) -> void:
 	zoom.set_value_no_signal(r.sensibilite_zoom)
 	nom.text = r.nom_joueur
 	adresse.text = r.derniere_adresse
+	annuaire.text = r.annuaire_adresse
 	afficher_ips.set_pressed_no_signal(r.afficher_ips)
 	appliquer_echelle(echelle)
 
@@ -129,6 +137,7 @@ func controles() -> Array[Control]:
 	liste.append(zoom)
 	liste.append(nom)
 	liste.append(adresse)
+	liste.append(annuaire)
 	liste.append(afficher_ips)
 	return liste
 
@@ -183,6 +192,20 @@ func _sur_adresse() -> void:
 	_r.derniere_adresse = adresse.text
 	_r.normaliser()
 	adresse.text = _r.derniere_adresse
+	_enregistrer()
+
+
+## Vide : l'annuaire est désactivé. Une adresse que le client refuserait revient au défaut, à
+## l'écran comme dans le fichier : le joueur ne garde pas un réglage qui ne marchera jamais.
+func _sur_annuaire() -> void:
+	_r.annuaire_adresse = annuaire.text
+	_r.normaliser()
+	if (
+		not _r.annuaire_adresse.is_empty()
+		and AnnuaireClient.analyser_adresse(_r.annuaire_adresse).is_empty()
+	):
+		_r.annuaire_adresse = Reglages.ANNUAIRE_DEFAUT
+	annuaire.text = _r.annuaire_adresse
 	_enregistrer()
 
 
