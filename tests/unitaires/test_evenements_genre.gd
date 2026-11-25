@@ -169,8 +169,9 @@ func test_le_protocole_transporte_chaque_genre_et_chaque_statut() -> void:
 
 func test_le_protocole_refuse_un_genre_ou_un_statut_hors_bornes() -> void:
 	var b := Protocole.encoder_etat_arene(_vue_reseau(1, 1), _catalogue)
-	# Dernier octet de l'événement unique : il précède eliminations (2), degats (4), manche (2).
-	var pos := b.size() - 8 - 1
+	# Octet de genre et de statut de l'événement unique : il précède l'index d'arme (2), puis
+	# eliminations (2), degats (4) et manche (2).
+	var pos := b.size() - 8 - 2 - 1
 	var hors: Array[int] = []
 	for g: int in range(VueArene.GENRES_ARME.size(), 16):
 		hors.append(g | (1 << 4))
@@ -207,7 +208,7 @@ func test_un_octet_de_plus_par_evenement() -> void:
 	var v := _vue_reseau(1, 1)
 	v.evenements.append(v.evenements[0].duplicate())
 	var deux := Protocole.encoder_etat_arene(v, _catalogue)
-	verifier_egal(deux.size() - un.size(), 12, "12 octets par événement (11 avant)")
+	verifier_egal(deux.size() - un.size(), 14, "14 octets par événement (12 en version 4)")
 
 
 # --- Effets 2D ---------------------------------------------------------------------------------
