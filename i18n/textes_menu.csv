@@ -1,0 +1,16 @@
+keys,fr
+MENU_TITRE,Last Tower Standing
+MENU_JOUER_SEUL,Jouer seul
+MENU_CREER,Créer une partie
+MENU_REJOINDRE,Rejoindre une partie
+MENU_BIENTOT,Bientôt disponible
+MENU_REGLAGES,Réglages
+MENU_QUITTER,Quitter
+MENU_NOM_JOUEUR,Nom du joueur :
+MENU_NOM_PAR_DEFAUT,Joueur
+MENU_RETOUR,Retour
+MENU_ERREUR_DONNEES,Les données du jeu sont introuvables ou invalides. La partie ne peut pas démarrer.
+MENU_CONNEXION_PERDUE,Connexion perdue : %s
+JEU_MENU_TITRE,Menu
+JEU_REPRENDRE,Reprendre
+JEU_MENU_PRINCIPAL,Menu principal

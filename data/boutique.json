@@ -1,0 +1,11 @@
+{
+	"poids": [
+		{"manche": 1, "commune": 70, "peu_commune": 25, "rare": 5, "epique": 0},
+		{"manche": 6, "commune": 55, "peu_commune": 30, "rare": 12, "epique": 3},
+		{"manche": 12, "commune": 40, "peu_commune": 32, "rare": 20, "epique": 8},
+		{"manche": 20, "commune": 28, "peu_commune": 32, "rare": 26, "epique": 14},
+		{"manche": 28, "commune": 20, "peu_commune": 30, "rare": 30, "epique": 20}
+	],
+	"relance": {"cout_depart": 50, "increment": 25},
+	"marche_noir": {"raretes_max": "rare"}
+}

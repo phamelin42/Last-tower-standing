@@ -1,0 +1,14 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://reseau/serveur_dedie.gd" id="1_dedie"]
+[ext_resource type="Script" path="res://reseau/canal.gd" id="2_canal"]
+[ext_resource type="Script" path="res://reseau/serveur.gd" id="3_serveur"]
+
+[node name="ServeurDedie" type="Node"]
+script = ExtResource("1_dedie")
+
+[node name="Canal" type="Node" parent="."]
+script = ExtResource("2_canal")
+
+[node name="Serveur" type="Node" parent="Canal"]
+script = ExtResource("3_serveur")

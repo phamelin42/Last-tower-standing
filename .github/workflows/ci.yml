@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  qualite:
+    name: Qualité
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@v7
+
+      - name: Installer Godot 4.7.2
+        run: tools/install-godot.sh
+
+      - name: Installer gdtoolkit 4
+        run: tools/install-gdtoolkit.sh
+
+      - name: Import du projet
+        run: tools/verifier.sh --etape import
+
+      - name: Fichiers .uid suivis
+        run: tools/verifier.sh --etape uid
+
+      - name: Lint GDScript
+        run: tools/verifier.sh --etape lint
+
+      - name: Format GDScript
+        run: tools/verifier.sh --etape format
+
+      - name: Tests unitaires
+        run: tools/verifier.sh --etape tests
+
+      - name: Contrôle du lanceur de tests
+        run: tools/verifier.sh --etape controle
+
+      - name: Intégration
+        run: tools/verifier.sh --etape integration

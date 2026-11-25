@@ -1,0 +1,673 @@
+[
+ {
+  "id": "lame_de_fil",
+  "nom": "Lame de fil",
+  "description": "Un fil tendu qui tranche l’ennemi le plus proche.",
+  "rarete": "commune",
+  "prix": 80,
+  "type_degats": "tranchant",
+  "degats": 30.6,
+  "recharge": 0.8,
+  "portee": 300,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "cible_unique"
+   }
+  ],
+  "statuts": []
+ },
+ {
+  "id": "faucille_a_ressort",
+  "nom": "Faucille à ressort",
+  "description": "Une faux montée sur ressort fauche tout un groupe.",
+  "rarete": "commune",
+  "prix": 120,
+  "type_degats": "tranchant",
+  "degats": 24.3,
+  "recharge": 1.4,
+  "portee": 300,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "zone",
+    "rayon": 110
+   }
+  ],
+  "statuts": []
+ },
+ {
+  "id": "disque_scie",
+  "nom": "Disque scie",
+  "description": "Un disque ricoche de cible en cible en laissant des plaies.",
+  "rarete": "peu_commune",
+  "prix": 260,
+  "type_degats": "tranchant",
+  "degats": 90.0,
+  "recharge": 1.2,
+  "portee": 600,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "rebond",
+    "cibles": 4,
+    "portee_saut": 220,
+    "decroissance": 0.9
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "poison",
+    "total_ratio": 0.3,
+    "duree": 4.0
+   }
+  ]
+ },
+ {
+  "id": "moulinet_de_cuivre",
+  "nom": "Moulinet de cuivre",
+  "description": "Des lames de cuivre tournent sans cesse autour de la tour.",
+  "rarete": "peu_commune",
+  "prix": 290,
+  "type_degats": "tranchant",
+  "degats": 28.8,
+  "recharge": 0.5,
+  "portee": 300,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "aura",
+    "rayon": 280,
+    "periode": 0.5
+   }
+  ],
+  "statuts": []
+ },
+ {
+  "id": "guillotine_a_vapeur",
+  "nom": "Guillotine à vapeur",
+  "description": "Une lame de vapeur balaie le terrain en un grand arc.",
+  "rarete": "rare",
+  "prix": 520,
+  "type_degats": "tranchant",
+  "degats": 183.4,
+  "recharge": 2.0,
+  "portee": 600,
+  "ciblage": "plus_fort",
+  "effets": [
+   {
+    "kind": "onde",
+    "rayon_max": 500,
+    "vitesse": 600
+   }
+  ],
+  "statuts": []
+ },
+ {
+  "id": "tourbillon_d_acier",
+  "nom": "Tourbillon d’acier",
+  "description": "Une salve d’éclats d’acier ; chaque coup rend un peu de vie.",
+  "rarete": "epique",
+  "prix": 1000,
+  "type_degats": "tranchant",
+  "degats": 291.5,
+  "recharge": 1.5,
+  "portee": 900,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "barrage",
+    "projectiles": 8,
+    "dispersion_deg": 40,
+    "rayon": 60
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "vol_de_vie",
+    "ratio": 0.05,
+    "a_la_mort": false
+   }
+  ]
+ },
+ {
+  "id": "arbalete_de_bureau",
+  "nom": "Arbalète de bureau",
+  "description": "Un carreau précis, tiré depuis un pupitre bricolé.",
+  "rarete": "commune",
+  "prix": 90,
+  "type_degats": "perçant",
+  "degats": 43.2,
+  "recharge": 1.0,
+  "portee": 900,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "cible_unique"
+   }
+  ],
+  "statuts": []
+ },
+ {
+  "id": "chausse_trape",
+  "nom": "Chausse-trape",
+  "description": "Des pointes cachées blessent ceux qui marchent dessus.",
+  "rarete": "commune",
+  "prix": 110,
+  "type_degats": "perçant",
+  "degats": 71.4,
+  "recharge": 3.0,
+  "portee": 300,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "piege",
+    "rayon": 90,
+    "max_actives": 4
+   }
+  ],
+  "statuts": []
+ },
+ {
+  "id": "carreau_ricochet",
+  "nom": "Carreau ricochet",
+  "description": "Un trait rebondit entre six ennemis avant de s’éteindre.",
+  "rarete": "peu_commune",
+  "prix": 250,
+  "type_degats": "perçant",
+  "degats": 77.1,
+  "recharge": 1.6,
+  "portee": 900,
+  "ciblage": "plus_faible",
+  "effets": [
+   {
+    "kind": "rebond",
+    "cibles": 6,
+    "portee_saut": 260,
+    "decroissance": 0.85
+   }
+  ],
+  "statuts": []
+ },
+ {
+  "id": "herse_de_ressorts",
+  "nom": "Herse de ressorts",
+  "description": "Une rangée de piques jaillit et étourdit brièvement.",
+  "rarete": "peu_commune",
+  "prix": 270,
+  "type_degats": "perçant",
+  "degats": 116.4,
+  "recharge": 1.8,
+  "portee": 600,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "barrage",
+    "projectiles": 5,
+    "dispersion_deg": 30,
+    "rayon": 40
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "etourdissement",
+    "duree": 0.4
+   }
+  ]
+ },
+ {
+  "id": "baliste_de_guet",
+  "nom": "Baliste de guet",
+  "description": "Un long trait empoisonné, tiré du sommet de la tour.",
+  "rarete": "rare",
+  "prix": 540,
+  "type_degats": "perçant",
+  "degats": 838.3,
+  "recharge": 2.2,
+  "portee": 1200,
+  "ciblage": "plus_fort",
+  "effets": [
+   {
+    "kind": "cible_unique"
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "poison",
+    "total_ratio": 0.4,
+    "duree": 5.0
+   }
+  ]
+ },
+ {
+  "id": "pluie_d_aiguilles",
+  "nom": "Pluie d’aiguilles",
+  "description": "Une averse d’aiguilles couvre toute la zone d’approche.",
+  "rarete": "epique",
+  "prix": 1100,
+  "type_degats": "perçant",
+  "degats": 410.3,
+  "recharge": 2.4,
+  "portee": 1200,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "barrage",
+    "projectiles": 10,
+    "dispersion_deg": 50,
+    "rayon": 50
+   }
+  ],
+  "statuts": []
+ },
+ {
+  "id": "etincelle_runique",
+  "nom": "Étincelle runique",
+  "description": "Une étincelle gravée de runes frappe à distance moyenne.",
+  "rarete": "commune",
+  "prix": 70,
+  "type_degats": "magique",
+  "degats": 30.3,
+  "recharge": 0.9,
+  "portee": 600,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "cible_unique"
+   }
+  ],
+  "statuts": []
+ },
+ {
+  "id": "orbe_de_brume",
+  "nom": "Orbe de brume",
+  "description": "Une brume glacée ralentit tout ce qu’elle englobe.",
+  "rarete": "commune",
+  "prix": 130,
+  "type_degats": "magique",
+  "degats": 33.6,
+  "recharge": 1.8,
+  "portee": 600,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "zone",
+    "rayon": 120
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "givre"
+   }
+  ]
+ },
+ {
+  "id": "chaine_d_arcanes",
+  "nom": "Chaîne d’arcanes",
+  "description": "Un arc magique saute entre cinq cibles en s’affaiblissant.",
+  "rarete": "peu_commune",
+  "prix": 240,
+  "type_degats": "magique",
+  "degats": 77.7,
+  "recharge": 1.4,
+  "portee": 900,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "rebond",
+    "cibles": 5,
+    "portee_saut": 240,
+    "decroissance": 0.88
+   }
+  ],
+  "statuts": []
+ },
+ {
+  "id": "cercle_de_givre",
+  "nom": "Cercle de givre",
+  "description": "Un cercle runique gèle le sol autour de la tour.",
+  "rarete": "peu_commune",
+  "prix": 300,
+  "type_degats": "magique",
+  "degats": 59.7,
+  "recharge": 1.0,
+  "portee": 300,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "aura",
+    "rayon": 250,
+    "periode": 1.0
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "givre"
+   }
+  ]
+ },
+ {
+  "id": "nova_d_ambre",
+  "nom": "Nova d’ambre",
+  "description": "Une onde d’ambre en fusion embrase tout sur son passage.",
+  "rarete": "rare",
+  "prix": 560,
+  "type_degats": "magique",
+  "degats": 247.0,
+  "recharge": 2.5,
+  "portee": 600,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "onde",
+    "rayon_max": 450,
+    "vitesse": 500
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "brulure",
+    "ratio": 0.2,
+    "duree": 4.0
+   }
+  ]
+ },
+ {
+  "id": "tempete_astrale",
+  "nom": "Tempête astrale",
+  "description": "Des éclairs d’étoiles sautent entre huit cibles et les sonnent.",
+  "rarete": "epique",
+  "prix": 1150,
+  "type_degats": "magique",
+  "degats": 372.3,
+  "recharge": 2.0,
+  "portee": 1200,
+  "ciblage": "plus_fort",
+  "effets": [
+   {
+    "kind": "rebond",
+    "cibles": 8,
+    "portee_saut": 300,
+    "decroissance": 0.92
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "etourdissement",
+    "duree": 0.6
+   }
+  ]
+ },
+ {
+  "id": "bombarde_de_poche",
+  "nom": "Bombarde de poche",
+  "description": "Un petit canon qui lance des boulets sur les groupes.",
+  "rarete": "commune",
+  "prix": 120,
+  "type_degats": "siège",
+  "degats": 48.0,
+  "recharge": 2.5,
+  "portee": 900,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "zone",
+    "rayon": 130
+   }
+  ],
+  "statuts": []
+ },
+ {
+  "id": "petard_de_rempart",
+  "nom": "Pétard de rempart",
+  "description": "Des pétards posés sur le chemin explosent au passage.",
+  "rarete": "commune",
+  "prix": 100,
+  "type_degats": "siège",
+  "degats": 64.8,
+  "recharge": 3.0,
+  "portee": 300,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "mine",
+    "rayon": 100,
+    "max_actives": 3
+   }
+  ],
+  "statuts": []
+ },
+ {
+  "id": "trebuchet_de_chambre",
+  "nom": "Trébuchet de chambre",
+  "description": "Un contrepoids propulse un énorme rocher au loin.",
+  "rarete": "peu_commune",
+  "prix": 280,
+  "type_degats": "siège",
+  "degats": 207.0,
+  "recharge": 3.2,
+  "portee": 1200,
+  "ciblage": "plus_fort",
+  "effets": [
+   {
+    "kind": "zone",
+    "rayon": 170
+   }
+  ],
+  "statuts": []
+ },
+ {
+  "id": "mine_de_forge",
+  "nom": "Mine de forge",
+  "description": "Une charge de forge, enterrée, ravage les ennemis proches.",
+  "rarete": "peu_commune",
+  "prix": 260,
+  "type_degats": "siège",
+  "degats": 194.4,
+  "recharge": 2.5,
+  "portee": 600,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "mine",
+    "rayon": 120,
+    "max_actives": 4
+   }
+  ],
+  "statuts": []
+ },
+ {
+  "id": "canon_de_cloche",
+  "nom": "Canon de cloche",
+  "description": "Quatre boulets enflammés pilonnent un même endroit.",
+  "rarete": "rare",
+  "prix": 500,
+  "type_degats": "siège",
+  "degats": 529.2,
+  "recharge": 3.0,
+  "portee": 900,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "barrage",
+    "projectiles": 4,
+    "dispersion_deg": 20,
+    "rayon": 120
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "brulure",
+    "ratio": 0.25,
+    "duree": 4.0
+   }
+  ]
+ },
+ {
+  "id": "grande_bombarde",
+  "nom": "Grande bombarde",
+  "description": "Un tir colossal qui souffle la zone et étourdit.",
+  "rarete": "epique",
+  "prix": 1050,
+  "type_degats": "siège",
+  "degats": 1087.8,
+  "recharge": 4.0,
+  "portee": 1200,
+  "ciblage": "plus_fort",
+  "effets": [
+   {
+    "kind": "zone",
+    "rayon": 230
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "etourdissement",
+    "duree": 1.0
+   }
+  ]
+ },
+ {
+  "id": "de_pipe",
+  "nom": "Dé pipé",
+  "description": "Un dé truqué dont chaque coup nourrit la tour.",
+  "rarete": "commune",
+  "prix": 70,
+  "type_degats": "chaos",
+  "degats": 23.4,
+  "recharge": 0.7,
+  "portee": 600,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "cible_unique"
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "vol_de_vie",
+    "ratio": 0.04,
+    "a_la_mort": false
+   }
+  ]
+ },
+ {
+  "id": "sablier_fele",
+  "nom": "Sablier fêlé",
+  "description": "Un sablier brisé déchire le temps sous les pieds.",
+  "rarete": "commune",
+  "prix": 110,
+  "type_degats": "chaos",
+  "degats": 59.4,
+  "recharge": 2.5,
+  "portee": 300,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "piege",
+    "rayon": 100,
+    "max_actives": 4
+   }
+  ],
+  "statuts": []
+ },
+ {
+  "id": "cornue_instable",
+  "nom": "Cornue instable",
+  "description": "Une fiole d’alchimie qui explose en nuage toxique.",
+  "rarete": "peu_commune",
+  "prix": 250,
+  "type_degats": "chaos",
+  "degats": 103.8,
+  "recharge": 1.8,
+  "portee": 900,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "zone",
+    "rayon": 140
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "poison",
+    "total_ratio": 0.35,
+    "duree": 4.0
+   }
+  ]
+ },
+ {
+  "id": "miroir_brise",
+  "nom": "Miroir brisé",
+  "description": "Les éclats de miroir sautent entre quatre ennemis.",
+  "rarete": "peu_commune",
+  "prix": 270,
+  "type_degats": "chaos",
+  "degats": 87.6,
+  "recharge": 1.3,
+  "portee": 600,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "rebond",
+    "cibles": 4,
+    "portee_saut": 250,
+    "decroissance": 0.9
+   }
+  ],
+  "statuts": []
+ },
+ {
+  "id": "vortex_de_verre",
+  "nom": "Vortex de verre",
+  "description": "Une onde de verre pilé ; chaque mort soigne la tour.",
+  "rarete": "rare",
+  "prix": 530,
+  "type_degats": "chaos",
+  "degats": 205.7,
+  "recharge": 2.2,
+  "portee": 900,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "onde",
+    "rayon_max": 450,
+    "vitesse": 500
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "vol_de_vie",
+    "ratio": 0.03,
+    "a_la_mort": true
+   }
+  ]
+ },
+ {
+  "id": "horloge_folle",
+  "nom": "Horloge folle",
+  "description": "Sept rouages affolés volent en tous sens et brûlent.",
+  "rarete": "epique",
+  "prix": 950,
+  "type_degats": "chaos",
+  "degats": 379.7,
+  "recharge": 1.8,
+  "portee": 1200,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "barrage",
+    "projectiles": 7,
+    "dispersion_deg": 60,
+    "rayon": 70
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "brulure",
+    "ratio": 0.2,
+    "duree": 3.0
+   }
+  ]
+ }
+]
