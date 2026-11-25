@@ -1,4 +1,4 @@
-# Jeu de tour multijoueur — plan d'implémentation
+# Last Tower Standing — plan d’implémentation
 
 > **Pour les agents d'exécution :** sous-skill requis : `superpowers:subagent-driven-development` (recommandé) ou `superpowers:executing-plans`. Une tâche = un agent. Le suivi se fait par les cases `- [ ]` en tête de tâche.
 

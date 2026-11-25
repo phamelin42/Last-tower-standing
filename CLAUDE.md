@@ -1,4 +1,4 @@
-# Jeu de tour multijoueur (nom provisoire « jeu-tour »)
+# Last Tower Standing — jeu de tour multijoueur
 
 Règles communes à tous les projets de Phil (copie de `phamelin42/claude-context`, ne pas la modifier ici ; ce fichier l'emporte en cas de désaccord) : @.claude/CLAUDE.commun.md
 

@@ -1,6 +1,6 @@
-# Jeu de tour multijoueur — spécification
+# Last Tower Standing — spécification
 
-> Nom du jeu provisoire (« jeu-tour ») : Phil choisit le nom définitif. Décisions de Phil
+> Nom du jeu : **Last Tower Standing** (Phil, 25/11/2026), licence MIT. Décisions de Phil
 > marquées **(Phil)** ; le reste est un choix de l'agent principal, marqué **(choix)**, que Phil
 > peut corriger.
 
