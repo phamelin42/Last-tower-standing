@@ -8,7 +8,7 @@ extends Control
 const HAUTEUR_LIGNE := 48.0
 const TAILLE_TEXTE := 16
 const MARGE_BARRE := 6
-const LARGEUR_JAUGE := 180.0
+const LARGEUR_JAUGE := 160.0
 const SEUIL_PV_BAS := 0.3
 
 const LIGNE_PV := 0
@@ -21,7 +21,7 @@ const LIGNE_ARMES := 6
 const NB_LIGNES := 7
 
 ## Largeur minimale de la valeur de chaque ligne (0 : celle du texte).
-const LARGEURS_VALEUR: Array[float] = [0.0, 80.0, 56.0, 100.0, 56.0, 120.0, 56.0]
+const LARGEURS_VALEUR: Array[float] = [0.0, 72.0, 52.0, 28.0, 52.0, 120.0, 52.0]
 
 var _cles: Array[Label] = []
 var _valeurs: Array[Label] = []
@@ -38,7 +38,7 @@ func _init() -> void:
 	_barre.add_theme_stylebox_override("panel", _style_barre())
 	add_child(_barre)
 	var rangee := HBoxContainer.new()
-	rangee.add_theme_constant_override("separation", 14)
+	rangee.add_theme_constant_override("separation", 10)
 	_barre.add_child(rangee)
 	for i: int in NB_LIGNES:
 		var cle := _etiquette()
@@ -47,6 +47,10 @@ func _init() -> void:
 		cle.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
 		cle.add_theme_color_override("font_color", ThemeJeu.PARCHEMIN_ATTENU)
 		valeur.custom_minimum_size.x = LARGEURS_VALEUR[i]
+		if i == LIGNE_MANCHE:
+			# « Préparation » est plus long que tout numéro de manche : il s'étend, jamais tronqué.
+			valeur.clip_text = false
+			valeur.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
 		_cles.append(cle)
 		_valeurs.append(valeur)
 		var cellule := HBoxContainer.new()

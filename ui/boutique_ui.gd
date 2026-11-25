@@ -257,8 +257,8 @@ func _construire_carte(i: int) -> PanelContainer:
 	for libelle: Label in [rarete, nom, type_degats, description, prix, note]:
 		libelle.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		libelle.custom_minimum_size = Vector2(LARGEUR_TEXTE, 0.0)
-	# Rangées : rareté et prix ; nom (deux lignes réservées : la hauteur ne bouge pas d'une offre
-	# à l'autre) ; type de dégâts et notes ; description.
+	# Rangées : rareté et prix ; nom (à la ligne s'il est très long) ; type de dégâts et notes ;
+	# description.
 	var haut := HBoxContainer.new()
 	colonne.add_child(haut)
 	for libelle: Label in [rarete, prix]:
@@ -268,8 +268,7 @@ func _construire_carte(i: int) -> PanelContainer:
 	prix.add_theme_color_override("font_color", ThemeJeu.LAITON_CLAIR)
 	haut.add_child(rarete)
 	haut.add_child(prix)
-	nom.custom_minimum_size.y = 2.0 * _hauteur_ligne()
-	nom.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+	nom.custom_minimum_size.y = _hauteur_ligne()
 	nom.add_theme_color_override("font_color", ThemeJeu.LAITON_CLAIR)
 	colonne.add_child(nom)
 	var bas := HBoxContainer.new()
@@ -303,8 +302,10 @@ func _construire_carte(i: int) -> PanelContainer:
 	return carte
 
 
+## Hauteur d'une ligne de texte de 16 px : les zones de texte réservent leurs lignes d'avance, la
+## hauteur des cartes ne change donc pas d'une offre à l'autre.
 static func _hauteur_ligne() -> float:
-	return 23.0
+	return 26.0
 
 
 func _style_bandeau() -> StyleBoxFlat:
