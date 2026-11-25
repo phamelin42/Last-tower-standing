@@ -12,6 +12,8 @@ const CODE_DONNEES: int = 2
 const CODE_PORT: int = 3
 const OPTION_ACCELERATION: String = "--acceleration"
 const OPTION_QUITTER: String = "--quitter-a-la-fin"
+## Attente avant de quitter, quand des joueurs sont connectés, pour que le dernier état parte.
+const DELAI_VIDAGE_S: float = 0.5
 
 ## Sortie du processus : `get_tree().quit(code)` par défaut, remplaçable par les tests.
 var sortie: Callable = Callable()
@@ -147,6 +149,11 @@ func _fin_de_partie() -> void:
 	if serveur.partie != null:
 		_journal("Fin de partie : %d joueur(s)." % serveur.salon.joueurs.size())
 	if _quitter_a_la_fin:
+		# L'état « terminé » vient d'être posé dans la file d'ENet : il ne part qu'au prochain
+		# passage de la boucle. Sortir tout de suite le perdrait, et les clients croiraient à une
+		# connexion perdue.
+		if is_inside_tree() and serveur.nb_pairs() > 0:
+			await get_tree().create_timer(DELAI_VIDAGE_S).timeout
 		_sortir(CODE_OK)
 		return
 	serveur.rouvrir_salon()

@@ -13,6 +13,9 @@ var _dedie: ServeurDedie = null
 var _sessions: Array[SessionReseau] = []
 var _codes: Array[int] = []
 var _port: int = 0
+var _ecoutes: Array[Ecoute] = []
+## Combien de clients avaient déjà reçu l'état « terminé » quand le serveur a demandé à sortir.
+var _termines_a_la_sortie: int = -1
 
 
 class Ecoute:
@@ -39,6 +42,8 @@ func avant_chaque() -> void:
 	_donnees = Donnees.charger()
 	_sessions = []
 	_codes = []
+	_ecoutes = []
+	_termines_a_la_sortie = -1
 	_dedie = null
 	var rng := RandomNumberGenerator.new()
 	rng.seed = GRAINE + OS.get_process_id()
@@ -83,7 +88,9 @@ func _jusqua(condition: Callable) -> bool:
 ## `--serveur`, où le chemin du `Canal` ne doit pas dépendre de l'emplacement du serveur.
 func _serveur() -> void:
 	_dedie = (load("res://scenes/serveur.tscn") as PackedScene).instantiate() as ServeurDedie
-	_dedie.sortie = func(code: int) -> void: _codes.append(code)
+	_dedie.sortie = func(code: int) -> void:
+		_codes.append(code)
+		_termines_a_la_sortie = _ecoutes.filter(_a_recu_la_fin).size()
 	arbre.root.add_child(_dedie)
 	var args := {
 		"port": _port,
@@ -100,7 +107,9 @@ func _client(nom: String) -> Ecoute:
 	arbre.root.add_child(s)
 	_sessions.append(s)
 	verifier_egal(s.rejoindre(_donnees, ADRESSE, _port, nom), OK, "%s rejoint" % nom)
-	return Ecoute.new(s)
+	var e := Ecoute.new(s)
+	_ecoutes.append(e)
+	return e
 
 
 ## Deux joueurs dans le salon, tous prêts, ×4 réglé par l'hôte, partie lancée.
@@ -120,6 +129,10 @@ func _lancer_a_deux() -> Array[Ecoute]:
 		"chacun reçoit sa vue d'arène"
 	)
 	return [a, b]
+
+
+func _a_recu_la_fin(e: Ecoute) -> bool:
+	return e.globale() != null and e.globale().termine
 
 
 func _salon_a_deux(e: Ecoute) -> bool:
@@ -152,6 +165,11 @@ func test_une_partie_accelere_se_termine_pour_les_deux_clients_et_le_serveur() -
 		verifier_contient(joueurs[0].globale().classement, id)
 	verifier(await _jusqua(func() -> bool: return not _codes.is_empty()), "le serveur sort")
 	verifier_egal(_codes, [ServeurDedie.CODE_OK] as Array[int], "avec le code 0, une seule fois")
+	verifier_egal(
+		_termines_a_la_sortie,
+		2,
+		"il ne sort qu'après avoir livré la fin de partie aux deux clients"
+	)
 
 
 func test_un_achat_est_debite_et_les_etats_arrivent_dans_l_ordre() -> void:
