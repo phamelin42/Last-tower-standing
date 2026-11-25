@@ -445,6 +445,33 @@ func _mutations_partie() -> Array[Array]:
 		["partie : plancher > départ", f, ["spawn_plancher"], 5.0, "spawn_plancher"],
 		["partie : plafond de givre > 1", f, ["givre", "plafond"], 1.2, "givre.plafond"],
 		[
+			"partie : budget réseau manquant",
+			f,
+			["reseau", "budget_octets_s"],
+			SUP,
+			"budget_octets_s"
+		],
+		["partie : budget réseau nul", f, ["reseau", "budget_octets_s"], 0, "budget_octets_s"],
+		["partie : budget réseau négatif", f, ["reseau", "budget_octets_s"], -1, "budget_octets_s"],
+		[
+			"partie : budget réseau en chaîne",
+			f,
+			["reseau", "budget_octets_s"],
+			"50000",
+			"budget_octets_s"
+		],
+		[
+			"partie : budget réseau fractionnaire",
+			f,
+			["reseau", "budget_octets_s"],
+			500.5,
+			"budget_octets_s"
+		],
+		["partie : hz_min manquant", f, ["reseau", "hz_min"], SUP, "hz_min"],
+		["partie : hz_min nul", f, ["reseau", "hz_min"], 0, "hz_min"],
+		["partie : hz_min en chaîne", f, ["reseau", "hz_min"], "5", "hz_min"],
+		["partie : hz_min > hz_arene", f, ["reseau", "hz_min"], 16, "hz_min"],
+		[
 			"partie : probabilité de convoi < 0",
 			f,
 			["convoi", "probabilite"],

@@ -247,8 +247,12 @@ static func _valider_partie(p: Dictionary, err: Array[String]) -> void:
 	var reseau_ok := _objet(p, "reseau", f, "", err)
 	if reseau_ok:
 		var reseau: Dictionary = p["reseau"]
-		for spec: Dictionary in [_pos("hz_arene"), _pos("hz_global")]:
-			_nombre(reseau, spec, f, "reseau", err)
+		var ok_arene := _nombre(reseau, _pos("hz_arene"), f, "reseau", err)
+		var ok_min := _nombre(reseau, _pos("hz_min"), f, "reseau", err)
+		_nombre(reseau, _pos("hz_global"), f, "reseau", err)
+		_nombre(reseau, _spec("budget_octets_s", 0.0, true, INF, true), f, "reseau", err)
+		if ok_arene and ok_min and float(reseau["hz_min"]) > float(reseau["hz_arene"]):
+			_err(err, f, "reseau.hz_min", "ne peut dépasser reseau.hz_arene")
 	var convoi_p_ok := _objet(p, "convoi", f, "", err)
 	if convoi_p_ok:
 		var convoi_p: Dictionary = p["convoi"]
