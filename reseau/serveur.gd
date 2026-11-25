@@ -254,6 +254,9 @@ func traiter_bonjour(pair: int, octets: PackedByteArray) -> bool:
 		return _refuser(pair, salon.motif_refus)
 	p.enregistre = true
 	p.cible = pair
+	# Décale les envois des clients : huit encodages le même pas feraient un pic.
+	var hz: float = (_donnees.partie["reseau"] as Dictionary)["hz_arene"]
+	p.acc_arene = float(salon.joueurs.size() % MAX_CLIENTS) / float(MAX_CLIENTS) / hz
 	_diffuser_salon()
 	return true
 
