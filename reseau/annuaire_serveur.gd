@@ -155,21 +155,26 @@ func _avancer(c: _Connexion, t: int) -> void:
 	var present := c.pair.get_status() == StreamPeerTCP.STATUS_CONNECTED
 	var disponibles := c.pair.get_available_bytes() if present else 0
 	var parti := not present
+	# Une connexion qui a fini de parler ne vit jamais plus de 7 s, quelle que soit la raison de
+	# l'attente (sonde, client qui ne lit pas, client qui ne ferme pas).
+	if c.etat != Etat.RECEPTION and t - c.debut >= DELAI_VIE_MS:
+		_fermer(c)
+		return
 	match c.etat:
 		Etat.RECEPTION:
 			_recevoir(c, t, disponibles, parti)
 		Etat.SONDE:
 			_vider(c, disponibles)
-			if parti or t - c.debut >= DELAI_VIE_MS:
+			if parti:
 				_fermer(c)
 		Etat.ECRITURE:
 			_vider(c, disponibles)
 			_poursuivre_ecriture(c, t)
-			if not c.terminee and (parti or t - c.debut >= DELAI_VIE_MS):
+			if not c.terminee and parti:
 				_fermer(c)
 		Etat.FERMETURE:
 			_vider(c, disponibles)
-			if parti or t - c.fin_ecriture >= GRACE_FERMETURE_MS or t - c.debut >= DELAI_VIE_MS:
+			if parti or t - c.fin_ecriture >= GRACE_FERMETURE_MS:
 				_fermer(c)
 
 

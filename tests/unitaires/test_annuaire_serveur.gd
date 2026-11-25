@@ -241,7 +241,10 @@ func _connecter(port: int) -> StreamPeerTCP:
 	var c := StreamPeerTCP.new()
 	_clients.append(c)
 	c.connect_to_host(LOCAL, port)
-	for i: int in 100:
+	# Un délai réel, pas un nombre d'images : en tête de file d'attente du système, une connexion
+	# peut mettre plus d'une seconde à s'établir.
+	var limite := Time.get_ticks_msec() + 5_000
+	while Time.get_ticks_msec() < limite:
 		c.poll()
 		if c.get_status() == StreamPeerTCP.STATUS_CONNECTED:
 			break
@@ -569,6 +572,98 @@ func test_un_port_occupe_ou_invalide_est_refuse_sans_exception() -> void:
 	verifier(second.demarrer(0) != OK, "port 0")
 	verifier(second.demarrer(70000) != OK, "port hors bornes")
 	second.free()
+	_nettoyer_noeud()
+
+
+# --- Bornes de ressources du nœud ----------------------------------------------------------------
+
+
+func test_une_connexion_en_attente_de_sonde_est_fermee_a_7_secondes_sans_reponse() -> void:
+	_monter()
+	_fausse.automatique = false
+	var port := _ouvrir_noeud()
+	var c := await _connecter(port)
+	c.put_data(_annonce())
+	for i: int in 5:
+		await arbre.process_frame
+	_t[0] += 6_999
+	await arbre.process_frame
+	await arbre.process_frame
+	verifier_egal(_noeud.nb_connexions(), 1, "encore ouverte à 6,999 s")
+	_t[0] += 1
+	var tampon := await _lire(c, 30)
+	verifier(tampon.is_empty(), "fermée sans réponse")
+	verifier(c.get_status() != StreamPeerTCP.STATUS_CONNECTED)
+	verifier_egal(_noeud.nb_connexions(), 0, "la place est rendue")
+	_nettoyer_noeud()
+
+
+func test_un_client_qui_ferme_pendant_la_sonde_rend_sa_place_et_l_entree_est_quand_meme_creee(
+) -> void:
+	_monter()
+	_fausse.automatique = false
+	var port := _ouvrir_noeud()
+	var c := await _connecter(port)
+	c.put_data(_annonce(7803, "Parti"))
+	for i: int in 5:
+		await arbre.process_frame
+	verifier_egal(_noeud.nb_connexions(), 1)
+	c.disconnect_from_host()
+	for i: int in 10:
+		await arbre.process_frame
+	verifier_egal(_noeud.nb_connexions(), 0, "connexion fermée sans attendre la sonde")
+	verifier_egal(_noeud.service.nb_sondes(), 1, "la sonde court toujours")
+	_fausse.finir(1, true)
+	for i: int in 3:
+		await arbre.process_frame
+	verifier_egal(_noeud.service.nb_sondes(), 0, "le résultat est reçu")
+	verifier_egal(_noeud.service.nb_entrees(), 1, "l'entrée est créée, la réponse est perdue")
+	_nettoyer_noeud()
+
+
+func test_un_client_qui_ne_lit_pas_une_liste_ni_ne_ferme_rend_sa_place_apres_la_grace() -> void:
+	_monter()
+	var port := _ouvrir_noeud()
+	for i: int in 34:
+		for k: int in 3:
+			if _noeud.service.nb_entrees() >= 100:
+				break
+			var ip := "8.9.%d.1" % i
+			_noeud.source_adresse = func(_p: StreamPeerTCP) -> String: return ip
+			await _requete(port, _annonce(7000 + k, "😀".repeat(24)))
+	_noeud.source_adresse = func(_p: StreamPeerTCP) -> String: return "9.9.9.9"
+	var c := await _connecter(port)
+	c.put_data(AnnuaireProtocole.encoder_liste())
+	for i: int in 10:
+		await arbre.process_frame
+	verifier_egal(_noeud.nb_connexions(), 1, "ni lue ni fermée par le client")
+	_t[0] += 7_000
+	for i: int in 5:
+		await arbre.process_frame
+	verifier_egal(_noeud.nb_connexions(), 0, "fermée par le service, sans attendre le client")
+	_nettoyer_noeud()
+
+
+func test_la_soixante_cinquieme_connexion_est_fermee_sans_reponse() -> void:
+	_monter()
+	var port := _ouvrir_noeud()
+	var compteur: Array[int] = [0]
+	_noeud.source_adresse = func(_p: StreamPeerTCP) -> String:
+		compteur[0] += 1
+		# 16 adresses, 4 connexions chacune : le plafond par IP n'est pas atteint.
+		return "8.40.%d.1" % ((compteur[0] - 1) / 4)
+	var ouvertes: Array[StreamPeerTCP] = []
+	for i: int in 64:
+		ouvertes.append(await _connecter(port))
+	for i: int in 10:
+		await arbre.process_frame
+	verifier_egal(_noeud.nb_connexions(), 64, "64 connexions simultanées")
+	var de_trop := await _connecter(port)
+	de_trop.put_data(AnnuaireProtocole.encoder_liste())
+	var tampon := await _lire(de_trop, 30)
+	verifier(tampon.is_empty(), "aucune réponse")
+	verifier(de_trop.get_status() != StreamPeerTCP.STATUS_CONNECTED, "fermée par le service")
+	verifier_egal(_noeud.nb_connexions(), 64)
 	_nettoyer_noeud()
 
 
