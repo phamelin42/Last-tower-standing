@@ -1,13 +1,19 @@
 class_name ConnexionUi
 extends Control
 ## Les deux pages du multijoueur avant le salon : « Créer une partie » (nom du salon et port) et
-## « Rejoindre une partie » (salons trouvés sur le réseau local, plus adresse et port saisis à la
-## main). Elle ne fait aucun réseau : elle valide la saisie, annonce ce qui est demandé et affiche
-## le message d'erreur que `Principal` lui renvoie.
+## « Rejoindre une partie » (salons du réseau local et de l'annuaire, plus adresse et port saisis
+## à la main). Elle ne fait aucun réseau : elle valide la saisie, annonce ce qui est demandé et
+## affiche le message d'erreur que `Principal` lui renvoie.
 
 signal creer_demande(nom_salon: String, port: int)
 signal rejoindre_demande(adresse: String, port: int)
 signal retour_demande
+## Le joueur demande à relire l'annuaire (le seul moment, avec l'ouverture de la page, où on le
+## contacte).
+signal actualiser_demande
+
+const ORIGINE_LOCAL := "local"
+const ORIGINE_ANNUAIRE := "annuaire"
 
 const HAUTEUR_CONTROLE := 48.0
 const LARGEUR_COLONNE := 460.0
@@ -25,6 +31,9 @@ var champ_adresse: LineEdit
 var champ_port_rejoindre: LineEdit
 var bouton_rejoindre_adresse: Button
 var boutons_retour: Array[Button] = []
+var case_publique: CheckBox
+var notice_publique: Label
+var bouton_actualiser: Button
 
 var _page_creer: PanelContainer
 var _page_rejoindre: PanelContainer
@@ -32,6 +41,7 @@ var _message_creer: Label
 var _message_rejoindre: Label
 var _liste: VBoxContainer
 var _vide: Label
+var _etat_annuaire: Label
 var _salons: Array[Dictionary] = []
 
 
@@ -57,16 +67,22 @@ func _init() -> void:
 
 
 ## Ouvre la page « Créer » ; le nom du salon propose « Salon de <nom du joueur> ».
-func ouvrir_creer(nom_joueur: String) -> void:
+func ouvrir_creer(nom_joueur: String, publique: bool = true) -> void:
 	visible = true
 	_page_rejoindre.visible = false
 	_page_creer.visible = true
 	champ_nom_salon.text = tr("CONNEXION_NOM_SALON_DEFAUT") % nom_joueur
 	champ_nom_salon.text = champ_nom_salon.text.substr(0, Protocole.MAX_NOM)
 	champ_port_creer.text = str(PORT_DEFAUT)
+	case_publique.button_pressed = publique
 	afficher_erreur_creer("")
 	if is_inside_tree():
 		bouton_creer.grab_focus()
+
+
+## Le salon sera-t-il annoncé à l'annuaire (case « Partie publique ») ?
+func salon_public() -> bool:
+	return case_publique.button_pressed
 
 
 func ouvrir_rejoindre() -> void:
@@ -76,6 +92,7 @@ func ouvrir_rejoindre() -> void:
 	champ_adresse.text = ""
 	champ_port_rejoindre.text = str(PORT_DEFAUT)
 	afficher_erreur_rejoindre("")
+	afficher_etat_annuaire(AnnuaireClient.Etat.OK)
 	afficher_salons([])
 	if is_inside_tree():
 		champ_adresse.grab_focus()
@@ -103,7 +120,57 @@ func afficher_erreur_rejoindre(texte: String) -> void:
 	_message_rejoindre.visible = not texte.is_empty()
 
 
-## Les salons trouvés : une ligne (nom, joueurs) et un bouton « Rejoindre » chacune.
+## L'état de l'annuaire en texte : rien quand tout va bien ou qu'il est désactivé, sinon la raison.
+func afficher_etat_annuaire(etat: int) -> void:
+	var texte := ""
+	if etat == AnnuaireClient.Etat.INDISPONIBLE:
+		texte = tr("CONNEXION_ANNUAIRE_INDISPONIBLE")
+	elif etat == AnnuaireClient.Etat.INCOMPATIBLE:
+		texte = tr("CONNEXION_ANNUAIRE_INCOMPATIBLE")
+	_etat_annuaire.text = texte
+	_etat_annuaire.visible = not texte.is_empty()
+
+
+func message_annuaire() -> String:
+	return _etat_annuaire.text
+
+
+## Les salons du réseau local (`adresse`, `port`, `nom`, `joueurs`, `max`) et ceux de l'annuaire
+## (`ip` au lieu de `adresse`, plus `version_jeu`) en une liste : un salon d'annuaire de même nom et
+## de même port qu'un salon local est masqué, l'entrée locale l'emporte (décision 13). Un salon
+## d'une autre version du jeu est marqué, jamais filtré (décision 10).
+static func fusionner(
+	locaux: Array[Dictionary], annuaire: Array[Dictionary], version_jeu: int
+) -> Array[Dictionary]:
+	var sortie: Array[Dictionary] = []
+	var connus := {}
+	for l: Dictionary in locaux:
+		connus["%s\n%d" % [l["nom"], int(l["port"])]] = true
+		var entree := l.duplicate()
+		entree["origine"] = ORIGINE_LOCAL
+		entree["autre_version"] = false
+		sortie.append(entree)
+	for a: Dictionary in annuaire:
+		if connus.has("%s\n%d" % [a["nom"], int(a["port"])]):
+			continue
+		(
+			sortie
+			. append(
+				{
+					"nom": a["nom"],
+					"joueurs": a["joueurs"],
+					"max": a["max"],
+					"port": a["port"],
+					"adresse": a["ip"],
+					"origine": ORIGINE_ANNUAIRE,
+					"autre_version": int(a.get("version_jeu", version_jeu)) != version_jeu,
+				}
+			)
+		)
+	return sortie
+
+
+## Les salons trouvés : une ligne (nom, joueurs, origine) et un bouton « Rejoindre » chacune.
 func afficher_salons(salons: Array[Dictionary]) -> void:
 	_salons = salons.duplicate()
 	for enfant: Node in _liste.get_children():
@@ -115,7 +182,7 @@ func afficher_salons(salons: Array[Dictionary]) -> void:
 		var ligne := HBoxContainer.new()
 		ligne.name = "Salon%d" % i
 		var libelle := Label.new()
-		libelle.text = tr("CONNEXION_SALON_LIGNE") % [s["nom"], s["joueurs"], s["max"]]
+		libelle.text = _texte_ligne(s)
 		libelle.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		libelle.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		libelle.custom_minimum_size = Vector2(240.0, HAUTEUR_CONTROLE)
@@ -128,6 +195,21 @@ func afficher_salons(salons: Array[Dictionary]) -> void:
 		bouton.pressed.connect(_sur_salon.bind(i))
 		ligne.add_child(bouton)
 		_liste.add_child(ligne)
+
+
+## « Nom — 3 sur 8 joueurs (Annuaire, autre version) » : l'origine est dite en texte, jamais par la
+## seule couleur.
+func _texte_ligne(s: Dictionary) -> String:
+	var base: String = tr("CONNEXION_SALON_LIGNE") % [s["nom"], s["joueurs"], s["max"]]
+	var origine := (
+		tr("CONNEXION_ORIGINE_ANNUAIRE")
+		if s.get("origine", ORIGINE_LOCAL) == ORIGINE_ANNUAIRE
+		else tr("CONNEXION_ORIGINE_LOCAL")
+	)
+	var details: PackedStringArray = [origine]
+	if bool(s.get("autre_version", false)):
+		details.append(tr("CONNEXION_AUTRE_VERSION"))
+	return tr("CONNEXION_SALON_ORIGINE") % [base, ", ".join(details)]
 
 
 ## Textes affichés dans la liste, une ligne par salon (pour les tests et les captures).
@@ -229,6 +311,17 @@ func _construire_creer(centre: CenterContainer) -> void:
 	colonne.add_child(_libelle("CONNEXION_PORT"))
 	champ_port_creer = _champ("ChampPortCreer", 5)
 	colonne.add_child(champ_port_creer)
+	case_publique = CheckBox.new()
+	case_publique.name = "CasePublique"
+	case_publique.text = tr("CONNEXION_PUBLIQUE")
+	case_publique.button_pressed = true
+	case_publique.custom_minimum_size = Vector2(0.0, HAUTEUR_CONTROLE)
+	colonne.add_child(case_publique)
+	notice_publique = Label.new()
+	notice_publique.name = "Notice"
+	notice_publique.text = tr("CONNEXION_PUBLIQUE_NOTICE")
+	notice_publique.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	colonne.add_child(notice_publique)
 	_message_creer = _message()
 	colonne.add_child(_message_creer)
 	bouton_creer = _bouton("Creer", "CONNEXION_CREER", _sur_creer)
@@ -243,7 +336,7 @@ func _construire_rejoindre(centre: CenterContainer) -> void:
 	centre.add_child(_page_rejoindre)
 	var colonne := _colonne(_page_rejoindre)
 	colonne.add_child(_titre("CONNEXION_REJOINDRE_TITRE"))
-	colonne.add_child(_libelle("CONNEXION_SALONS_LOCAUX"))
+	colonne.add_child(_libelle("CONNEXION_SALONS"))
 	_vide = Label.new()
 	_vide.name = "Vide"
 	_vide.text = tr("CONNEXION_AUCUN_SALON")
@@ -252,6 +345,13 @@ func _construire_rejoindre(centre: CenterContainer) -> void:
 	_liste = VBoxContainer.new()
 	_liste.name = "Salons"
 	colonne.add_child(_liste)
+	_etat_annuaire = Label.new()
+	_etat_annuaire.name = "EtatAnnuaire"
+	_etat_annuaire.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_etat_annuaire.visible = false
+	colonne.add_child(_etat_annuaire)
+	bouton_actualiser = _bouton("Actualiser", "CONNEXION_ACTUALISER", actualiser_demande.emit)
+	colonne.add_child(bouton_actualiser)
 	colonne.add_child(_libelle("CONNEXION_ADRESSE"))
 	champ_adresse = _champ("ChampAdresse", ADRESSE_MAX)
 	colonne.add_child(champ_adresse)

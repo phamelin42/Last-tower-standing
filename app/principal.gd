@@ -28,6 +28,10 @@ var cibles_decouverte: Array[String] = [Decouverte.DIFFUSION]
 ## `() -> UpnpHote.Passerelle` : la box de la redirection UPnP, remplacée par un double dans les
 ## tests ; vide, la session choisit la vraie.
 var fabrique_passerelle: Callable = Callable()
+## `() -> String` : l'adresse `hote:port` de l'annuaire. Par défaut le réglage du joueur, sauf en
+## mode sans fenêtre (tests, serveur sans écran) où aucun annuaire n'est contacté : comme pour la
+## box, seuls les tests qui le demandent touchent au réseau.
+var adresse_annuaire: Callable = Callable()
 
 var _menu: MenuPrincipal
 var _banc: BancIps = null
@@ -41,9 +45,19 @@ var _connexion: ConnexionUi
 var _salon: SalonUi
 var _session: SessionReseau = null
 var _chercheur: Decouverte = null
+var _annuaire: AnnuaireClient = null
+var _salons_annuaire: Array[Dictionary] = []
+## Les lignes d'avertissement de l'écran du salon, par origine (`upnp`, `annuaire`) : elles se
+## lisent ensemble, aucune n'écrase l'autre.
+var _avertissements: Dictionary = {}
 var _nom_joueur: String = ""
 var _parametres_hote: Array = []
 var _erreur_creation: String = ""
+
+
+## Seuls les ports de jeu de 1 024 à 65 535 sont listés par l'annuaire (ADR, décision 8).
+static func port_listable(port: int) -> bool:
+	return port >= AnnuaireProtocole.PORT_MIN and port <= AnnuaireProtocole.PORT_MAX
 
 
 ## La scène à charger à la place du menu : l'annuaire si `--annuaire`, le serveur dédié si
@@ -242,6 +256,13 @@ func _enregistrer_nom(nom: String) -> void:
 		r.sauver(chemin_reglages)
 
 
+func _enregistrer_salon_public(publique: bool) -> void:
+	var r := Reglages.charger(chemin_reglages)
+	if r.salon_public != publique:
+		r.salon_public = publique
+		r.sauver(chemin_reglages)
+
+
 func _appliquer_reglages(r: Reglages) -> void:
 	Jeu.appliquer_fenetre(get_window(), r)
 	BusAudio.appliquer_volume(r.volume_general)
@@ -266,6 +287,7 @@ func _construire_multijoueur() -> void:
 	_connexion.creer_demande.connect(_creer)
 	_connexion.rejoindre_demande.connect(_rejoindre)
 	_connexion.retour_demande.connect(_retour_depuis_connexion)
+	_connexion.actualiser_demande.connect(_interroger_annuaire)
 	_salon.pret_change.connect(_sur_pret)
 	_salon.options_changees.connect(_sur_options)
 	_salon.lancer_demande.connect(_sur_lancer)
@@ -282,7 +304,7 @@ func _ouvrir_creer(nom: String) -> void:
 	_nom_joueur = nom
 	_enregistrer_nom(nom)
 	_menu.visible = false
-	_connexion.ouvrir_creer(nom)
+	_connexion.ouvrir_creer(nom, Reglages.charger(chemin_reglages).salon_public)
 
 
 func _ouvrir_rejoindre(nom: String) -> void:
@@ -296,6 +318,7 @@ func _ouvrir_rejoindre(nom: String) -> void:
 	_chercheur.name = "Chercheur"
 	add_child(_chercheur)
 	_connexion.ouvrir_rejoindre()
+	_interroger_annuaire()
 	var code := _chercheur.chercher(port_decouverte)
 	if code != OK:
 		_connexion.afficher_erreur_rejoindre(tr("CONNEXION_DECOUVERTE_INDISPONIBLE"))
@@ -304,11 +327,57 @@ func _ouvrir_rejoindre(nom: String) -> void:
 
 
 func _sur_liste_changee() -> void:
-	if _chercheur != null:
-		_connexion.afficher_salons(_chercheur.salons())
+	_afficher_liste()
+
+
+## Le réseau local et l'annuaire en une liste. Sans annuaire joint, la liste est celle du réseau.
+func _afficher_liste() -> void:
+	if _chercheur == null:
+		return
+	_connexion.afficher_salons(
+		ConnexionUi.fusionner(_chercheur.salons(), _salons_annuaire, Protocole.VERSION)
+	)
+
+
+func _adresse_de_l_annuaire() -> String:
+	if adresse_annuaire.is_valid():
+		return str(adresse_annuaire.call())
+	if DisplayServer.get_name() == "headless":
+		return ""
+	return Reglages.charger(chemin_reglages).annuaire_adresse
+
+
+## Seuls moments où l'annuaire est contacté : l'ouverture de « Rejoindre » et l'actualisation. Une
+## demande encore en vol n'est pas doublée (limite de débit du service).
+func _interroger_annuaire() -> void:
+	if _annuaire == null:
+		_annuaire = AnnuaireClient.new()
+		_annuaire.name = "Annuaire"
+		add_child(_annuaire)
+		_annuaire.liste_terminee.connect(_sur_liste_annuaire)
+	if _annuaire.liste_en_cours():
+		return
+	_annuaire.adresse = _adresse_de_l_annuaire()
+	_annuaire.lister()
+
+
+func _sur_liste_annuaire(etat: int, salons: Array[Dictionary]) -> void:
+	# Un refus de débit n'est pas une panne : l'annuaire marche, la dernière liste reste affichée.
+	if etat == AnnuaireClient.Etat.LIMITE:
+		return
+	_salons_annuaire = []
+	if etat == AnnuaireClient.Etat.OK:
+		_salons_annuaire = salons
+	_connexion.afficher_etat_annuaire(etat)
+	_afficher_liste()
 
 
 func _arreter_recherche() -> void:
+	_salons_annuaire = []
+	if _annuaire != null:
+		remove_child(_annuaire)
+		_annuaire.queue_free()
+		_annuaire = null
 	if _chercheur != null:
 		_chercheur.arreter()
 		remove_child(_chercheur)
@@ -332,6 +401,8 @@ func _nouvelle_session() -> SessionReseau:
 	_session.partie_demarree.connect(_sur_partie_demarree)
 	_session.connexion_perdue.connect(_sur_perte)
 	_session.tentative_upnp_terminee.connect(_sur_upnp)
+	_session.annonce_repondue.connect(_sur_reponse_annuaire)
+	_avertissements = {}
 	if fabrique_passerelle.is_valid():
 		_session.fabrique_passerelle = fabrique_passerelle
 	return _session
@@ -353,6 +424,9 @@ func _creer(nom_salon: String, port: int) -> void:
 		_connexion.afficher_erreur_creer(tr("MENU_ERREUR_DONNEES"))
 		return
 	var s := _nouvelle_session()
+	s.annuaire_adresse = _adresse_de_l_annuaire()
+	s.salon_public = _connexion.salon_public()
+	_enregistrer_salon_public(s.salon_public)
 	var code := s.heberger(d, port, nom_salon, _nom_joueur, port_decouverte, cibles_decouverte)
 	if code != OK:
 		_fermer_session()
@@ -364,6 +438,8 @@ func _creer(nom_salon: String, port: int) -> void:
 	_connexion.fermer()
 	_salon.afficher_infos(tr("SALON_ANNONCE_HOTE") % [nom_salon, port])
 	_salon.afficher_avertissement("")
+	if s.salon_public and not s.annuaire_adresse.is_empty() and not port_listable(port):
+		_avertir("annuaire", tr("CONNEXION_ANNUAIRE_PORT_BAS"))
 	_salon.afficher_attente()
 
 
@@ -388,7 +464,32 @@ func _rejoindre(adresse: String, port: int) -> void:
 
 ## La box a répondu : sans port ouvert, l'hôte le lit sur le salon (le réseau local fonctionne).
 func _sur_upnp(port_obtenu: int) -> void:
-	_salon.afficher_avertissement(tr("CONNEXION_UPNP_ECHEC") if port_obtenu == 0 else "")
+	_avertir("upnp", tr("CONNEXION_UPNP_ECHEC") if port_obtenu == 0 else "")
+
+
+## L'annuaire a jugé l'annonce : seuls les refus qui disent pourquoi la partie n'est pas listée
+## (port injoignable, autre version, annuaire plein) s'affichent ; un refus passager (débit,
+## sondes occupées) laisse la ligne telle quelle, une annonce acceptée l'efface.
+func _sur_reponse_annuaire(statut: int) -> void:
+	var cles := {
+		AnnuaireProtocole.Statut.VERSION_DIFFERENTE: "CONNEXION_ANNUAIRE_HOTE_INCOMPATIBLE",
+		AnnuaireProtocole.Statut.INJOIGNABLE: "CONNEXION_ANNUAIRE_HOTE_INJOIGNABLE",
+		AnnuaireProtocole.Statut.PLEIN: "CONNEXION_ANNUAIRE_HOTE_PLEIN",
+	}
+	if statut == AnnuaireProtocole.Statut.ACCEPTE:
+		_avertir("annuaire", "")
+	elif cles.has(statut):
+		_avertir("annuaire", tr(str(cles[statut])))
+
+
+func _avertir(origine: String, texte: String) -> void:
+	_avertissements[origine] = texte
+	var lignes := PackedStringArray()
+	for cle: String in ["upnp", "annuaire"]:
+		var ligne := str(_avertissements.get(cle, ""))
+		if not ligne.is_empty():
+			lignes.append(ligne)
+	_salon.afficher_avertissement("\n".join(lignes))
 
 
 func _sur_salon(s: Salon) -> void:
