@@ -21,6 +21,7 @@ Spécification : `docs/superpowers/specs/2026-11-24-jeu-tour-design.md`. Plan :
 | `tools/install-godot.sh`                                       | Installe Godot 4.7.2 (somme SHA-512 vérifiée)                              |
 | `tools/install-gdtoolkit.sh`                                   | Installe gdlint et gdformat 4.x dans un venv                               |
 | `godot --headless --path . --script res://tests/lanceur.gd --` | Lanceur de tests (`-- --filtre test_<fichier>` pour un test ciblé)         |
+| `tools/stress-import-csv.sh [--threads]`                       | Imports à froid en boucle, 400 CSV : rejoue le plantage de godot#125712    |
 
 ## Structure
 
@@ -86,4 +87,4 @@ privé, lu en direct). Ses lignes vivent dans sa base, pas dans la page :
 - `.gdlintrc` est en YAML (`max-line-length: 100`), pas en `clé=valeur` : sinon gdlint plante.
 - Le lanceur lance les tests au premier `process_frame`, arbre actif : `_ready`, RPC, `await` et `attendre_images(n)` fonctionnent. Une méthode `test_*` qui dépasse `delai_max` (10 s) échoue, et le moteur libère les nœuds qu'elle a ajoutés sous `arbre.root`. Toute erreur de script ou `push_error` la fait échouer ; `attendre_erreur(motif)` déclare une erreur voulue (Godot l'imprime quand même sur stderr).
 - Tout fichier écrit par un test va sous `dossier_temporaire()` ; tout port réseau est tiré à l'exécution (d'autres agents lancent leurs tests en même temps).
-- `godot --headless --path . --import` à froid plante parfois dans le moteur (« double free or corruption », code 134 ; une fois en CI le 25/11/2026, une fois sur environ 150 essais en local) : défaut de Godot 4.7.2, pas du projet. Une seule relance du job, signalée dans la PR.
+- Godot 4.7.2 importe les CSV de traduction en parallèle, et chaque import inscrit son `.translation` dans l'arbre de l'éditeur sans verrou (`EditorFileSystem::update_files`, godot#125712, sans correctif) : l'import à froid plantait au hasard (« double free or corruption », code 134 ou 139). Sur `ubuntu-latest` : 20 imports sur 60 (28 sur 60 sans les textures, 0 sur 60 sur un seul cœur), rarement en local. `textes_salon.csv` n'y est pour rien : c'est le premier libellé du groupe importé. D'où `editor/import/use_multiple_threads=false` dans `project.godot` (0 sur 300 en CI, +1 à 3 s par import à froid), gardé par `test_configuration_projet`. Ne le retirer qu'après `tools/stress-import-csv.sh --threads` (400 CSV, imports à froid en boucle) à 0 plantage sur un Godot plus récent.

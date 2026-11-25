@@ -1,11 +1,12 @@
 extends CasDeTest
 ## `project.godot` : chaque action d'entrée que l'interface réclame existe, chaque fichier de
-## textes est enregistré, et le français sert de langue par défaut.
+## textes est enregistré, le français sert de langue par défaut, et l'import reste sur un thread.
 
 const DOSSIER_UI := "res://ui"
 const DOSSIER_I18N := "res://i18n"
 const REPLI := "internationalization/locale/fallback"
 const TRADUCTIONS := "internationalization/locale/translations"
+const IMPORT_MULTITHREAD := "editor/import/use_multiple_threads"
 ## Les actions de `fin_ui.gd` sont des identifiants de boutons, pas des actions d'entrée.
 const FICHIERS_SANS_ACTIONS := ["fin_ui.gd"]
 const ACTIONS_ATTENDUES: Array[String] = [
@@ -77,6 +78,17 @@ func test_chaque_fichier_de_textes_est_enregistre() -> void:
 	for nom: String in csv:
 		var attendu := "%s/%s.fr.translation" % [DOSSIER_I18N, nom.get_basename()]
 		verifier_contient(enregistres, attendu, nom + " n'est pas enregistré")
+
+
+## Godot 4.7.2 importe les CSV de traduction en parallèle, et chaque import inscrit son
+## `.translation` dans l'arbre de l'éditeur sans verrou (`EditorFileSystem::update_files`) :
+## l'import à froid de la CI mourait sur « double free or corruption » (godot#125712).
+func test_l_import_a_froid_ne_lance_pas_les_csv_en_parallele() -> void:
+	verifier_egal(
+		ProjectSettings.get_setting(IMPORT_MULTITHREAD, true),
+		false,
+		IMPORT_MULTITHREAD + " doit rester à false : voir les pièges de CLAUDE.md"
+	)
 
 
 func test_le_francais_est_la_langue_par_defaut() -> void:

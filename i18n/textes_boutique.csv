@@ -28,3 +28,63 @@ BOUTIQUE_RESULTAT_ARENE_MORTE,Votre tour est tombée.
 BOUTIQUE_RESULTAT_INDICE_INVALIDE,Cet emplacement n’existe pas.
 BOUTIQUE_RESULTAT_NON_DISPONIBLE,Cette action n’est pas disponible.
 BOUTIQUE_RESULTAT_INCONNU,Action refusée.
+BOUTIQUE_EFFET_CIBLE_UNIQUE,%s dégâts toutes les %s s
+BOUTIQUE_EFFET_ZONE,%s dégâts toutes les %s s
+BOUTIQUE_EFFET_ZONE_RAYON,zone de %s
+BOUTIQUE_EFFET_REBOND,%s dégâts toutes les %s s
+BOUTIQUE_EFFET_REBOND_DETAIL,rebondit sur %s ennemis (−%s par rebond)
+BOUTIQUE_EFFET_BARRAGE,%s projectiles de %s dégâts toutes les %s s
+BOUTIQUE_EFFET_BARRAGE_DETAIL,zone de %s chacun
+BOUTIQUE_EFFET_ONDE,onde de %s dégâts toutes les %s s
+BOUTIQUE_EFFET_ONDE_DETAIL,rayon %s
+BOUTIQUE_EFFET_MINE,mine de %s dégâts posée toutes les %s s (%s au plus)
+BOUTIQUE_EFFET_MINE_DETAIL,zone de %s au sol
+BOUTIQUE_EFFET_PIEGE,piège de %s dégâts posé toutes les %s s (%s au plus)
+BOUTIQUE_EFFET_PIEGE_DETAIL,zone de %s au sol
+BOUTIQUE_EFFET_AURA,"%s dégâts toutes les %s s autour de la tour, rayon %s"
+BOUTIQUE_EFFET_PORTEE,portée %s
+BOUTIQUE_EFFET_CIBLAGE_PLUS_PROCHE,vise le plus proche
+BOUTIQUE_EFFET_CIBLAGE_PLUS_FORT,vise le plus de PV
+BOUTIQUE_EFFET_CIBLAGE_PLUS_FAIBLE,vise le moins de PV
+BOUTIQUE_EFFET_EFFICACITE,×%s contre %s
+BOUTIQUE_EFFET_ARMURE_LEGERE,armure légère
+BOUTIQUE_EFFET_ARMURE_MOYENNE,armure moyenne
+BOUTIQUE_EFFET_ARMURE_LOURDE,armure lourde
+BOUTIQUE_EFFET_ARMURE_FORTIFIEE,armure fortifiée
+BOUTIQUE_EFFET_ARMURE_AUCUNE,les ennemis sans armure
+BOUTIQUE_EFFET_ARMURE_BOSS,les boss
+BOUTIQUE_EFFET_POISON,poison : %s des dégâts en %s s
+BOUTIQUE_EFFET_BRULURE,brûlure : %s des dégâts en %s s
+BOUTIQUE_EFFET_GIVRE,"givre : −%s de vitesse par coup, gel de %s s après %s coups"
+BOUTIQUE_EFFET_ETOURDISSEMENT,étourdit %s s
+BOUTIQUE_EFFET_VOL_DE_VIE,vol de vie : %s des dégâts
+BOUTIQUE_EFFET_VOL_DE_VIE_MORT,chaque mort rend %s des PV max de l’ennemi
+BOUTIQUE_EFFET_DEGATS_TYPE,+%s de dégâts %s
+BOUTIQUE_EFFET_DEGATS_GLOBAL,+%s de dégâts de toutes les armes
+BOUTIQUE_EFFET_RANG,"rang %s : s’additionne aux autres %s, se multiplie aux autres rangs"
+BOUTIQUE_EFFET_TYPE_TRANCHANT,tranchants
+BOUTIQUE_EFFET_TYPE_PERCANT,perçants
+BOUTIQUE_EFFET_TYPE_MAGIQUE,magiques
+BOUTIQUE_EFFET_TYPE_SIEGE,de siège
+BOUTIQUE_EFFET_TYPE_CHAOS,du chaos
+BOUTIQUE_EFFET_PV_MAX,+%s PV max pour la tour
+BOUTIQUE_EFFET_REGEN,régénère %s PV par seconde
+BOUTIQUE_EFFET_ARMURE,"+%s d’armure : −%s de dégâts reçus, rendement décroissant"
+BOUTIQUE_EFFET_ESQUIVE,"évite %s des attaques reçues, rendement décroissant"
+BOUTIQUE_EFFET_EPINES,renvoie %s des dégâts de chaque attaque au corps à corps à l’assaillant
+BOUTIQUE_EFFET_CRITIQUE,+%s de chance de coup critique : dégâts ×%s (par paliers de %s)
+BOUTIQUE_EFFET_CADENCE,+%s de cadence : recharge des armes divisée par %s
+BOUTIQUE_EFFET_TIRS_UN,"+%s tir par salve sur une autre cible, sauf ondes, mines, pièges et auras"
+BOUTIQUE_EFFET_TIRS_PLUSIEURS,"+%s tirs par salve sur d’autres cibles, sauf ondes, mines, pièges et auras"
+BOUTIQUE_EFFET_ECLABOUSSURE,armes à cible unique : %s des dégâts aussi aux ennemis à moins de %s de la cible
+BOUTIQUE_EFFET_FOCALISATION,"armes à cible unique : +%s de dégâts par tir, sans effet sur les autres armes"
+BOUTIQUE_EFFET_VOL_DE_VIE_COUP,chaque coup rend à la tour %s des dégâts infligés
+BOUTIQUE_EFFET_VOL_DE_VIE_MORT_PV,chaque ennemi tué par un coup rend %s PV à la tour (hors poison et brûlure)
+BOUTIQUE_EFFET_REVENU_FIXE,+%s or toutes les %s s
+BOUTIQUE_EFFET_REVENU_CROISSANT,+%s or par versement (toutes les %s s) pour chaque minute de partie écoulée
+BOUTIQUE_EFFET_REVENU_MULT,"+%s sur le revenu acheté (fixe et croissant), pas sur le revenu de base"
+BOUTIQUE_EFFET_PRIME,"+%s d’or pour chaque ennemi tué, s’additionne aux autres primes"
+BOUTIQUE_EFFET_BONUS_ELIM,+%s or tous les %s ennemis tués
+BOUTIQUE_EFFET_RELANCE_UNE,%s relance gratuite de la boutique par manche
+BOUTIQUE_EFFET_RELANCE_PLUSIEURS,%s relances gratuites de la boutique par manche
+BOUTIQUE_EFFET_MARCHE_NOIR,"ouvre un choix gratuit d’une amélioration, jusqu’à la rareté %s"

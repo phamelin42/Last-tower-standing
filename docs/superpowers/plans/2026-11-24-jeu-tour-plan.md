@@ -90,6 +90,7 @@ var ennemis_famille: PackedByteArray
 var ennemis_pv: PackedByteArray     # ratio × 255
 var ennemis_statuts: PackedByteArray  # bits Types.STATUT_*
 var evenements: Array[Dictionary]   # depuis la vue précédente : {k: "tir"|"impact"|"mort", t: int (tick), de: Vector2, vers: Vector2, type_degats: int, rayon: float}
+# 2026-11-25 (T5.3b) : tir et impact portent aussi, facultatifs, `genre: int` (index dans `VueArene.GENRES_ARME`, 0 = aucun) et `statut: int` (index dans `VueArene.STATUTS_ARME`, 0 = aucun) ; une mort n'en a pas. Protocole version 3 : 12 octets par événement.
 var eliminations: int; var degats_infliges: float; var manche_max: int
 func to_dict() -> Dictionary
 static func from_dict(d: Dictionary) -> VueArene   # null si champ manquant ou de mauvais type
@@ -798,6 +799,9 @@ crédité dans `CREDITS.md` (le crédit est facultatif en CC0, mais on cite touj
       (`SourceVue`, interpolation). Performance : 1 000 ennemis visibles sans chute sous 60 images/s
       (pool de sprites ou `MultiMeshInstance2D` avec atlas animé par nuanceur), mesurée. Captures de
       contrôle aux trois résolutions.
+      **Fait, fusionné par la PR #7** : unités à ×1,9, tour à ×2,1, ennemi translucide devant la tour,
+      images recadrées. Reste la preuve des 60 images/s : 22,6 images/s en rendu logiciel sous Xvfb,
+      à mesurer sur une vraie carte graphique.
 
 ### Task 5.2 : Terrain et décor — `sonnet`
 
@@ -806,14 +810,27 @@ crédité dans `CREDITS.md` (le crédit est facultatif en CC0, mais on cite touj
 
 ### Task 5.3 : Effets — `haiku`
 
-- [ ] **Objectif :** tirs, impacts, morts et explosions avec les effets du pack, par type de dégâts,
+- [x] **Objectif :** tirs, impacts, morts et explosions avec les effets du pack, par type de dégâts,
       plafond d’effets conservé.
+      **Fait, fusionné par la PR #7**, en `sonnet` (rendu à juger). Les événements ne portaient ni le genre
+      d’arme ni le statut : voir T5.3b.
+
+### Task 5.3b : Genre d’arme et statut dans les événements de tir — `sonnet`
+
+- [x] **Objectif :** `sim/tir.gd` ajoute à chaque événement le genre de l’effet d’arme et le statut
+      posé ; `SCHEMA_EVENEMENT` et le protocole binaire les transportent (version augmentée) ;
+      `Effets2D` les lit au lieu de deviner. Sans cela, mines, pièges et statuts ne s’affichent pas en
+      partie.
+      **Fait (25/11/2026)** : protocole en version 3, un octet de plus par événement (genre et statut
+      sur 4 bits chacun), champs facultatifs (une mort n’a pas d’arme).
 
 ### Task 5.4 : Interface aux couleurs du pack — `sonnet`
 
-- [ ] **Objectif :** le thème de l’interface reprend les éléments du pack (bannières, boutons,
+- [x] **Objectif :** le thème de l’interface reprend les éléments du pack (bannières, boutons,
       rubans) s’ils sont dans la version CC0, avec une police libre (OFL) ; contrastes AA et tests de
       mise en page conservés.
+      **Fait, fusionné par la PR #7** : boutons, bannières et rubans du pack, police Tiny5 (OFL) avec
+      repli DejaVu Sans pour les symboles.
 
 ### Task 5.5 : Bascule et nettoyage — `sonnet`
 
@@ -829,11 +846,32 @@ crédité dans `CREDITS.md` (le crédit est facultatif en CC0, mais on cite touj
 
 ### Task 5.7 : Sprite maison de l’unité volante — `sonnet`
 
-- [ ] **Objectif :** les « Mites de laiton » n’ont aucun sprite dans le pack. Dessiner, par un
+- [x] **Objectif :** les « Mites de laiton » n’ont aucun sprite dans le pack. Dessiner, par un
       script versionné (`tools/`), une feuille de vol (6 images) et de mort dans le style du pack :
       contour, palette du pack, ombre détachée du corps. Publiée sous CC0 avec le jeu et listée dans
       `CREDITS.md` comme faite par nous. Elle remplace le gobelin violet ×0,7 de T5.1. Planche relue
       par Phil.
+      **Fait (25/11/2026)** : `tools/dessiner_guepe.gd` et `assets/maison/guepe_de_laiton.png`. Le
+      dessin se lit comme une guêpe : Phil a renommé la famille « Guêpes de laiton ».
+
+### Task 5.8 : Images des offres — `sonnet`
+
+Conception : `docs/superpowers/specs/2026-11-25-boutique-decor-design.md`, section 1 (demande de Phil du
+25/11/2026).
+
+- [x] **T5.8a, objectif :** une image peinte par offre, dans une case colorée par type « comme sur
+      Warcraft », depuis les packs Ravenmore (CC BY 3.0) et LudicArts (CC BY 3.0), composée par
+      `tools/composer_images_offres.gd`, correspondance dans `visuels/images_offres.gd`. **Fait** :
+      planche validée par Phil, 17 images approchantes (voir les suivis).
+- [ ] **T5.8b, objectif :** afficher ces images dans la carte de la boutique, les armes équipées et
+      le marché noir, sans casser la mise en page.
+
+### Task 5.9 : Descriptions des offres — `sonnet`
+
+- [x] **Objectif :** chaque offre affiche une ligne d’effet générée depuis `data/` (chiffres exacts,
+      `ui/description_offre.gd`) puis une phrase d’ambiance originale. Les 70 phrases sont réécrites.
+      **Fait (25/11/2026)** : le ciblage par défaut (le plus proche) n’est pas écrit ; sous 700 px
+      de haut, l’ambiance passe dans l’infobulle.
 
 ---
 
@@ -942,4 +980,11 @@ avant l'écran « Rejoindre »).
   autres par la liste ; un vrai retour sans reconnexion demande `Client.retourner_au_salon()`.
 - **Annuaire** : lot 7, lancé le 25/11/2026 en parallèle du lot 5 ; ADR validé le 25/11/2026, T7.3 en
   dernier (décision de Phil).
+- **Images des offres** : 17 offres sur 70 ont une image approchante (Ravenmore et LudicArts n’ont
+  pas leur objet : sablier, tirelire, trébuchet…), validée telle quelle par Phil le 25/11/2026. Liste
+  dans `ImagesOffres.RAPPROCHEMENTS_FAIBLES` ; à reprendre si un pack peint gratuit les a.
+- **Règles de la simulation à vérifier** (relevées en écrivant les descriptions, T5.9) : le givre ne
+  gèle qu’au 8e coup, donc son plafond de 60 % est inatteignable ; les épines ne renvoient que le corps
+  à corps ; les morts par poison ou brûlure ne soignent pas ; `revenu_mult` ne multiplie pas le revenu
+  de base ; l’aura ignore `portee` et `recharge`.
 - **Lots 3 et 4** : terminés (T3.7, T4.3, T4.5 et T4.6 fusionnés par la PR #2).

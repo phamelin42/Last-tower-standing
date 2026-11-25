@@ -14,6 +14,10 @@ gdscript/warnings/untyped_declaration=2
 gdscript/warnings/unsafe_method_access=2
 gdscript/warnings/unsafe_property_access=2
 
+[editor]
+
+import/use_multiple_threads=false
+
 [input]
 
 afficher_scores={

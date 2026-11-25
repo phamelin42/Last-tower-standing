@@ -9,7 +9,7 @@ signal retour_menu(motif: String)
 ## En réseau, l'écran de fin propose « Retour au salon » à la place de « Rejouer ».
 signal retour_salon
 
-const SCENE_ARENE := "res://scenes/arene_3d.tscn"
+const SCENE_ARENE := "res://scenes/arene_2d.tscn"
 ## Un cran de molette déplace le zoom de ce pas, multiplié par la sensibilité des réglages.
 const PAS_ZOOM := 0.05
 const ACTION_MENU := "menu_jeu"
@@ -24,8 +24,9 @@ var nom_joueur: String = ""
 var source: SourceVue = null
 ## Vrai quand la source est un `Client` fourni de l'extérieur (jamais libéré par `Jeu`).
 var en_reseau: bool = false
-var arene: Arene3D = null
-var camera: CameraArene = null
+var arene: Arene2D = null
+var camera: CameraArene2D = null
+var _sons: LecteurSons = null
 
 var _donnees: Donnees = null
 var _facteur: float = 1.0
@@ -67,7 +68,7 @@ static func appliquer_fenetre(fenetre: Window, r: Reglages) -> void:
 
 
 func _ready() -> void:
-	_racine.theme = ThemeJeu.creer()
+	ThemeJeu.appliquer(_racine)
 	# Hors du sol de l'arène, le fond reprend l'encre de l'interface plutôt que le gris par défaut.
 	RenderingServer.set_default_clear_color(ThemeJeu.JAUGE_FOND)
 	fin.visible = false
@@ -77,6 +78,9 @@ func _ready() -> void:
 	fin.quitter.connect(_demander_menu)
 	fin.observer.connect(_observer)
 	fin.continuer_sans_fin.connect(_continuer_sans_fin)
+	_sons = LecteurSons.new()
+	_sons.name = "Sons"
+	add_child(_sons)
 	_placer()
 
 
@@ -88,6 +92,7 @@ func demarrer_solo(donnees: Donnees, graine: int, facteur_duree: float) -> bool:
 	_donnees = donnees
 	_facteur = facteur_duree
 	_appliquer_reglages()
+	_sons.demarrer_ambiance()
 	if source == null:
 		source = SourceLocale.new()
 		source.name = "Source"
@@ -104,6 +109,7 @@ func demarrer_reseau(donnees: Donnees, src: SourceVue) -> bool:
 	_donnees = donnees
 	en_reseau = true
 	_appliquer_reglages()
+	_sons.demarrer_ambiance()
 	source = src
 	_brancher(src)
 	_monter()
@@ -137,11 +143,11 @@ func _lancer(graine: int) -> bool:
 func _monter() -> void:
 	_vider_ecran()
 	if arene == null:
-		arene = (load(SCENE_ARENE) as PackedScene).instantiate() as Arene3D
+		arene = (load(SCENE_ARENE) as PackedScene).instantiate() as Arene2D
 		arene.donnees = _donnees
 		add_child(arene)
 		move_child(arene, 0)
-		camera = arene.find_children("*", "CameraArene", true, false)[0] as CameraArene
+		camera = arene.find_children("*", "CameraArene2D", true, false)[0] as CameraArene2D
 		arene.lier(source)
 	arene.reinitialiser()
 	hud.configurer(_donnees)
@@ -153,6 +159,7 @@ func _appliquer_reglages() -> void:
 	var r := Reglages.charger(chemin_reglages)
 	_sensibilite = r.sensibilite_zoom
 	appliquer_fenetre(get_window(), r)
+	BusAudio.appliquer_volume(r.volume_general)
 
 
 ## Remet l'écran comme au premier instant d'une partie.
@@ -172,6 +179,7 @@ func _vider_ecran() -> void:
 
 func _sur_arene(vue: VueArene) -> void:
 	_derniere_vue = vue
+	_sons.traiter(vue)
 	hud.afficher(vue)
 	boutique.afficher(vue)
 	boutique.visible = _boutique_active()
@@ -183,6 +191,7 @@ func _sur_arene(vue: VueArene) -> void:
 
 func _sur_globale(vue: VueGlobale) -> void:
 	_globale = vue
+	_nommer_tour(vue)
 	scores.afficher(vue, source.id_local())
 	if vue.termine and not _fin_affichee:
 		_montrer_fin(_a_gagne(vue))
@@ -192,6 +201,19 @@ func _sur_globale(vue: VueGlobale) -> void:
 	if _observe:
 		observation.afficher(vue, source.id_local(), source.cible_observee())
 	_placer()
+
+
+## La tour affichée est celle du joueur observé : sa couleur suit sa place dans la liste (la même
+## pour tous les spectateurs) et son nom est écrit dessous.
+func _nommer_tour(vue: VueGlobale) -> void:
+	if arene == null or source == null:
+		return
+	var cible: int = source.cible_observee()
+	for i: int in vue.joueurs.size():
+		var joueur: Dictionary = vue.joueurs[i]
+		if int(joueur["id"]) == cible:
+			arene.definir_joueur(i + 1, String(joueur["nom"]))
+			return
 
 
 func _a_gagne(vue: VueGlobale) -> bool:
@@ -313,8 +335,14 @@ func _unhandled_input(event: InputEvent) -> void:
 		_basculer_pause()
 		get_viewport().set_input_as_handled()
 		return
+	if camera == null:
+		return
+	var pincement := event as InputEventMagnifyGesture
+	if pincement != null:
+		camera.zoomer_facteur(pincement.factor)
+		return
 	var molette := event as InputEventMouseButton
-	if molette == null or not molette.pressed or camera == null:
+	if molette == null or not molette.pressed:
 		return
 	if molette.button_index == MOUSE_BUTTON_WHEEL_UP:
 		camera.zoomer(-PAS_ZOOM * _sensibilite)
