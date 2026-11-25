@@ -21,7 +21,6 @@ const RAYON_MIN := 150.0
 const RAYON_MAX := 1300.0
 const RAYON_ARRET := 120.0
 const VITESSE_APPROCHE := 30.0
-const DERIVE_RAD_S := 0.04
 ## Graine fixe : deux bancs voient la même foule, donc des mesures comparables.
 const GRAINE := 7
 const HAUTEUR_BANDEAU := 56.0
@@ -44,6 +43,10 @@ var _resume: Dictionary = {}
 var _echantillons: PackedFloat32Array = PackedFloat32Array()
 var _dernier_ips: float = 0.0
 var _angles: PackedFloat32Array = PackedFloat32Array()
+var _ids: PackedInt32Array = PackedInt32Array()
+var _prochain_id: int = 1
+var _temps_vue: float = 0.0
+var _hasard := RandomNumberGenerator.new()
 var _rayons: PackedFloat32Array = PackedFloat32Array()
 var _familles: PackedByteArray = PackedByteArray()
 var _camera: CameraArene2D = null
@@ -148,20 +151,49 @@ func _terminer() -> void:
 
 
 func _tirer_la_foule() -> void:
-	var rng := RandomNumberGenerator.new()
-	rng.seed = GRAINE
+	_hasard.seed = GRAINE
 	var nb_familles: int = _donnees.familles.size()
 	_angles.resize(_nombre)
 	_rayons.resize(_nombre)
 	_familles.resize(_nombre)
+	_ids.resize(_nombre)
 	for i: int in _nombre:
-		_angles[i] = rng.randf() * TAU
-		_rayons[i] = rng.randf_range(RAYON_MIN, RAYON_MAX)
+		_angles[i] = _hasard.randf() * TAU
+		_rayons[i] = _hasard.randf_range(RAYON_MIN, RAYON_MAX)
 		# Les familles se suivent en tourniquet : toutes sont là dès 8 ennemis.
 		_familles[i] = i % nb_familles
+		_ids[i] = _prochain_id
+		_prochain_id += 1
+
+
+## Rayon et angle courants des ennemis, pour les tests et les captures.
+func rayons_courants() -> PackedFloat32Array:
+	return _rayons.duplicate()
+
+
+func angles_courants() -> PackedFloat32Array:
+	return _angles.duplicate()
+
+
+## Fait avancer chaque ennemi de la durée écoulée depuis la vue précédente. Celui qui atteint la
+## tour réapparaît sur le cercle d'apparition, à un angle tiré de la graine, avec un identifiant
+## neuf (comme un nouvel ennemi de la simulation : la vue ne le fait pas glisser d'un bord à
+## l'autre). Le champ reste réparti, comme en partie, pendant toute la mesure.
+func _faire_avancer() -> void:
+	var pas: float = _temps - _temps_vue
+	_temps_vue = _temps
+	for i: int in _nombre:
+		var r: float = _rayons[i] - VITESSE_APPROCHE * pas
+		if r <= RAYON_ARRET:
+			r = RAYON_MAX
+			_angles[i] = _hasard.randf() * TAU
+			_ids[i] = _prochain_id
+			_prochain_id += 1
+		_rayons[i] = r
 
 
 func _emettre_vue() -> void:
+	_faire_avancer()
 	_tick += 1
 	var v := VueArene.new()
 	v.tick = _tick
@@ -171,9 +203,8 @@ func _emettre_vue() -> void:
 	v.ennemis_pv.resize(_nombre)
 	v.ennemis_statuts.resize(_nombre)
 	for i: int in _nombre:
-		var r: float = maxf(RAYON_ARRET, _rayons[i] - VITESSE_APPROCHE * _temps)
-		v.ennemis_id[i] = i + 1
-		v.ennemis_pos[i] = Vector2.from_angle(_angles[i] + DERIVE_RAD_S * _temps) * r
+		v.ennemis_id[i] = _ids[i]
+		v.ennemis_pos[i] = Vector2.from_angle(_angles[i]) * _rayons[i]
 		v.ennemis_famille[i] = _familles[i]
 		v.ennemis_pv[i] = PV_PLEINS
 		v.ennemis_statuts[i] = 0

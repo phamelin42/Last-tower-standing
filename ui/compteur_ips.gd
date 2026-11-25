@@ -12,8 +12,13 @@ const ACTION := "afficher_ips"
 const CLE_TEXTE := "IPS_COMPTEUR"
 const FENETRE_S := 5.0
 const PERIODE_S := 0.25
-## Le compteur du moteur ne vaut rien avant une seconde pleine : on ne retient rien avant.
-const CHAUFFE_S := 1.0
+## Après chaque (ré)affichage ou reprise, le compteur du moteur donne 1 ou 2 img/s tant qu'une
+## seconde pleine ne s'est pas écoulée sous nos yeux : rien n'est retenu pendant ce temps (deux
+## secondes, pour que la seconde mesurée soit entièrement postérieure au départ).
+const CHAUFFE_S := 2.0
+## Une image plus longue que cela est une pause ou un blocage : la fenêtre repart de zéro.
+const ECART_MAX_S := 1.0
+const MINIMUM_INCONNU := "…"
 const TAILLE_TEXTE := 16
 const MARGE := 8.0
 ## Sous la barre du HUD (≈ 60 px), pour ne la recouvrir à aucune échelle d'interface.
@@ -22,9 +27,13 @@ const MARGE_CADRE := 6
 
 ## Nombre d'ennemis à afficher ; sans fournisseur, 0.
 var fournisseur_ennemis: Callable = Callable()
+## Mesure du moteur ; les tests la remplacent.
+var source_ips: Callable = Callable()
 
 var _temps: float = 0.0
 var _reste: float = 0.0
+## Secondes écoulées depuis le dernier départ propre de la fenêtre.
+var _calme: float = 0.0
 var _dates: PackedFloat64Array = PackedFloat64Array()
 var _valeurs: PackedFloat32Array = PackedFloat32Array()
 var _cadre: PanelContainer = null
@@ -110,27 +119,56 @@ func texte() -> String:
 		tr(CLE_TEXTE)
 		% [
 			Nombres.groupe(roundi(ips_courant())),
-			Nombres.groupe(roundi(minimum())),
+			Nombres.groupe(roundi(minimum())) if not _valeurs.is_empty() else MINIMUM_INCONNU,
 			Nombres.groupe(ennemis),
 		]
 	)
 
 
 func definir_visible(voulu: bool) -> void:
+	if voulu and not visible:
+		_recommencer()
 	visible = voulu
 	_rafraichir()
 
 
+## Vide la fenêtre : les mesures d'avant (démarrage, masquage, pause) ne disent rien du présent.
+func _recommencer() -> void:
+	_dates = PackedFloat64Array()
+	_valeurs = PackedFloat32Array()
+	_reste = 0.0
+	_calme = 0.0
+
+
+func _notification(quoi: int) -> void:
+	if quoi == NOTIFICATION_UNPAUSED:
+		_recommencer()
+
+
 func _process(delta: float) -> void:
+	if not is_visible_in_tree():
+		# Masqué, le compteur ne mesure rien : il repartira propre à l'affichage.
+		_calme = 0.0
+		return
+	if delta > ECART_MAX_S:
+		_recommencer()
+		return
 	_temps += delta
 	_reste += delta
+	_calme += delta
 	if _reste < PERIODE_S:
 		return
 	_reste -= PERIODE_S
-	if _temps >= CHAUFFE_S:
-		mesurer(_temps, Engine.get_frames_per_second())
+	if _calme >= CHAUFFE_S:
+		mesurer(_temps, _lire_ips())
 	else:
 		_rafraichir()
+
+
+func _lire_ips() -> float:
+	if source_ips.is_valid():
+		return float(source_ips.call())
+	return Engine.get_frames_per_second()
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -140,7 +178,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	get_viewport().set_input_as_handled()
 
 
-## Le texte n'est recomposé que s'il se voit : masqué, le compteur ne fait que prendre ses mesures.
+## Le texte n'est recomposé que s'il se voit.
 func _rafraichir() -> void:
 	if visible and _etiquette != null:
 		_etiquette.text = texte()

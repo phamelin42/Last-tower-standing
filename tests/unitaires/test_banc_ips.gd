@@ -156,6 +156,58 @@ func _distance_moyenne(banc: BancIps) -> float:
 	return somme / float(maxi(1, compte))
 
 
+func _dispersion(rayons: PackedFloat32Array) -> float:
+	var somme := 0.0
+	for r: float in rayons:
+		somme += r
+	var moyenne := somme / float(rayons.size())
+	var variance := 0.0
+	for r: float in rayons:
+		variance += (r - moyenne) * (r - moyenne)
+	return sqrt(variance / float(rayons.size()))
+
+
+func test_apres_trente_secondes_les_ennemis_restent_repartis() -> void:
+	var banc := _banc_avec(1000, 1000.0, true)
+	var depart := banc.rayons_courants()
+	var dispersion_depart := _dispersion(depart)
+	for i: int in 600:
+		banc.avancer(0.05, 60.0)
+	var rayons := banc.rayons_courants()
+	verifier_egal(rayons.size(), 1000)
+	var proches := 0
+	for r: float in rayons:
+		verifier(
+			r >= BancIps.RAYON_ARRET - 0.001 and r <= BancIps.RAYON_MAX + 0.001, "rayon %s" % r
+		)
+		if r < 150.0:
+			proches += 1
+	verifier(proches < 100, "%d ennemis sur 1000 à moins de 150 unités de la tour" % proches)
+	verifier(
+		_dispersion(rayons) > 0.7 * dispersion_depart,
+		"dispersion %s contre %s au départ" % [_dispersion(rayons), dispersion_depart]
+	)
+
+
+func test_un_ennemi_arrive_reapparait_sur_le_cercle_avec_un_autre_angle() -> void:
+	var banc := _banc_avec(200, 1000.0, true)
+	var angles_depart := banc.angles_courants()
+	var vus_au_bord := 0
+	for i: int in 700:
+		banc.avancer(0.05, 60.0)
+	var angles := banc.angles_courants()
+	var rayons := banc.rayons_courants()
+	for i: int in rayons.size():
+		if rayons[i] > BancIps.RAYON_MAX - 100.0:
+			vus_au_bord += 1
+	verifier(vus_au_bord > 0, "des ennemis sont repartis du cercle d'apparition")
+	var changes := 0
+	for i: int in angles.size():
+		if absf(angles[i] - angles_depart[i]) > 0.5:
+			changes += 1
+	verifier(changes > 0, "les ennemis réapparus ont un angle neuf")
+
+
 func test_le_banc_n_ouvre_aucune_partie_ni_reseau() -> void:
 	var banc := _banc_avec(10)
 	for noeud: Node in banc.find_children("*", "", true, false):

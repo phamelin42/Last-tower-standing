@@ -67,14 +67,85 @@ func test_une_chute_recente_reste_visible_jusqu_a_cinq_secondes() -> void:
 
 func test_la_mise_a_jour_se_fait_environ_quatre_fois_par_seconde() -> void:
 	var c := _creer()
-	# Le compteur du moteur n'est fiable qu'après une seconde : rien n'est retenu avant.
-	for i: int in 19:
+	c.definir_visible(true)
+	c.source_ips = func() -> float: return 60.0
+	# Rien n'est retenu pendant la chauffe, puis une mesure tous les 0,25 s.
+	for i: int in 39:
 		c._process(0.05)
-	verifier_egal(c.nombre_mesures(), 0, "pas de mesure pendant la première seconde")
+	verifier_egal(c.nombre_mesures(), 0, "pas de mesure pendant la chauffe")
 	for i: int in 41:
 		c._process(0.05)
-	# 2 s de mesures, une tous les 0,25 s.
+	# 4 s de vie, 2 s de chauffe : 2 s de mesures.
 	verifier(c.nombre_mesures() >= 7 and c.nombre_mesures() <= 9, "%d mesures" % c.nombre_mesures())
+
+
+## Le compteur du moteur donne 1 ou 2 img/s au démarrage : ce chiffre ne doit jamais entrer dans
+## le minimum.
+func _faux_depart(c: CompteurIps, duree_faux: float, pas: float, restant: float) -> void:
+	var horloge := [0.0]
+	c.source_ips = func() -> float: return 1.0 if horloge[0] < duree_faux else 60.0
+	var t := 0.0
+	while t < restant:
+		c._process(pas)
+		t += pas
+		horloge[0] = t
+
+
+func test_le_chiffre_de_demarrage_n_entre_pas_dans_le_minimum() -> void:
+	var c := _creer()
+	c.definir_visible(true)
+	_faux_depart(c, 1.9, 0.05, 6.0)
+	verifier_proche(c.minimum(), 60.0, 0.001, "la valeur du démarrage (1) est écartée")
+
+
+func test_la_fenetre_repart_propre_quand_le_compteur_est_affiche_plus_tard() -> void:
+	var c := _creer()
+	c.source_ips = func() -> float: return 60.0
+	for i: int in 100:
+		c._process(0.05)
+	verifier_egal(c.nombre_mesures(), 0, "masqué : aucune mesure")
+	c.definir_visible(true)
+	_faux_depart(c, 1.9, 0.05, 6.0)
+	verifier_proche(c.minimum(), 60.0, 0.001, "le premier affichage ne compte pas non plus")
+
+
+func test_la_fenetre_repart_propre_apres_un_masquage() -> void:
+	var c := _creer()
+	c.definir_visible(true)
+	c.source_ips = func() -> float: return 10.0
+	for i: int in 80:
+		c._process(0.05)
+	verifier_proche(c.minimum(), 10.0, 0.001, "mesures basses prises en route")
+	c.definir_visible(false)
+	c.definir_visible(true)
+	verifier_egal(c.nombre_mesures(), 0, "la fenêtre est vidée à la réaffichage")
+	_faux_depart(c, 1.9, 0.05, 6.0)
+	verifier_proche(c.minimum(), 60.0, 0.001)
+
+
+func test_la_fenetre_repart_propre_apres_une_pause() -> void:
+	var c := _creer()
+	c.definir_visible(true)
+	c.source_ips = func() -> float: return 10.0
+	for i: int in 80:
+		c._process(0.05)
+	verifier(c.nombre_mesures() > 0)
+	c.notification(Node.NOTIFICATION_UNPAUSED)
+	verifier_egal(c.nombre_mesures(), 0, "reprise après pause : fenêtre vidée")
+	c.source_ips = func() -> float: return 60.0
+	for i: int in 80:
+		c._process(0.05)
+	verifier_proche(c.minimum(), 60.0, 0.001, "les mesures d'avant la pause ne comptent plus")
+
+
+func test_un_long_arret_de_l_horloge_vide_la_fenetre() -> void:
+	var c := _creer()
+	c.definir_visible(true)
+	c.source_ips = func() -> float: return 10.0
+	for i: int in 80:
+		c._process(0.05)
+	c._process(3.0)
+	verifier_egal(c.nombre_mesures(), 0, "une image de 3 s : la fenêtre repart")
 
 
 # --- Le texte -----------------------------------------------------------------------------------
@@ -189,8 +260,8 @@ func test_le_lacher_de_la_touche_et_la_repetition_ne_basculent_pas() -> void:
 
 func test_le_compteur_affiche_son_texte_une_fois_visible() -> void:
 	var c := _creer()
-	c.mesurer(0.0, 55.0)
 	c.definir_visible(true)
+	c.mesurer(0.0, 55.0)
 	verifier(c.etiquette().text.begins_with("55" + NBSP + "img/s"), c.etiquette().text)
 
 
