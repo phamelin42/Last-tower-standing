@@ -631,7 +631,7 @@ func test_chaque_genre_d_intention_renvoie_son_code_au_seul_expediteur() -> void
 		Protocole.Intention.OBSERVER: Types.Resultat.INDICE_INVALIDE,
 		Protocole.Intention.PRET: Types.Resultat.MAUVAISE_PHASE,
 		Protocole.Intention.OPTIONS: Types.Resultat.MAUVAISE_PHASE,
-		Protocole.Intention.SANS_FIN: Types.Resultat.NON_DISPONIBLE,
+		Protocole.Intention.SANS_FIN: Types.Resultat.MAUVAISE_PHASE,
 	}
 	for genre: int in genres:
 		for k: int in 2:
