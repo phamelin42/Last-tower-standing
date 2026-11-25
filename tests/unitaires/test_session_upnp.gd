@@ -182,3 +182,20 @@ func test_sans_passerelle_fournie_aucune_redirection_n_est_tentee() -> void:
 	_sessions.append(s)
 	verifier_egal(_heberger(s, _port_libre()), OK)
 	verifier_nul(s.upnp)
+
+
+func test_quitter_avec_une_box_lente_ne_fige_pas_et_referme_le_port_ensuite() -> void:
+	var box := TestUpnp.Double.new()
+	box.barrage = Semaphore.new()
+	var s := _session(box)
+	var port := _port_libre()
+	_heberger(s, port)
+	box.entree.wait()
+	s.upnp.delai_fermeture = 0.1
+	var debut := Time.get_ticks_msec()
+	s.fermer()
+	verifier(Time.get_ticks_msec() - debut < 1500, "quitter ne bloque pas sur une box muette")
+	verifier_nul(s.upnp, "le nœud est déjà libéré, le fil tourne encore")
+	box.barrage.post()
+	verifier(await _jusqua(func() -> bool: return UpnpHote.fils_abandonnes() == 0))
+	verifier_egal(box.appels_suppression, [port], "la redirection ouverte tard est refermée")
