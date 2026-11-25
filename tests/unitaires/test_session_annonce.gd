@@ -139,9 +139,17 @@ func test_sans_passerelle_du_tout_l_annonce_part_quand_meme() -> void:
 	s.salon_public = true
 	arbre.root.add_child(s)
 	_sessions.append(s)
+	var enregistres: Array[int] = [0]
+	s.hote_enregistre.connect(func() -> void: enregistres[0] += 1)
 	var port := _port_libre()
 	_heberger(s, port)
+	# Sans box, UPnP est « terminée » d'emblée : seule l'absence d'hôte enregistré retient encore
+	# l'annonce (ADR, Rôle d'hôte, point 2), tant que le client local n'a pas dit bonjour.
+	verifier_egal(enregistres[0], 0, "l'hôte n'est pas encore enregistré")
+	verifier_nul(s.annuaire, "aucun annonceur avant l'hôte enregistré")
+	verifier_egal(_fausse.lancees.size(), 0, "aucune annonce avant l'hôte enregistré")
 	verifier(await _jusqua(func() -> bool: return _fausse.lancees.size() >= 1))
+	verifier_egal(enregistres[0], 1, "l'annonce n'est partie qu'une fois l'hôte enregistré")
 	verifier_egal(_fausse.lancees[0]["port"], port)
 
 
