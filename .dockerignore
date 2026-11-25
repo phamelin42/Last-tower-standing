@@ -1,0 +1,8 @@
+# Contexte de la construction de l'annuaire (service-annuaire/Dockerfile) : le jeu entier est copié,
+# sauf ce que le service n'exécute jamais.
+.git
+.godot
+.claude
+.superpowers
+tests/
+docs/

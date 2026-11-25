@@ -911,7 +911,7 @@ avant l'écran « Rejoindre »).
 
 ### Task 7.1 : Service d'annuaire — `sonnet`
 
-- [ ] **Objectif :** le service et ses tests (décodage défensif avec fuzz, expiration, limite de
+- [x] **Objectif :** le service et ses tests (décodage défensif avec fuzz, expiration, limite de
       débit, IP vue et non déclarée, vérification de joignabilité simulée), plus son `Dockerfile`.
 - **Lire :** `docs/adr-001-annuaire.md` (Protocole, Joignabilité, Limites de débit et de mémoire, Ordre
   des contrôles, Déploiement, Fichiers et tâches).
