@@ -12,6 +12,8 @@ const CODE_DONNEES: int = 2
 const CODE_PORT: int = 3
 const OPTION_ACCELERATION: String = "--acceleration"
 const OPTION_QUITTER: String = "--quitter-a-la-fin"
+## Attente avant de quitter, quand des joueurs sont connectés, pour que le dernier état parte.
+const DELAI_VIDAGE_S: float = 0.5
 
 ## Sortie du processus : `get_tree().quit(code)` par défaut, remplaçable par les tests.
 var sortie: Callable = Callable()
@@ -73,6 +75,7 @@ func lancer(args: Dictionary, donnees: Donnees) -> int:
 	if donnees == null:
 		_journal("Données du jeu absentes ou invalides : arrêt.")
 		return CODE_DONNEES
+	_isoler_multijoueur()
 	var port: int = int(args.get("port", 0))
 	var acceleration: int = int(args.get("acceleration", 1))
 	var code := serveur.demarrer(donnees, port, acceleration)
@@ -90,6 +93,16 @@ func lancer(args: Dictionary, donnees: Donnees) -> int:
 		)
 	)
 	return CODE_OK
+
+
+## Les RPC se résolvent par un chemin relatif à la racine du multijoueur. Un client
+## (`SessionReseau`) a son `Canal` à la racine de sa propre `SceneMultiplayer` : le serveur doit en
+## faire autant, sinon il cherche « Canal » sous `/root` au lieu de `ServeurDedie/Canal` et rejette
+## tous les paquets. Sans effet si l'appelant (un test) a déjà posé la sienne.
+func _isoler_multijoueur() -> void:
+	if not is_inside_tree() or multiplayer != get_tree().get_multiplayer():
+		return
+	get_tree().set_multiplayer(SceneMultiplayer.new(), get_path())
 
 
 func est_actif() -> bool:
@@ -136,6 +149,11 @@ func _fin_de_partie() -> void:
 	if serveur.partie != null:
 		_journal("Fin de partie : %d joueur(s)." % serveur.salon.joueurs.size())
 	if _quitter_a_la_fin:
+		# L'état « terminé » vient d'être posé dans la file d'ENet : il ne part qu'au prochain
+		# passage de la boucle. Sortir tout de suite le perdrait, et les clients croiraient à une
+		# connexion perdue.
+		if is_inside_tree() and serveur.nb_pairs() > 0:
+			await get_tree().create_timer(DELAI_VIDAGE_S).timeout
 		_sortir(CODE_OK)
 		return
 	serveur.rouvrir_salon()
