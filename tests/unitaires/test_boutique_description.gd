@@ -120,6 +120,8 @@ func _jeu_a(zone: Vector2) -> Jeu:
 	racine.offset_right = zone.x
 	racine.offset_bottom = zone.y
 	jeu.source._process(1.0)
+	# La source rejouerait ses propres offres à chaque image : le test pose les siennes.
+	jeu.source.set_process(false)
 	await attendre_images(2)
 	jeu.placer_dans(zone)
 	await attendre_images(2)
@@ -225,6 +227,9 @@ func test_les_lignes_d_effet_les_plus_longues_tiennent_sur_la_carte_a_chaque_res
 		for i: int in NB_OFFRES:
 			var carte := jeu.boutique.find_child("Carte%d" % i, true, false) as Control
 			var effet := jeu.boutique.find_child("Effet%d" % i, true, false) as Label
+			verifier_egal(
+				effet.text, _ligne_carte(offres[i]), "à %s, carte %d : l'offre" % [zone, i]
+			)
 			verifier_egal(
 				effet.get_visible_line_count(),
 				effet.get_line_count(),

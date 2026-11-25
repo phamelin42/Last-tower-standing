@@ -29,6 +29,8 @@ const HAUTEUR_LIGNE_SERREE := 23.0
 ## Sous cette hauteur de fenêtre (la fenêtre par défaut de Godot fait 648), le bandeau n'a plus la
 ## place de l'ambiance : l'effet passe avant, l'ambiance reste dans l'infobulle de la carte.
 const HAUTEUR_MIN_AMBIANCE := 700.0
+## Respiration entre la ligne d'effet et l'ambiance, quand celle-ci a sa place.
+const ESPACE_AMBIANCE := 6.0
 const HAUTEUR_NOTE := 24.0
 const MARGE := 8
 const MARGE_COTE := ThemeJeu.MARGE_PANNEAU
@@ -64,6 +66,7 @@ var _noms: Array[Label] = []
 var _types: Array[Label] = []
 var _effets: Array[Label] = []
 var _descriptions: Array[Label] = []
+var _espaces: Array[Control] = []
 var _prix: Array[Label] = []
 var _notes: Array[Label] = []
 var _achats: Array[Button] = []
@@ -212,6 +215,8 @@ func _regler_ambiance() -> void:
 		description.custom_minimum_size.y = (
 			LIGNES_AMBIANCE * HAUTEUR_LIGNE_SERREE if a_la_place else 0.0
 		)
+	for espace: Control in _espaces:
+		espace.visible = a_la_place
 
 
 func afficher(vue: VueArene) -> void:
@@ -315,6 +320,11 @@ func _construire_carte(i: int) -> PanelContainer:
 	effet.add_theme_constant_override("line_spacing", 0)
 	description.add_theme_constant_override("line_spacing", 0)
 	colonne.add_child(effet)
+	var espace := Control.new()
+	espace.name = "Espace%d" % i
+	espace.custom_minimum_size = Vector2(0.0, ESPACE_AMBIANCE)
+	colonne.add_child(espace)
+	_espaces.append(espace)
 	description.add_theme_color_override("font_color", ThemeJeu.PARCHEMIN_ATTENU)
 	description.max_lines_visible = LIGNES_AMBIANCE
 	description.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
