@@ -18,11 +18,15 @@ GODOT_FLAVOR="stable"
 INSTALL_ROOT="${GODOT_INSTALL_ROOT:-/opt/godot}"
 BIN_LINK="${GODOT_BIN_LINK:-/usr/local/bin/godot}"
 
-# Archive servie par downloads.godotengine.org (la CI garde ce domaine).
+# Release officielle godot-builds sur GitHub d'abord : downloads.godotengine.org répond 403 aux
+# runners GitHub Actions. Ce domaine reste en secours pour un réseau où GitHub serait bloqué.
 ARCHIVE="Godot_v${GODOT_VERSION}-${GODOT_FLAVOR}_linux.x86_64.zip"
-ARCHIVE_URL="https://downloads.godotengine.org/?version=${GODOT_VERSION}&flavor=${GODOT_FLAVOR}&slug=linux.x86_64.zip&platform=linux.64"
-# Liste de sommes publiée avec la release officielle (godot-builds sur GitHub).
-SUMS_URL="https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}-${GODOT_FLAVOR}/SHA512-SUMS.txt"
+RELEASE_URL="https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}-${GODOT_FLAVOR}"
+ARCHIVE_URLS=(
+	"${RELEASE_URL}/${ARCHIVE}"
+	"https://downloads.godotengine.org/?version=${GODOT_VERSION}&flavor=${GODOT_FLAVOR}&slug=linux.x86_64.zip&platform=linux.64"
+)
+SUMS_URL="${RELEASE_URL}/SHA512-SUMS.txt"
 
 DEST_DIR="${INSTALL_ROOT}/${GODOT_VERSION}"
 DEST_BIN="${DEST_DIR}/godot"
@@ -83,8 +87,19 @@ command -v unzip >/dev/null 2>&1 || { log "erreur : unzip est requis"; exit 1; }
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 
-log "téléchargement de ${ARCHIVE}"
-curl -fsSL --retry 3 --max-time 900 -o "${WORK}/godot.zip" "$ARCHIVE_URL"
+telecharge=0
+for url in "${ARCHIVE_URLS[@]}"; do
+	log "téléchargement de ${ARCHIVE} depuis ${url%%\?*}"
+	if curl -fsSL --retry 3 --max-time 900 -o "${WORK}/godot.zip" "$url"; then
+		telecharge=1
+		break
+	fi
+	log "échec depuis cette source, essai suivant"
+done
+if [[ "$telecharge" -ne 1 ]]; then
+	log "erreur : aucune source n'a servi ${ARCHIVE}"
+	exit 1
+fi
 
 if curl -fsSL --retry 2 --max-time 120 -o "${WORK}/SHA512-SUMS.txt" "$SUMS_URL" 2>/dev/null; then
 	line="$(grep -F "  ${ARCHIVE}" "${WORK}/SHA512-SUMS.txt" || true)"
