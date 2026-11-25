@@ -6,8 +6,6 @@ extends Control
 
 const HAUTEUR_LIGNE := 48.0
 const TAILLE_TEXTE := 16
-## Espace fine insécable : séparateur des milliers à la française, sans rupture de ligne.
-const SEPARATEUR_MILLIERS := "\u202f"
 
 const LIGNE_PV := 0
 const LIGNE_OR := 1
@@ -47,13 +45,18 @@ func afficher(vue: VueArene) -> void:
 	_definir(
 		LIGNE_PV,
 		tr("HUD_PV"),
-		tr("HUD_PV_VALEUR") % [nombre(roundi(vue.tour_pv)), nombre(roundi(vue.tour_pv_max))]
+		(
+			tr("HUD_PV_VALEUR")
+			% [Nombres.groupe(roundi(vue.tour_pv)), Nombres.groupe(roundi(vue.tour_pv_max))]
+		)
 	)
-	_definir(LIGNE_OR, tr("HUD_OR"), nombre(vue.argent))
-	_definir(LIGNE_REVENU, tr("HUD_REVENU"), "+" + nombre(vue.revenu))
-	var manche := tr("HUD_PREPARATION") if vue.manche == 0 else nombre(vue.manche)
+	_definir(LIGNE_OR, tr("HUD_OR"), Nombres.groupe(vue.argent))
+	_definir(LIGNE_REVENU, tr("HUD_REVENU"), "+" + Nombres.groupe(vue.revenu))
+	var manche := tr("HUD_PREPARATION") if vue.manche == 0 else Nombres.groupe(vue.manche)
 	_definir(LIGNE_MANCHE, tr("HUD_MANCHE"), manche)
-	_definir(LIGNE_TEMPS, tr("HUD_TEMPS"), tr("HUD_SECONDES") % nombre(ceili(vue.temps_restant)))
+	_definir(
+		LIGNE_TEMPS, tr("HUD_TEMPS"), tr("HUD_SECONDES") % Nombres.groupe(ceili(vue.temps_restant))
+	)
 	_definir(LIGNE_PROCHAINE, tr("HUD_PROCHAINE"), _prochaine(vue))
 	_definir(LIGNE_ARMES, tr("HUD_ARMES"), _armes(vue))
 
@@ -67,19 +70,6 @@ static func libelle_armure(a: int) -> String:
 			TranslationServer.translate(Apparence.cle_libelle_armure(a))
 		]
 	)
-
-
-## Groupe les milliers : 999 999, et jamais de séparateur sous mille.
-static func nombre(valeur: int) -> String:
-	var chiffres := str(absi(valeur))
-	var sortie := ""
-	var compte := 0
-	for i: int in range(chiffres.length() - 1, -1, -1):
-		if compte > 0 and compte % 3 == 0:
-			sortie = SEPARATEUR_MILLIERS + sortie
-		sortie = chiffres[i] + sortie
-		compte += 1
-	return "-" + sortie if valeur < 0 else sortie
 
 
 func _prochaine(vue: VueArene) -> String:
@@ -111,11 +101,11 @@ func _nom_prochaine(index: int) -> String:
 
 
 func _armes(vue: VueArene) -> String:
-	var equipees := nombre(vue.armes.size())
+	var equipees := Nombres.groupe(vue.armes.size())
 	if _donnees == null:
 		return equipees
 	var capacite: int = int(_donnees.partie["emplacements_armes"])
-	return tr("HUD_ARMES_VALEUR") % [equipees, nombre(capacite)]
+	return tr("HUD_ARMES_VALEUR") % [equipees, Nombres.groupe(capacite)]
 
 
 func _definir(ligne: int, cle: String, valeur: String) -> void:

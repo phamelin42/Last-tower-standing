@@ -121,14 +121,8 @@ func _vue_armes(n: int) -> VueArene:
 	return vue
 
 
-## Visible elle-même et par ses parents : le lanceur tourne hors de l'arbre.
-func _voit(noeud: Node) -> bool:
-	var n: Node = noeud
-	while n is CanvasItem:
-		if not (n as CanvasItem).visible:
-			return false
-		n = n.get_parent()
-	return true
+func _voit(noeud: CanvasItem) -> bool:
+	return noeud.is_visible_in_tree()
 
 
 func _boutons(texte: String) -> Array[Button]:
@@ -205,7 +199,7 @@ func test_quatre_cartes_avec_nom_rarete_prix_type_et_description() -> void:
 		var description: String = entree["description"]
 		verifier(texte.contains(nom), "carte %d : le nom" % i)
 		verifier(texte.contains(description), "carte %d : la description" % i)
-		verifier(texte.contains("%d" % int(offre["prix"])), "carte %d : le prix" % i)
+		verifier(texte.contains(Nombres.groupe(int(offre["prix"]))), "carte %d : le prix" % i)
 		var rarete: int = offre["rarete"]
 		var libelle: String = _traduction.get_message(Apparence.cle_libelle_rarete(rarete))
 		verifier(texte.contains(libelle), "carte %d : la rareté en texte (%s)" % [i, libelle])
@@ -334,11 +328,12 @@ func test_touche_ignoree_pendant_la_saisie_d_un_champ() -> void:
 	_ui.afficher(_vue())
 	_champ = LineEdit.new()
 	arbre.root.add_child(_champ)
-	_ui.lecteur_focus = func() -> Control: return _champ
+	_champ.grab_focus()
+	verifier_egal(arbre.root.gui_get_focus_owner(), _champ, "le champ a le vrai focus")
 	_ui._unhandled_input(_touche(KEY_1))
 	_ui._unhandled_input(_touche(KEY_R))
 	verifier_egal(_source.appels.size(), 0, "pendant la saisie, rien ne part")
-	_ui.lecteur_focus = func() -> Control: return null
+	_champ.release_focus()
 	_ui._unhandled_input(_touche(KEY_1))
 	verifier_egal(_source.appels.size(), 1, "sans champ actif, la touche agit")
 
@@ -366,6 +361,14 @@ func test_relance_affiche_son_cout() -> void:
 	_ui.afficher(vue)
 	var bouton := _boutons("Relancer")[0]
 	verifier(bouton.text.contains("75"), "le coût est dans le bouton : %s" % bouton.text)
+	vue.cout_relance = 12500
+	_ui.afficher(vue)
+	verifier(
+		_boutons("Relancer")[0].text.contains(Nombres.groupe(12500)),
+		"le coût est groupé par milliers"
+	)
+	vue.cout_relance = 75
+	_ui.afficher(vue)
 	verifier_faux(bouton.text.contains("gratuite"))
 
 
@@ -410,7 +413,7 @@ func test_chaque_arme_equipee_a_son_bouton_vendre_et_son_prix_en_boucle() -> voi
 		for l: Node in ligne.find_children("*", "Label", true, false):
 			texte += (l as Label).text
 		texte += ventes[i].text
-		verifier(texte.contains("%d" % prix), "prix de vente de l'arme %d" % i)
+		verifier(texte.contains(Nombres.groupe(prix)), "prix de vente de l'arme %d" % i)
 		verifier(texte.contains(nom), "le nom de l'arme %d est sur sa ligne" % i)
 		ventes[i].pressed.emit()
 		verifier_egal(_source.appels[i], {"nom": "vendre", "args": [i]}, "arme %d" % i)

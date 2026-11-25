@@ -67,10 +67,10 @@ func _ajouter_ligne(joueur: Dictionary, id_local: int) -> void:
 	var degats: float = joueur["degats"]
 	var cellules: Array[String] = [
 		nom,
-		Hud.nombre(joueur["manche"]),
-		Hud.nombre(joueur["eliminations"]),
-		Hud.nombre(roundi(degats)),
-		Hud.nombre(joueur["revenu"]),
+		Nombres.groupe(joueur["manche"]),
+		Nombres.groupe(joueur["eliminations"]),
+		Nombres.groupe(roundi(degats)),
+		Nombres.groupe(joueur["revenu"]),
 		etat,
 	]
 	for texte: String in cellules:

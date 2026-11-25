@@ -65,12 +65,10 @@ Spécification : `docs/superpowers/specs/2026-11-24-jeu-tour-design.md`. Plan :
 
 - Les sommes SHA-512 de Godot sont sur la release GitHub `godotengine/godot-builds`, pas sur downloads.godotengine.org.
 - Le paquet gdtoolkit ne s'installe pas avec `pip` dans le Python du système (PEP 668) : utiliser le venv de `tools/install-gdtoolkit.sh`.
-- Un nouveau `class_name` reste inconnu tant que `godot --headless --path . --import` n'a pas tourné : le lancer avant le premier test.
-- Les avertissements de typage sont des erreurs : typer aussi les variables de boucle (`for i: int in …`) et ne rien inférer d'un `Variant`.
+- Un nouveau `class_name` reste inconnu tant que `godot --headless --path . --import` n'a pas tourné : le lancer avant le premier test. Les avertissements de typage sont des erreurs : typer aussi les variables de boucle (`for i: int in …`) et ne rien inférer d'un `Variant`.
 - Les noms d'enums des JSON sont comparés tels quels, accents compris (« perçant », « siège », « légère », « fortifiée ») ; toute autre graphie est refusée.
 - Un test qui dépend d'une classe encore à venir va dans un fichier de test séparé, pour ne pas bloquer les autres.
 - `.claude/` porte un `.gdignore` et est exclu de gdlint : les worktrees des agents y vivent.
 - `.gdlintrc` est en YAML (`max-line-length: 100`), pas en `clé=valeur` : sinon gdlint plante.
-- Toute erreur de script ou `push_error` pendant un test le fait échouer ; `attendre_erreur(motif)` déclare une erreur voulue. Godot l'imprime quand même sur stderr.
-- Le lanceur lance les tests au premier `process_frame` : l'arbre est actif (`_ready`, RPC, `await arbre.process_frame` ou `attendre_images(n)` fonctionnent). Une méthode `test_*` peut `await` ;
-  au-delà de `delai_max` (10 s) elle échoue, et le moteur libère les nœuds qu'elle a ajoutés sous `arbre.root`.
+- Le lanceur lance les tests au premier `process_frame`, arbre actif : `_ready`, RPC, `await` et `attendre_images(n)` fonctionnent. Une méthode `test_*` qui dépasse `delai_max` (10 s) échoue, et le moteur libère les nœuds qu'elle a ajoutés sous `arbre.root`. Toute erreur de script ou `push_error` la fait échouer ; `attendre_erreur(motif)` déclare une erreur voulue (Godot l'imprime quand même sur stderr).
+- Tout fichier écrit par un test va sous `dossier_temporaire()` ; tout port réseau est tiré à l'exécution (d'autres agents lancent leurs tests en même temps).
