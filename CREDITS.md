@@ -19,9 +19,19 @@ Le jeu n'utilise aucune autre ressource tierce à ce jour.
 
 ### Lot 5 : pack Tiny Swords (Pixel Frog)
 
-- Source : [Tiny Swords, pack de Pixel Frog](https://pixelfrog-assets.itch.io/tiny-swords)
-- Version visée : **ancienne version, sous licence CC0**. Avant tout usage, la licence de cette
-  version doit être relue sur la page du pack.
-- **La version actuelle du pack n'est pas redistribuable et ne doit jamais entrer dans le
-  dépôt.** Seule l'ancienne version CC0 peut être utilisée, et seulement après validation de Phil.
+Vérifié sur la [page du pack](https://pixelfrog-assets.itch.io/tiny-swords) le 25/11/2026.
+
+- Auteur : **Pixel Frog** (champ « Author » de la page, compte itch.io `pixelfrog-assets`).
+  L'ancienne version est proposée sur cette même page.
+- Version visée : l'**ancienne version**, fichier « TS_old version_CC0 Licensed » (2,6 Mo)
+  parmi les téléchargements de la page, à prix libre. **La licence CC0 n'est annoncée que par ce
+  nom de fichier** : la page n'en dit rien d'autre, et sa section « License » ne vise que la
+  version actuelle. L'archive n'a pas été ouverte : avant tout usage, lire le fichier de licence
+  qu'elle contient et le citer ici.
+- Version actuelle (Free Pack, et Enemy Pack vendu à partir de 15 $) : licence propre à Pixel
+  Frog. Usage personnel et commercial et modifications permis, crédit facultatif, mais
+  **redistribution, revente et réempaquetage interdits, même modifiés** : elle n'entre jamais
+  dans le dépôt, qui est public.
+- Seule l'ancienne version peut être utilisée, une fois sa licence CC0 confirmée par l'archive et
+  après validation de Phil.
 - Chaque fichier repris sera listé ici avec son auteur et sa licence.
