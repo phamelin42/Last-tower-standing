@@ -67,12 +67,22 @@ func _joueur(id: int, nom: String, manche: int, degats: float) -> Dictionary:
 	}
 
 
-func _globale(joueurs: Array[Dictionary], dernier_rempart: int = -1) -> VueGlobale:
+## Partie terminée dont le classement est celui qu'elle a calculé : `ordre` donne les ids dans
+## l'ordre de la partie. Sans `ordre`, les joueurs sont classés dans l'ordre où ils sont donnés.
+func _globale_classee(joueurs: Array[Dictionary], ordre: Array[int], dernier_rempart: int = -1) -> VueGlobale:
 	var vue := VueGlobale.new()
 	vue.joueurs = joueurs
 	vue.termine = true
 	vue.dernier_rempart = dernier_rempart
+	vue.classement = ordre
 	return vue
+
+
+func _globale(joueurs: Array[Dictionary], dernier_rempart: int = -1) -> VueGlobale:
+	var ordre: Array[int] = []
+	for joueur: Dictionary in joueurs:
+		ordre.append(joueur["id"])
+	return _globale_classee(joueurs, ordre, dernier_rempart)
 
 
 func _joueurs(n: int) -> Array[Dictionary]:
@@ -189,32 +199,52 @@ func test_classement_de_1_a_8_joueurs_liste_chacun_une_fois() -> void:
 		verifier_egal(_fin.noms_classes().size(), n, "%d joueur(s) : une ligne par joueur" % n)
 
 
-func test_classement_trie_par_manche_puis_par_degats() -> void:
+## L'écran suit l'ordre de la partie et ne le recalcule pas : ici, la partie a placé « Rapide »
+## en tête alors que la règle à l'œil l'aurait mise ailleurs.
+func test_classement_suit_l_ordre_de_la_partie() -> void:
 	var joueurs: Array[Dictionary] = [
 		_joueur(1, "Lente", 5, 900.0),
 		_joueur(2, "Rapide", 9, 10.0),
 		_joueur(3, "Forte", 5, 4000.0),
 	]
-	_fin.afficher_classement(_globale(joueurs), -1)
-	verifier_egal(Array(_fin.noms_classes()), ["Rapide", "Forte", "Lente"], "manche d'abord, dégâts ensuite")
+	var ordre: Array[int] = [2, 3, 1]
+	_fin.afficher_classement(_globale_classee(joueurs, ordre), -1)
+	verifier_egal(Array(_fin.noms_classes()), ["Rapide", "Forte", "Lente"], "l'ordre de la partie est affiché tel quel")
 
 
-func test_egalite_de_manche_et_de_degats_se_departage_par_id() -> void:
-	# Insertion en ordre inverse : seul le tri par id peut ramener l'ordre attendu.
+## Un vainqueur à la manche du boss passe devant un joueur tombé à la même manche : la partie
+## le range ainsi, l'écran l'affiche tel quel, même si les dégâts du tombé sont plus grands.
+func test_victoire_passe_devant_un_tombe_de_meme_manche() -> void:
+	var joueurs: Array[Dictionary] = [
+		_joueur(1, "Tombée", 31, 9000.0),
+		_joueur(2, "Vainqueur", 31, 100.0),
+	]
+	var ordre: Array[int] = [2, 1]
+	_fin.afficher_classement(_globale_classee(joueurs, ordre), -1)
+	verifier_egal(Array(_fin.noms_classes()), ["Vainqueur", "Tombée"], "le vainqueur est premier")
+
+
+func test_egalite_se_lit_dans_l_ordre_donne_par_la_partie() -> void:
+	# Égalité de manche et de dégâts : c'est l'ordre donné par la partie qui tranche.
 	for n: int in range(1, 9):
 		var joueurs: Array[Dictionary] = []
-		for id: int in range(n, 0, -1):
-			joueurs.append(_joueur(id, "Joueuse %d" % id, 6, 500.0))
-		_fin.afficher_classement(_globale(joueurs), -1)
-		var attendu: Array = []
+		var ordre: Array[int] = []
 		for id: int in range(1, n + 1):
+			joueurs.append(_joueur(id, "Joueuse %d" % id, 6, 500.0))
+		for id: int in range(n, 0, -1):
+			ordre.append(id)
+		_fin.afficher_classement(_globale_classee(joueurs, ordre), -1)
+		var attendu: Array = []
+		for id: int in range(n, 0, -1):
 			attendu.append("Joueuse %d" % id)
-		verifier_egal(Array(_fin.noms_classes()), attendu, "%d joueurs à égalité : id croissant" % n)
+		verifier_egal(Array(_fin.noms_classes()), attendu, "%d joueurs à égalité : ordre de la partie" % n)
 
 
 func test_classement_vide_n_affiche_pas_d_erreur() -> void:
-	_fin.afficher_classement(_globale([]), -1)
-	verifier_egal(_fin.noms_classes().size(), 0, "aucune ligne sans joueur")
+	# Partie non classée : des joueurs existent mais la partie n'a pas (encore) de classement.
+	var ordre: Array[int] = []
+	_fin.afficher_classement(_globale_classee(_joueurs(2), ordre), -1)
+	verifier_egal(_fin.noms_classes().size(), 0, "aucune ligne sans classement")
 	_affiche(_t("FIN_CLASSEMENT_VIDE"), "un message dit que le classement est vide")
 
 
@@ -311,7 +341,7 @@ func test_boutons_font_48_px_de_haut() -> void:
 
 
 func test_noms_au_moins_16_px() -> void:
-	_fin.afficher_classement(_globale(_joueurs(2)), 1)
+	_fin.afficher_classement(_globale(_joueurs(2)), -1)
 	var libelle: Label = _libelle_exact("Joueuse 1")
 	verifier(libelle != null, "le nom est affiché")
 	if libelle != null:

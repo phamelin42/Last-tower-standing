@@ -133,7 +133,8 @@ func _rafraichir_classement() -> void:
 	_mention.text = ""
 	_mention.visible = false
 	var joueurs: Array[Dictionary] = [] if _globale == null else _globale.joueurs
-	var vide := joueurs.is_empty()
+	var classes := _selon_classement(joueurs)
+	var vide := classes.is_empty()
 	_vide.visible = vide
 	_vide.text = tr("FIN_CLASSEMENT_VIDE") if vide else ""
 	_tableau.visible = not vide
@@ -142,7 +143,7 @@ func _rafraichir_classement() -> void:
 	for entete: String in ["FIN_RANG", "FIN_JOUEUR", "FIN_MANCHE", "FIN_ELIMINATIONS", "FIN_DEGATS"]:
 		_tableau.add_child(_etiquette(tr(entete), false))
 	var rang := 0
-	for joueur: Dictionary in _ordonnes(joueurs):
+	for joueur: Dictionary in classes:
 		rang += 1
 		_ajouter_ligne(rang, joueur)
 	_afficher_mention(joueurs)
@@ -178,26 +179,18 @@ func _afficher_mention(joueurs: Array[Dictionary]) -> void:
 			return
 
 
-## Ordre du classement : manche atteinte, puis dégâts infligés, puis id (départage stable,
-## comme dans la partie).
-func _ordonnes(joueurs: Array[Dictionary]) -> Array[Dictionary]:
-	var copie: Array[Dictionary] = joueurs.duplicate()
-	copie.sort_custom(_precede)
-	return copie
-
-
-func _precede(a: Dictionary, b: Dictionary) -> bool:
-	var manche_a: int = a["manche"]
-	var manche_b: int = b["manche"]
-	if manche_a != manche_b:
-		return manche_a > manche_b
-	var degats_a: float = a["degats"]
-	var degats_b: float = b["degats"]
-	if degats_a != degats_b:
-		return degats_a > degats_b
-	var id_a: int = a["id"]
-	var id_b: int = b["id"]
-	return id_a < id_b
+## Ordre du classement tel que la partie l'a calculé (`VueGlobale.classement`, voir
+## `sim/classement.gd`) : l'écran ne le recalcule pas. Un id absent des joueurs est ignoré.
+func _selon_classement(joueurs: Array[Dictionary]) -> Array[Dictionary]:
+	var sortie: Array[Dictionary] = []
+	if _globale == null:
+		return sortie
+	for id: int in _globale.classement:
+		for joueur: Dictionary in joueurs:
+			if joueur["id"] == id:
+				sortie.append(joueur)
+				break
+	return sortie
 
 
 func _rafraichir_actions(actions: Array[String]) -> void:
