@@ -217,6 +217,40 @@ func test_un_client_de_mauvaise_version_recoit_son_motif_et_est_coupe() -> void:
 	verifier_egal(serveur.nb_pairs(), 0)
 
 
+## Le neuvième joueur n'est pas laissé sans réponse : il reçoit le motif du salon plein en moins
+## d'une seconde, et les huit autres ne voient rien changer.
+func test_un_neuvieme_joueur_recoit_le_motif_salon_plein_et_les_huit_autres_restent() -> void:
+	verifier(_monter_serveur())
+	var joueurs: Array[Cli] = []
+	for i: int in Salon.MAX_JOUEURS:
+		var c := _ajouter_client("J%d" % i)
+		verifier(await _jusqua(func() -> bool: return c.connecte()), "J%d connecté" % i)
+		_dire_bonjour(c, "Joueur %d" % i)
+		joueurs.append(c)
+	verifier(
+		await _jusqua(func() -> bool: return serveur.salon.joueurs.size() == Salon.MAX_JOUEURS),
+		"salon plein"
+	)
+	var neuvieme := _ajouter_client("Neuf")
+	verifier(await _jusqua(func() -> bool: return neuvieme.connecte()), "neuvième connecté")
+	var debut := Time.get_ticks_msec()
+	_dire_bonjour(neuvieme, "Neuf")
+	verifier(await _jusqua(func() -> bool: return neuvieme.refus.size() == 1), "un refus arrive")
+	var attente := Time.get_ticks_msec() - debut
+	verifier(attente < 1000, "refus en moins d'une seconde (%d ms)" % attente)
+	verifier_egal(
+		Protocole.decoder_refus(neuvieme.refus[0]),
+		"Le salon est plein (%d joueurs)." % Salon.MAX_JOUEURS
+	)
+	verifier(await _jusqua(func() -> bool: return not neuvieme.connecte()), "puis coupé")
+	verifier_egal(serveur.salon.joueurs.size(), Salon.MAX_JOUEURS)
+	verifier_egal(serveur.nb_pairs(), Salon.MAX_JOUEURS, "les huit restent enregistrés")
+	for i: int in joueurs.size():
+		var c := joueurs[i]
+		verifier(c.connecte(), "joueur %d toujours connecté" % i)
+		verifier_egal(c.refus.size(), 0, "joueur %d sans refus" % i)
+
+
 # --- Usurpation ------------------------------------------------------------------------------
 
 

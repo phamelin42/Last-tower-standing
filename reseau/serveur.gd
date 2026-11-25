@@ -15,6 +15,9 @@ signal partie_terminee_serveur
 
 const PORT_MAX: int = 65535
 const MAX_CLIENTS: int = Salon.MAX_JOUEURS
+## Une place ENet de plus que le salon : le neuvième client doit être accepté pour recevoir son
+## refus (motif du salon plein). Sans cela, ENet ne répond pas et il finit « injoignable ».
+const PLACES_ENET: int = MAX_CLIENTS + 1
 const ACCELERATION_MAX: int = 60
 ## Intentions admises par pair : 30 par seconde au plus, dont au plus 10 entre deux pas de boucle.
 const INTENTIONS_PAR_SECONDE: int = 30
@@ -97,7 +100,7 @@ func demarrer(donnees: Donnees, port: int, acces: int = 1) -> Error:
 	if _actif:
 		return ERR_ALREADY_IN_USE
 	var pair := ENetMultiplayerPeer.new()
-	var code := pair.create_server(port, MAX_CLIENTS)
+	var code := pair.create_server(port, PLACES_ENET)
 	if code != OK:
 		return code
 	if canal == null:
