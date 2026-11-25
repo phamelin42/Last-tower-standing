@@ -61,3 +61,16 @@ sinon. Il n'y a aucun malus.
 | Flèche droite | Observation : arène suivante                    |
 | Flèche gauche | Observation : arène précédente                  |
 | Échap         | Ouvrir le menu de jeu                           |
+
+## L’annuaire des parties en ligne
+
+L’annuaire est un petit service qui liste les salons publics ouverts. Il ne retient que le nom du
+salon, le nombre de joueurs, le maximum, la version et l’adresse IP et le port de l’hôte. Un salon
+disparaît de la liste 30 secondes après sa dernière annonce, ou tout de suite quand l’hôte le
+ferme. La partie, elle, se joue toujours directement chez l’hôte.
+
+Vie privée : « Partie publique : votre adresse IP sera transmise à l’annuaire et visible des joueurs qui consultent la liste, tant que le salon est ouvert. Rien n’est conservé ensuite. »
+
+Le menu du jeu ne contacte pas encore l’annuaire : pour l’instant, on rejoint un salon sur le
+réseau local ou par l’adresse IP de l’hôte. Pour héberger un annuaire sur un serveur équipé de
+Docker, voir le [README](../README.md#annuaire-des-parties-en-ligne).

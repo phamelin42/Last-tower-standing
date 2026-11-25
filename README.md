@@ -82,6 +82,28 @@ Pour une partie solo reproductible, les options `--graine N` et `--vitesse X` (X
 godot --path . -- --graine 42 --vitesse 0.5
 ```
 
+## Annuaire des parties en ligne
+
+Un petit service, l’annuaire, peut lister les salons publics ouverts. Il ne tient que le nom du
+salon, le nombre de joueurs, le maximum, la version et l’adresse IP et le port de l’hôte ; aucune
+donnée de jeu ne passe par lui, et la partie reste hébergée sur la machine de l’hôte. Chaque
+salon est vérifié par une connexion de test avant d’être listé, et disparaît 30 secondes après sa
+dernière annonce.
+
+Vie privée : « Partie publique : votre adresse IP sera transmise à l’annuaire et visible des joueurs qui consultent la liste, tant que le salon est ouvert. Rien n’est conservé ensuite. »
+
+Le service garde tout en mémoire : aucun disque, aucun journal d’adresses IP. Il se lance sur un
+serveur équipé de Docker, depuis la racine du dépôt :
+
+```
+docker compose -f service-annuaire/compose.yaml up -d --build
+```
+
+Il écoute sur le port 7779 en TCP (réseau de l’hôte, pour voir l’adresse IP réelle des joueurs).
+Le pare-feu du serveur doit autoriser ce port en entrée et laisser sortir l’UDP, pour la
+vérification des salons. Le menu du jeu ne contacte pas encore l’annuaire : pour l’instant, on
+joue toujours en réseau local ou par adresse IP directe.
+
 ## Développer
 
 - `tools/verifier.sh` : rejoue toutes les étapes de la CI (import, uid, lint, format, tests,
@@ -108,8 +130,8 @@ Les chiffres d'équilibrage sont dans `data/*.json`, validés au chargement.
 ## À venir
 
 - **Graphismes 2D pixel art** avec l’ancienne version CC0 du pack Tiny Swords de Pixel Frog.
-- **Annuaire en ligne** des salons, avec ouverture du port par UPnP : en attendant, on joue
-  en réseau local ou par adresse IP directe.
+- **Salons en ligne dans le menu** et ouverture du port par UPnP : en attendant, on joue en
+  réseau local ou par adresse IP directe.
 
 ## Licence
 
