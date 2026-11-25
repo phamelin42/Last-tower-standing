@@ -8,7 +8,9 @@ extends SceneTree
 ##     [-- --sortie <dossier>]
 
 const TAILLE: int = 128
+## Plus grand côté du contenu visible de l'icône : environ 78 % de la case.
 const TAILLE_ICONE: int = 100
+const SEUIL_CONTENU: float = 0.35
 const SORTIE_DEFAUT := "res://assets/icones/cases"
 
 const ENCRE := Color("161c2e")
@@ -63,19 +65,42 @@ func _icone(nom: String) -> Image:
 	if img == null:
 		return null
 	img.convert(Image.FORMAT_RGBA8)
-	img.resize(TAILLE_ICONE, TAILLE_ICONE, Image.INTERPOLATE_LANCZOS)
-	return img
+	# Recadrage sur les pixels visibles : les icônes laissent de grandes marges transparentes.
+	var haut: int = img.get_height()
+	var bas: int = -1
+	var gauche: int = img.get_width()
+	var droite: int = -1
+	for y: int in img.get_height():
+		for x: int in img.get_width():
+			if img.get_pixel(x, y).a > SEUIL_CONTENU:
+				haut = mini(haut, y)
+				bas = maxi(bas, y)
+				gauche = mini(gauche, x)
+				droite = maxi(droite, x)
+	if bas < 0:
+		return null
+	var contenu: Image = img.get_region(Rect2i(gauche, haut, droite - gauche + 1, bas - haut + 1))
+	var echelle: float = (
+		float(TAILLE_ICONE) / float(maxi(contenu.get_width(), contenu.get_height()))
+	)
+	contenu.resize(
+		maxi(1, roundi(contenu.get_width() * echelle)),
+		maxi(1, roundi(contenu.get_height() * echelle)),
+		Image.INTERPOLATE_LANCZOS
+	)
+	return contenu
 
 
 ## Icône centrée, précédée de son ombre portée (sa silhouette en encre, décalée).
 func _poser_icone(case_img: Image, icone: Image) -> void:
-	var origine := Vector2i((TAILLE - TAILLE_ICONE) / 2, (TAILLE - TAILLE_ICONE) / 2 - 2)
+	var taille: Vector2i = icone.get_size()
+	var origine := Vector2i((TAILLE - taille.x) / 2, (TAILLE - taille.y) / 2 - 2)
 	var ombre: Image = icone.duplicate()
 	for y: int in ombre.get_height():
 		for x: int in ombre.get_width():
 			var a: float = ombre.get_pixel(x, y).a * OMBRE_OPACITE
 			ombre.set_pixel(x, y, Color(ENCRE, a))
-	var plein := Rect2i(0, 0, TAILLE_ICONE, TAILLE_ICONE)
+	var plein := Rect2i(Vector2i.ZERO, taille)
 	case_img.blend_rect(ombre, plein, origine + OMBRE_DECALAGE)
 	case_img.blend_rect(icone, plein, origine)
 
