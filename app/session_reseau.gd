@@ -17,6 +17,11 @@ var serveur: Serveur = null
 var decouverte: Decouverte = null
 var nom_salon: String = ""
 var port: int = 0
+## Jeton d'hôte de la session hébergée (8 octets), tiré à chaque `heberger` ; vide sinon. Il réserve
+## le rôle d'hôte au client local et ne doit être ni affiché ni journalisé.
+var jeton_hote: PackedByteArray = PackedByteArray()
+## `(n: int) -> PackedByteArray` : source des octets du jeton, remplacée dans les tests.
+var source_octets: Callable = _octets_aleatoires
 
 var _racines: Array[Node] = []
 var _apis: Array[SceneMultiplayer] = []
@@ -54,9 +59,11 @@ func heberger(
 	cibles: Array[String] = [Decouverte.DIFFUSION]
 ) -> Error:
 	fermer()
+	jeton_hote = source_octets.call(Protocole.JETON_OCTETS) as PackedByteArray
 	var canal_serveur := _nouvelle_racine("RacineHote")
 	var s := Serveur.new()
 	s.name = "Serveur"
+	s.jeton_hote = jeton_hote
 	canal_serveur.add_child(s)
 	var code := s.demarrer(donnees, port_jeu)
 	if code != OK:
@@ -65,7 +72,7 @@ func heberger(
 	serveur = s
 	nom_salon = nom_du_salon
 	port = port_jeu
-	code = _connecter_client(donnees, ADRESSE_LOCALE, port_jeu, nom_joueur)
+	code = _connecter_client(donnees, ADRESSE_LOCALE, port_jeu, nom_joueur, jeton_hote)
 	if code != OK:
 		fermer()
 		return code
@@ -103,12 +110,17 @@ func fermer() -> void:
 	for api: SceneMultiplayer in _apis:
 		api.multiplayer_peer = null
 	_apis = []
+	jeton_hote = PackedByteArray()
 	for racine: Node in _racines:
 		if racine.get_parent() != null:
 			racine.get_parent().remove_child(racine)
 		racine.queue_free()
 	_racines = []
 	_perdue = false
+
+
+static func _octets_aleatoires(n: int) -> PackedByteArray:
+	return Crypto.new().generate_random_bytes(n)
 
 
 func _nouvelle_racine(nom: String) -> Canal:
@@ -125,13 +137,19 @@ func _nouvelle_racine(nom: String) -> Canal:
 	return canal
 
 
-func _connecter_client(donnees: Donnees, adresse: String, port_jeu: int, nom: String) -> Error:
+func _connecter_client(
+	donnees: Donnees,
+	adresse: String,
+	port_jeu: int,
+	nom: String,
+	jeton: PackedByteArray = PackedByteArray()
+) -> Error:
 	var canal := _nouvelle_racine("RacineClient")
 	var c := Client.new()
 	c.name = "Client"
 	c.donnees = donnees
 	canal.add_child(c)
-	var code := c.connecter(adresse, port_jeu, nom)
+	var code := c.connecter(adresse, port_jeu, nom, jeton)
 	if code != OK:
 		return code
 	client = c

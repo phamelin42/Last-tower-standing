@@ -28,6 +28,8 @@ var paquets_ignores: int = 0
 
 var _peer: ENetMultiplayerPeer = null
 var _nom: String = ""
+## Jeton d'hôte du client local d'un salon hébergé ; vide pour tout autre client. Jamais journalisé.
+var _jeton: PackedByteArray = PackedByteArray()
 var _lie: bool = false
 var _connecte: bool = false
 var _perdu: bool = false
@@ -53,7 +55,9 @@ func _exit_tree() -> void:
 
 ## Ouvre la connexion ; le bonjour part dès qu'elle est établie. `ERR_INVALID_PARAMETER` (sans
 ## connexion) pour une adresse vide ou un port hors 1..65535, `ERR_UNCONFIGURED` hors d'un `Canal`.
-func connecter(adresse: String, port: int, nom: String) -> Error:
+func connecter(
+	adresse: String, port: int, nom: String, jeton: PackedByteArray = PackedByteArray()
+) -> Error:
 	if adresse.strip_edges().is_empty() or port < 1 or port > 65535:
 		return ERR_INVALID_PARAMETER
 	if _peer != null:
@@ -72,6 +76,7 @@ func connecter(adresse: String, port: int, nom: String) -> Error:
 		return code
 	_reinitialiser()
 	_nom = nom
+	_jeton = jeton
 	_peer = pair
 	multiplayer.multiplayer_peer = pair
 	multiplayer.connected_to_server.connect(_a_la_connexion)
@@ -136,7 +141,7 @@ func _a_la_connexion() -> void:
 	_connecte = true
 	_silence = 0.0
 	_cible = id_local()
-	var bonjour := Protocole.encoder_bonjour(_nom, donnees.empreinte)
+	var bonjour := Protocole.encoder_bonjour(_nom, donnees.empreinte, _jeton)
 	bonjour[1] = version_annoncee
 	_envoyer("rpc_bonjour", bonjour)
 
