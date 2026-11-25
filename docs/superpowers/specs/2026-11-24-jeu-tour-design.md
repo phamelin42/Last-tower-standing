@@ -103,7 +103,7 @@ tools/           install-godot.sh, scripts de vérification
 - **Défaite** : la tour tombe à 0 PV. Le joueur voit son récapitulatif, puis peut observer les
   arènes des autres.
 - **Fin de partie** : quand plus aucun joueur n'est en vie, ou quand tous les survivants ont
-  vaincu le boss et quittent. Le classement se fait par manche atteinte, puis par dégâts infligés.
+  vaincu le boss et quittent. Le classement se fait par manche atteinte, puis par victoire (à la manche du boss, un vainqueur passe devant un joueur tombé), puis par dégâts infligés.
   Le dernier en vie reçoit la mention « Dernier rempart ».
 - Un joueur qui se déconnecte est compté comme éliminé, et son arène est retirée.
 

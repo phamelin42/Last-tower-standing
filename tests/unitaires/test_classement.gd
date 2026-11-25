@@ -29,6 +29,12 @@ func test_le_classement_ne_depend_pas_de_l_ordre_des_entrees() -> void:
 	verifier_egal(attendu, [3, 1, 2])
 
 
+func test_a_manche_egale_un_vainqueur_passe_devant_un_joueur_tombe() -> void:
+	# Le joueur 2 a infligé plus de dégâts mais est tombé au boss ; le joueur 1 l'a vaincu.
+	var entrees: Array[Dictionary] = [_e(2, 31, 9000.0, 50, D), _e(1, 31, 100.0, 40, V)]
+	verifier_egal(Classement.ordonner(entrees), [1, 2])
+
+
 func test_classement_vide() -> void:
 	verifier_egal(Classement.ordonner([]), [])
 	verifier_egal(Classement.dernier_rempart([]), -1)

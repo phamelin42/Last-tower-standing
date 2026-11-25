@@ -8,7 +8,7 @@ extends RefCounted
 enum Cause { DEFAITE, DECONNEXION, VICTOIRE }
 
 
-## Manche atteinte (la plus haute d'abord), puis dégâts infligés, puis identifiant croissant :
+## Manche atteinte (la plus haute d'abord), puis victoire, puis dégâts infligés, puis identifiant :
 ## deux joueurs tombés au même pas se classent donc toujours de la même façon.
 static func ordonner(entrees: Array[Dictionary]) -> Array[int]:
 	var copie := entrees.duplicate()
@@ -49,6 +49,12 @@ static func _avant(a: Dictionary, b: Dictionary) -> bool:
 	var mb := int(b["manche"])
 	if ma != mb:
 		return ma > mb
+	# À la manche du boss, celui qui l'a vaincu passe devant celui qui y est tombé, quels que
+	# soient les dégâts.
+	var va := int(a["cause"]) == Cause.VICTOIRE
+	var vb := int(b["cause"]) == Cause.VICTOIRE
+	if va != vb:
+		return va
 	var da := float(a["degats"])
 	var db := float(b["degats"])
 	if da != db:
