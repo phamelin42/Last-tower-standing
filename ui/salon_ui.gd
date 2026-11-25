@@ -24,6 +24,7 @@ var boutons_vitesse: Array[Button] = []
 
 var _titre: Label
 var _info: Label
+var _avertissement: Label
 var _joueurs: VBoxContainer
 var _vitesse_texte: Label
 var _vitesse_ligne: HBoxContainer
@@ -65,6 +66,11 @@ func _init() -> void:
 	_info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_info.visible = false
 	colonne.add_child(_info)
+	_avertissement = Label.new()
+	_avertissement.name = "Avertissement"
+	_avertissement.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_avertissement.visible = false
+	colonne.add_child(_avertissement)
 	var entete := Label.new()
 	entete.text = tr("SALON_JOUEURS")
 	colonne.add_child(entete)
@@ -115,6 +121,17 @@ static func libelle_vitesse(facteur: float) -> String:
 func afficher_infos(texte: String) -> void:
 	_info.text = texte
 	_info.visible = not texte.is_empty()
+
+
+## Ligne d'état non bloquante sous les infos (la box n'a pas ouvert le port) ; vide la masque.
+func afficher_avertissement(texte: String) -> void:
+	_avertissement.text = texte
+	_avertissement.visible = not texte.is_empty()
+
+
+## Le texte de la ligne d'état si elle est visible, sinon vide.
+func avertissement() -> String:
+	return _avertissement.text if _avertissement.visible else ""
 
 
 ## Dessine l'état du salon pour le joueur `id_local`.

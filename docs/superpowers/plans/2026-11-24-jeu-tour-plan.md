@@ -843,9 +843,12 @@ crédité dans `CREDITS.md` (le crédit est facultatif en CC0, mais on cite touj
 
 ### Task 5.6 : Sons — `haiku`
 
-- [ ] **Objectif :** sons CC0 d’une autre source (le pack n’en a pas) : tirs, impacts, achat,
+- [x] **Objectif :** sons CC0 d’une autre source (le pack n’en a pas) : tirs, impacts, achat,
       relance, PV bas, début de manche, boss, victoire, défaite, musique d’ambiance ; volume des
       réglages appliqué.
+      **Fait (25/11/2026)** : dix sons du « 400+ Sounds Pack » (CC0) dans `assets/sons/`, origine
+      dans `assets/sons/SOURCES.md` ; musique d’ambiance reportée par Phil le 25/11/2026 (le pack n’a
+      pas de boucle), elle reste un silence de substitution.
 
 ### Task 5.7 : Sprite maison de l’unité volante — `sonnet`
 
@@ -943,7 +946,7 @@ avant l'écran « Rejoindre »).
 
 ### Task 7.2 : UPnP chez l'hôte — `sonnet`
 
-- [ ] **Objectif :** à « Créer une partie », découverte UPnP et ouverture du port du jeu, fermée en
+- [x] **Objectif :** à « Créer une partie », découverte UPnP et ouverture du port du jeu, fermée en
       quittant le salon et à la fermeture du jeu. Un échec n'empêche jamais de jouer en réseau local :
       il affiche « Votre box n'a pas ouvert le port : les joueurs extérieurs ne pourront pas vous
       rejoindre ». Tests avec un double de `UPNP`.
@@ -962,7 +965,7 @@ avant l'écran « Rejoindre »).
 
 ### Task 7.4 : Déploiement — `haiku`
 
-- [ ] **Objectif :** `docker compose` pour le VPS, sous-domaine ajouté par une PR au dépôt `infra`,
+- [x] **Objectif :** `docker compose` pour le VPS, sous-domaine ajouté par une PR au dépôt `infra`,
       vérification de bout en bout depuis le conteneur (annonce, liste, expiration). Ce qui reste à
       faire sur le VPS lui-même (ports, pare-feu) est donné à Phil en liste numérotée.
 - **Lire :** `docs/adr-001-annuaire.md` (Déploiement, Repli, Sécurité et vie privée, Fichiers et tâches).

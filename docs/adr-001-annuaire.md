@@ -300,19 +300,21 @@ par un signal appelé en différé, et l'écran de création ne gèle jamais. R�
   recopie la somme de la ligne de `SHA512-SUMS.txt` que lit `install-godot.sh`, et ajoute un test
   qui échoue si la version du Dockerfile diffère de celle du script (un garde-fou non branché ne
   garde rien).
-- **Réseau** : port 7779/TCP publié ; aucun reverse proxy, car le service doit voir l'IP source
-  réelle. Si la publication Docker masque l'IP (adresse 172.x vue), toutes les annonces recevraient
-  la réponse 6 : T7.4 le vérifie de bout en bout et, si besoin, essaie `network_mode: host`, avec
-  l'option `--autoriser-prive` réservée à ce contrôle et aux tests (elle désactive le seul rejet des
-  adresses non publiques).
+- **Réseau** : aucun reverse proxy, car le service doit voir l'IP source réelle.
+  **`network_mode: host` est retenu** parce qu'il lève un doute, au prix de l'isolation réseau du
+  conteneur. Observé en T7.4, dans le conteneur de vérification (sans conclusion pour un vrai VPS) :
+  en réseau en pont, la source vue par le relais de la boucle locale était la passerelle 172.18.0.1,
+  et la sonde UDP échouait (cause non élucidée) ; en mode hôte, le service voit l'IP réelle et la
+  sonde aboutit. Conséquence : Docker ne publie aucun port, le pare-feu du VPS s'applique et doit
+  donc ouvrir 7779/TCP en entrée (indispensable). L'option `--autoriser-prive`, réservée à ce
+  contrôle et aux tests (elle désactive le seul rejet des adresses non publiques), n'est jamais dans
+  le `compose.yaml` livré.
 - **`docker compose`** (T7.4, `service-annuaire/compose.yaml`) : `restart: unless-stopped`, système
-  de fichiers en lecture seule avec un `tmpfs` sur le dossier utilisateur de Godot (T7.4 le
-  localise), journal borné, contrôle de santé par ouverture TCP du port.
-- **Sous-domaine** : retenu `annuaire-lts.phamelin.fr`, enregistrement A vers le VPS, déclaré dans
-  `infra` par une PR (T7.4). L'accès au dépôt `infra` n'a pas été possible pendant la rédaction :
-  **ce que `projects.json` sait exprimer (un A vers un VPS, hors Vercel) est à vérifier en T7.4** ;
-  sinon c'est à Phil d'en décider (extension d'`infra`) ; un enregistrement manuel chez OVH est
-  exclu (§ 1 du contexte commun).
+  de fichiers en lecture seule avec un `tmpfs` sur le dossier utilisateur de Godot (`/home/annuaire/.local/share/godot`), journal borné, contrôle de santé par ouverture TCP du port.
+- **Sous-domaine** : retenu `annuaire-lts.phamelin.fr`, CNAME vers `vpsHost` (`api.phamelin.fr`),
+  seule forme qu'`infra` exprime pour un projet `target: "vps"` ; même adresse finale, aucun proxy **si** `api.phamelin.fr` n'est pas derrière un reverse proxy (hypothèse non vérifiée : si un proxy HTTP(S) y écoute, il ne voit pas le port 7779/TCP en mode hôte ; à vérifier par Phil).
+  Déclaré dans `infra` par une PR (T7.4). Constat : vérifié en T7.4, entrée `target: "vps"` dans
+  `projects.json` ; un enregistrement manuel chez OVH est exclu (§ 1 du contexte commun).
 - **Écart au contexte commun, résolu** : le § 20 de `CLAUDE.commun.md` disait « ni `infra` » pour
   last-tower-standing, alors que le lot 7 (décision plus récente de Phil) demande ce sous-domaine.
   Le § 20 de `claude-context` a été corrigé par la PR #13 (fusionnée, commit 747aefb) : « `infra` ne
@@ -407,8 +409,10 @@ réseau local a le même nom et le même port ; l'entrée locale l'emporte. Ori
    UDP de jeu ; la sonde ne vise que l'IP de l'émetteur). Écartés : UDP, HTTP, WebSocket.
 2. **Port du service** : 7779/TCP (7777 jeu UDP, 7778 découverte locale). Écarté : 443 (inutile sans
    proxy).
-3. **Sous-domaine** : `annuaire-lts.phamelin.fr`, enregistrement A seul, sans proxy. Faisabilité
-   dans `infra` à vérifier en T7.4 ; enregistrement manuel chez OVH exclu (§ 1 du contexte commun).
+3. **Sous-domaine** : `annuaire-lts.phamelin.fr`, CNAME vers `vpsHost` (`api.phamelin.fr`), seule
+   forme qu'`infra` exprime pour un projet `target: "vps"` ; même adresse finale, aucun proxy **si** `api.phamelin.fr` n'est pas derrière un reverse proxy (hypothèse non vérifiée : si un proxy HTTP(S) y écoute, il ne voit pas le port 7779/TCP en mode hôte ; à vérifier par Phil).
+   Vérifié en T7.4 (entrée `target: "vps"`) ; enregistrement manuel chez OVH exclu (§ 1 du contexte
+   commun).
 4. **Joignabilité** : sonde ENet depuis le VPS, avant de lister, puis toutes les 120 s ; échec = pas
    listé ou retiré. Écartés : ping UDP propre, aucune vérification.
 5. **Rôle d'hôte** : jeton d'hôte optionnel (bonjour en version 4, **suppression du repli « premier

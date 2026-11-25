@@ -2,6 +2,9 @@ extends CasDeTest
 ## Le catalogue de sons : chaque identifiant a un fichier attendu sous `assets/sons/`, et un
 ## fichier absent devient un silence de substitution : le jeu reste jouable sans le son.
 
+## Le pack n'a aucune boucle de fond : l'ambiance reste un silence de substitution.
+const SANS_FICHIER: Array[String] = [CatalogueSons.AMBIANCE]
+
 
 func test_chaque_son_a_un_identifiant_distinct() -> void:
 	var vus: Dictionary = {}
@@ -30,3 +33,13 @@ func test_un_son_absent_devient_un_silence_de_substitution() -> void:
 func test_un_identifiant_inconnu_donne_le_silence_sans_erreur() -> void:
 	verifier_non_nul(CatalogueSons.flux("son_qui_n_existe_pas"), "silence de repli")
 	verifier(CatalogueSons.est_substitution("son_qui_n_existe_pas"), "marqué comme substitution")
+
+
+func test_chaque_son_du_catalogue_a_son_fichier_sauf_l_ambiance() -> void:
+	for identifiant: String in CatalogueSons.tous():
+		var attendu := SANS_FICHIER.has(identifiant)
+		verifier_egal(
+			CatalogueSons.est_substitution(identifiant),
+			attendu,
+			"%s : substitution inattendue (fichier manquant ?)" % identifiant,
+		)
