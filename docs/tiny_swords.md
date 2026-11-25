@@ -10,6 +10,7 @@ Phil a validé la planche :
 - **Noms** : les quatre renommages sont appliqués dans `data/ennemis.json`, identifiants compris : « Heaumes d’argile » (`heaume_d_argile`), « Tonneaux de poudre » (`tonneau_de_poudre`), « Artificiers de fumée » (`artificier_de_fumee`), « Troupeau du colporteur » (`troupeau_du_colporteur`).
 - **Convoi** : le mouton du pack à ×2, avec le sac d’or.
 - **Le reste** : la correspondance des sections 3.1 à 3.3 est validée telle quelle.
+- **Unité volante, suite** : le sprite maison (`assets/maison/guepe_de_laiton.png`, dessiné par `tools/dessiner_guepe.gd`) se lit comme une guêpe. Phil a choisi de renommer la famille en « Guêpes de laiton » (`guepe_de_laiton`, ex-`mite_de_laiton`). Feuille en cases de 192×192, ligne 0 vol (6 images), ligne 1 coup (4 images), échelle ×1, mort par `Dead.png`.
 
 Les tableaux ci-dessous gardent les noms d’avant la décision, pour la trace.
 

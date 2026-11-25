@@ -28,13 +28,16 @@ var adresse: LineEdit
 var _r: Reglages = Reglages.new()
 var _taille_texte: int = Reglages.TAILLE_TEXTE_BASE
 var _etat: Label
+var _colonne: VBoxContainer
 
 
 func _init() -> void:
 	set_anchors_preset(PRESET_FULL_RECT)
 	var colonne := VBoxContainer.new()
+	_colonne = colonne
 	colonne.add_theme_constant_override("separation", ESPACEMENT)
 	add_child(colonne)
+	colonne.minimum_size_changed.connect(update_minimum_size)
 
 	var titre := Label.new()
 	titre.text = tr(CLE_TITRE)
@@ -80,6 +83,12 @@ func _init() -> void:
 	_etat = Label.new()
 	colonne.add_child(_etat)
 	appliquer_echelle(Reglages.ECHELLES[0])
+
+
+## Un `Control` ne tient pas compte de ses enfants : sans cette taille, la page du menu lui donne
+## une hauteur nulle et le bouton « Retour » se pose sur les champs.
+func _get_minimum_size() -> Vector2:
+	return _colonne.get_combined_minimum_size() if _colonne != null else Vector2.ZERO
 
 
 ## Affiche les réglages lus. Ne rien écrire ici : l'affichage ne déclenche aucune sauvegarde.

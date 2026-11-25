@@ -22,7 +22,7 @@ var _titre: Label
 
 
 func _init() -> void:
-	theme = ThemeJeu.creer()
+	ThemeJeu.appliquer(self)
 	add_theme_font_size_override("font_size", TAILLE_TEXTE)
 	visible = false
 	set_anchors_preset(Control.PRESET_FULL_RECT)

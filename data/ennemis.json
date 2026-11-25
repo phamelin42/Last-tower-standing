@@ -1,8 +1,8 @@
 {
  "familles": [
   {
-   "id": "mite_de_laiton",
-   "nom": "Mites de laiton",
+   "id": "guepe_de_laiton",
+   "nom": "Guêpes de laiton",
    "armure": "légère",
    "volant": true,
    "pv": 30,
