@@ -171,13 +171,6 @@ const MORT: Dictionary = {
 	"cle_boites": "mort",
 }
 
-## Une tuile d'herbe pleine du pack (3e colonne, 2e ligne de la grande herbe), répétée.
-const SOL: Dictionary = {
-	"feuille": "res://assets/tiny_swords/Terrain/Ground/Tilemap_Flat.png",
-	"origine": Vector2(64.0, 64.0),
-	"taille": Vector2(64.0, 64.0),
-}
-
 ## Grossissement de tous les sprites d'unités par rapport au pack : à 720p, au zoom par défaut, un
 ## ennemi ordinaire mesure environ 6 à 7 % de la hauteur de l'écran.
 const ECHELLE_UNITES: float = 1.9
@@ -188,7 +181,6 @@ const TOUR_PIEDS: float = 228.0
 const TOUR_BASE := "Factions/Knights/Buildings/Tower/Tower_Blue.png"
 const TOUR_TEINTE_BASE: float = 190.0
 const SHADER_TOUR := "res://visuels/teinte_tour.gdshader"
-const SHADER_SOL := "res://visuels/sol_tuile.gdshader"
 ## Joueurs 1 à 4 : les quatre couleurs du pack et la teinte dominante de leur pierre, en degrés.
 const TOURS_PACK: Array[Dictionary] = [
 	{"couleur": "Blue", "teinte": 190.0},
