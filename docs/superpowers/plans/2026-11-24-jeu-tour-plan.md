@@ -681,7 +681,7 @@ Toutes les méthodes de `SourceVue` envoient `Protocole.encoder_intention` ; les
 
 ### Task 3.5 : Serveur dédié et lancement — `haiku`
 
-- [ ] **Objectif :** `godot --headless -- --serveur --port 7777` fait tourner une partie.
+- [x] **Objectif :** `godot --headless -- --serveur --port 7777` fait tourner une partie.
 - **Fichiers (crée) :** `reseau/serveur_dedie.gd`, `scenes/serveur.tscn`, `tests/unitaires/test_serveur_dedie.gd` ; **modifie** `app/jeu.gd` (une ligne : si `Arguments` contient `serveur`, charger `scenes/serveur.tscn`) — fichier propriété du lot 2, seul changement autorisé ici.
 - **Lire :** `reseau/serveur.gd`, `app/arguments.gd`.
 - **Interfaces :** `class_name ServeurDedie extends Node` : `func lancer(args: Dictionary, donnees: Donnees) -> int` (code de sortie ; 0 normal, 2 données invalides, 3 port impossible) ; journal une ligne par évènement (`connexion`, `salon`, `manche N`, `fin`) sur la sortie standard ; si `--quitter-a-la-fin`, sort avec 0 quand `partie_terminee_serveur` est émis ; `--acceleration N` borné 1..60.
@@ -690,7 +690,7 @@ Toutes les méthodes de `SourceVue` envoient `Protocole.encoder_intention` ; les
 
 ### Task 3.6 : Interface de salon et connexion — `haiku`
 
-- [ ] **Objectif :** héberger, rejoindre, prêt, options de l’hôte. **Revu par Phil (25/11/2026)** : le menu principal propose « Créer une partie » et « Rejoindre une partie » ; « Rejoindre » liste les salons du réseau local (découverte UDP, `reseau/decouverte.gd`) et accepte une adresse IP et un port ; un seul réglage de salon, la vitesse ×1, ×2 ou ×4 (`vitesses_partie` = `[1.0, 0.5, 0.25]`). Regroupée avec le branchement réseau de T4.6 (en cours).
+- [x] **Objectif :** héberger, rejoindre, prêt, options de l’hôte. **Revu par Phil (25/11/2026)** : le menu principal propose « Créer une partie » et « Rejoindre une partie » ; « Rejoindre » liste les salons du réseau local (découverte UDP, `reseau/decouverte.gd`) et accepte une adresse IP et un port ; un seul réglage de salon, la vitesse ×1, ×2 ou ×4 (`vitesses_partie` = `[1.0, 0.5, 0.25]`). Regroupée avec le branchement réseau de T4.6 (en cours).
 - **Fichiers (crée) :** `ui/salon_ui.gd`, `ui/connexion_ui.gd`, `scenes/salon.tscn`, `scenes/connexion.tscn`, `i18n/textes_salon.csv`, `tests/unitaires/test_salon_ui.gd`.
 - **Lire :** spec §5.1, §6 ; `reseau/salon.gd`, `reseau/client.gd` (interfaces ci-dessus), `app/arguments.gd`.
 - **Interfaces :** `class_name SalonUi extends Control` : `func afficher(salon: Salon, id_local: int) -> void` ; signaux `pret_change(pret: bool)`, `options_changees(vitesse: float, graine: int, graine_fixe: bool)`, `quitter()` ; options **actives seulement pour l'hôte** ; `class_name ConnexionUi extends Control` : champs adresse (défaut `127.0.0.1`), port (défaut 7777), nom ; `signal rejoindre(adresse: String, port: int, nom: String)` ; validation locale avec message en français (port hors 1..65535, adresse vide, nom > 24 caractères) ; libellés visibles, cibles ≥ 48 px.
@@ -901,6 +901,10 @@ son port par **UPnP** (classe `UPNP` intégrée à Godot), avec un message clair
   l'usage.
 - **Réglages** : vérifier sous Windows que le renommage écrase bien l'ancien fichier.
 - **Tests** : avertissement « ObjectDB instances were leaked » à la sortie (tests réseau).
+- **Multijoueur** : le rôle d'hôte revient au premier qui dit bonjour ; si un joueur du réseau
+  arrive avant le client local de l'hôte, il devient hôte. Réserver ce rôle au client local
+  (jeton tiré à la création du salon). « Retour au salon » recrée le salon et fait revenir les
+  autres par la liste ; un vrai retour sans reconnexion demande `Client.retourner_au_salon()`.
 - **Annuaire** : voir le lot 7, en dernier.
-- **Reste des lots 3 et 4** : T3.5 et T3.6 en cours, T3.7, T4.3 (mode sans fin, son bouton est
+- **Reste des lots 3 et 4** : T3.7, T4.3 (mode sans fin, son bouton est
   désactivé en attendant), T4.5.
