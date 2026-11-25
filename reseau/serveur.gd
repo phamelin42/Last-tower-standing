@@ -237,19 +237,15 @@ func traiter_bonjour(pair: int, octets: PackedByteArray) -> bool:
 		_pairs[pair] = p
 	if p.enregistre:
 		return false
-	var version := Protocole.version_bonjour(octets)
-	if version >= 0 and version != Protocole.VERSION:
-		return _refuser(pair, Protocole.motif_version(version))
 	var b := Protocole.decoder_bonjour(octets)
+	var motif := _motif_refus_bonjour(octets, b)
+	if not motif.is_empty():
+		return _refuser(pair, motif)
 	if b.is_empty():
 		p.bonjours_invalides += 1
 		if p.bonjours_invalides >= BONJOURS_INVALIDES_MAX:
 			_couper(pair)
 		return false
-	if int(b["empreinte"]) != _donnees.empreinte:
-		return _refuser(pair, "Les données du jeu diffèrent de celles du serveur.")
-	if partie != null:
-		return _refuser(pair, "La partie a déjà commencé.")
 	if not salon.ajouter(pair, String(b["nom"])):
 		return _refuser(pair, salon.motif_refus)
 	p.enregistre = true
@@ -261,6 +257,20 @@ func traiter_bonjour(pair: int, octets: PackedByteArray) -> bool:
 	return true
 
 
+## Pourquoi ce bonjour est refusé (vide : pas de refus à signaler). `b` : bonjour décodé, ou `{}`.
+func _motif_refus_bonjour(octets: PackedByteArray, b: Dictionary) -> String:
+	var version := Protocole.version_bonjour(octets)
+	if version >= 0 and version != Protocole.VERSION:
+		return Protocole.motif_version(version)
+	if b.is_empty():
+		return ""
+	if int(b["empreinte"]) != _donnees.empreinte:
+		return "Les données du jeu diffèrent de celles du serveur."
+	if partie != null:
+		return "La partie a déjà commencé."
+	return ""
+
+
 # --- Intentions ------------------------------------------------------------------------------
 
 
@@ -268,43 +278,55 @@ func traiter_bonjour(pair: int, octets: PackedByteArray) -> bool:
 ## `Partie`. `pair` vient d'ENet : c'est la seule identité.
 func traiter_intention(pair: int, octets: PackedByteArray) -> int:
 	var p := _pairs.get(pair) as _Pair
-	if p == null or not p.enregistre:
+	if p == null or not p.enregistre or not _admettre(p):
 		return Types.Resultat.NON_DISPONIBLE
-	if p.n_pas >= INTENTIONS_PAR_PAS or p.n_fenetre >= INTENTIONS_PAR_SECONDE:
-		p.limitees += 1
-		return Types.Resultat.NON_DISPONIBLE
-	p.n_pas += 1
-	p.n_fenetre += 1
-	p.admises += 1
 	var i := Protocole.decoder_intention(octets)
 	if i.is_empty():
 		return Types.Resultat.NON_DISPONIBLE
 	var arg: int = i["arg"]
-	match int(i["genre"]):
-		Protocole.Intention.PRET:
-			return _pret(pair, arg)
-		Protocole.Intention.OPTIONS:
-			return _options(pair, arg, String(i["texte"]))
+	var genre: int = i["genre"]
+	var resultat := Types.Resultat.NON_DISPONIBLE
+	if genre == Protocole.Intention.PRET:
+		resultat = _pret(pair, arg)
+	elif genre == Protocole.Intention.OPTIONS:
+		resultat = _options(pair, arg, String(i["texte"]))
+	elif genre == Protocole.Intention.OBSERVER:
+		resultat = _observer(p, pair, arg)
+	elif partie == null:
+		resultat = _hors_phase()
+	else:
+		resultat = _intention_de_jeu(pair, genre, arg, String(i["texte"]))
+	return resultat
+
+
+## Limite de débit : au plus 10 intentions par pas de boucle et 30 par seconde et par pair.
+func _admettre(p: _Pair) -> bool:
+	if p.n_pas >= INTENTIONS_PAR_PAS or p.n_fenetre >= INTENTIONS_PAR_SECONDE:
+		p.limitees += 1
+		return false
+	p.n_pas += 1
+	p.n_fenetre += 1
+	p.admises += 1
+	return true
+
+
+## Les intentions de la boutique : `Partie` valide tout (phase, indices, identifiants).
+func _intention_de_jeu(pair: int, genre: int, arg: int, texte: String) -> int:
+	var resultat := Types.Resultat.NON_DISPONIBLE
+	match genre:
 		Protocole.Intention.ACHETER:
-			return partie.intention_acheter(pair, arg) if partie != null else _hors_phase()
+			resultat = partie.intention_acheter(pair, arg)
 		Protocole.Intention.RELANCER:
-			return partie.intention_relancer(pair) if partie != null else _hors_phase()
+			resultat = partie.intention_relancer(pair)
 		Protocole.Intention.VENDRE:
-			return partie.intention_vendre(pair, arg) if partie != null else _hors_phase()
+			resultat = partie.intention_vendre(pair, arg)
 		Protocole.Intention.MARCHE_NOIR:
-			var amelioration := String(i["texte"])
-			return (
-				partie.intention_marche_noir(pair, amelioration)
-				if partie != null
-				else _hors_phase()
-			)
+			resultat = partie.intention_marche_noir(pair, texte)
 		Protocole.Intention.SANS_FIN:
-			return partie.intention_continuer_sans_fin(pair) if partie != null else _hors_phase()
+			resultat = partie.intention_continuer_sans_fin(pair)
 		Protocole.Intention.QUITTER:
-			return partie.intention_quitter(pair) if partie != null else _hors_phase()
-		Protocole.Intention.OBSERVER:
-			return _observer(p, pair, arg)
-	return Types.Resultat.NON_DISPONIBLE
+			resultat = partie.intention_quitter(pair)
+	return resultat
 
 
 func _hors_phase() -> int:

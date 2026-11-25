@@ -18,11 +18,11 @@ class Cli:
 	var api: SceneMultiplayer
 	var canal: Canal
 	var pair: ENetMultiplayerPeer
-	var _id: int = 0
 	var salons: Array[PackedByteArray] = []
 	var arenes: Array[PackedByteArray] = []
 	var globaux: Array[PackedByteArray] = []
 	var refus: Array[PackedByteArray] = []
+	var _id: int = 0
 
 	func id() -> int:
 		if _id == 0 and pair.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED:
