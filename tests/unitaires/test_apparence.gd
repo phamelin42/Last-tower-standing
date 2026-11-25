@@ -11,6 +11,20 @@ const PRIMITIVES: Array[String] = [
 const NB_ARMURES := 6
 const NB_RARETES := 4
 const NB_TYPES := 5
+## Garde : seul `visuels/apparence.gd` crée des primitives et des matériaux. Lit chaque `.gd` du
+## projet (hors `tests/` et dossiers cachés, comme `.claude/` qui abrite les worktrees).
+const CREATIONS_INTERDITES: Array[String] = [
+	"StandardMaterial3D.new",
+	"BoxMesh.new",
+	"CylinderMesh.new",
+	"SphereMesh.new",
+	"CapsuleMesh.new",
+	"PrismMesh.new",
+	"TorusMesh.new",
+	"PlaneMesh.new",
+	"QuadMesh.new",
+]
+const FICHIER_AUTORISE := "res://visuels/apparence.gd"
 
 
 func _donnees() -> Donnees:
@@ -260,3 +274,123 @@ func test_un_index_hors_bornes_recoit_une_primitive_de_repli() -> void:
 		verifier_proche(Apparence.hauteur_famille(i), 0.0, 0.0001, "index %d : repli au sol" % i)
 	verifier_non_nul(Apparence.forme_projectile(42), "type de dégâts inconnu : forme nulle")
 	verifier_non_nul(Apparence.forme_armure(42), "armure inconnue : forme nulle")
+
+
+func test_chaque_type_de_degats_a_un_materiau_de_projectile_de_sa_couleur() -> void:
+	for t: int in range(NB_TYPES):
+		var mat: StandardMaterial3D = Apparence.materiau_projectile(t)
+		verifier_non_nul(mat, "type %d : matériau de projectile absent" % t)
+		if mat == null:
+			continue
+		verifier_egal(
+			mat.albedo_color,
+			Apparence.couleur_type(t),
+			"type %d : projectile d'une autre couleur que son type" % t
+		)
+		verifier_egal(
+			mat.shading_mode,
+			BaseMaterial3D.SHADING_MODE_UNSHADED,
+			"type %d : projectile éclairé, il se perd sur la tour" % t
+		)
+
+
+func test_materiau_de_projectile_partage_par_cache() -> void:
+	for t: int in range(NB_TYPES):
+		verifier(
+			is_same(Apparence.materiau_projectile(t), Apparence.materiau_projectile(t)),
+			"type %d : matériau de projectile recréé" % t
+		)
+
+
+func test_l_impact_a_une_forme_d_anneau_partagee() -> void:
+	verifier(Apparence.forme_impact().get_class() in PRIMITIVES, "impact : forme non primitive")
+	verifier(is_same(Apparence.forme_impact(), Apparence.forme_impact()), "impact : forme recréée")
+
+
+func test_l_impact_et_la_mort_ont_un_materiau_visible_partage() -> void:
+	var impact: StandardMaterial3D = Apparence.materiau_impact()
+	var mort: StandardMaterial3D = Apparence.materiau_mort()
+	verifier_non_nul(impact, "impact : matériau absent")
+	verifier_non_nul(mort, "mort : matériau absent")
+	if impact != null:
+		verifier(impact.albedo_color.a > 0.0, "impact : couleur transparente")
+		verifier(is_same(impact, Apparence.materiau_impact()), "impact : matériau recréé")
+	if mort != null:
+		verifier(mort.albedo_color.a > 0.0, "mort : couleur transparente")
+		verifier(is_same(mort, Apparence.materiau_mort()), "mort : matériau recréé")
+
+
+func test_le_sol_est_un_plan_carre_de_80_metres_partage() -> void:
+	var plan := Apparence.maillage_sol() as PlaneMesh
+	verifier_non_nul(plan, "sol : maillage absent ou non plan")
+	if plan != null:
+		verifier_egal(plan.size, Vector2.ONE * Apparence.COTE_SOL, "sol : taille inattendue")
+	verifier(is_same(Apparence.maillage_sol(), Apparence.maillage_sol()), "sol : maillage recréé")
+
+
+func test_le_sol_est_un_damier_de_deux_teintes_qui_alternent() -> void:
+	var mat := Apparence.materiau_sol()
+	verifier_non_nul(mat, "sol : matériau absent")
+	if mat == null:
+		return
+	var texture := mat.albedo_texture as ImageTexture
+	verifier_non_nul(texture, "sol : pas de damier (texture absente)")
+	if texture == null:
+		return
+	var image := texture.get_image()
+	verifier_egal(image.get_width(), 2, "damier : 2 cases de côté attendues")
+	verifier_egal(
+		image.get_pixel(0, 0), image.get_pixel(1, 1), "damier : cases diagonales différentes"
+	)
+	verifier_egal(image.get_pixel(1, 0), image.get_pixel(0, 1), "damier : cases voisines pareilles")
+	verifier_different(image.get_pixel(0, 0), image.get_pixel(1, 0), "damier : aucune alternance")
+	verifier_egal(mat.texture_filter, BaseMaterial3D.TEXTURE_FILTER_NEAREST, "damier : flou")
+	verifier_proche(
+		mat.uv1_scale.x,
+		Apparence.COTE_SOL / Apparence.COTE_CASE / 2.0,
+		0.0001,
+		"damier : échelle de répétition modifiée"
+	)
+
+
+func test_le_materiau_du_sol_partage_par_cache() -> void:
+	verifier(is_same(Apparence.materiau_sol(), Apparence.materiau_sol()), "sol : matériau recréé")
+
+
+func _lister_gd(dossier: String, sortie: Array[String]) -> void:
+	var acces := DirAccess.open(dossier)
+	verifier_non_nul(acces, "dossier illisible : %s" % dossier)
+	if acces == null:
+		return
+	acces.list_dir_begin()
+	var nom: String = acces.get_next()
+	while not nom.is_empty():
+		var chemin: String = dossier.path_join(nom)
+		if acces.current_is_dir():
+			if not nom.begins_with(".") and chemin != "res://tests":
+				_lister_gd(chemin, sortie)
+		elif nom.get_extension() == "gd":
+			sortie.append(chemin)
+		nom = acces.get_next()
+	acces.list_dir_end()
+
+
+func test_seul_apparence_cree_primitives_et_materiaux() -> void:
+	var fichiers: Array[String] = []
+	_lister_gd("res://", fichiers)
+	verifier(fichiers.size() > 10, "garde : trop peu de .gd lus (%d)" % fichiers.size())
+	var fautifs: Array[String] = []
+	for chemin: String in fichiers:
+		if chemin == FICHIER_AUTORISE:
+			continue
+		var source := FileAccess.get_file_as_string(chemin)
+		for creation: String in CREATIONS_INTERDITES:
+			if source.contains(creation):
+				fautifs.append("%s (%s)" % [chemin, creation])
+	verifier(
+		fautifs.is_empty(),
+		(
+			"création de primitive ou de matériau hors d'Apparence : %s"
+			% "; ".join(PackedStringArray(fautifs))
+		)
+	)

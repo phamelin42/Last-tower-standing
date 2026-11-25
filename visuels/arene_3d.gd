@@ -5,11 +5,6 @@ extends Node3D
 ## `VueArene`, reçue par les signaux d'une `SourceVue`, et `Donnees` pour savoir combien de
 ## familles existent. Index : 0 à n-1 les familles, n le convoi, n+1 le boss (voir `Apparence`).
 
-## Côté du sol en mètres : le cercle d'apparition (26 m de rayon) y tient avec de la marge.
-const COTE_SOL: float = 80.0
-const COTE_CASE: float = 2.0
-const COULEUR_CASE_A := Color("#d9d3c1")
-const COULEUR_CASE_B := Color("#cfc8b3")
 ## Capacité minimale d'un MultiMesh qui s'agrandit : évite de réallouer à chaque petite hausse.
 const CAPACITE_MIN: int = 16
 
@@ -163,21 +158,10 @@ func _dimensionner(famille: int, voulu: int) -> void:
 
 
 func _construire_sol() -> void:
-	var image := Image.create(2, 2, false, Image.FORMAT_RGB8)
-	image.set_pixel(0, 0, COULEUR_CASE_A)
-	image.set_pixel(1, 1, COULEUR_CASE_A)
-	image.set_pixel(1, 0, COULEUR_CASE_B)
-	image.set_pixel(0, 1, COULEUR_CASE_B)
-	var materiau := StandardMaterial3D.new()
-	materiau.albedo_texture = ImageTexture.create_from_image(image)
-	materiau.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
-	materiau.uv1_scale = Vector3.ONE * (COTE_SOL / COTE_CASE / 2.0)
-	var plan := PlaneMesh.new()
-	plan.size = Vector2.ONE * COTE_SOL
 	var sol := MeshInstance3D.new()
 	sol.name = "Sol"
-	sol.mesh = plan
-	sol.material_override = materiau
+	sol.mesh = Apparence.maillage_sol()
+	sol.material_override = Apparence.materiau_sol()
 	sol.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(sol)
 
