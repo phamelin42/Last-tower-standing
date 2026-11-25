@@ -139,23 +139,27 @@ func test_fichier_de_types_faux_donne_le_defaut_de_chaque_valeur() -> void:
 	_ecrire_brut(
 		_chemin(),
 		(
-			"[reglages]\nvolume_general=\"fort\"\nplein_ecran=3\n"
+			'[reglages]\nvolume_general="fort"\nplein_ecran=3\n'
 			+ "echelle_ui=[1.5]\nsensibilite_zoom=null\nnom_joueur=12\nderniere_adresse=true\n"
+			+ "; fin\n"
 		)
 	)
 	verifier(_egal_reglages(Reglages.charger(_chemin()), _par_defaut()), "types faux ignorés")
 
 
+func _fichier_de_taille(taille: int) -> String:
+	var entete := "[reglages]\nvolume_general=0.5\n; "
+	var fin := "\n; fin\n"
+	return entete + "x".repeat(taille - entete.length() - fin.length()) + fin
+
+
 func test_fichier_de_plus_de_64_kio_donne_les_valeurs_par_defaut() -> void:
-	var trop_gros := "[reglages]\nvolume_general=0.5\n# " + "x".repeat(TAILLE_MAX_FICHIER)
-	_ecrire_brut(_chemin(), trop_gros)
+	_ecrire_brut(_chemin(), _fichier_de_taille(TAILLE_MAX_FICHIER + 1))
 	verifier(_egal_reglages(Reglages.charger(_chemin()), _par_defaut()), "fichier trop gros")
 
 
 func test_fichier_de_64_kio_pile_est_lu() -> void:
-	var entete := "[reglages]\nvolume_general=0.5\n# "
-	var remplissage := TAILLE_MAX_FICHIER - entete.length()
-	_ecrire_brut(_chemin(), entete + "x".repeat(remplissage))
+	_ecrire_brut(_chemin(), _fichier_de_taille(TAILLE_MAX_FICHIER))
 	verifier_proche(Reglages.charger(_chemin()).volume_general, 0.5, 0.0001)
 
 
@@ -164,9 +168,17 @@ func test_fichier_de_64_kio_pile_est_lu() -> void:
 
 func test_l_echelle_hors_bornes_est_ramenee_au_niveau_valide_le_plus_proche() -> void:
 	var cas: Array[Array] = [
-		[0.0, 1.0], [-3.0, 1.0], [0.9, 1.0], [1.0, 1.0],
-		[1.2, 1.25], [1.3, 1.25], [1.25, 1.25], [1.4, 1.5],
-		[1.5, 1.5], [99.0, 1.5], [1.5000001, 1.5],
+		[0.0, 1.0],
+		[-3.0, 1.0],
+		[0.9, 1.0],
+		[1.0, 1.0],
+		[1.2, 1.25],
+		[1.3, 1.25],
+		[1.25, 1.25],
+		[1.4, 1.5],
+		[1.5, 1.5],
+		[99.0, 1.5],
+		[1.5000001, 1.5],
 	]  # fmt: skip
 	for c: Array in cas:
 		var r := _reglages(1.0, c[0], false, 1.0, "", "")
@@ -192,7 +204,12 @@ func test_le_volume_est_borne_entre_zero_et_un() -> void:
 
 func test_la_sensibilite_est_bornee_aux_valeurs_exactes() -> void:
 	var cas: Array[Array] = [
-		[0.0, 0.5], [0.49, 0.5], [0.5, 0.5], [2.0, 2.0], [2.01, 2.0], [9.0, 2.0],
+		[0.0, 0.5],
+		[0.49, 0.5],
+		[0.5, 0.5],
+		[2.0, 2.0],
+		[2.01, 2.0],
+		[9.0, 2.0],
 	]  # fmt: skip
 	for c: Array in cas:
 		var r := _reglages(1.0, 1.0, false, c[0], "", "")
@@ -278,7 +295,7 @@ func test_chaque_cle_de_texte_utilisee_par_l_interface_existe_dans_le_csv() -> v
 	var textes := CsvTextes.lire(CSV_REGLAGES)
 	verifier(not textes.is_empty(), "CSV lisible")
 	var regex := RegEx.new()
-	regex.compile("\"(REGLAGES_[A-Z0-9_]+)\"")
+	regex.compile('"(REGLAGES_[A-Z0-9_]+)"')
 	var trouvees := 0
 	for m: RegExMatch in regex.search_all(source):
 		var cle := m.get_string(1)
