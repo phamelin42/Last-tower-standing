@@ -274,7 +274,7 @@ par joueur, familles de la manche suivante (jusqu'à 3), carte de densité par a
 d'observer une autre arène de son vivant. Décodage défensif et tests de fuzz comme les versions
 précédentes.
 
-Aucun serveur ni client en version 4 n'est publié (le service d'annuaire du lot 7 n'est pas encore déployé) : la version 5 ne demande aucune coordination de mise en service.
+Aucun client ni serveur de jeu en version 4 n'est distribué. L'annuaire du lot 7 (T7.4) ne relaie aucune donnée de jeu et liste chaque salon avec sa version : la version 5 ne demande donc aucune coordination de mise en service, seulement un numéro de version à jour dans l'annonce.
 
 ### 6.12 Passe d'équilibrage
 
