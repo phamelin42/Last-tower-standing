@@ -30,9 +30,17 @@ func apres_chaque() -> void:
 		if api != null and api.multiplayer_peer != null:
 			api.multiplayer_peer.close()
 			api.multiplayer_peer = null
+	# L'arbre garde chaque `SceneMultiplayer` tant que son chemin la porte : on la retire, sinon
+	# les deux API et leurs interfaces restent vivantes à la sortie du processus.
 	for canal: Canal in [_canal_serveur, _canal_client]:
 		if canal != null:
-			canal.get_parent().free()
+			var racine := canal.get_parent()
+			arbre.set_multiplayer(null, racine.get_path())
+			racine.free()
+	_api_serveur = null
+	_api_client = null
+	_canal_serveur = null
+	_canal_client = null
 
 
 func _poser(nom: String, api: SceneMultiplayer) -> Canal:

@@ -373,7 +373,7 @@ func test_un_salon_plein_est_refuse() -> void:
 	trop.delai_connexion_s = 2.0
 	trop.connecter("127.0.0.1", port, "Trop")
 	verifier(await _jusqua(func() -> bool: return not e.pertes.is_empty()), "refus reçu")
-	verifier_egal(e.pertes[0], Client.MOTIF_INJOIGNABLE)
+	verifier_egal(e.pertes[0], "Le salon est plein (%d joueurs)." % Salon.MAX_JOUEURS)
 	await attendre_images(30)
 	verifier_egal(e.pertes.size(), 1)
 
