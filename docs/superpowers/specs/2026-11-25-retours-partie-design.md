@@ -39,6 +39,7 @@ Ces décisions ne se remettent pas en cause ; une objection se dit dans la PR.
 | D12 | Mécaniques         | Reprendre celles de la map. La **mana** est un **bouclier** : elle absorbe les coups à la place des PV. **Certaines armes font des dégâts en fonction de la mana maximale.** |
 | D13 | ATH                | Trop grand : **c'est la boutique qui prend trop de place**.                                                                                                                  |
 | D14 | Catégories         | Dans la boutique, on distingue d'un coup d'œil **les armes, les améliorations et le revenu** (demandé après la première version de cette conception).                        |
+| D15 | Sons des armes     | « Pas assez de diversité dans les sons des armes » : chaque arme a son propre son de tir (demandé après la validation de cette conception).                                  |
 
 Les propositions de la session de pilotage acceptées par Phil le même soir :
 
@@ -70,7 +71,6 @@ dédié, et une passe d'équilibrage qui vérifie que la partie reste gagnable.
 **Non-objectifs** :
 
 - la musique d'ambiance (reportée par Phil le 25/11/2026) ;
-- un son par arme : à proposer à Phil dans une PR, pas à coder ;
 - des capacités actives lancées par le joueur : la mana ne sert qu'au bouclier et aux armes qui
   en dépendent ;
 - la deuxième monnaie de la map (« lumber »), toujours hors périmètre (spec §8).
@@ -204,6 +204,13 @@ un choix de la session de pilotage, à relire par Phil.
   est validée par Phil **avant** l'intégration en jeu.
 - L'intégration attend cette validation : la planche est une tâche courte à part, marquée « attend Phil », et les signatures entrent en jeu dans une tâche suivante, hors du chemin des autres tâches de la vague 2.
 - Plafond d'effets simultanés conservé ; taille et luminosité suffisantes pour se lire au zoom
+
+### 6.5 bis Sons des armes (D15)
+
+- _(Phil)_ Les armes ne doivent plus partager un même son de tir.
+- _(proposition)_ La signature d'une arme (6.5) comprend un **son de tir** propre, choisi dans le « 400 Sounds Pack » (CC0, https://ci.itch.io/400-sounds-pack, dossier Drive fourni par Phil, déjà cité dans `CREDITS.md`), surtout dans ses dossiers Weapons et Combat and Gore. L'impact reçoit un son par type de dégâts (5).
+- Le catalogue de `sons/` accepte un identifiant par arme (`tir_<id d'arme>`), avec repli sur le son `tir` actuel. Une légère variation de hauteur à chaque tir évite la répétition, sans rendre deux armes confondables.
+- Test : pour les 30 armes, en boucle, chaque arme a un fichier de tir versionné, et **deux armes n'ont jamais le même fichier**. Les sources sont listées dans `assets/sons/SOURCES.md`.
   le plus lointain.
 
 ### 6.6 Police (D9)
@@ -299,12 +306,12 @@ sont revus avec ces nouvelles valeurs.
 la vue globale et à `StatsTour`, schéma des familles d'ennemis (modèle, couleur, palier, classe
 de portée), signature d'arme, messages de la version 5.
 
-| Vague                         | Session                       | Tâches                                                                                                                                                               |
-| ----------------------------- | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1                             | Simulation, données et réseau | armes illimitées ; 24 ennemis, paliers, vagues mêlées, retrait du vol ; portées et vitesses ; mana ; DPS ; carte de densité ; protocole v5                           |
-| 2 (dès les interfaces figées) | Rendu                         | sprites des 24 ennemis et retrait de la guêpe ; barres de PV et de mana ; caméra libre et dézoom ; planche puis intégration des 30 signatures d'armes                |
-| 2 (dès les interfaces figées) | Interface                     | police ; barre du haut à icônes ; boutique compacte et repliable, catégories des offres ; grille des armes ; taille de l'interface ; tableau des scores ; mini-carte |
-| 3                             | Équilibrage                   | passe d'équilibrage (6.12)                                                                                                                                           |
+| Vague                         | Session                       | Tâches                                                                                                                                                                      |
+| ----------------------------- | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1                             | Simulation, données et réseau | armes illimitées ; 24 ennemis, paliers, vagues mêlées, retrait du vol ; portées et vitesses ; mana ; DPS ; carte de densité ; protocole v5                                  |
+| 2 (dès les interfaces figées) | Rendu                         | sprites des 24 ennemis et retrait de la guêpe ; barres de PV et de mana ; caméra libre et dézoom ; planche puis intégration des 30 signatures d'armes, sons de tir par arme |
+| 2 (dès les interfaces figées) | Interface                     | police ; barre du haut à icônes ; boutique compacte et repliable, catégories des offres ; grille des armes ; taille de l'interface ; tableau des scores ; mini-carte        |
+| 3                             | Équilibrage                   | passe d'équilibrage (6.12)                                                                                                                                                  |
 
 T5.5 (bascule et retrait de l'arène 3D) passe avant la vague 2, puisque le rendu 3D n'a pas à
 suivre ces changements.
