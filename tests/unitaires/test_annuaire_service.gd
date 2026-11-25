@@ -373,6 +373,46 @@ func test_une_annonce_invalide_ou_refusee_par_le_debit_ne_lance_aucune_sonde() -
 	verifier_egal(s.nb_sondes(), 0)
 
 
+func test_un_salon_retire_pendant_sa_sonde_n_est_pas_liste_quand_elle_aboutit() -> void:
+	var s := _service()
+	var r := s.evaluer(A, _annonce())
+	verifier_egal(r["action"], AnnuaireService.Action.SONDER)
+	verifier_egal(_retirer(s, A), 0)
+	var rep := AnnuaireProtocole.decoder_reponse(s.sonde_terminee(r["ticket"], true))
+	verifier_egal(rep["statut"], 0, "la sonde répond normalement")
+	verifier_egal(s.salons().size(), 0, "mais le salon retiré n'apparaît pas")
+	verifier_egal(s.nb_entrees(), 0)
+	# Une nouvelle annonce, elle, est légitime : la sonde réussie reste valable 120 s.
+	_avancer(5_000)
+	verifier_egal(_annoncer(s, A), 0)
+	verifier_egal(_liste_ip_port(s), ["8.8.8.8:7777"])
+
+
+func test_un_retrait_pendant_la_re_verification_d_une_entree_existante_la_retire_pour_de_bon(
+) -> void:
+	var s := _service()
+	_annoncer(s, A)
+	for i: int in 11:
+		_avancer(10_000)
+		_annoncer(s, A)
+	_avancer(10_000)
+	var r := s.evaluer(A, _annonce())
+	verifier_egal(r["action"], AnnuaireService.Action.SONDER, "re-vérification à 120 s")
+	verifier_egal(_retirer(s, A), 0)
+	verifier_egal(s.salons().size(), 0)
+	s.sonde_terminee(r["ticket"], true)
+	verifier_egal(s.salons().size(), 0, "la sonde n'a pas ressuscité l'entrée")
+
+
+func test_un_retrait_d_une_autre_cle_ne_touche_pas_la_sonde_en_cours() -> void:
+	var s := _service()
+	var r := s.evaluer(A, _annonce(7777))
+	verifier_egal(_retirer(s, A, 7778), 0)
+	verifier_egal(_retirer(s, B, 7777), 0)
+	s.sonde_terminee(r["ticket"], true)
+	verifier_egal(_liste_ip_port(s), ["8.8.8.8:7777"])
+
+
 func test_un_resultat_de_sonde_inconnu_est_ignore() -> void:
 	var s := _service()
 	verifier(s.sonde_terminee(12345, true).is_empty())

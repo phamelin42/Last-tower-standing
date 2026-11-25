@@ -226,7 +226,12 @@ func _traiter(ip: String, corps: PackedByteArray, t: int) -> Dictionary:
 	if liste:
 		return {"action": Action.REPONDRE, "octets": AnnuaireProtocole.encoder_salons(salons())}
 	if type == AnnuaireProtocole.Type.RETRAIT:
-		_retirer_entree(_cle(ip, int(champs["port"])))
+		var cle := _cle(ip, int(champs["port"]))
+		_retirer_entree(cle)
+		# Une sonde en cours pour cette clé ne doit pas recréer l'entrée à son retour.
+		var en_cours: Dictionary = _sondes.get(_cle_en_sonde.get(cle, -1), {})
+		if not en_cours.is_empty():
+			en_cours["annule"] = true
 		return _repondre(AnnuaireProtocole.Statut.ACCEPTE)
 	return _annoncer(ip, champs, t)
 
@@ -256,7 +261,7 @@ func sonde_terminee(ticket: int, joignable: bool) -> PackedByteArray:
 	if not joignable:
 		_retirer_entree(cle)
 		statut = AnnuaireProtocole.Statut.INJOIGNABLE
-	else:
+	elif not bool(attente.get("annule", false)):
 		var existante: _Entree = _entrees.get(cle)
 		var ip: String = attente["ip"]
 		# Les sondes simultanées n'ont pas vu les entrées les unes des autres : le quota est
