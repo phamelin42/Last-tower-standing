@@ -4,6 +4,10 @@ extends Control
 ## texte et en symbole. Les noms sont tronqués par des points de suite : un nom long ne fait
 ## jamais déborder la largeur du tableau.
 
+## Action d'entrée : le tableau s'affiche tant qu'elle est maintenue. T2.7 la déclare dans
+## `project.godot` (section `[input]`), liée à Tab. Lire l'état de l'action plutôt qu'un
+## événement de touche : Tab est aussi la navigation de focus de Godot, qui l'intercepte.
+const ACTION_SCORES := "afficher_scores"
 const LARGEUR_MAX := 960.0
 const HAUTEUR_LIGNE := 48.0
 const TAILLE_TEXTE := 16
@@ -30,12 +34,9 @@ func definir_maintenu(maintenu: bool) -> void:
 	visible = maintenu
 
 
-func _unhandled_input(evenement: InputEvent) -> void:
-	var touche := evenement as InputEventKey
-	if touche == null or touche.keycode != KEY_TAB or touche.echo:
-		return
-	definir_maintenu(touche.pressed)
-	accept_event()
+func _process(_delta: float) -> void:
+	if InputMap.has_action(ACTION_SCORES):
+		definir_maintenu(Input.is_action_pressed(ACTION_SCORES))
 
 
 func afficher(vue: VueGlobale, id_local: int) -> void:
