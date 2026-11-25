@@ -3,7 +3,7 @@
 > Date : 25/11/2026. Source : 13 retours de Phil après une partie jouée sous Godot, et ses
 > réponses aux questions de cadrage le même soir. Cette conception complète la spec du jeu
 > (`2026-11-24-jeu-tour-design.md`) et l'emporte sur elle là où elles diffèrent. Elle donnera le
-> lot 8 du plan.
+> lot 8 du plan. **Validée par Phil le 25/11/2026.**
 
 ## 1. Intention
 
@@ -177,7 +177,7 @@ un choix de la session de pilotage, à relire par Phil.
   mana, le reste va aux PV.
 - _(proposition)_ Ordre : esquive, puis armure, puis mana, puis PV. **1 point de mana absorbe
   1 point de dégât.** La mana se régénère chaque seconde.
-- _(proposition, à confirmer par Phil)_ La tour commence avec 0 de mana maximale : la mana vient des améliorations.
+- _(Phil, 25/11/2026)_ La tour commence avec 0 de mana maximale (chiffre de `data/`, réglable après essai) : la mana vient des améliorations.
   Nouvelles améliorations dans `data/ameliorations.json` : mana maximale (+), régénération de
   mana (+). Les épines et le vol de vie gardent leur effet actuel.
 - _(Phil)_ Des armes font des **dégâts en fonction de la mana maximale** : un champ d'arme
