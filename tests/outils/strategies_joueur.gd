@@ -110,11 +110,23 @@ static func _valeur_offre(
 				return base * 0.1 * eff
 			return base * eff
 		return base
+	# Sans arme pour tuer, une amélioration ne sauve personne : on monte d'abord un arsenal minimal.
+	var minimum := 2 if nom == BONNE else 4
+	if v.armes.size() < minimum and _armes_disponibles(v):
+		return 0.0
 	var amelioration: Dictionary = d.ameliorations[str(offre["id"])]
 	var poids := 1.0
 	if nom == BONNE and v.armes.size() < 3 and v.manche >= MANCHES_ECONOMIE:
 		poids = 0.3
 	return _valeur_amelioration(amelioration, types_possedes, nom, v.manche) / prix * poids
+
+
+## Vrai si une arme figure dans les offres encore à vendre (sinon on ne bloque pas les achats).
+static func _armes_disponibles(v: VueArene) -> bool:
+	for offre: Dictionary in v.offres:
+		if not bool(offre["vendu"]) and int(offre["genre"]) == Types.Genre.ARME:
+			return true
+	return false
 
 
 ## Valeur grossière, en « dps équivalents », de chaque statistique ; les dégâts ne valent que si
@@ -123,6 +135,7 @@ static func _valeur_amelioration(
 	a: Dictionary, types_possedes: PackedInt32Array, nom: String, manche: int
 ) -> float:
 	var total := 0.0
+	var defense := 3.0 if nom == BONNE and manche >= MANCHE_DEFENSE else 1.0
 	var effets: Array = a["effets"]
 	for entree: Variant in effets:
 		var effet: Dictionary = entree
@@ -141,11 +154,11 @@ static func _valeur_amelioration(
 			"eclaboussure", "focalisation":
 				total += val * 30.0
 			"pv_max":
-				total += val * 0.12
+				total += val * 0.12 * defense
 			"regen":
-				total += val * 5.0
+				total += val * 5.0 * defense
 			"armure":
-				total += val * 4.0
+				total += val * 4.0 * defense
 			"esquive":
 				total += val * 100.0
 			"epines":

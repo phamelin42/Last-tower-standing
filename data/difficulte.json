@@ -1,6 +1,12 @@
 {
 	"paliers": [
-		{"manche": 1, "pv": 1.0, "degats": 1.0, "vitesse": 1.0, "resistance_controle": 1.0}
+		{"manche": 1, "pv": 1.0, "degats": 0.03, "vitesse": 1.0, "resistance_controle": 1.0},
+		{"manche": 5, "pv": 1.0, "degats": 0.1, "vitesse": 1.0, "resistance_controle": 1.0},
+		{"manche": 6, "pv": 1.0, "degats": 0.2, "vitesse": 1.0, "resistance_controle": 1.0},
+		{"manche": 7, "pv": 1.0, "degats": 0.35, "vitesse": 1.0, "resistance_controle": 1.0},
+		{"manche": 8, "pv": 1.0, "degats": 0.5, "vitesse": 1.0, "resistance_controle": 1.0},
+		{"manche": 9, "pv": 1.0, "degats": 0.7, "vitesse": 1.0, "resistance_controle": 1.0},
+		{"manche": 10, "pv": 1.0, "degats": 1.0, "vitesse": 1.0, "resistance_controle": 1.0}
 	],
 	"accelerations": [
 		{"temps_s": 300, "pv": 1.3, "degats": 1.2, "vitesse": 1.05},
