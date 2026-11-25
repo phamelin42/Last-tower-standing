@@ -65,7 +65,8 @@ privé, lu en direct). Ses lignes vivent dans sa base, pas dans la page :
 - Dès qu'une tâche change d'état (commencée, PR ouverte, attend Phil, cochée, ajoutée au plan),
   l'agent principal met à jour sa ligne par `ArtifactData` (`get`, puis `update` avec `if_version`),
   dans la même étape que le plan. `pourcentage` : 0 à faire, 100 cochée, sinon une estimation dont
-  `etape` dit ce qui reste. Un suivi relevé ou réglé met aussi à jour sa ligne.
+  `etape` dit ce qui reste. Un suivi relevé ou réglé met aussi à jour sa ligne. `maj` se lit par
+  `date -u`, jamais estimée (deux heures écrites de tête étaient dans le futur).
 - Ne jamais republier la page pour changer un chiffre : les pages ouvertes suivent la base seules.
 
 ## Écarts au contexte commun
@@ -89,3 +90,4 @@ privé, lu en direct). Ses lignes vivent dans sa base, pas dans la page :
 - Tout fichier écrit par un test va sous `dossier_temporaire()` ; tout port réseau est tiré à l'exécution (d'autres agents lancent leurs tests en même temps).
 - Godot 4.7.2 importe les CSV de traduction en parallèle, et chaque import inscrit son `.translation` dans l'arbre de l'éditeur sans verrou (`EditorFileSystem::update_files`, godot#125712, sans correctif) : l'import à froid plantait au hasard (« double free or corruption », code 134 ou 139). Sur `ubuntu-latest` : 20 imports sur 60 (28 sur 60 sans les textures, 0 sur 60 sur un seul cœur), rarement en local. `textes_salon.csv` n'y est pour rien : c'est le premier libellé du groupe importé. D'où `editor/import/use_multiple_threads=false` dans `project.godot` (0 sur 300 en CI, +1 à 3 s par import à froid), gardé par `test_configuration_projet`. Ne le retirer qu'après `tools/stress-import-csv.sh --threads` (400 CSV, imports à froid en boucle) à 0 plantage sur un Godot plus récent.
 - `restart: unless-stopped` ne relance pas un conteneur arrêté par `docker kill` (arrêt voulu) : pour éprouver le redémarrage du service d'annuaire, tuer son processus depuis l'hôte (`kill -9 <PID>`).
+- `Protocole.VERSION` est partagé par tous les lots : deux PR parallèles l'ont portée au même numéro (T5.3b et T7.2b, 3). Avant de l'incrémenter, relire celle de `main` ; à l'intégration, la seconde prend le numéro suivant et garde les deux formats, avec un test qui refuse en boucle les versions précédentes.
