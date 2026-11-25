@@ -23,13 +23,6 @@ var source: SourceLocale = null
 var arene: Arene3D = null
 var camera: CameraArene = null
 
-@onready var hud: Hud = $Interface/Racine/Hud
-@onready var scores: TableauScores = $Interface/Racine/Scores
-@onready var boutique: BoutiqueUi = $Interface/Racine/Boutique
-@onready var observation: ObservationUi = $Interface/Racine/Observation
-@onready var fin: FinUi = $Interface/Racine/Fin
-@onready var _racine: Control = $Interface/Racine
-
 var _donnees: Donnees = null
 var _facteur: float = 1.0
 var _sensibilite: float = 1.0
@@ -39,6 +32,13 @@ var _fin_affichee: bool = false
 var _observe: bool = false
 var _pause: PanelContainer = null
 var _reprendre: Button = null
+
+@onready var hud: Hud = $Interface/Racine/Hud
+@onready var scores: TableauScores = $Interface/Racine/Scores
+@onready var boutique: BoutiqueUi = $Interface/Racine/Boutique
+@onready var observation: ObservationUi = $Interface/Racine/Observation
+@onready var fin: FinUi = $Interface/Racine/Fin
+@onready var _racine: Control = $Interface/Racine
 
 
 ## Applique à la fenêtre ce que les réglages demandent : échelle de l'interface et plein écran.
