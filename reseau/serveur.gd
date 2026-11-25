@@ -25,6 +25,8 @@ const DELAI_COUPURE_S: float = 0.5
 const BONJOURS_INVALIDES_MAX: int = 3
 ## Un à-coup de la machine ne doit pas faire simuler des minutes d'un coup.
 const DT_MAX: float = 0.5
+## Événements d'arène servis par envoi : le plafond du protocole.
+const TAMPON_PAR_ENVOI: int = TamponEvenements.PAR_ENVOI
 
 ## Nœud `Canal` qui porte les RPC ; à défaut, le parent de ce nœud.
 var canal: Canal = null
@@ -47,6 +49,9 @@ var _taille_globale: int = 0
 var _fin_signalee: bool = false
 var _liaisons: Array[Array] = []
 var _coupures: Dictionary = {}
+## joueur → événements de son arène, lus une fois par pas ; `_vues_du_pas` : vue lue ce pas.
+var _tampons: Dictionary = {}
+var _vues_du_pas: Dictionary = {}
 
 
 class _Pair:
@@ -55,6 +60,8 @@ class _Pair:
 	var age: float = 0.0
 	var bonjours_invalides: int = 0
 	var cible: int = 0
+	## Numéro du dernier événement de l'arène regardée déjà reçu par ce pair.
+	var curseur: int = 0
 	var acc_arene: float = 0.0
 	var taille_arene: int = 0
 	var fenetre: float = 0.0
@@ -120,6 +127,8 @@ func preparer(donnees: Donnees, acces: int = 1) -> void:
 	salon = Salon.new()
 	partie = null
 	_pairs = {}
+	_tampons = {}
+	_vues_du_pas = {}
 	_acc_global = 0.0
 	_taille_globale = 0
 	_fin_signalee = false
@@ -296,6 +305,8 @@ func traiter_intention(pair: int, octets: PackedByteArray) -> int:
 		resultat = _hors_phase()
 	else:
 		resultat = _intention_de_jeu(pair, genre, arg, String(i["texte"]))
+	# Au seul expéditeur : le client apprend ainsi pourquoi un achat échoue.
+	_envoyer(pair, "rpc_resultat", Protocole.encoder_resultat(genre, resultat))
 	return resultat
 
 
@@ -366,9 +377,12 @@ func _options(pair: int, graine: int, texte: String) -> int:
 func _observer(p: _Pair, pair: int, cible: int) -> int:
 	if partie == null:
 		return Types.Resultat.MAUVAISE_PHASE
-	if partie.vue_arene(pair, cible) == null:
+	var vue := _lire_vue(pair, cible)
+	if vue == null:
 		return Types.Resultat.INDICE_INVALIDE
 	p.cible = cible
+	# Les événements d'avant le changement ne l'intéressent pas.
+	p.curseur = _tampon(cible).dernier
 	return Types.Resultat.OK
 
 
@@ -395,6 +409,7 @@ func tick(dt: float) -> void:
 		return
 	dt = minf(dt, DT_MAX)
 	_horloge_pairs(dt)
+	_vues_du_pas = {}
 	if partie == null:
 		return
 	var t0 := Time.get_ticks_usec()
@@ -456,18 +471,67 @@ func _envoyer_etats(dt: float) -> void:
 		if p.acc_arene < periode:
 			continue
 		p.acc_arene = minf(p.acc_arene - periode, periode)
-		var vue := partie.vue_arene(pair, p.cible)
+		var vue := _vue_du_pas(p.cible)
 		if vue == null and p.cible != pair:
 			p.cible = pair
-			vue = partie.vue_arene(pair, pair)
+			p.curseur = _tampon(pair).dernier
+			vue = _vue_du_pas(pair)
 		if vue == null:
 			continue
+		var lot := _tampon(p.cible).prendre(p.curseur, TAMPON_PAR_ENVOI)
+		vue.evenements = lot.evenements
 		var octets := Protocole.encoder_etat_arene(vue, _donnees.ids_catalogue)
 		if octets.is_empty():
 			etats_trop_gros += 1
 			continue
 		p.taille_arene = octets.size()
+		p.curseur = lot.curseur
 		_envoyer(pair, "rpc_etat_arene", octets)
+
+
+func _tampon(joueur: int) -> TamponEvenements:
+	var t := _tampons.get(joueur) as TamponEvenements
+	if t == null:
+		t = TamponEvenements.new()
+		_tampons[joueur] = t
+	return t
+
+
+## Lit l'arène une seule fois et verse ses événements au tampon : `Partie` les vide à chaque
+## lecture, donc chaque observateur les reçoit du tampon et non de sa propre lecture.
+func _lire_vue(demandeur: int, cible: int) -> VueArene:
+	var vue := partie.vue_arene(demandeur, cible)
+	if vue != null:
+		_tampon(cible).ajouter(vue.evenements)
+	return vue
+
+
+## La vue de l'arène de `cible`, lue au plus une fois par pas ; `null` si elle n'existe plus.
+func _vue_du_pas(cible: int) -> VueArene:
+	if _vues_du_pas.has(cible):
+		return _vues_du_pas[cible] as VueArene
+	var vue := _lire_vue(cible, cible)
+	if vue == null:
+		_tampons.erase(cible)
+	_vues_du_pas[cible] = vue
+	return vue
+
+
+## Événements de l'arène regardée par ce pair qu'il n'a pas encore reçus.
+func en_attente(pair: int) -> int:
+	var p := _pairs.get(pair) as _Pair
+	if p == null:
+		return 0
+	return _tampon(p.cible).prendre(p.curseur, 1 << 30).evenements.size()
+
+
+## Nombre total d'événements lus dans l'arène de ce joueur.
+func evenements_lus(joueur: int) -> int:
+	return _tampon(joueur).dernier
+
+
+func taille_tampon(joueur: int) -> int:
+	return _tampon(joueur).taille()
 
 
 func _diffuser_global() -> void:
