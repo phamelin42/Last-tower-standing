@@ -943,7 +943,7 @@ avant l'écran « Rejoindre »).
 
 ### Task 7.2 : UPnP chez l'hôte — `sonnet`
 
-- [ ] **Objectif :** à « Créer une partie », découverte UPnP et ouverture du port du jeu, fermée en
+- [x] **Objectif :** à « Créer une partie », découverte UPnP et ouverture du port du jeu, fermée en
       quittant le salon et à la fermeture du jeu. Un échec n'empêche jamais de jouer en réseau local :
       il affiche « Votre box n'a pas ouvert le port : les joueurs extérieurs ne pourront pas vous
       rejoindre ». Tests avec un double de `UPNP`.
