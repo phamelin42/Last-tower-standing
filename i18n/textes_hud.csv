@@ -22,3 +22,6 @@ SCORES_EN_VIE,En vie
 SCORES_ELIMINE,Éliminé
 SCORES_VOUS,vous
 HUD_ARMES_VALEUR,%s / %s
+IPS_COMPTEUR,%s img/s · min. 5 s : %s · ennemis : %s
+IPS_BANC_EN_COURS,"Banc d’essai : %s ennemis, mesure en cours (Échap pour quitter)"
+IPS_BANC_RESUME,"Banc d’essai terminé : moyenne %s img/s · minimum %s img/s · ennemis : %s (%s s, sans les %s premières secondes)"

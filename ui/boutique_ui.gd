@@ -49,6 +49,8 @@ const ESPACE_AMBIANCE := 6.0
 const HAUTEUR_NOTE := 24.0
 ## Marges verticales du style des boutons (haut et bas) autour du texte.
 const HAUTEUR_MARGES_BOUTON := 36.0
+## Interligne du bouton de relance (négatif : resserre les deux lignes dans la plaque du pack).
+const INTERLIGNE_RELANCE := -6
 const MARGE := 8
 const MARGE_COTE := ThemeJeu.MARGE_PANNEAU
 const OPACITE_VENDUE := 0.45
@@ -139,6 +141,9 @@ func _construire_bandeau() -> void:
 	# « Relancer » puis le prix : deux lignes de 23 px et les marges du bouton (36 px), sinon la
 	# seconde ligne est coupée.
 	_relance.custom_minimum_size.y = 2.0 * HAUTEUR_LIGNE_SERREE + HAUTEUR_MARGES_BOUTON
+	# La plaque du pack a une hauteur fixe (≈ 40 px utiles) : à 23 px d'interligne, la seconde
+	# ligne mordait sur son cadre. Les glyphes font 12 px : deux lignes serrées y tiennent.
+	_relance.add_theme_constant_override("line_spacing", INTERLIGNE_RELANCE)
 	actions.add_child(_relance)
 	_note_relance = _etiquette("NoteRelance")
 	_message = _etiquette("Message")
@@ -495,12 +500,20 @@ func _afficher_carte(i: int, offre: Dictionary, vue: VueArene) -> void:
 	_notes[i].tooltip_text = _notes[i].text
 
 
+## « Relancer » sur une ligne, le prix sur la suivante : le retour à la ligne est voulu, pour que
+## le prix ne se coupe jamais au milieu (« 50 » / « or »).
+func _libelle_relance(detail: String) -> String:
+	return tr("BOUTIQUE_RELANCER") + "\n" + detail
+
+
 func _afficher_relance(vue: VueArene) -> void:
 	if vue.relances_gratuites > 0:
-		_relance.text = tr("BOUTIQUE_RELANCER_GRATUITE")
+		_relance.text = _libelle_relance(tr("BOUTIQUE_RELANCER_GRATUITE"))
 		_note_relance.text = ""
 		return
-	_relance.text = tr("BOUTIQUE_RELANCER_COUT") % Nombres.groupe(vue.cout_relance)
+	_relance.text = _libelle_relance(
+		tr("BOUTIQUE_RELANCER_COUT") % Nombres.groupe(vue.cout_relance)
+	)
 	_note_relance.text = tr("BOUTIQUE_OR_INSUFFISANT") if vue.argent < vue.cout_relance else ""
 
 

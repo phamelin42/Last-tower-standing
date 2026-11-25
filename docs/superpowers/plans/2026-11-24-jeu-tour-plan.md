@@ -803,6 +803,13 @@ crédité dans `CREDITS.md` (le crédit est facultatif en CC0, mais on cite touj
       images recadrées. Reste la preuve des 60 images/s : 22,6 images/s en rendu logiciel sous Xvfb,
       à mesurer sur une vraie carte graphique.
 
+### Task 5.1b : Compteur d’images par seconde et banc d’essai — `sonnet`
+
+- [x] **Objectif :** permettre à Phil de vérifier T5.1 sur son PC (demande du 25/11/2026). Compteur
+      (F3, case des Réglages désactivée par défaut) : images/s, minimum sur 5 s, ennemis visibles.
+      Banc `-- --banc-ips [N]` (1 000 par défaut) : arène et décor, N ennemis répartis qui avancent,
+      vues synthétiques sans partie ni réseau, résumé après 30 s. Marche à suivre dans le `README.md`.
+
 ### Task 5.2 : Terrain et décor — `sonnet`
 
 - [x] **Objectif :** sol en tuiles (herbe, chemins, rochers, eau en bordure), décor qui ne gêne pas
