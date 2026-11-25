@@ -123,7 +123,7 @@ func _jusqua_la_defaite(jeu: Jeu) -> void:
 # --- Menu ----------------------------------------------------------------------------------
 
 
-func test_le_menu_propose_les_quatre_boutons_et_le_nom_du_joueur() -> void:
+func test_le_menu_propose_les_cinq_boutons_et_le_nom_du_joueur() -> void:
 	var textes := CsvTextes.lire("res://i18n/textes_menu.csv")
 	var principal := _principal()
 	var menu := principal.menu()
@@ -131,10 +131,10 @@ func test_le_menu_propose_les_quatre_boutons_et_le_nom_du_joueur() -> void:
 	verifier_egal(menu.bouton_solo.text, textes["MENU_JOUER_SEUL"])
 	verifier_egal(menu.bouton_reglages.text, textes["MENU_REGLAGES"])
 	verifier_egal(menu.bouton_quitter.text, textes["MENU_QUITTER"])
-	verifier_egal(menu.bouton_multijoueur.text, textes["MENU_MULTIJOUEUR"])
-	verifier(menu.bouton_multijoueur.text.contains("bientôt"))
-	verifier(menu.bouton_multijoueur.disabled, "le multijoueur n'est pas branché")
-	verifier_egal(menu.bouton_multijoueur.tooltip_text, textes["MENU_BIENTOT"])
+	verifier_egal(menu.bouton_creer.text, textes["MENU_CREER"])
+	verifier_egal(menu.bouton_rejoindre.text, textes["MENU_REJOINDRE"])
+	verifier_faux(menu.bouton_creer.disabled, "créer une partie est branché")
+	verifier_faux(menu.bouton_rejoindre.disabled, "rejoindre une partie est branché")
 	verifier_faux(menu.bouton_solo.disabled)
 	var titres: Array[String] = []
 	for noeud: Node in menu.find_children("*", "Label", true, false):

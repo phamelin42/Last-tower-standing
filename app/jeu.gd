@@ -1,11 +1,13 @@
 class_name Jeu
 extends Node
 ## Une partie en cours : source de vue, arène 3D, HUD, boutique, scores, observation et écran de
-## fin, câblés ensemble. Pour l'instant le solo seul (`SourceLocale`) ; le réseau mettra un
-## `Client` à la place sans changer le reste, car tout passe par `SourceVue`.
+## fin, câblés ensemble. La source de vue est une `SourceLocale` (solo, créée ici) ou un `Client`
+## déjà connecté (réseau, fourni par `Principal`) : tout passe par `SourceVue`.
 
 ## La joueuse veut revenir au menu (`motif` vide) ou la connexion est perdue (`motif` lisible).
 signal retour_menu(motif: String)
+## En réseau, l'écran de fin propose « Retour au salon » à la place de « Rejouer ».
+signal retour_salon
 
 const SCENE_ARENE := "res://scenes/arene_3d.tscn"
 ## Un cran de molette déplace le zoom de ce pas, multiplié par la sensibilité des réglages.
@@ -19,7 +21,9 @@ const OPACITE_HUD_FIN := 0.35
 ## Fichier des réglages : le lanceur de tests le remplace par un dossier temporaire.
 var chemin_reglages: String = Reglages.CHEMIN_DEFAUT
 var nom_joueur: String = ""
-var source: SourceLocale = null
+var source: SourceVue = null
+## Vrai quand la source est un `Client` fourni de l'extérieur (jamais libéré par `Jeu`).
+var en_reseau: bool = false
 var arene: Arene3D = null
 var camera: CameraArene = null
 
@@ -85,19 +89,48 @@ func demarrer_solo(donnees: Donnees, graine: int, facteur_duree: float) -> bool:
 		source = SourceLocale.new()
 		source.name = "Source"
 		add_child(source)
-		source.vue_arene_recue.connect(_sur_arene)
-		source.vue_globale_recue.connect(_sur_globale)
-		source.connexion_perdue.connect(func(motif: String) -> void: retour_menu.emit(motif))
+		_brancher(source)
 	return _lancer(graine)
 
 
+## Démarre une partie en réseau sur une source déjà connectée dont la partie a commencé. Faux,
+## sans écran à moitié monté, si les données ou la source manquent.
+func demarrer_reseau(donnees: Donnees, src: SourceVue) -> bool:
+	if donnees == null or src == null:
+		return false
+	_donnees = donnees
+	en_reseau = true
+	_appliquer_reglages()
+	source = src
+	_brancher(src)
+	_monter()
+	return true
+
+
+func _brancher(src: SourceVue) -> void:
+	src.vue_arene_recue.connect(_sur_arene)
+	src.vue_globale_recue.connect(_sur_globale)
+	src.connexion_perdue.connect(_sur_perte)
+
+
+func _sur_perte(motif: String) -> void:
+	retour_menu.emit(motif)
+
+
 func _lancer(graine: int) -> bool:
-	source.quitter_partie()
+	var locale := source as SourceLocale
+	locale.quitter_partie()
 	var config := Partie.Config.new()
 	config.graine = graine
 	config.facteur_duree = _facteur
-	if not source.demarrer(_donnees, config, nom_joueur):
+	if not locale.demarrer(_donnees, config, nom_joueur):
 		return false
+	_monter()
+	return true
+
+
+## Monte l'écran de la partie sur la source courante (solo ou réseau).
+func _monter() -> void:
 	_vider_ecran()
 	if arene == null:
 		arene = (load(SCENE_ARENE) as PackedScene).instantiate() as Arene3D
@@ -110,7 +143,6 @@ func _lancer(graine: int) -> bool:
 	hud.configurer(_donnees)
 	boutique.configurer(_donnees, source)
 	observation.configurer(source)
-	return true
 
 
 func _appliquer_reglages() -> void:
@@ -185,7 +217,8 @@ func _montrer_fin(victoire: bool) -> void:
 	_placer()
 
 
-## Le mode sans fin n'existe pas encore : son bouton reste là, grisé, avec une infobulle.
+## Le mode sans fin n'existe pas encore : son bouton reste là, grisé, avec une infobulle. En
+## réseau, « Rejouer » devient « Retour au salon ».
 func _adapter_boutons_fin() -> void:
 	var rejouer_bouton: Button = null
 	for noeud: Node in fin.find_children("*", "Button", true, false):
@@ -195,6 +228,8 @@ func _adapter_boutons_fin() -> void:
 			bouton.tooltip_text = tr("MENU_BIENTOT")
 		elif bouton.get_meta("action", "") == ACTION_REJOUER:
 			rejouer_bouton = bouton
+			if en_reseau:
+				bouton.text = tr("SALON_RETOUR_SALON")
 	if rejouer_bouton != null and fin.is_inside_tree() and fin.visible:
 		if (
 			get_viewport().gui_get_focus_owner() == null
@@ -212,6 +247,10 @@ func _observer() -> void:
 
 
 func _rejouer() -> void:
+	# En réseau, le serveur ne relance pas la même partie : on retourne au salon.
+	if en_reseau:
+		retour_salon.emit()
+		return
 	_lancer(randi())
 
 

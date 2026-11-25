@@ -24,7 +24,8 @@ const PAQUETS_PAR_IMAGE: int = 64
 const DIFFUSION: String = "255.255.255.255"
 const _ENTETE: int = 7
 
-## Donne l'annonce de l'hôte : `{nom, joueurs, max, port}`. Appelée à chaque émission.
+## Donne l'annonce de l'hôte : `{nom, joueurs, max, port}`, ou `{}` pour ne rien annoncer.
+## Appelée à chaque émission.
 var fournisseur: Callable = Callable()
 ## Horloge en secondes, injectable pour les tests.
 var horloge: Callable = func() -> float: return Time.get_ticks_msec() / 1000.0
@@ -183,6 +184,9 @@ func emettre() -> void:
 	if _sortie == null or not fournisseur.is_valid():
 		return
 	var a: Dictionary = fournisseur.call()
+	# Un fournisseur qui n'a rien à dire (partie lancée) se tait.
+	if a.is_empty():
+		return
 	var octets := encoder(
 		String(a.get("nom", "")),
 		int(a.get("joueurs", 0)),
