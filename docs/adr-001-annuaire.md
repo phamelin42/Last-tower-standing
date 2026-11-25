@@ -2,6 +2,9 @@
 
 **Statut : Proposé** (25/11/2026). Aucune ligne de code avant la validation de Phil.
 
+**Phil : les 20 décisions à valider sont à la fin du document** (section « Décisions à valider par
+Phil »).
+
 ## Contexte
 
 Aujourd'hui, on joue par Internet en saisissant l'IP de l'hôte (README, « Jouer par Internet ») ; la
@@ -259,9 +262,10 @@ par un signal appelé en différé, et l'écran de création ne gèle jamais. R�
   requête) ; **toute personne qui consulte la liste voit l'IP des hôtes** (il le faut pour les
   rejoindre) ; l'hôte voit l'IP des joueurs qui le rejoignent, comme aujourd'hui.
 - **Notice dans le jeu**, à côté de la case « Partie publique » (cochée par défaut, décision de
-  Phil), avant tout envoi : « Partie publique : votre adresse IP sera transmise à l'annuaire et
-  visible des joueurs qui consultent la liste, tant que le salon est ouvert. Rien n'est conservé
-  ensuite. » Le même texte va dans `docs/jouer.md`.
+  Phil), avant tout envoi : « Partie publique : votre adresse IP sera transmise à l’annuaire et
+  visible des joueurs qui consultent la liste, tant que le salon est ouvert. Rien n’est conservé
+  ensuite. » Le même texte va dans `docs/jouer.md`. Le jeu ne contacte l'annuaire qu'à l'ouverture de
+  « Rejoindre une partie » et quand la joueuse actualise la liste, jamais en arrière-plan (à écrire aussi dans `docs/jouer.md`).
 - Pas de TLS ni d'authentification : l'annuaire ne porte aucun secret. Un attaquant sur le chemin
   pourrait altérer une liste (rediriger vers un faux salon), ce qui n'expose pas plus qu'un salon
   public ; un faux salon doit de toute façon répondre à ENet. Écarté : la gestion de certificats
@@ -286,19 +290,20 @@ par un signal appelé en différé, et l'écran de création ne gèle jamais. R�
   rien).
 - **Réseau** : port 7779/TCP publié ; aucun reverse proxy, car le service doit voir l'IP source
   réelle. Si la publication Docker masque l'IP (adresse 172.x vue), toutes les annonces recevraient
-  la réponse 6 : T7.4 le vérifie de bout en bout, avec l'option `--autoriser-prive` réservée à ce
+  la réponse 6 : T7.4 le vérifie de bout en bout et, si besoin, essaie `network_mode: host`, avec l'option `--autoriser-prive` réservée à ce
   contrôle et aux tests (elle désactive le seul rejet des adresses non publiques).
 - **`docker compose`** (T7.4, `service-annuaire/compose.yaml`) : `restart: unless-stopped`, système
-  de fichiers en lecture seule, journal borné, contrôle de santé par ouverture TCP du port.
+  de fichiers en lecture seule avec un `tmpfs` sur le dossier utilisateur de Godot (T7.4 le localise), journal borné, contrôle de santé par ouverture TCP du port.
 - **Sous-domaine** : proposé `annuaire-lts.phamelin.fr`, enregistrement A vers le VPS, déclaré dans
-  `infra` par une PR (T7.4). Je n'ai pas accès au dépôt `infra` : **ce que `projects.json` sait
+  `infra` par une PR (T7.4). L'accès au dépôt `infra` n'a pas été possible pendant la rédaction : **ce que `projects.json` sait
   exprimer (un A vers un VPS, hors Vercel) est à vérifier en T7.4** ; sinon c'est à Phil d'en décider
-  (extension d'`infra`, ou enregistrement manuel exceptionnel).
+  (extension d'`infra`) ; un enregistrement manuel chez OVH est exclu (§ 1 du contexte commun).
 - **Écart au contexte commun, résolu** : le § 20 de `CLAUDE.commun.md` disait « ni `infra` » pour
   last-tower-standing, alors que le lot 7 (décision plus récente de Phil) demande ce sous-domaine.
   Le § 20 de `claude-context` a été corrigé par la PR #13 (fusionnée, commit 747aefb) : « `infra` ne
   déclare que le sous-domaine de l'annuaire des parties (lot 7, service sur le VPS) ». La recopie de
-  ce contexte dans le jeu reste à faire.
+  ce contexte dans le jeu se fait par `scripts/installer.sh` de `claude-context`, dans une PR à part du
+  jeu, après la validation de l'ADR, à la charge de l'agent qui pilote le lot (hors T7.x).
 - **Hors du dépôt, à faire par Phil** (liste donnée en T7.4) : pare-feu du VPS (7779/TCP ouvert en
   entrée, UDP sortant libre pour la sonde), Docker installé, enregistrement DNS.
 
@@ -329,10 +334,10 @@ aucun ne code d'octets à la main. Chaque nouveau `.gd` s'accompagne de son `.ui
 | `tests/unitaires/test_annuaire_protocole.gd`, `test_annuaire_service.gd`, `test_annuaire_serveur.gd`, `test_annuaire_dockerfile.gd`                                                                                                                                                      | Aller-retour de chaque message ; fuzz à graine fixe (tailles, tronqués, UTF-8 invalide, contrôles, champs hors bornes) ; expiration ; débit ; IP vue et non déclarée ; sonde simulée puis réelle en boucle locale ; version différente ; cohérence Dockerfile et script | T7.1 crée                     |
 | `reseau/protocole.gd`, `reseau/salon.gd`, `reseau/serveur.gd`, `reseau/client.gd`, `app/session_reseau.gd` (tirage et remise du jeton), `tests/unitaires/test_protocole.gd`, `test_salon.gd`, `test_serveur.gd`, `test_client.gd`, `test_serveur_dedie.gd` (inchangé : doit rester vert) | Jeton d'hôte optionnel, `Protocole.VERSION` = 3 ; **serveur dédié inchangé** (sans jeton, règle du premier pair)                                                                                                                                                        | T7.2b modifie (si décision 5) |
 | `reseau/upnp_hote.gd`                                                                                                                                                                                                                                                                    | `UpnpHote` : fil dédié, découverte, bail, ouverture et fermeture du port, `port_externe` ; double de `UPNP`                                                                                                                                                             | T7.2 crée                     |
-| `app/session_reseau.gd`, `ui/salon_ui.gd` ou l'écran de création, `i18n/textes_salon.csv`                                                                                                                                                                                                | Appel d'`UpnpHote`, message d'échec                                                                                                                                                                                                                                     | T7.2 modifie                  |
+| `app/session_reseau.gd`, `ui/connexion_ui.gd` (page de création), `i18n/textes_salon.csv`                                                                                                                                                                                                | Appel d'`UpnpHote`, message d'échec                                                                                                                                                                                                                                     | T7.2 modifie                  |
 | `tests/unitaires/test_upnp_hote.gd`                                                                                                                                                                                                                                                      | Succès, refus de bail, conflit de port, aucune passerelle, fermeture au départ                                                                                                                                                                                          | T7.2 crée                     |
 | `reseau/annuaire_client.gd`                                                                                                                                                                                                                                                              | Nœud TCP : annoncer, retirer, lister ; période de 10 s ; repli                                                                                                                                                                                                          | T7.3 crée                     |
-| `app/session_reseau.gd` (signal `hote_enregistre`, annonceur), `app/principal.gd`, `app/reglages.gd` (`annuaire_adresse`, `salon_public`), `ui/connexion_ui.gd` (liste fusionnée, case, notice), `i18n/textes_menu.csv`                                                                  | Intégration dans le jeu                                                                                                                                                                                                                                                 | T7.3 modifie                  |
+| `app/session_reseau.gd` (signal `hote_enregistre`, annonceur), `app/principal.gd`, `app/reglages.gd` (`annuaire_adresse`, `salon_public`), `ui/connexion_ui.gd` (liste fusionnée, case, notice), `i18n/textes_salon.csv`                                                                 | Intégration dans le jeu                                                                                                                                                                                                                                                 | T7.3 modifie                  |
 | `tests/unitaires/test_annuaire_client.gd` (et ceux de réglages, de la liste)                                                                                                                                                                                                             | Annonce, retrait, liste, doublons, repli                                                                                                                                                                                                                                | T7.3 crée                     |
 | `service-annuaire/compose.yaml`, `README.md`, `docs/jouer.md`                                                                                                                                                                                                                            | Déploiement et notice ; retrait de « À venir »                                                                                                                                                                                                                          | T7.4 crée ou modifie          |
 | PR vers `infra` (`projects.json`)                                                                                                                                                                                                                                                        | Sous-domaine                                                                                                                                                                                                                                                            | T7.4                          |
@@ -340,7 +345,8 @@ aucun ne code d'octets à la main. Chaque nouveau `.gd` s'accompagne de son `.ui
 **Ordre** : T7.0 validée, puis **{T7.1, T7.2b}** (fichiers disjoints), puis **T7.2** (après T7.2b : les
 deux touchent `app/session_reseau.gd`), puis T7.3, puis T7.4. Le plan prévoyait {T7.1, T7.2} en
 parallèle ; T7.2b est **proposée** (décision 5). Si Phil la refuse, le jeton passe dans T7.3 ou le
-suivi « rôle d'hôte » de la fin du plan reste ouvert. Si elle est acceptée, elle couvre ce suivi.
+suivi « rôle d'hôte » de la fin du plan reste ouvert. Si elle est acceptée, elle couvre ce suivi. Le plan (lot 7) garde encore « le port vus par le VPS » et
+{T7.1, T7.2} en parallèle : il sera aligné sur cet ADR après la validation de Phil, pas avant.
 
 **Doublons liste locale et annuaire** (T7.3) : une entrée d'annuaire est masquée si un salon du
 réseau local a le même nom et le même port ; l'entrée locale l'emporte. Origine affichée en texte :
@@ -356,6 +362,8 @@ réseau local a le même nom et le même port ; l'entrée locale l'emporte. Ori
 - La sonde fait du VPS un émetteur de paquets ENet : d'où TCP, les rejets d'adresses non publiques et
   les plafonds.
 - L'IP des hôtes publics est visible de tous les consultants : assumé, signalé dans la notice.
+- Deux joueurs derrière la même IP publique (foyer, bureau) peuvent modifier ou retirer l'entrée de
+  l'autre si leurs ports coïncident : la clé est (IP, port). Assumé.
 - Le serveur dédié (`--serveur`) n'est pas annoncé à l'annuaire : l'annonce dépend du client local de
   `SessionReseau`. Hors lot 7 ; à ajouter plus tard si Phil le veut (décision 19).
 - Un salon qui n'ouvre pas son port n'est jamais listé : l'hôte le sait par le message UPnP (T7.2) et
@@ -384,7 +392,7 @@ réseau local a le même nom et le même port ; l'entrée locale l'emporte. Ori
 2. **Port du service** : 7779/TCP (7777 jeu UDP, 7778 découverte locale). Écarté : 443 (inutile sans
    proxy).
 3. **Sous-domaine** : `annuaire-lts.phamelin.fr`, enregistrement A seul, sans proxy. Faisabilité dans
-   `infra` à vérifier en T7.4.
+   `infra` à vérifier en T7.4 ; enregistrement manuel chez OVH exclu (§ 1 du contexte commun).
 4. **Joignabilité** : sonde ENet depuis le VPS, avant de lister, puis toutes les 120 s ; échec = pas
    listé ou retiré. Écartés : ping UDP propre, aucune vérification.
 5. **Rôle d'hôte** : jeton d'hôte optionnel (bonjour en version 3, **suppression du repli « premier
@@ -397,14 +405,16 @@ réseau local a le même nom et le même port ; l'entrée locale l'emporte. Ori
 7. **Cycle** : annonce toutes les 10 s, expiration 30 s (fixée par Phil), RETRAIT explicite à la
    fermeture.
 8. **Plafonds** : 100 entrées, 3 par IP, 64 connexions dont 4 par IP, 4 sondes simultanées, nom de 24
-   caractères.
+   caractères ; port annoncé de 1 024 à 65 535 (un hôte sur un port plus bas n'est jamais listé), jeton
+   de 8 octets, `annuaire_adresse` de 255 caractères, aucune retente hors de la période de 10 s.
 9. **Adresses** : IPv4 publiques seulement ; boucle locale, privée, CGNAT et assimilées refusées
    (réponse 6), sauf `--autoriser-prive` pour les tests et la vérification de T7.4.
 10. **Versions** : version d'annuaire stricte (autre version = « Annuaire incompatible ») ; version de
     jeu listée et marquée « autre version », jamais filtrée. Écarté : masquer les salons d'une autre
     version.
 11. **Vie privée** : mémoire seule, aucun journal d'IP, notice dans le jeu (texte ci-dessus, à
-    valider mot pour mot), case « Partie publique » cochée par défaut (décision de Phil déjà prise).
+    valider mot pour mot), case « Partie publique » cochée par défaut (décision de Phil déjà prise) ; l'annuaire n'est contacté qu'à
+    l'ouverture de « Rejoindre » et à l'actualisation, jamais en arrière-plan.
 12. **Docker** : Godot 4.7.2 téléchargé avec somme SHA-512 obligatoire (`ARG` plus test de cohérence
     avec le script), dépôt entier copié sauf tests et docs, utilisateur non root. Écarté : exécuter
     `install-godot.sh` tel quel (il tolère une liste de sommes injoignable).
@@ -414,7 +424,7 @@ réseau local a le même nom et le même port ; l'entrée locale l'emporte. Ori
     contournable).
 16. **Valeur par défaut du réglage** : `annuaire_adresse = annuaire-lts.phamelin.fr:7779`, modifiable
     et vidable dans les réglages.
-17. **UPnP** : UDP, renouvelé pendant la partie, bail de 3 600 s renouvelé toutes les 1 800 s (repli bail 0 si la box refuse), fil
+17. **UPnP** : UDP, bail de 3 600 s renouvelé toutes les 1 800 s, y compris pendant la partie (repli bail 0 si la box refuse), fil
     dédié, découverte 2 s, un seul nouvel essai sur un port aléatoire 49 152 à 65 535 en cas de
     conflit. Écarté : bail permanent d'emblée (redirection orpheline après plantage).
 18. **Délais et sondes saturées** : service 3 s pour recevoir le cadre puis 4 s de sonde ; jeu 8 s pour
