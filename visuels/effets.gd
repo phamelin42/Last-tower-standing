@@ -13,13 +13,10 @@ const HAUTEUR: float = 1.0
 ## Taille de l'impact sans rayon (rebond) et de la mort, en mètres.
 const RAYON_PAR_DEFAUT: float = 0.5
 const RAYON_MORT: float = 0.8
-const COULEUR_MORT := Color("#ffffff")
-const COULEUR_IMPACT := Color("#ffe9a8")
 
 var _libres: Array[MeshInstance3D] = []
 var _vivants: Array[Dictionary] = []
 var _nb_noeuds: int = 0
-var _materiaux: Dictionary = {}
 
 
 func nombre_vivants() -> int:
@@ -48,7 +45,7 @@ func ajouter(evenement: Dictionary) -> void:
 	match genre:
 		"tir":
 			noeud.mesh = Apparence.forme_projectile(type_degats)
-			noeud.material_override = _materiau(Apparence.couleur_type(type_degats))
+			noeud.material_override = Apparence.materiau_projectile(type_degats)
 			effet["duree"] = DUREE_TIR
 			effet["depart"] = depart
 			effet["arrivee"] = arrivee
@@ -59,9 +56,9 @@ func ajouter(evenement: Dictionary) -> void:
 			)
 		"impact":
 			# L'anneau du projectile chaos sert de forme ; son échelle donne le rayon réel.
-			var anneau: Mesh = Apparence.forme_projectile(Types.TypeDegats.CHAOS)
+			var anneau: Mesh = Apparence.forme_impact()
 			noeud.mesh = anneau
-			noeud.material_override = _materiau(COULEUR_IMPACT)
+			noeud.material_override = Apparence.materiau_impact()
 			var cible: float = rayon * Apparence.ECHELLE if rayon > 0.0 else RAYON_PAR_DEFAUT
 			effet["duree"] = DUREE_IMPACT
 			effet["depart"] = arrivee
@@ -69,7 +66,7 @@ func ajouter(evenement: Dictionary) -> void:
 			noeud.basis = Basis.IDENTITY
 		_:
 			noeud.mesh = Apparence.forme_projectile(-1)
-			noeud.material_override = _materiau(COULEUR_MORT)
+			noeud.material_override = Apparence.materiau_mort()
 			effet["duree"] = DUREE_MORT
 			effet["depart"] = arrivee
 			effet["echelle"] = RAYON_MORT / 0.2
@@ -123,13 +120,3 @@ func _prendre() -> MeshInstance3D:
 	add_child(noeud)
 	_nb_noeuds += 1
 	return noeud
-
-
-func _materiau(couleur: Color) -> StandardMaterial3D:
-	var clef: String = couleur.to_html()
-	if not _materiaux.has(clef):
-		var m := StandardMaterial3D.new()
-		m.albedo_color = couleur
-		m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-		_materiaux[clef] = m
-	return _materiaux[clef] as StandardMaterial3D
