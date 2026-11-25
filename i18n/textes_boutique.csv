@@ -1,14 +1,14 @@
 keys,fr
 BOUTIQUE_TITRE,Boutique
 BOUTIQUE_ACHETER,Acheter
-BOUTIQUE_RELANCER_COUT,Relancer (%d or)
+BOUTIQUE_RELANCER_COUT,Relancer (%s or)
 BOUTIQUE_RELANCER_GRATUITE,Relancer (gratuite)
-BOUTIQUE_PRIX,%d or
+BOUTIQUE_PRIX,%s or
 BOUTIQUE_VENDU,Vendu
 BOUTIQUE_OR_INSUFFISANT,Or insuffisant
 BOUTIQUE_PLEINS,Emplacements pleins
 BOUTIQUE_AMELIORATION,Amélioration
-BOUTIQUE_VENDRE_PRIX,Vendre (%d or)
+BOUTIQUE_VENDRE_PRIX,Vendre (%s or)
 BOUTIQUE_ARMES_TITRE,Armes équipées
 BOUTIQUE_AUCUNE_ARME,Aucune arme équipée
 BOUTIQUE_NOIR_TITRE,Marché noir : choisissez une amélioration

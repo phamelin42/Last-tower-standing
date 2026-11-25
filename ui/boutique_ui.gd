@@ -38,10 +38,6 @@ const CLES_RESULTAT: Dictionary = {
 	Types.Resultat.NON_DISPONIBLE: "BOUTIQUE_RESULTAT_NON_DISPONIBLE",
 }
 
-## Renvoie le contrôle qui a le focus. Remplaçable : le lanceur de tests tourne hors de l'arbre,
-## où aucun contrôle ne peut prendre le focus.
-var lecteur_focus: Callable = Callable(self, "_focus_viewport")
-
 var _donnees: Donnees = null
 var _source: SourceVue = null
 var _offres: Array[Dictionary] = []
@@ -123,9 +119,9 @@ func relancer() -> void:
 ## Les raccourcis n'agissent que si la boutique est visible et qu'aucun champ de saisie ne
 ## porte le focus : taper un nom dans le salon ne doit rien acheter.
 func _unhandled_input(event: InputEvent) -> void:
-	if not _affichee() or not event.is_pressed() or event.is_echo():
+	if not is_visible_in_tree() or not event.is_pressed() or event.is_echo():
 		return
-	var focus: Variant = lecteur_focus.call()
+	var focus := get_viewport().gui_get_focus_owner()
 	if focus is LineEdit or focus is TextEdit:
 		return
 	for i: int in NB_OFFRES:
@@ -138,26 +134,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		_consommer()
 
 
-## Visible elle-même et par tous ses parents. Écrit à la main plutôt que `is_visible_in_tree()`,
-## faux tant que le nœud n'est pas dans l'arbre.
-func _affichee() -> bool:
-	var noeud: Node = self
-	while noeud is CanvasItem:
-		if not (noeud as CanvasItem).visible:
-			return false
-		noeud = noeud.get_parent()
-	return true
-
-
-func _focus_viewport() -> Control:
-	var fenetre := get_viewport()
-	return fenetre.gui_get_focus_owner() if fenetre != null else null
-
-
 func _consommer() -> void:
-	var fenetre := get_viewport()
-	if fenetre != null:
-		fenetre.set_input_as_handled()
+	get_viewport().set_input_as_handled()
 
 
 # --- Construction ----------------------------------------------------------------------------
@@ -246,7 +224,7 @@ func _afficher_carte(i: int, offre: Dictionary, vue: VueArene) -> void:
 	_noms[i].text = str(entree.get("nom", offre["id"]))
 	_types[i].text = _libelle_type(entree, genre)
 	_descriptions[i].text = str(entree.get("description", ""))
-	_prix[i].text = tr("BOUTIQUE_PRIX") % prix
+	_prix[i].text = tr("BOUTIQUE_PRIX") % Nombres.groupe(prix)
 	var notes: Array[String] = []
 	if vendu:
 		notes.append(tr("BOUTIQUE_VENDU"))
@@ -264,7 +242,7 @@ func _afficher_relance(vue: VueArene) -> void:
 		_relance.text = tr("BOUTIQUE_RELANCER_GRATUITE")
 		_note_relance.text = ""
 		return
-	_relance.text = tr("BOUTIQUE_RELANCER_COUT") % vue.cout_relance
+	_relance.text = tr("BOUTIQUE_RELANCER_COUT") % Nombres.groupe(vue.cout_relance)
 	_note_relance.text = tr("BOUTIQUE_OR_INSUFFISANT") if vue.argent < vue.cout_relance else ""
 
 
@@ -292,7 +270,7 @@ func _afficher_armes(vue: VueArene) -> void:
 		nom.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		ligne.add_child(nom)
 		var vente := _bouton(Callable(self, "_vendre").bind(i))
-		vente.text = tr("BOUTIQUE_VENDRE_PRIX") % _prix_vente(entree)
+		vente.text = tr("BOUTIQUE_VENDRE_PRIX") % Nombres.groupe(_prix_vente(entree))
 		ligne.add_child(vente)
 		_liste_armes.add_child(ligne)
 

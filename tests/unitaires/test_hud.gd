@@ -115,18 +115,7 @@ func _tous_les_libelles(noeud: Node) -> Array[Label]:
 	return sortie
 
 
-# --- Formatage des nombres -------------------------------------------------------------------
-
-
-func test_nombre_sans_separateur_jusqu_a_999() -> void:
-	for n: int in range(0, 1000):
-		verifier_egal(Hud.nombre(n), str(n), "pour %d" % n)
-
-
-func test_nombre_groupe_par_milliers_avec_espace_fine() -> void:
-	verifier_egal(Hud.nombre(1000), "1" + ESPACE_MILLIERS + "000")
-	verifier_egal(Hud.nombre(999999), "999" + ESPACE_MILLIERS + "999")
-	verifier_egal(Hud.nombre(1234567), "1" + ESPACE_MILLIERS + "234" + ESPACE_MILLIERS + "567")
+# --- Formatage des nombres (la fonction elle-même est testée dans test_nombres.gd) --------
 
 
 func test_or_a_999_999_est_affiche_groupe() -> void:
