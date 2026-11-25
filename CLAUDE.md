@@ -21,6 +21,7 @@ Spécification : `docs/superpowers/specs/2026-11-24-jeu-tour-design.md`. Plan :
 | `tools/install-godot.sh`                                       | Installe Godot 4.7.2 (somme SHA-512 vérifiée)                              |
 | `tools/install-gdtoolkit.sh`                                   | Installe gdlint et gdformat 4.x dans un venv                               |
 | `godot --headless --path . --script res://tests/lanceur.gd --` | Lanceur de tests (`-- --filtre test_<fichier>` pour un test ciblé)         |
+| `tools/stress-import-csv.sh [--threads]`                       | Imports à froid en boucle, 400 CSV : rejoue le plantage de godot#125712    |
 
 ## Structure
 
@@ -87,8 +88,4 @@ privé, lu en direct). Ses lignes vivent dans sa base, pas dans la page :
 - `.gdlintrc` est en YAML (`max-line-length: 100`), pas en `clé=valeur` : sinon gdlint plante.
 - Le lanceur lance les tests au premier `process_frame`, arbre actif : `_ready`, RPC, `await` et `attendre_images(n)` fonctionnent. Une méthode `test_*` qui dépasse `delai_max` (10 s) échoue, et le moteur libère les nœuds qu'elle a ajoutés sous `arbre.root`. Toute erreur de script ou `push_error` la fait échouer ; `attendre_erreur(motif)` déclare une erreur voulue (Godot l'imprime quand même sur stderr).
 - Tout fichier écrit par un test va sous `dossier_temporaire()` ; tout port réseau est tiré à l'exécution (d'autres agents lancent leurs tests en même temps).
-- Sous Xvfb, le rendu logiciel (llvmpipe) est limité par le remplissage de pixels : une mesure d’images par seconde n’y vaut pas celle d’une vraie carte. Recadrer les images sur leur contenu (`visuels/recadrages_2d.gd`, généré) réduit ce coût. Dans un script lancé par `-s`, lire `DisplayServer.window_get_size()`, pas `root.size`.
-- Tiny Swords : les boutons se posent en `3Slides` (64 px de haut) ; le pack contient une faute de nom (`Archer_Purlple.png`). Tiny5 n’a pas les symboles (●, ◆, ○…) : DejaVu Sans sert de repli, et un test vérifie chaque caractère des `.csv` et des littéraux de `ui/` et `app/`.
-- Une image dessinée par script (`tools/dessiner_*.gd`) se contrôle par un test qui la régénère sous `dossier_temporaire()` et compare les octets.
-- Un `Control` racine n’hérite pas de la hauteur minimale de ses enfants (bug des réglages) : `_get_minimum_size`. Des « UID duplicate » sans doublon dans git viennent d’un cache `.godot` périmé : le supprimer.
-- `godot --headless --path . --import` à froid plante parfois dans le moteur (« double free or corruption », code 134 ; une fois en CI le 25/11/2026, une fois sur environ 150 essais en local) : défaut de Godot 4.7.2, pas du projet. Une seule relance du job, signalée dans la PR.
+- Godot 4.7.2 importe les CSV de traduction en parallèle, et chaque import inscrit son `.translation` dans l'arbre de l'éditeur sans verrou (`EditorFileSystem::update_files`, godot#125712, sans correctif) : l'import à froid mourait sur « double free or corruption », code 134 ou 139 (sur `ubuntu-latest` : 20 imports sur 60, mesurés par la PR 10 ; rarement en local). D'où `editor/import/use_multiple_threads=false` (0 sur 300 en CI, +3 s par import à froid), gardé par `test_configuration_projet`. Ne le retirer qu'après `tools/stress-import-csv.sh --threads` à 0 plantage sur un Godot plus récent. `textes_salon.csv` n'y est pour rien : c'est le premier libellé du groupe importé.
