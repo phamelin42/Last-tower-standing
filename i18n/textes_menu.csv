@@ -1,7 +1,8 @@
 keys,fr
 MENU_TITRE,Last Tower Standing
 MENU_JOUER_SEUL,Jouer seul
-MENU_MULTIJOUEUR,Multijoueur (bientôt)
+MENU_CREER,Créer une partie
+MENU_REJOINDRE,Rejoindre une partie
 MENU_BIENTOT,Bientôt disponible
 MENU_REGLAGES,Réglages
 MENU_QUITTER,Quitter
