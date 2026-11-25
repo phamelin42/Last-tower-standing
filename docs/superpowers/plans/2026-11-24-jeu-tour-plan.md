@@ -962,7 +962,7 @@ avant l'écran « Rejoindre »).
 
 ### Task 7.4 : Déploiement — `haiku`
 
-- [ ] **Objectif :** `docker compose` pour le VPS, sous-domaine ajouté par une PR au dépôt `infra`,
+- [x] **Objectif :** `docker compose` pour le VPS, sous-domaine ajouté par une PR au dépôt `infra`,
       vérification de bout en bout depuis le conteneur (annonce, liste, expiration). Ce qui reste à
       faire sur le VPS lui-même (ports, pare-feu) est donné à Phil en liste numérotée.
 - **Lire :** `docs/adr-001-annuaire.md` (Déploiement, Repli, Sécurité et vie privée, Fichiers et tâches).
