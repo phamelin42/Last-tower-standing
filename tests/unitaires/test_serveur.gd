@@ -65,6 +65,8 @@ func _lancer(s: Serveur, n: int) -> Array[int]:
 	for i: int in n:
 		ids.append(11 + i)
 		_connecter(s, 11 + i)
+	# Graine fixe : les offres de boutique sont les mêmes à chaque exécution.
+	verifier_egal(s.traiter_intention(ids[0], Serveur.encoder_options(1.0, 777, true)), 0)
 	for pair: int in ids:
 		verifier_egal(_intention(s, pair, Protocole.Intention.PRET, 1), Types.Resultat.OK)
 	return ids
@@ -326,15 +328,16 @@ func test_une_rafale_est_bornee_par_pas_et_par_seconde_sans_geler_la_boucle() ->
 	var s := _serveur()
 	var ids := _lancer(s, 2)
 	var rafale := Protocole.encoder_intention(Protocole.Intention.RELANCER, 0)
+	var base := s.admises(ids[0])
 	var debut := Time.get_ticks_msec()
 	for i: int in 1000:
 		s.traiter_intention(ids[0], rafale)
 	verifier(Time.get_ticks_msec() - debut < 2000, "1 000 intentions ne gèlent pas la boucle")
 	verifier(
-		s.admises(ids[0]) <= Serveur.INTENTIONS_PAR_PAS,
-		"au plus %d par pas : %d" % [Serveur.INTENTIONS_PAR_PAS, s.admises(ids[0])]
+		s.admises(ids[0]) - base <= Serveur.INTENTIONS_PAR_PAS,
+		"au plus %d par pas : %d" % [Serveur.INTENTIONS_PAR_PAS, s.admises(ids[0]) - base]
 	)
-	verifier_egal(s.admises(ids[0]) + s.limitees(ids[0]), 1001, "le surplus est compté")
+	verifier_egal(s.admises(ids[0]) + s.limitees(ids[0]) - base, 1000, "le surplus est compté")
 	verifier_egal(_intention(s, ids[1], Protocole.Intention.RELANCER), Types.Resultat.OK, "B libre")
 	# Une seconde de rafales de 17 intentions par pas de 1/60 s : jamais plus de 30 admises.
 	var t := _serveur()

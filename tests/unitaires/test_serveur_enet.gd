@@ -125,6 +125,7 @@ func _partie_a_deux() -> Array[Cli]:
 	verifier(
 		await _jusqua(func() -> bool: return serveur.joueur_de(b.id()) == b.id()), "deux joueurs"
 	)
+	a.canal.rpc_id(1, "rpc_intention", Serveur.encoder_options(1.0, 777, true))
 	_intention(a, Protocole.Intention.PRET, 1)
 	_intention(b, Protocole.Intention.PRET, 1)
 	verifier(await _jusqua(func() -> bool: return serveur.partie != null), "la partie démarre")
