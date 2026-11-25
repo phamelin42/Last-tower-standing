@@ -92,7 +92,7 @@ func test_un_nom_trop_long_ou_a_caracteres_de_controle_est_refuse() -> void:
 	var s := Salon.new()
 	verifier_faux(s.ajouter(1, "x".repeat(Salon.MAX_NOM + 1)), "25 caractères")
 	verifier(s.motif_refus.contains("long"), s.motif_refus)
-	for c: int in [0, 1, 9, 10, 13, 27, 127]:
+	for c: int in [1, 9, 10, 13, 27, 127, 133]:
 		verifier_faux(s.ajouter(1, "Ma" + char(c) + "rie"), "contrôle %d" % c)
 		verifier(not s.motif_refus.is_empty())
 	verifier_egal(s.joueurs.size(), 0, "aucun joueur n'est entré")
@@ -233,7 +233,7 @@ func test_apres_le_lancement_tout_message_du_salon_est_refuse() -> void:
 	verifier_egal(s.joueurs.size(), 2)
 
 
-# --- Sérialisation ---------------------------------------------------------------------------------
+# --- Sérialisation ---------------------------------------------------------------------
 
 
 func _egaux(a: Salon, b: Salon) -> bool:
