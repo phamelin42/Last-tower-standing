@@ -49,8 +49,8 @@
    "prime": 4
   },
   {
-   "id": "golem_d_argile",
-   "nom": "Golems d’argile",
+   "id": "heaume_d_argile",
+   "nom": "Heaumes d’argile",
    "armure": "lourde",
    "volant": false,
    "pv": 260,
@@ -73,8 +73,8 @@
    "prime": 8
   },
   {
-   "id": "colosse_de_granit",
-   "nom": "Colosses de granit",
+   "id": "tonneau_de_poudre",
+   "nom": "Tonneaux de poudre",
    "armure": "fortifiée",
    "volant": false,
    "pv": 520,
@@ -85,8 +85,8 @@
    "prime": 12
   },
   {
-   "id": "spectre_de_vapeur",
-   "nom": "Spectres de vapeur",
+   "id": "artificier_de_fumee",
+   "nom": "Artificiers de fumée",
    "armure": "aucune",
    "volant": false,
    "pv": 60,
@@ -98,8 +98,8 @@
   }
  ],
  "convoi": {
-  "id": "charrette_du_colporteur",
-  "nom": "Charrette du colporteur",
+  "id": "troupeau_du_colporteur",
+  "nom": "Troupeau du colporteur",
   "pv": 400,
   "vitesse": 45,
   "prime": 120
