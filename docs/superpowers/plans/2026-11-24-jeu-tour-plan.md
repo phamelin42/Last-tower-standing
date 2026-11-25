@@ -921,7 +921,7 @@ avant l'écran « Rejoindre »).
 
 ### Task 7.2b : Jeton d'hôte — `sonnet`
 
-- [ ] **Objectif :** réserver le rôle d'hôte au client local. `SessionReseau.heberger` tire un jeton de
+- [x] **Objectif :** réserver le rôle d'hôte au client local. `SessionReseau.heberger` tire un jeton de
       8 octets (`Crypto.generate_random_bytes`) et le remet au `Serveur` et au `Client` local ; le
       bonjour du client local le porte ; quand un jeton est configuré, `Salon.ajouter` ne donne le rôle
       d'hôte qu'à un pair dont le jeton correspond. Sans jeton (serveur dédié, inchangé), l'ancienne
