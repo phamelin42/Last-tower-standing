@@ -1,15 +1,15 @@
-class_name PlanDecor2D
+class_name PlanDecor
 extends RefCounted
 ## Disposition du terrain et du décor d'une arène 2D, tirée d'une graine : quelles cases sont de la
 ## terre, quelle tuile du pack va sur chacune, où poser chaque objet. Purement visuelle et sans
-## nœud : `Decor2D` la dessine, les tests la lisent. Même graine, même plan ; deux graines, deux
+## nœud : `Decor` la dessine, les tests la lisent. Même graine, même plan ; deux graines, deux
 ## plans. Tout est en pixels du monde (la tour est en `(0, 0)`, une case de terre mesure `CASE`).
 
 ## Une tuile du pack fait 64 px ; affichée à ×2 comme les unités et la tour, elle en fait 128.
 const CASE: int = 128
 const ECHELLE: float = 2.0
 ## Le cercle d'apparition, en pixels du monde (1 300 unités à 0,5 px par unité).
-const RAYON_CERCLE: float = CameraArene2D.RAYON_APPARITION * Apparence2D.PX_PAR_UNITE
+const RAYON_CERCLE: float = CameraArene.RAYON_APPARITION * Apparence.PX_PAR_UNITE
 ## Zone de marche des ennemis, cercle compris et un peu au-delà : aucun objet haut n'y touche.
 const RAYON_ZONE: float = RAYON_CERCLE + 50.0
 ## Dans la zone de marche, le décor plat laisse la tour et le trait du cercle nets.
@@ -583,8 +583,8 @@ static func rect_de(type: String, pieds: Vector2, miroir: bool) -> Rect2:
 	return Rect2(pieds.x + gauche, pieds.y + haut, droite - gauche, boite.size.y * e)
 
 
-static func generer(graine_voulue: int) -> PlanDecor2D:
-	var plan := PlanDecor2D.new()
+static func generer(graine_voulue: int) -> PlanDecor:
+	var plan := PlanDecor.new()
 	plan.graine = graine_voulue
 	var rng := RandomNumberGenerator.new()
 	rng.seed = graine_voulue

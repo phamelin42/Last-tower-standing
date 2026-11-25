@@ -1,6 +1,6 @@
 class_name Jeu
 extends Node
-## Une partie en cours : source de vue, arène 3D, HUD, boutique, scores, observation et écran de
+## Une partie en cours : source de vue, arène 2D, HUD, boutique, scores, observation et écran de
 ## fin, câblés ensemble. La source de vue est une `SourceLocale` (solo, créée ici) ou un `Client`
 ## déjà connecté (réseau, fourni par `Principal`) : tout passe par `SourceVue`.
 
@@ -25,7 +25,7 @@ var source: SourceVue = null
 ## Vrai quand la source est un `Client` fourni de l'extérieur (jamais libéré par `Jeu`).
 var en_reseau: bool = false
 var arene: Arene2D = null
-var camera: CameraArene2D = null
+var camera: CameraArene = null
 var _sons: LecteurSons = null
 
 var _donnees: Donnees = null
@@ -147,7 +147,7 @@ func _monter() -> void:
 		arene.donnees = _donnees
 		add_child(arene)
 		move_child(arene, 0)
-		camera = arene.find_children("*", "CameraArene2D", true, false)[0] as CameraArene2D
+		camera = arene.find_children("*", "CameraArene", true, false)[0] as CameraArene
 		arene.lier(source)
 	arene.reinitialiser()
 	hud.configurer(_donnees)

@@ -1,6 +1,6 @@
-class_name Decor2D
+class_name Decor
 extends Node2D
-## Le sol et le décor d'une arène 2D, dessinés d'après un `PlanDecor2D`. Tout ce qui ne bouge pas
+## Le sol et le décor d'une arène 2D, dessinés d'après un `PlanDecor`. Tout ce qui ne bouge pas
 ## (l'eau, l'écume, la terre en tuiles du pack, le décor plat, les objets hauts immobiles) est
 ## composé une fois dans une seule image, posée sur un seul sprite : l'écran ne paie qu'un
 ## remplissage et un tracé, au lieu de plusieurs centaines. Restent des sprites pour ce qui
@@ -14,7 +14,7 @@ const RACINE := "res://assets/tiny_swords/"
 const RAYON_EAU: float = 6000.0
 const TAILLE_TUILE: int = 64
 
-var plan: PlanDecor2D = null
+var plan: PlanDecor = null
 
 var _temps: float = 0.0
 var _image: int = 0
@@ -29,7 +29,7 @@ var _fond: Sprite2D = null
 
 ## Efface le décor précédent et dessine celui de `nouveau`. L'horloge n'est pas remise à zéro :
 ## les éléments restent à l'image du moment.
-func construire(nouveau: PlanDecor2D) -> void:
+func construire(nouveau: PlanDecor) -> void:
 	for enfant: Node in get_children():
 		remove_child(enfant)
 		enfant.free()
@@ -40,8 +40,8 @@ func construire(nouveau: PlanDecor2D) -> void:
 	_fond.name = "Fond"
 	_fond.texture = ImageTexture.create_from_image(_composer())
 	_fond.centered = false
-	_fond.scale = Vector2.ONE * PlanDecor2D.ECHELLE
-	_fond.position = -Vector2(_demi_image()) * PlanDecor2D.ECHELLE
+	_fond.scale = Vector2.ONE * PlanDecor.ECHELLE
+	_fond.position = -Vector2(_demi_image()) * PlanDecor.ECHELLE
 	add_child(_fond)
 	var rochers := Node2D.new()
 	rochers.name = "RochersEau"
@@ -54,7 +54,7 @@ func construire(nouveau: PlanDecor2D) -> void:
 		var type: String = objet["type"]
 		if bool(objet["eau"]):
 			_ajouter(rochers, type, objet["pieds"], bool(objet["miroir"]), int(objet["phase"]))
-		elif PlanDecor2D.est_anime(type):
+		elif PlanDecor.est_anime(type):
 			_ajouter(_hauts, type, objet["pieds"], bool(objet["miroir"]), int(objet["phase"]))
 	avancer(0.0)
 
@@ -127,14 +127,12 @@ func _source(fichier: String) -> Image:
 ## Moitié de l'image composée, en pixels de l'image (un pixel de l'image fait `ECHELLE` pixels du
 ## monde) : la tour est au centre.
 func _demi_image() -> Vector2i:
-	return Vector2i(
-		PlanDecor2D.DEMI_COLONNES * TAILLE_TUILE, PlanDecor2D.DEMI_LIGNES * TAILLE_TUILE
-	)
+	return Vector2i(PlanDecor.DEMI_COLONNES * TAILLE_TUILE, PlanDecor.DEMI_LIGNES * TAILLE_TUILE)
 
 
 ## Pixel de l'image composée sous un point du monde.
 func _vers_image(p: Vector2) -> Vector2i:
-	return Vector2i((p / PlanDecor2D.ECHELLE).floor()) + _demi_image()
+	return Vector2i((p / PlanDecor.ECHELLE).floor()) + _demi_image()
 
 
 ## Pose une image de la feuille `fichier` (région `source`) sur `dest`, avec miroir au besoin.
@@ -150,13 +148,13 @@ func _coller(dest: Image, fichier: String, source: Rect2i, coin: Vector2i, miroi
 func _composer() -> Image:
 	var demi := _demi_image()
 	var image := Image.create(demi.x * 2, demi.y * 2, false, Image.FORMAT_RGBA8)
-	image.fill(_source(PlanDecor2D.FEUILLE_EAU).get_pixel(0, 0))
-	var ecume := PlanDecor2D.BOITE_ECUME
+	image.fill(_source(PlanDecor.FEUILLE_EAU).get_pixel(0, 0))
+	var ecume := PlanDecor.BOITE_ECUME
 	for c: Vector2i in plan.ecume:
 		var centre := c * TAILLE_TUILE + demi + Vector2i(TAILLE_TUILE / 2, TAILLE_TUILE / 2)
 		_coller(
 			image,
-			PlanDecor2D.FEUILLE_ECUME,
+			PlanDecor.FEUILLE_ECUME,
 			Rect2i(ecume),
 			centre - Vector2i(ecume.size * 0.5),
 			false
@@ -168,7 +166,7 @@ func _composer() -> Image:
 		var retournement: int = int(tuile["retournement"])
 		var cle := Vector2i(atlas.x + 8 * atlas.y, retournement)
 		if not retournees.has(cle):
-			var morceau := _source(PlanDecor2D.FEUILLE_TERRAIN).get_region(
+			var morceau := _source(PlanDecor.FEUILLE_TERRAIN).get_region(
 				Rect2i(atlas * TAILLE_TUILE, Vector2i(TAILLE_TUILE, TAILLE_TUILE))
 			)
 			if retournement & 4096 != 0:
@@ -181,7 +179,7 @@ func _composer() -> Image:
 	var immobiles: Array[Dictionary] = []
 	for objet: Dictionary in plan.objets:
 		var type: String = objet["type"]
-		if not bool(objet["eau"]) and not PlanDecor2D.est_anime(type):
+		if not bool(objet["eau"]) and not PlanDecor.est_anime(type):
 			immobiles.append(objet)
 	# Plats d'abord, puis les hauts par pieds croissants.
 	immobiles.sort_custom(
@@ -197,7 +195,7 @@ func _composer() -> Image:
 
 func _coller_objet(image: Image, objet: Dictionary) -> void:
 	var type: String = objet["type"]
-	var t: Dictionary = PlanDecor2D.TYPES[type]
+	var t: Dictionary = PlanDecor.TYPES[type]
 	var boite: Rect2 = t["boite"]
 	var origine: Vector2i = t["origine"]
 	var cellule: Vector2i = t["cellule"]
@@ -219,7 +217,7 @@ func _coller_objet(image: Image, objet: Dictionary) -> void:
 ## Les terres sont bordées d'eau jusqu'aux limites de l'écran le plus large : de grandes bandes
 ## d'une seule couleur prolongent l'image composée ; elles ne sont tracées que si l'écran y arrive.
 func _poser_les_bords_d_eau() -> void:
-	var demi := Vector2(_demi_image()) * PlanDecor2D.ECHELLE
+	var demi := Vector2(_demi_image()) * PlanDecor.ECHELLE
 	var grand: float = RAYON_EAU
 	# Gauche, droite, haut, bas ; les bandes de gauche et de droite couvrent aussi les coins.
 	var bandes: Array[Rect2] = [
@@ -231,7 +229,7 @@ func _poser_les_bords_d_eau() -> void:
 	for k: int in bandes.size():
 		var bande := Sprite2D.new()
 		bande.name = "Eau%d" % k
-		bande.texture = _texture(PlanDecor2D.FEUILLE_EAU)
+		bande.texture = _texture(PlanDecor.FEUILLE_EAU)
 		bande.centered = false
 		bande.region_enabled = true
 		bande.region_rect = Rect2(0.0, 0.0, 64.0, 64.0)
@@ -241,7 +239,7 @@ func _poser_les_bords_d_eau() -> void:
 
 
 func _ajouter(parent: Node2D, type: String, pieds: Vector2, miroir: bool, phase: int) -> void:
-	var t: Dictionary = PlanDecor2D.TYPES[type]
+	var t: Dictionary = PlanDecor.TYPES[type]
 	var cellule: Vector2i = t["cellule"]
 	var origine: Vector2i = t["origine"]
 	var sprite := Sprite2D.new()

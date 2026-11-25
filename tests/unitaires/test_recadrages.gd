@@ -16,9 +16,9 @@ func avant_chaque() -> void:
 
 func _feuilles() -> Array[Dictionary]:
 	var feuilles: Array[Dictionary] = []
-	for id: String in Apparence2D.ids_entites(_donnees):
-		feuilles.append(Apparence2D.entree(id))
-	feuilles.append(Apparence2D.MORT)
+	for id: String in Apparence.ids_entites(_donnees):
+		feuilles.append(Apparence.entree(id))
+	feuilles.append(Apparence.MORT)
 	return feuilles
 
 
@@ -43,7 +43,7 @@ func test_chaque_boite_contient_tous_les_pixels_visibles_de_son_image() -> void:
 				(image % colonnes) * case_px.x, (image / colonnes) * case_px.y, case_px.x, case_px.y
 			)
 			var utile: Rect2i = img.get_region(cellule).get_used_rect()
-			var boite: Rect2i = Recadrages2D.boite(String(f["cle_boites"]), image)
+			var boite: Rect2i = Recadrages.boite(String(f["cle_boites"]), image)
 			if utile.size == Vector2i.ZERO:
 				continue
 			verifier(
@@ -58,7 +58,7 @@ func test_les_boites_ne_gardent_qu_une_partie_de_la_surface_des_cases() -> void:
 		var gardee: float = 0.0
 		var total: float = 0.0
 		for image: int in _nb_images(f):
-			var boite: Rect2i = Recadrages2D.boite(String(f["cle_boites"]), image)
+			var boite: Rect2i = Recadrages.boite(String(f["cle_boites"]), image)
 			gardee += float(boite.size.x * boite.size.y)
 			total += float(case_px.x * case_px.y)
 		verifier(
@@ -77,7 +77,7 @@ func test_le_pied_ne_bouge_pas_avec_ou_sans_recadrage() -> void:
 				float((image / colonnes) * case_px.y) + float(f["pieds"])
 			)
 			for recadre: bool in [false, true]:
-				var p: Dictionary = Apparence2D.placement(
+				var p: Dictionary = Apparence.placement(
 					String(f["cle_boites"]), image, case_px, colonnes, float(f["pieds"]), recadre
 				)
 				var region: Rect2 = p["region"]

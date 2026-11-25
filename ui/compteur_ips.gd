@@ -72,7 +72,7 @@ static func ennemis_visibles(arene: Arene2D) -> int:
 	if arene == null or not is_instance_valid(arene) or arene.donnees == null:
 		return 0
 	var total: int = 0
-	for f: int in Apparence2D.ids_entites(arene.donnees).size():
+	for f: int in Apparence.ids_entites(arene.donnees).size():
 		total += arene.nombre_instances_visibles(f)
 	return total
 

@@ -844,9 +844,13 @@ crédité dans `CREDITS.md` (le crédit est facultatif en CC0, mais on cite touj
 
 ### Task 5.5 : Bascule et nettoyage — `sonnet`
 
-- [ ] **Objectif :** `visuels/apparence.gd` devient la correspondance entité → sprites ; le test de
+- [x] **Objectif :** `visuels/apparence.gd` devient la correspondance entité → sprites ; le test de
       garde vérifie que seuls `apparence.gd` et `assets/tiny_swords/` portent les ressources
       graphiques ; l’arène 3D est retirée ; `CREDITS.md` à jour ; captures finales relues.
+      **Fait (25/11/2026)** : arène 3D, caméra, effets, matériaux et primitives retirés ;
+      `apparence_2d.gd` devient `apparence.gd` (avec symboles et couleurs de rareté et d’armure), et
+      `effets`, `camera_arene`, `decor`, `plan_decor`, `recadrages` perdent leur suffixe (`Arene2D`
+      le garde : `Arene` existe dans `sim/`). Garde : `tests/unitaires/test_garde_ressources.gd`.
 
 ### Task 5.6 : Sons — `haiku`
 

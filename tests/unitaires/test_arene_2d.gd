@@ -80,7 +80,7 @@ func _portee(entite: int) -> float:
 
 
 func _entree(entite: int) -> Dictionary:
-	return Apparence2D.entree(Apparence2D.ids_entites(_donnees)[entite])
+	return Apparence.entree(Apparence.ids_entites(_donnees)[entite])
 
 
 func _ligne(entite: int) -> int:
@@ -90,7 +90,7 @@ func _ligne(entite: int) -> int:
 ## Nombre d'images de la ligne `ligne` dans les animations d'une entrée (0 si aucune n'y joue).
 ## Décalage (offset) de base du sprite pour l'image `image`, miroir ou non.
 func _placement(e: Dictionary, image: int, miroir: bool) -> Vector2:
-	var p: Dictionary = Apparence2D.placement(
+	var p: Dictionary = Apparence.placement(
 		String(e["cle_boites"]), image, e["case"], int(e["colonnes"]), float(e["pieds"]), true
 	)
 	var offset: Vector2 = p["offset"]
@@ -123,7 +123,7 @@ func test_la_scene_se_construit_avec_la_tour_au_centre_le_sol_et_la_camera() -> 
 		verifier_proche(tour.global_position.y, 0.0, 0.0001)
 	verifier_non_nul(_arene.get_node_or_null("Sol"), "nœud Sol")
 	verifier_non_nul(_arene.get_node_or_null("CercleApparition"), "cercle d'apparition")
-	verifier_non_nul(_arene.get_node_or_null("Camera") as CameraArene2D, "caméra")
+	verifier_non_nul(_arene.get_node_or_null("Camera") as CameraArene, "caméra")
 
 
 func test_le_pixel_art_reste_net_et_les_ennemis_se_trient_en_profondeur() -> void:
@@ -169,7 +169,7 @@ func test_la_position_du_plan_devient_le_pixel_du_monde() -> void:
 			_arene.afficher(_vue_un(entite, p), 1.0)
 			verifier_egal(
 				_arene.position_instance(entite, 0),
-				Apparence2D.vers_pixels(p),
+				Apparence.vers_pixels(p),
 				"entité %d en %s" % [entite, p]
 			)
 
@@ -188,8 +188,8 @@ func test_l_animation_suit_ce_que_fait_l_ennemi() -> void:
 	for entite: int in _nb_entites():
 		var e := _entree(entite)
 		var portee: float = _portee(entite)
-		var arret: float = Apparence2D.distance_arret(portee, _rayon_tour())
-		var a_distance: bool = portee > Apparence2D.PORTEE_CORPS_A_CORPS
+		var arret: float = Apparence.distance_arret(portee, _rayon_tour())
+		var a_distance: bool = portee > Apparence.PORTEE_CORPS_A_CORPS
 		# Loin de la tour : il court.
 		_arene.afficher(_vue_un(entite, Vector2(RAYON_SPAWN, 0)), 1.0)
 		verifier_egal(_ligne(entite), (e["course"] as Vector2i).x, "entité %d court" % entite)
@@ -207,10 +207,10 @@ func test_l_animation_suit_ce_que_fait_l_ennemi() -> void:
 func test_l_attaque_au_contact_regarde_vers_la_tour() -> void:
 	# Un ennemi au-dessus de la tour frappe vers le bas, un ennemi dessous vers le haut.
 	for entite: int in _donnees.familles.size():
-		if _portee(entite) > Apparence2D.PORTEE_CORPS_A_CORPS:
+		if _portee(entite) > Apparence.PORTEE_CORPS_A_CORPS:
 			continue
 		var e := _entree(entite)
-		var arret: float = Apparence2D.distance_arret(_portee(entite), _rayon_tour())
+		var arret: float = Apparence.distance_arret(_portee(entite), _rayon_tour())
 		_arene.afficher(_vue_un(entite, Vector2(0, -arret)), 1.0)
 		verifier_egal(_ligne(entite), (e["attaque_bas"] as Vector2i).x)
 		_arene.afficher(_vue_un(entite, Vector2(0, arret)), 2.0)
@@ -220,7 +220,7 @@ func test_l_attaque_au_contact_regarde_vers_la_tour() -> void:
 func test_l_image_affichee_reste_dans_les_images_de_l_animation() -> void:
 	for entite: int in _nb_entites():
 		var e := _entree(entite)
-		var arret: float = Apparence2D.distance_arret(_portee(entite), _rayon_tour())
+		var arret: float = Apparence.distance_arret(_portee(entite), _rayon_tour())
 		for p: Vector2 in [Vector2(RAYON_SPAWN, 0), Vector2(arret, 0)]:
 			for t: int in 40:
 				_arene.afficher(_vue_un(entite, p), 1.0 + float(t) * 0.07)
@@ -288,7 +288,7 @@ func test_la_mort_joue_la_feuille_commune_puis_disparait() -> void:
 	verifier_egal(_arene.nombre_morts_visibles(), 1, "un mort affiché")
 	var mort := _arene.sprite_mort(0)
 	verifier(mort.texture.resource_path.ends_with("Dead.png"))
-	verifier_egal(mort.global_position, Apparence2D.vers_pixels(Vector2(200, 100)))
+	verifier_egal(mort.global_position, Apparence.vers_pixels(Vector2(200, 100)))
 	_arene.afficher_courant(10.0)
 	verifier_egal(_arene.nombre_morts_visibles(), 0, "la mort est finie")
 
@@ -311,7 +311,7 @@ func test_chaque_numero_de_joueur_donne_sa_tour_et_son_nom_sous_la_tour() -> voi
 	for numero: int in range(1, 9):
 		var nom: String = "Joueuse longue numéro %d" % numero
 		_arene.definir_joueur(numero, nom)
-		var t: Dictionary = Apparence2D.tour(numero)
+		var t: Dictionary = Apparence.tour(numero)
 		verifier_egal(tour.texture.resource_path, String(t["fichier"]), "tour %d" % numero)
 		verifier_egal(tour.material != null, numero > 4, "nuanceur de la tour %d" % numero)
 		verifier_contient(etiquette.text, nom, "nom écrit pour %d" % numero)
@@ -372,7 +372,7 @@ func test_le_pied_reste_au_meme_point_de_l_ecran_apres_recadrage_pour_chaque_ima
 	for entite: int in _nb_entites():
 		var e := _entree(entite)
 		var case_px: Vector2i = e["case"]
-		var arret: float = Apparence2D.distance_arret(_portee(entite), _rayon_tour())
+		var arret: float = Apparence.distance_arret(_portee(entite), _rayon_tour())
 		var vues: Array[Vector2] = [arret_loin, -arret_loin, Vector2(arret, 0), Vector2(-arret, 0)]
 		vues.append_array([Vector2(0, arret), Vector2(0, -arret)])
 		for p: Vector2 in vues:
@@ -437,7 +437,7 @@ func test_le_nom_du_joueur_est_dessine_apres_les_ennemis() -> void:
 func test_tailles_a_l_ecran_au_zoom_par_defaut() -> void:
 	# Cibles de Phil à 720p : ennemi ordinaire 6 à 7 % de la hauteur, tour 18 %.
 	var zone := Vector2(1280, 720)
-	var camera := _arene.get_node("Camera") as CameraArene2D
+	var camera := _arene.get_node("Camera") as CameraArene
 	camera.cadrer(Rect2(0.0, zone.y * 0.1, zone.x, zone.y * 0.65), zone)
 	var zoom: float = camera.zoom.x
 	var tour := _arene.find_child("Tour", true, false) as Sprite2D

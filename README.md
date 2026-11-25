@@ -6,7 +6,8 @@ et tout se joue dans la boutique, entre économie, dégâts et survie, face à d
 puissance. Le dernier en vie gagne.
 
 Le jeu reprend les mécaniques d'une map Warcraft 3, « Tower Survivors » ; noms, contenu, chiffres et
-graphismes sont originaux (primitives Godot), et n'utilisent que des ressources libres.
+graphismes sont originaux ou tirés de packs libres (pixel art Tiny Swords, icônes, sons), crédités dans
+[`CREDITS.md`](CREDITS.md).
 
 Le guide du joueur est dans [`docs/jouer.md`](docs/jouer.md).
 

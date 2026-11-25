@@ -193,7 +193,7 @@ func test_la_tour_est_au_centre_de_l_arene_visible_et_le_cercle_d_apparition_y_t
 		var attendu := libre.get_center()
 		verifier_proche(centre.x, attendu.x, 1.0, "tour centrée en x à %s" % zone)
 		verifier_proche(centre.y, attendu.y, 1.0, "tour centrée en y à %s" % zone)
-		var rayon: float = Apparence2D.vers_pixels(Vector2(CameraArene2D.RAYON_APPARITION, 0.0)).x
+		var rayon: float = Apparence.vers_pixels(Vector2(CameraArene.RAYON_APPARITION, 0.0)).x
 		for i: int in 64:
 			var angle: float = TAU * float(i) / 64.0
 			var px := jeu.camera.projeter(Vector2.from_angle(angle) * rayon)

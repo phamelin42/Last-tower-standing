@@ -9,7 +9,7 @@ const GRAINE := 20261125
 
 var _d: Donnees
 var _catalogue: PackedStringArray
-var _effets: Effets2D = null
+var _effets: Effets = null
 
 
 func avant_chaque() -> void:
@@ -213,8 +213,8 @@ func test_un_octet_de_plus_par_evenement() -> void:
 # --- Effets 2D ---------------------------------------------------------------------------------
 
 
-func _effets_neufs() -> Effets2D:
-	_effets = Effets2D.new()
+func _effets_neufs() -> Effets:
+	_effets = Effets.new()
 	arbre.root.add_child(_effets)
 	return _effets
 
