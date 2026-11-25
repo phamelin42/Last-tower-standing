@@ -69,7 +69,9 @@ func _joueur(id: int, nom: String, manche: int, degats: float) -> Dictionary:
 
 ## Partie terminée dont le classement est celui qu'elle a calculé : `ordre` donne les ids dans
 ## l'ordre de la partie. Sans `ordre`, les joueurs sont classés dans l'ordre où ils sont donnés.
-func _globale_classee(joueurs: Array[Dictionary], ordre: Array[int], dernier_rempart: int = -1) -> VueGlobale:
+func _globale_classee(
+	joueurs: Array[Dictionary], ordre: Array[int], dernier_rempart: int = -1
+) -> VueGlobale:
 	var vue := VueGlobale.new()
 	vue.joueurs = joueurs
 	vue.termine = true
@@ -97,7 +99,9 @@ func _affiche(texte: String, message: String) -> void:
 
 
 func _absent(texte: String, message: String) -> void:
-	verifier_faux(_textes().has(texte), "%s (« %s » ne devrait pas être affiché)" % [message, texte])
+	verifier_faux(
+		_textes().has(texte), "%s (« %s » ne devrait pas être affiché)" % [message, texte]
+	)
 
 
 func _textes() -> PackedStringArray:
@@ -166,7 +170,9 @@ func test_chaque_bouton_emet_son_signal() -> void:
 	_fin.presser("continuer_sans_fin")
 	_fin.presser("rejouer")
 	_fin.presser("quitter")
-	verifier_egal(recus, ["continuer_sans_fin", "rejouer", "quitter"], "chaque bouton émet son signal")
+	verifier_egal(
+		recus, ["continuer_sans_fin", "rejouer", "quitter"], "chaque bouton émet son signal"
+	)
 
 
 func test_recapitulatif_affiche_manche_eliminations_et_degats() -> void:
@@ -209,7 +215,11 @@ func test_classement_suit_l_ordre_de_la_partie() -> void:
 	]
 	var ordre: Array[int] = [2, 3, 1]
 	_fin.afficher_classement(_globale_classee(joueurs, ordre), -1)
-	verifier_egal(Array(_fin.noms_classes()), ["Rapide", "Forte", "Lente"], "l'ordre de la partie est affiché tel quel")
+	verifier_egal(
+		Array(_fin.noms_classes()),
+		["Rapide", "Forte", "Lente"],
+		"l'ordre de la partie est affiché tel quel"
+	)
 
 
 ## Un vainqueur à la manche du boss passe devant un joueur tombé à la même manche : la partie
@@ -237,7 +247,9 @@ func test_egalite_se_lit_dans_l_ordre_donne_par_la_partie() -> void:
 		var attendu: Array = []
 		for id: int in range(n, 0, -1):
 			attendu.append("Joueuse %d" % id)
-		verifier_egal(Array(_fin.noms_classes()), attendu, "%d joueurs à égalité : ordre de la partie" % n)
+		verifier_egal(
+			Array(_fin.noms_classes()), attendu, "%d joueurs à égalité : ordre de la partie" % n
+		)
 
 
 func test_classement_vide_n_affiche_pas_d_erreur() -> void:
@@ -251,7 +263,9 @@ func test_classement_vide_n_affiche_pas_d_erreur() -> void:
 func test_joueur_local_est_signale_en_texte() -> void:
 	_fin.afficher_classement(_globale(_joueurs(3)), 2)
 	verifier(_mention("Joueuse 2 (" + _t("FIN_VOUS") + ")"), "la ligne locale porte « (vous) »")
-	verifier_faux(_mention("Joueuse 1 (" + _t("FIN_VOUS") + ")"), "une autre ligne ne porte pas « (vous) »")
+	verifier_faux(
+		_mention("Joueuse 1 (" + _t("FIN_VOUS") + ")"), "une autre ligne ne porte pas « (vous) »"
+	)
 
 
 func test_joueur_local_absent_du_classement_ne_plante_pas() -> void:
@@ -286,7 +300,9 @@ func test_noms_tres_longs_sont_tronques_sans_depasser() -> void:
 	verifier(libelle != null, "le nom complet reste dans les données affichées")
 	if libelle != null:
 		verifier(libelle.clip_text, "le nom long est rogné dans sa cellule")
-		verifier_egal(libelle.text_overrun_behavior, TextServer.OVERRUN_TRIM_ELLIPSIS, "points de suite")
+		verifier_egal(
+			libelle.text_overrun_behavior, TextServer.OVERRUN_TRIM_ELLIPSIS, "points de suite"
+		)
 		verifier(libelle.custom_minimum_size.y >= HAUTEUR_MIN, "la ligne fait 48 px au moins")
 
 
@@ -309,7 +325,7 @@ func test_degats_demesures_ne_plantent_pas() -> void:
 func test_chaque_cle_utilisee_existe_dans_le_csv() -> void:
 	var cles := CsvTextes.lire(CSV_FIN)
 	var source := FileAccess.get_file_as_string(FICHIER_UI)
-	var motif := RegEx.create_from_string("tr\\(\"([A-Z_]+)\"\\)")
+	var motif := RegEx.create_from_string('tr\\("([A-Z_]+)"\\)')
 	var trouvees := 0
 	for correspondance: RegExMatch in motif.search_all(source):
 		trouvees += 1
@@ -326,9 +342,15 @@ func test_textes_francais_ont_des_espaces_insecables() -> void:
 			var c: String = texte[i]
 			if c in [":", ";", "?", "!"]:
 				var avant: String = texte[i - 1]
-				verifier(avant == " " or avant == " ", "« %s » : espace insécable avant « %s »" % [cle, c])
+				verifier(
+					avant == " " or avant == " ",
+					"« %s » : espace insécable avant « %s »" % [cle, c]
+				)
 		if texte.contains("«"):
-			verifier(texte.contains("« ") or texte.contains("« "), "« %s » : espace insécable après «" % cle)
+			verifier(
+				texte.contains("« ") or texte.contains("« "),
+				"« %s » : espace insécable après «" % cle
+			)
 
 
 func test_boutons_font_48_px_de_haut() -> void:
@@ -337,7 +359,9 @@ func test_boutons_font_48_px_de_haut() -> void:
 		var bouton: Button = _bouton(action)
 		verifier(bouton != null, "le bouton « %s » existe" % action)
 		if bouton != null:
-			verifier(bouton.custom_minimum_size.y >= HAUTEUR_MIN, "« %s » fait 48 px au moins" % action)
+			verifier(
+				bouton.custom_minimum_size.y >= HAUTEUR_MIN, "« %s » fait 48 px au moins" % action
+			)
 
 
 func test_noms_au_moins_16_px() -> void:
@@ -345,4 +369,6 @@ func test_noms_au_moins_16_px() -> void:
 	var libelle: Label = _libelle_exact("Joueuse 1")
 	verifier(libelle != null, "le nom est affiché")
 	if libelle != null:
-		verifier(libelle.get_theme_font_size("font_size") >= TAILLE_MIN, "le nom est lu à 16 px au moins")
+		verifier(
+			libelle.get_theme_font_size("font_size") >= TAILLE_MIN, "le nom est lu à 16 px au moins"
+		)

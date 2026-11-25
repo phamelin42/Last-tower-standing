@@ -4,10 +4,10 @@ extends Control
 ## `VueArene` et une `VueGlobale` et ne calcule que l'ordre d'affichage. Les actions sont des
 ## signaux : c'est `app/jeu.gd` (T4.6) qui décide de la suite.
 
-signal continuer_sans_fin()
-signal quitter()
-signal rejouer()
-signal observer()
+signal continuer_sans_fin
+signal quitter
+signal rejouer
+signal observer
 
 const HAUTEUR_LIGNE := 48.0
 const TAILLE_TEXTE := 16
@@ -140,7 +140,9 @@ func _rafraichir_classement() -> void:
 	_tableau.visible = not vide
 	if vide:
 		return
-	for entete: String in ["FIN_RANG", "FIN_JOUEUR", "FIN_MANCHE", "FIN_ELIMINATIONS", "FIN_DEGATS"]:
+	for entete: String in [
+		"FIN_RANG", "FIN_JOUEUR", "FIN_MANCHE", "FIN_ELIMINATIONS", "FIN_DEGATS"
+	]:
 		_tableau.add_child(_etiquette(tr(entete), false))
 	var rang := 0
 	for joueur: Dictionary in classes:
