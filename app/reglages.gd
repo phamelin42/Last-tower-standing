@@ -25,6 +25,8 @@ var plein_ecran: bool = false
 var sensibilite_zoom: float = 1.0
 var nom_joueur: String = ""
 var derniere_adresse: String = ""
+## Compteur d'images par seconde (T5.1b) : éteint tant que la joueuse ne le demande pas.
+var afficher_ips: bool = false
 
 
 ## Renvoie toujours un réglage utilisable : les valeurs absentes ou invalides prennent leur
@@ -43,6 +45,7 @@ static func charger(chemin: String = CHEMIN_DEFAUT) -> Reglages:
 	r.sensibilite_zoom = _nombre(cfg, "sensibilite_zoom", r.sensibilite_zoom)
 	r.nom_joueur = _texte(cfg, "nom_joueur", r.nom_joueur)
 	r.derniere_adresse = _texte(cfg, "derniere_adresse", r.derniere_adresse)
+	r.afficher_ips = _booleen(cfg, "afficher_ips", r.afficher_ips)
 	r.normaliser()
 	return r
 
@@ -58,6 +61,7 @@ func sauver(chemin: String = CHEMIN_DEFAUT) -> bool:
 	cfg.set_value(SECTION, "sensibilite_zoom", sensibilite_zoom)
 	cfg.set_value(SECTION, "nom_joueur", nom_joueur)
 	cfg.set_value(SECTION, "derniere_adresse", derniere_adresse)
+	cfg.set_value(SECTION, "afficher_ips", afficher_ips)
 	var temporaire := chemin + ".tmp"
 	var fichier := FileAccess.open(temporaire, FileAccess.WRITE)
 	if fichier == null:

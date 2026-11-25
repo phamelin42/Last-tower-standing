@@ -378,13 +378,13 @@ func test_la_molette_zoome_dans_les_bornes() -> void:
 		e.button_index = MOUSE_BUTTON_WHEEL_UP
 		e.pressed = true
 		jeu._unhandled_input(e)
-	verifier_proche(jeu.camera.niveau, CameraArene2D.ZOOM_MIN, 0.0001, "zoom avant borné")
+	verifier_proche(jeu.camera.niveau, CameraArene.ZOOM_MIN, 0.0001, "zoom avant borné")
 	for _i: int in 100:
 		var e := InputEventMouseButton.new()
 		e.button_index = MOUSE_BUTTON_WHEEL_DOWN
 		e.pressed = true
 		jeu._unhandled_input(e)
-	verifier_proche(jeu.camera.niveau, CameraArene2D.ZOOM_MAX, 0.0001, "zoom arrière borné")
+	verifier_proche(jeu.camera.niveau, CameraArene.ZOOM_MAX, 0.0001, "zoom arrière borné")
 	_liberer(jeu)
 
 

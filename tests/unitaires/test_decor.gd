@@ -24,7 +24,7 @@ func _instancier() -> Arene2D:
 	return arene
 
 
-func _signature(plan: PlanDecor2D) -> String:
+func _signature(plan: PlanDecor) -> String:
 	var morceaux := PackedStringArray()
 	for o: Dictionary in plan.objets:
 		morceaux.append(
@@ -35,19 +35,19 @@ func _signature(plan: PlanDecor2D) -> String:
 
 
 func test_chaque_texture_citee_existe() -> void:
-	var fichiers: Array[String] = [PlanDecor2D.FEUILLE_TERRAIN, PlanDecor2D.FEUILLE_EAU]
-	fichiers.append(PlanDecor2D.FEUILLE_ECUME)
-	for type: String in PlanDecor2D.TYPES:
-		fichiers.append(String((PlanDecor2D.TYPES[type] as Dictionary)["fichier"]))
-	verifier(PlanDecor2D.TYPES.size() >= 25, "catalogue trop court : %d" % PlanDecor2D.TYPES.size())
+	var fichiers: Array[String] = [PlanDecor.FEUILLE_TERRAIN, PlanDecor.FEUILLE_EAU]
+	fichiers.append(PlanDecor.FEUILLE_ECUME)
+	for type: String in PlanDecor.TYPES:
+		fichiers.append(String((PlanDecor.TYPES[type] as Dictionary)["fichier"]))
+	verifier(PlanDecor.TYPES.size() >= 25, "catalogue trop court : %d" % PlanDecor.TYPES.size())
 	for f: String in fichiers:
 		verifier(ResourceLoader.exists(RACINE + f), "texture absente : %s" % f)
 		verifier(load(RACINE + f) is Texture2D, "texture illisible : %s" % f)
 
 
 func test_chaque_type_decrit_une_image_contenue_dans_sa_feuille() -> void:
-	for type: String in PlanDecor2D.TYPES:
-		var t: Dictionary = PlanDecor2D.TYPES[type]
+	for type: String in PlanDecor.TYPES:
+		var t: Dictionary = PlanDecor.TYPES[type]
 		var texture := load(RACINE + String(t["fichier"])) as Texture2D
 		var cellule: Vector2i = t["cellule"]
 		var origine: Vector2i = t["origine"]
@@ -75,38 +75,32 @@ func test_les_16_voisinages_ont_chacun_leur_tuile_de_bord() -> void:
 		var e: bool = masque & 2 != 0
 		var s: bool = masque & 4 != 0
 		var w: bool = masque & 8 != 0
-		var atlas: Vector2i = PlanDecor2D.tuile_pour(n, e, s, w)
+		var atlas: Vector2i = PlanDecor.tuile_pour(n, e, s, w)
 		verifier(atlas.x >= 0 and atlas.x <= 3 and atlas.y >= 0 and atlas.y <= 3, "hors herbe")
 		verifier(not vues.has(atlas), "tuile %s utilisée deux fois" % atlas)
 		vues[atlas] = true
 	# Les cas que la joueuse reconnaît : l'intérieur, les quatre côtés, les quatre coins.
-	verifier_egal(PlanDecor2D.tuile_pour(true, true, true, true), Vector2i(1, 1), "intérieur")
-	verifier_egal(PlanDecor2D.tuile_pour(false, true, true, true), Vector2i(1, 0), "bord haut")
-	verifier_egal(PlanDecor2D.tuile_pour(true, true, false, true), Vector2i(1, 2), "bord bas")
-	verifier_egal(PlanDecor2D.tuile_pour(true, false, true, true), Vector2i(2, 1), "bord droit")
-	verifier_egal(PlanDecor2D.tuile_pour(true, true, true, false), Vector2i(0, 1), "bord gauche")
+	verifier_egal(PlanDecor.tuile_pour(true, true, true, true), Vector2i(1, 1), "intérieur")
+	verifier_egal(PlanDecor.tuile_pour(false, true, true, true), Vector2i(1, 0), "bord haut")
+	verifier_egal(PlanDecor.tuile_pour(true, true, false, true), Vector2i(1, 2), "bord bas")
+	verifier_egal(PlanDecor.tuile_pour(true, false, true, true), Vector2i(2, 1), "bord droit")
+	verifier_egal(PlanDecor.tuile_pour(true, true, true, false), Vector2i(0, 1), "bord gauche")
 	verifier_egal(
-		PlanDecor2D.tuile_pour(false, true, true, false), Vector2i(0, 0), "coin haut gauche"
+		PlanDecor.tuile_pour(false, true, true, false), Vector2i(0, 0), "coin haut gauche"
 	)
-	verifier_egal(
-		PlanDecor2D.tuile_pour(false, false, true, true), Vector2i(2, 0), "coin haut droit"
-	)
-	verifier_egal(
-		PlanDecor2D.tuile_pour(true, true, false, false), Vector2i(0, 2), "coin bas gauche"
-	)
-	verifier_egal(
-		PlanDecor2D.tuile_pour(true, false, false, true), Vector2i(2, 2), "coin bas droit"
-	)
+	verifier_egal(PlanDecor.tuile_pour(false, false, true, true), Vector2i(2, 0), "coin haut droit")
+	verifier_egal(PlanDecor.tuile_pour(true, true, false, false), Vector2i(0, 2), "coin bas gauche")
+	verifier_egal(PlanDecor.tuile_pour(true, false, false, true), Vector2i(2, 2), "coin bas droit")
 
 
 func test_chaque_tuile_pose_correspond_a_ses_voisines() -> void:
 	for graine: int in GRAINES:
-		var plan := PlanDecor2D.generer(graine)
+		var plan := PlanDecor.generer(graine)
 		verifier(plan.tuiles.size() > 200, "graine %d : trop peu de tuiles" % graine)
 		verifier_egal(plan.tuiles.size(), plan.terre.size(), "une tuile par case de terre")
 		for tuile: Dictionary in plan.tuiles:
 			var c: Vector2i = tuile["cellule"]
-			var attendu := PlanDecor2D.tuile_pour(
+			var attendu := PlanDecor.tuile_pour(
 				plan.terre.has(c + Vector2i(0, -1)),
 				plan.terre.has(c + Vector2i(1, 0)),
 				plan.terre.has(c + Vector2i(0, 1)),
@@ -119,12 +113,12 @@ func test_chaque_tuile_pose_correspond_a_ses_voisines() -> void:
 
 func test_le_sol_de_marche_est_entierement_de_l_herbe_sans_bord() -> void:
 	for graine: int in GRAINES:
-		var plan := PlanDecor2D.generer(graine)
-		var rayon: float = PlanDecor2D.RAYON_ZONE + float(PlanDecor2D.CASE)
-		var cases: int = ceili(rayon / float(PlanDecor2D.CASE)) + 1
+		var plan := PlanDecor.generer(graine)
+		var rayon: float = PlanDecor.RAYON_ZONE + float(PlanDecor.CASE)
+		var cases: int = ceili(rayon / float(PlanDecor.CASE)) + 1
 		for j: int in range(-cases, cases + 1):
 			for i: int in range(-cases, cases + 1):
-				var centre := (Vector2(i, j) + Vector2(0.5, 0.5)) * float(PlanDecor2D.CASE)
+				var centre := (Vector2(i, j) + Vector2(0.5, 0.5)) * float(PlanDecor.CASE)
 				if centre.length() <= rayon:
 					verifier(
 						plan.terre.has(Vector2i(i, j)), "graine %d : trou en %s" % [graine, centre]
@@ -141,7 +135,7 @@ func test_le_sol_de_marche_est_entierement_de_l_herbe_sans_bord() -> void:
 
 func test_aucun_objet_haut_dans_la_zone_de_marche_ni_sur_le_cercle() -> void:
 	for graine: int in GRAINES:
-		var plan := PlanDecor2D.generer(graine)
+		var plan := PlanDecor.generer(graine)
 		var hauts: int = 0
 		for o: Dictionary in plan.objets:
 			if not bool(o["haut"]):
@@ -149,12 +143,12 @@ func test_aucun_objet_haut_dans_la_zone_de_marche_ni_sur_le_cercle() -> void:
 			hauts += 1
 			var rect: Rect2 = o["rect"]
 			verifier_faux(
-				PlanDecor2D.touche_la_zone(rect),
+				PlanDecor.touche_la_zone(rect),
 				"graine %d : %s en %s gêne la zone de marche" % [graine, o["type"], o["pieds"]]
 			)
 			var pieds: Vector2 = o["pieds"]
 			verifier(
-				pieds.length() > PlanDecor2D.RAYON_CERCLE + 1.0,
+				pieds.length() > PlanDecor.RAYON_CERCLE + 1.0,
 				"graine %d : pied dans le cercle" % graine
 			)
 		verifier(hauts >= 80, "graine %d : seulement %d objets hauts" % [graine, hauts])
@@ -162,25 +156,21 @@ func test_aucun_objet_haut_dans_la_zone_de_marche_ni_sur_le_cercle() -> void:
 
 func test_la_zone_de_marche_ne_garde_que_du_decor_plat() -> void:
 	for graine: int in GRAINES:
-		var plan := PlanDecor2D.generer(graine)
+		var plan := PlanDecor.generer(graine)
 		var plats: int = 0
 		for o: Dictionary in plan.objets:
 			var pieds: Vector2 = o["pieds"]
-			if pieds.length() <= PlanDecor2D.RAYON_ZONE and not bool(o["eau"]):
+			if pieds.length() <= PlanDecor.RAYON_ZONE and not bool(o["eau"]):
 				verifier_faux(
 					bool(o["haut"]), "graine %d : %s haut dans la zone" % [graine, o["type"]]
 				)
 				plats += 1
 				# Le cercle et la tour restent nets.
 				verifier(
-					pieds.length() > PlanDecor2D.RAYON_TOUR_LIBRE,
-					"graine %d : sur la tour" % graine
+					pieds.length() > PlanDecor.RAYON_TOUR_LIBRE, "graine %d : sur la tour" % graine
 				)
 				verifier(
-					(
-						absf(pieds.length() - PlanDecor2D.RAYON_CERCLE)
-						> PlanDecor2D.LARGEUR_CERCLE_LIBRE
-					),
+					absf(pieds.length() - PlanDecor.RAYON_CERCLE) > PlanDecor.LARGEUR_CERCLE_LIBRE,
 					"graine %d : sur le trait du cercle" % graine
 				)
 		verifier(plats >= 60, "graine %d : zone vide (%d éléments plats)" % [graine, plats])
@@ -191,10 +181,10 @@ func test_chaque_categorie_de_decor_demandee_est_presente() -> void:
 		"sapin": 30, "maison": 1, "mine": 1, "mouton": 3, "buisson": 5, "rocher": 3, "plat": 40
 	}
 	for graine: int in GRAINES:
-		var plan := PlanDecor2D.generer(graine)
+		var plan := PlanDecor.generer(graine)
 		var compte: Dictionary = {}
 		for o: Dictionary in plan.objets:
-			var categorie: String = (PlanDecor2D.TYPES[o["type"]] as Dictionary)["categorie"]
+			var categorie: String = (PlanDecor.TYPES[o["type"]] as Dictionary)["categorie"]
 			compte[categorie] = int(compte.get(categorie, 0)) + 1
 		for categorie: String in exigences:
 			verifier(
@@ -209,11 +199,11 @@ func test_chaque_categorie_de_decor_demandee_est_presente() -> void:
 
 func test_les_objets_reposent_sur_la_terre_et_les_rochers_d_eau_sur_l_eau() -> void:
 	for graine: int in GRAINES:
-		var plan := PlanDecor2D.generer(graine)
+		var plan := PlanDecor.generer(graine)
 		for o: Dictionary in plan.objets:
 			var pieds: Vector2 = o["pieds"]
 			var cellule := Vector2i(
-				floori(pieds.x / PlanDecor2D.CASE), floori(pieds.y / PlanDecor2D.CASE)
+				floori(pieds.x / PlanDecor.CASE), floori(pieds.y / PlanDecor.CASE)
 			)
 			if bool(o["eau"]):
 				verifier_faux(
@@ -226,8 +216,8 @@ func test_les_objets_reposent_sur_la_terre_et_les_rochers_d_eau_sur_l_eau() -> v
 func test_meme_graine_meme_disposition_et_graines_differentes_dispositions_differentes() -> void:
 	var vues: Dictionary = {}
 	for graine: int in GRAINES:
-		var a := _signature(PlanDecor2D.generer(graine))
-		var b := _signature(PlanDecor2D.generer(graine))
+		var a := _signature(PlanDecor.generer(graine))
+		var b := _signature(PlanDecor.generer(graine))
 		verifier_egal(a, b, "graine %d : disposition instable" % graine)
 		verifier_faux(vues.has(a), "graine %d : même disposition qu'une autre graine" % graine)
 		vues[a] = graine
@@ -235,8 +225,8 @@ func test_meme_graine_meme_disposition_et_graines_differentes_dispositions_diffe
 
 func test_deux_graines_donnent_des_dispositions_vraiment_differentes() -> void:
 	# Pas seulement un objet de décalé : moins de la moitié des objets au même endroit.
-	var a := PlanDecor2D.generer(1)
-	var b := PlanDecor2D.generer(2)
+	var a := PlanDecor.generer(1)
+	var b := PlanDecor.generer(2)
 	var positions: Dictionary = {}
 	for o: Dictionary in a.objets:
 		positions["%s@%s" % [o["type"], o["pieds"]]] = true
@@ -276,7 +266,7 @@ func test_une_graine_explicite_remplace_celle_du_joueur() -> void:
 	_arene = _instancier()
 	_arene.definir_graine(777)
 	var a := _signature(_arene.plan_decor())
-	verifier_egal(a, _signature(PlanDecor2D.generer(PlanDecor2D.graine_arene(777, 1))))
+	verifier_egal(a, _signature(PlanDecor.generer(PlanDecor.graine_arene(777, 1))))
 	_arene.definir_graine(778)
 	verifier_different(_signature(_arene.plan_decor()), a, "la graine ne change rien")
 
@@ -297,7 +287,7 @@ func test_le_decor_est_dessine_sous_les_ennemis_et_sous_le_cercle() -> void:
 		verifier((noeud as Sprite2D).z_as_relative, "indice Z absolu dans le décor")
 	verifier(nb >= 80, "décor trop pauvre : %d sprites" % nb)
 	# Le décor ne se glisse jamais dans la couche triée des ennemis.
-	verifier_egal(ennemis.find_children("*", "Decor2D", true, false).size(), 0)
+	verifier_egal(ennemis.find_children("*", "Decor", true, false).size(), 0)
 
 
 func test_le_decor_se_construit_une_fois_et_garde_ses_noeuds_entre_les_images() -> void:
@@ -311,7 +301,7 @@ func test_le_decor_se_construit_une_fois_et_garde_ses_noeuds_entre_les_images() 
 
 func test_les_sapins_les_moutons_et_les_rochers_d_eau_s_animent() -> void:
 	_arene = _instancier()
-	var decor := _arene.get_node("Sol") as Decor2D
+	var decor := _arene.get_node("Sol") as Decor
 	var avant: Dictionary = decor.images_courantes()
 	for categorie: String in ["sapin", "mouton", "eau"]:
 		verifier(avant.has(categorie), "rien n'est animé pour « %s »" % categorie)
@@ -327,16 +317,14 @@ func test_les_sapins_les_moutons_et_les_rochers_d_eau_s_animent() -> void:
 
 func test_l_image_du_sol_est_pleine_a_une_teinte_d_eau_aux_coins_et_d_herbe_au_centre() -> void:
 	_arene = _instancier()
-	var decor := _arene.get_node("Sol") as Decor2D
+	var decor := _arene.get_node("Sol") as Decor
 	var image := decor.image_du_sol()
 	verifier_non_nul(image)
 	if image == null:
 		return
-	var eau: Color = (load(RACINE + PlanDecor2D.FEUILLE_EAU) as Texture2D).get_image().get_pixel(
-		0, 0
-	)
+	var eau: Color = (load(RACINE + PlanDecor.FEUILLE_EAU) as Texture2D).get_image().get_pixel(0, 0)
 	verifier_egal(
-		image.get_size(), Vector2i(PlanDecor2D.DEMI_COLONNES * 128, PlanDecor2D.DEMI_LIGNES * 128)
+		image.get_size(), Vector2i(PlanDecor.DEMI_COLONNES * 128, PlanDecor.DEMI_LIGNES * 128)
 	)
 	for coin: Vector2i in [Vector2i(0, 0), Vector2i(image.get_width() - 1, image.get_height() - 1)]:
 		verifier_egal(image.get_pixelv(coin), eau, "le coin %s n'est pas de l'eau" % coin)
@@ -354,7 +342,7 @@ func test_l_image_du_sol_est_pleine_a_une_teinte_d_eau_aux_coins_et_d_herbe_au_c
 
 func test_les_bandes_d_eau_prolongent_le_sol_jusqu_aux_bords_de_l_ecran_le_plus_large() -> void:
 	_arene = _instancier()
-	var decor := _arene.get_node("Sol") as Decor2D
+	var decor := _arene.get_node("Sol") as Decor
 	var image := decor.image_du_sol()
 	var fond := decor.get_node("Fond") as Sprite2D
 	var couvert: Array[Rect2] = [Rect2(fond.position, Vector2(image.get_size()) * fond.scale)]
@@ -372,7 +360,7 @@ func test_les_bandes_d_eau_prolongent_le_sol_jusqu_aux_bords_de_l_ecran_le_plus_
 
 func test_chaque_case_de_rivage_a_son_ecume_et_rien_d_autre() -> void:
 	for graine: int in GRAINES:
-		var plan := PlanDecor2D.generer(graine)
+		var plan := PlanDecor.generer(graine)
 		var attendues: int = 0
 		for tuile: Dictionary in plan.tuiles:
 			if tuile["atlas"] != Vector2i(1, 1):
@@ -387,7 +375,7 @@ func test_un_sapin_ou_un_mouton_qui_recouvre_un_objet_immobile_est_devant_lui() 
 	# Les immobiles sont dans l'image du sol, sous tous les sprites : l'ordre de profondeur ne
 	# serait faux que si un animé recouvrait un immobile placé plus au sud que lui.
 	for graine: int in GRAINES:
-		var plan := PlanDecor2D.generer(graine)
+		var plan := PlanDecor.generer(graine)
 		var chevauchements: int = 0
 		for a: Dictionary in plan.objets:
 			for b: Dictionary in plan.objets:
@@ -395,7 +383,7 @@ func test_un_sapin_ou_un_mouton_qui_recouvre_un_objet_immobile_est_devant_lui() 
 				var tb: String = b["type"]
 				if not (bool(a["haut"]) and bool(b["haut"])):
 					continue
-				if not PlanDecor2D.est_anime(ta) or PlanDecor2D.est_anime(tb):
+				if not PlanDecor.est_anime(ta) or PlanDecor.est_anime(tb):
 					continue
 				if (a["rect"] as Rect2).intersects(b["rect"]):
 					chevauchements += 1

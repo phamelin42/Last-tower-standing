@@ -1,12 +1,12 @@
 class_name Arene2D
 extends Node2D
-## L'arène vue de dessus en pixel art : sol et décor du pack (`Decor2D`, dessinés sous tout le
+## L'arène vue de dessus en pixel art : sol et décor du pack (`Decor`, dessinés sous tout le
 ## reste), cercle d'apparition, tour au centre avec le nom du joueur dessous, un sprite du pack
 ## Tiny Swords par ennemi (réserve de sprites par famille,
 ## triés en profondeur par Y), morts animées. Elle ne lit que `VueArene`, reçue par les signaux
 ## d'une `SourceVue`, et `Donnees`. Index d'entité : 0 à n-1 les familles, n le convoi, n+1 le boss
-## (voir `Apparence2D`). Contrat identique à `Arene3D` : `donnees`, `lier`, `reinitialiser`,
-## `afficher`, `afficher_courant`.
+## (voir `Apparence`). Contrat : `donnees`, `lier`, `reinitialiser`, `afficher`,
+## `afficher_courant`.
 
 ## Sprites gardés d'avance au-delà du besoin : évite de créer et libérer à chaque apparition.
 const RESERVE_POOL: int = 16
@@ -49,7 +49,7 @@ var _dernier_tick: int = -1
 var _source: SourceVue = null
 var _construite: bool = false
 var _ennemis: Node2D = null
-var _sol: Decor2D = null
+var _sol: Decor = null
 ## Graine de la partie, mêlée au numéro du joueur : le décor de chaque arène est le sien et ne
 ## bouge pas pendant la partie.
 var _graine_partie: int = 0
@@ -57,7 +57,7 @@ var _graine_decor: int = 0
 var _tour: Sprite2D = null
 var _noms: Node2D = null
 var _nom: Label = null
-var _camera: CameraArene2D = null
+var _camera: CameraArene = null
 var _zoom_vu: float = 0.0
 var _numero: int = 1
 ## Par entité : sprites (`Array[Sprite2D]`), nombre affiché, et ce qu'il faut pour les animer.
@@ -82,7 +82,7 @@ var _decalages_mort: PackedFloat32Array = PackedFloat32Array()
 var _morts: Array[Sprite2D] = []
 var _morts_debut: PackedFloat64Array = PackedFloat64Array()
 var _texture_mort: Texture2D = null
-var _effets: Effets2D = null
+var _effets: Effets = null
 ## Vue reçue avant la courante : on y retrouve la famille d'un ennemi qui vient de mourir.
 var _vue_precedente: VueArene = null
 
@@ -111,14 +111,14 @@ func _assurer_construite() -> void:
 	_construite = true
 	if donnees == null:
 		donnees = Donnees.charger()
-	_camera = get_node_or_null("Camera") as CameraArene2D
+	_camera = get_node_or_null("Camera") as CameraArene
 	_construire_sol()
 	_construire_cercle()
 	_ennemis = Node2D.new()
 	_ennemis.name = "Ennemis"
 	_ennemis.y_sort_enabled = true
 	add_child(_ennemis)
-	_effets = Effets2D.new()
+	_effets = Effets.new()
 	_effets.name = "Effets"
 	_effets.parent_sol = _ennemis
 	add_child(_effets)
@@ -126,10 +126,10 @@ func _assurer_construite() -> void:
 	_construire_nom()
 	if donnees != null:
 		_preparer_entites()
-	_texture_mort = load(String(Apparence2D.MORT["feuille"])) as Texture2D
-	var mort: Dictionary = Apparence2D.MORT
+	_texture_mort = load(String(Apparence.MORT["feuille"])) as Texture2D
+	var mort: Dictionary = Apparence.MORT
 	for image: int in int(mort["images"]):
-		var p: Dictionary = Apparence2D.placement(
+		var p: Dictionary = Apparence.placement(
 			String(mort["cle_boites"]),
 			image,
 			mort["case"],
@@ -189,10 +189,10 @@ func definir_joueur(numero: int, nom: String) -> void:
 	if numero != _numero or _tour.texture == null:
 		_numero = numero
 		_poser_le_decor()
-		var t: Dictionary = Apparence2D.tour(numero)
+		var t: Dictionary = Apparence.tour(numero)
 		_tour.texture = load(String(t["fichier"])) as Texture2D
-		_tour.material = Apparence2D.materiau_tour(numero)
-	_nom.text = "%d. %s" % [Apparence2D.numero_valide(numero), nom] if nom != "" else ""
+		_tour.material = Apparence.materiau_tour(numero)
+	_nom.text = "%d. %s" % [Apparence.numero_valide(numero), nom] if nom != "" else ""
 
 
 ## Graine de la partie : change la disposition du décor de tous les joueurs, pas leur différence.
@@ -203,7 +203,7 @@ func definir_graine(graine_partie: int) -> void:
 
 
 ## La disposition du terrain et du décor actuellement dessinée.
-func plan_decor() -> PlanDecor2D:
+func plan_decor() -> PlanDecor:
 	_assurer_construite()
 	return _sol.plan
 
@@ -345,7 +345,7 @@ func _afficher_echantillon() -> void:
 	for f: int in nb:
 		_dimensionner(f, decompte[f])
 		decompte[f] = 0
-	var image_courante: int = int(_horloge * Apparence2D.IMAGES_PAR_SECONDE)
+	var image_courante: int = int(_horloge * Apparence.IMAGES_PAR_SECONDE)
 	for i: int in total:
 		var f: int = familles[i]
 		if f >= nb:
@@ -354,7 +354,7 @@ func _afficher_echantillon() -> void:
 		var sprite: Sprite2D = pool[decompte[f]]
 		decompte[f] += 1
 		var p: Vector2 = positions[i]
-		sprite.position = Apparence2D.vers_pixels(p)
+		sprite.position = Apparence.vers_pixels(p)
 		var miroir: bool = p.x > 0.0
 		var cle: int = f * NB_ANIMATIONS + _animation(f, p)
 		var image: int = _lignes[cle] * _colonnes[f] + (image_courante + ids[i]) % _images[cle]
@@ -433,7 +433,7 @@ func _creer_sprite(famille: int) -> Sprite2D:
 	var sprite := Lutin.new()
 	sprite.texture = _textures[famille]
 	sprite.region_enabled = true
-	sprite.scale = Vector2.ONE * float(e["echelle"]) * Apparence2D.ECHELLE_UNITES
+	sprite.scale = Vector2.ONE * float(e["echelle"]) * Apparence.ECHELLE_UNITES
 	sprite.modulate = e["couleur"]
 	if e.has("accessoire"):
 		var a: Dictionary = e["accessoire"]
@@ -444,7 +444,7 @@ func _creer_sprite(famille: int) -> Sprite2D:
 		accessoire.scale = Vector2.ONE * float(a["echelle"])
 		sprite.add_child(accessoire)
 	if famille == _entrees.size() - 1:
-		sprite.add_child(Effets2D.creer_flamme())
+		sprite.add_child(Effets.creer_flamme())
 	_ennemis.add_child(sprite)
 	return sprite
 
@@ -463,26 +463,26 @@ func _ajouter_mort(ou: Vector2) -> void:
 		_morts_debut.append(0.0)
 	var index: int = _morts.find(sprite)
 	_morts_debut[index] = _horloge
-	sprite.position = Apparence2D.vers_pixels(ou)
+	sprite.position = Apparence.vers_pixels(ou)
 	(sprite as Lutin).image = -1
 	sprite.visible = true
 
 
 func _creer_mort() -> Sprite2D:
-	var m: Dictionary = Apparence2D.MORT
+	var m: Dictionary = Apparence.MORT
 	var sprite := Lutin.new()
 	sprite.name = "Mort"
 	sprite.texture = _texture_mort
 	sprite.region_enabled = true
-	sprite.scale = Vector2.ONE * float(m["echelle"]) * Apparence2D.ECHELLE_UNITES
+	sprite.scale = Vector2.ONE * float(m["echelle"]) * Apparence.ECHELLE_UNITES
 	sprite.visible = false
 	_ennemis.add_child(sprite)
 	return sprite
 
 
 func _animer_morts() -> void:
-	var images: int = Apparence2D.MORT["images"]
-	var par_seconde: float = Apparence2D.MORT["images_par_seconde"]
+	var images: int = Apparence.MORT["images"]
+	var par_seconde: float = Apparence.MORT["images_par_seconde"]
 	for i: int in _morts.size():
 		var mort: Lutin = _morts[i] as Lutin
 		if not mort.visible:
@@ -508,14 +508,14 @@ func _ajuster_nom() -> void:
 
 
 func _preparer_entites() -> void:
-	var ids: PackedStringArray = Apparence2D.ids_entites(donnees)
+	var ids: PackedStringArray = Apparence.ids_entites(donnees)
 	var rayon_tour: float = float((donnees.partie["tour"] as Dictionary)["rayon"])
 	var nb_familles: int = donnees.familles.size()
 	for f: int in ids.size():
-		var e: Dictionary = Apparence2D.entree(ids[f])
+		var e: Dictionary = Apparence.entree(ids[f])
 		if e.is_empty():
 			push_error("Aucun sprite 2D pour l'entité « %s »" % ids[f])
-			e = Apparence2D.entree(String(Apparence2D.ids_entites(donnees)[0]))
+			e = Apparence.entree(String(Apparence.ids_entites(donnees)[0]))
 		_entrees.append(e)
 		_textures.append(load(String(e["feuille"])) as Texture2D)
 		_colonnes.append(int(e["colonnes"]))
@@ -527,11 +527,11 @@ func _preparer_entites() -> void:
 			portee = float((donnees.familles[f] as Dictionary)["portee_attaque"])
 		elif f == nb_familles + 1:
 			portee = float(donnees.boss["portee_attaque"])
-		_arrets.append(Apparence2D.distance_arret(portee, rayon_tour))
+		_arrets.append(Apparence.distance_arret(portee, rayon_tour))
 		_flottements.append(float(e["flottement"]))
-		_explosives.append(1 if Effets2D.FAMILLES_EXPLOSIVES.has(ids[f]) else 0)
+		_explosives.append(1 if Effets.FAMILLES_EXPLOSIVES.has(ids[f]) else 0)
 		_preparer_images(e)
-		_a_distance.append(1 if portee > Apparence2D.PORTEE_CORPS_A_CORPS else 0)
+		_a_distance.append(1 if portee > Apparence.PORTEE_CORPS_A_CORPS else 0)
 		# Le convoi (index n) ne combat pas.
 		_combat.append(0 if f == nb_familles else 1)
 	_lignes.resize(ids.size() * NB_ANIMATIONS)
@@ -552,7 +552,7 @@ func _preparer_images(e: Dictionary) -> void:
 	var case_px: Vector2i = e["case"]
 	var colonnes: int = e["colonnes"]
 	for image: int in colonnes * int(e["lignes"]):
-		var p: Dictionary = Apparence2D.placement(
+		var p: Dictionary = Apparence.placement(
 			cle, image, case_px, colonnes, float(e["pieds"]), true
 		)
 		var r: Rect2 = p["region"]
@@ -562,15 +562,15 @@ func _preparer_images(e: Dictionary) -> void:
 	_regions.append(regions)
 	_decalages.append(decalages)
 	var repos: Vector2i = e["repos"]
-	var boite: Rect2i = Recadrages2D.boite(cle, repos.x * colonnes)
-	var echelle: float = float(e["echelle"]) * Apparence2D.ECHELLE_UNITES
-	var tour: float = TOUR_DEMI_LARGEUR * Apparence2D.TOUR_ECHELLE
-	_couvre_x.append((tour + float(boite.size.x) * echelle * 0.5) / Apparence2D.PX_PAR_UNITE)
-	_couvre_h.append(float(boite.size.y) * echelle / Apparence2D.PX_PAR_UNITE)
+	var boite: Rect2i = Recadrages.boite(cle, repos.x * colonnes)
+	var echelle: float = float(e["echelle"]) * Apparence.ECHELLE_UNITES
+	var tour: float = TOUR_DEMI_LARGEUR * Apparence.TOUR_ECHELLE
+	_couvre_x.append((tour + float(boite.size.x) * echelle * 0.5) / Apparence.PX_PAR_UNITE)
+	_couvre_h.append(float(boite.size.y) * echelle / Apparence.PX_PAR_UNITE)
 
 
 func _construire_sol() -> void:
-	_sol = Decor2D.new()
+	_sol = Decor.new()
 	_sol.name = "Sol"
 	add_child(_sol)
 	_poser_le_decor()
@@ -578,34 +578,34 @@ func _construire_sol() -> void:
 
 ## Redessine le décor seulement si la graine de l'arène a changé.
 func _poser_le_decor() -> void:
-	var graine: int = PlanDecor2D.graine_arene(_graine_partie, _numero)
+	var graine: int = PlanDecor.graine_arene(_graine_partie, _numero)
 	if _sol.plan != null and graine == _graine_decor:
 		return
 	_graine_decor = graine
-	_sol.construire(PlanDecor2D.generer(graine))
+	_sol.construire(PlanDecor.generer(graine))
 
 
 func _construire_cercle() -> void:
 	var cercle := Line2D.new()
 	cercle.name = "CercleApparition"
-	var rayon: float = Apparence2D.vers_pixels(Vector2(CameraArene2D.RAYON_APPARITION, 0.0)).x
+	var rayon: float = Apparence.vers_pixels(Vector2(CameraArene.RAYON_APPARITION, 0.0)).x
 	for i: int in POINTS_CERCLE:
 		cercle.add_point(Vector2.from_angle(TAU * float(i) / float(POINTS_CERCLE)) * rayon)
 	cercle.closed = true
 	cercle.width = LARGEUR_CERCLE
-	cercle.default_color = Apparence2D.COULEUR_CERCLE
+	cercle.default_color = Apparence.COULEUR_CERCLE
 	add_child(cercle)
 
 
 func _construire_tour() -> void:
 	_tour = Sprite2D.new()
 	_tour.name = "Tour"
-	var t: Dictionary = Apparence2D.tour(_numero)
+	var t: Dictionary = Apparence.tour(_numero)
 	_tour.texture = load(String(t["fichier"])) as Texture2D
-	_tour.scale = Vector2.ONE * Apparence2D.TOUR_ECHELLE
+	_tour.scale = Vector2.ONE * Apparence.TOUR_ECHELLE
 	# Le pied de la tour (ombre du pack comprise) repose sur l'origine du monde.
 	var hauteur: float = _tour.texture.get_height() if _tour.texture != null else 256.0
-	_tour.offset = Vector2(0.0, hauteur * 0.5 - Apparence2D.TOUR_PIEDS)
+	_tour.offset = Vector2(0.0, hauteur * 0.5 - Apparence.TOUR_PIEDS)
 	_ennemis.add_child(_tour)
 
 
@@ -620,7 +620,7 @@ func _construire_nom() -> void:
 	_nom.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_nom.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	_nom.add_theme_font_size_override("font_size", NOM_TAILLE)
-	_nom.add_theme_color_override("font_color", Apparence2D.COULEUR_NOM)
-	_nom.add_theme_color_override("font_outline_color", Apparence2D.COULEUR_CONTOUR_NOM)
+	_nom.add_theme_color_override("font_color", Apparence.COULEUR_NOM)
+	_nom.add_theme_color_override("font_outline_color", Apparence.COULEUR_CONTOUR_NOM)
 	_nom.add_theme_constant_override("outline_size", NOM_CONTOUR)
 	_noms.add_child(_nom)

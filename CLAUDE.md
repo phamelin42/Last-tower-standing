@@ -31,7 +31,7 @@ Spécification : `docs/superpowers/specs/2026-11-24-jeu-tour-design.md`. Plan :
 - `sim/` : simulation pure (`RefCounted`), à pas fixe de 20 Hz, sans nœud ni réseau.
   `partie.gd` est son API publique.
 - `reseau/` : ENet (serveur, client, protocole compact). Il n'appelle que l'API publique de `sim/partie.gd`.
-- `visuels/` : rendu 3D, caméra, effets. Les primitives Godot et les matériaux sont dans `visuels/apparence.gd`.
+- `visuels/` : rendu 2D pixel art (Tiny Swords), caméra, décor, effets. La correspondance entité → sprites est dans `visuels/apparence.gd`.
 - `ui/` : menus, salon, HUD, boutique, tableau des scores, écran de fin.
 - `i18n/*.csv` : tous les textes visibles (colonne `fr`).
 - `tests/` : `lanceur.gd`, `tests/unitaires/test_*.gd`, `tests/integration/`.
@@ -88,3 +88,4 @@ privé, lu en direct). Ses lignes vivent dans sa base, pas dans la page :
 - Le lanceur lance les tests au premier `process_frame`, arbre actif : `_ready`, RPC, `await` et `attendre_images(n)` fonctionnent. Une méthode `test_*` qui dépasse `delai_max` (10 s) échoue, et le moteur libère les nœuds qu'elle a ajoutés sous `arbre.root`. Toute erreur de script ou `push_error` la fait échouer ; `attendre_erreur(motif)` déclare une erreur voulue (Godot l'imprime quand même sur stderr).
 - Tout fichier écrit par un test va sous `dossier_temporaire()` ; tout port réseau est tiré à l'exécution (d'autres agents lancent leurs tests en même temps).
 - Godot 4.7.2 importe les CSV de traduction en parallèle, et chaque import inscrit son `.translation` dans l'arbre de l'éditeur sans verrou (`EditorFileSystem::update_files`, godot#125712, sans correctif) : l'import à froid plantait au hasard (« double free or corruption », code 134 ou 139). Sur `ubuntu-latest` : 20 imports sur 60 (28 sur 60 sans les textures, 0 sur 60 sur un seul cœur), rarement en local. `textes_salon.csv` n'y est pour rien : c'est le premier libellé du groupe importé. D'où `editor/import/use_multiple_threads=false` dans `project.godot` (0 sur 300 en CI, +1 à 3 s par import à froid), gardé par `test_configuration_projet`. Ne le retirer qu'après `tools/stress-import-csv.sh --threads` (400 CSV, imports à froid en boucle) à 0 plantage sur un Godot plus récent.
+- `restart: unless-stopped` ne relance pas un conteneur arrêté par `docker kill` (arrêt voulu) : pour éprouver le redémarrage du service d'annuaire, tuer son processus depuis l'hôte (`kill -9 <PID>`).

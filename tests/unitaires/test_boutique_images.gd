@@ -297,46 +297,55 @@ func test_chaque_choix_du_marche_noir_montre_son_image() -> void:
 # --- Relance ---------------------------------------------------------------------------------
 
 
-## Le libellé du bouton de relance, avec le prix le plus long (4 chiffres), tient entier dans le
-## bouton : chaque mot passe en largeur et toutes les lignes en hauteur.
+## Le libellé du bouton de relance tient entier dans le bouton, pour chaque prix (0, 2 chiffres,
+## 4 chiffres) : « Relancer » sur une ligne, le prix sur la suivante, chaque ligne en largeur et
+## les deux en hauteur.
 func test_le_libelle_de_relance_tient_dans_son_bouton_a_chaque_resolution() -> void:
-	for zone: Vector2 in RESOLUTIONS:
-		var jeu := await _jeu_a(zone)
-		var vue := _vue([])
-		vue.cout_relance = 1000
-		vue.relances_gratuites = 0
-		jeu.boutique.afficher(vue)
-		await attendre_images(2)
-		jeu.placer_dans(zone)
-		await attendre_images(2)
-		var actions := jeu.boutique.find_child("Actions", true, false) as Control
-		var bouton := actions.find_children("*", "Button", true, false)[0] as Button
-		var boite := bouton.get_theme_stylebox("normal")
-		var police := bouton.get_theme_font("font")
-		var taille := bouton.get_theme_font_size("font_size")
-		var largeur := bouton.size.x - boite.get_minimum_size().x
+	for prix: int in [0, 50, 1000]:
+		for zone: Vector2 in RESOLUTIONS:
+			await _verifier_relance(prix, zone)
+
+
+func _verifier_relance(prix: int, zone: Vector2) -> void:
+	var jeu := await _jeu_a(zone)
+	var vue := _vue([])
+	vue.cout_relance = prix
+	vue.relances_gratuites = 0
+	jeu.boutique.afficher(vue)
+	await attendre_images(2)
+	jeu.placer_dans(zone)
+	await attendre_images(2)
+	var actions := jeu.boutique.find_child("Actions", true, false) as Control
+	var bouton := actions.find_children("*", "Button", true, false)[0] as Button
+	var boite := bouton.get_theme_stylebox("normal")
+	var police := bouton.get_theme_font("font")
+	var taille := bouton.get_theme_font_size("font_size")
+	var largeur := bouton.size.x - boite.get_minimum_size().x
+	var contexte := "à %s, prix %d" % [zone, prix]
+	verifier(
+		bouton.text.begins_with("Relancer\n"),
+		"%s : retour à la ligne voulu (%s)" % [contexte, bouton.text]
+	)
+	verifier(bouton.text.contains(Nombres.groupe(prix)), "%s : le prix est écrit" % contexte)
+	var lignes := bouton.text.split("\n")
+	verifier_egal(lignes.size(), 2, "%s : deux lignes voulues" % contexte)
+	for ligne: String in lignes:
 		var paragraphe := TextParagraph.new()
-		paragraphe.add_string(bouton.text, police, taille)
+		paragraphe.add_string(ligne, police, taille)
 		paragraphe.width = largeur
 		paragraphe.break_flags = (
 			TextServer.BREAK_MANDATORY | TextServer.BREAK_WORD_BOUND | TextServer.BREAK_ADAPTIVE
 		)
-		var dimension := paragraphe.get_size()
-		# Une ligne occupe la hauteur de la police (celle des `Label` de l'interface), pas la mesure
-		# resserrée du paragraphe : c'est elle que le bouton doit pouvoir loger.
-		var lignes := paragraphe.get_line_count()
-		verifier(lignes <= 2, "à %s : deux lignes au plus (%d)" % [zone, lignes])
-		var requis := lignes * police.get_height(taille) + boite.get_minimum_size().y
-		verifier(
-			requis <= bouton.size.y + 0.5,
-			(
-				"à %s : %s px requis pour %d lignes, bouton de %s px"
-				% [zone, requis, lignes, bouton.size.y]
-			)
+		verifier_egal(
+			paragraphe.get_line_count(),
+			1,
+			"%s : « %s » ne passe pas à la ligne" % [contexte, ligne]
 		)
-		for mot: String in bouton.text.split(" "):
-			verifier(
-				police.get_string_size(mot, HORIZONTAL_ALIGNMENT_LEFT, -1, taille).x <= largeur,
-				"à %s : le mot « %s » tient en largeur" % [zone, mot]
-			)
-		_liberer(jeu)
+	# Une ligne occupe la hauteur de la police (celle des `Label` de l'interface) : c'est elle que
+	# le bouton doit pouvoir loger, deux fois.
+	var requis := 2.0 * police.get_height(taille) + boite.get_minimum_size().y
+	verifier(
+		requis <= bouton.size.y + 0.5,
+		"%s : %s px requis pour 2 lignes, bouton de %s px" % [contexte, requis, bouton.size.y]
+	)
+	_liberer(jeu)

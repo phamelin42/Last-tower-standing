@@ -2,7 +2,7 @@ class_name SourceFactice
 extends SourceVue
 ## Double de test de `SourceVue` : chaque intention est notée dans `appels` au lieu d'agir,
 ## et les signaux se déclenchent à la demande. Sert aux tests d'interface (HUD, boutique,
-## scène 3D) qui n'ont pas besoin d'une partie réelle.
+## arène) qui n'ont pas besoin d'une partie réelle.
 
 var appels: Array[Dictionary] = []
 

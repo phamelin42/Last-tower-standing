@@ -15,13 +15,13 @@ const GENRES: Array[String] = [
 	"cible_unique", "zone", "rebond", "aura", "onde", "barrage", "piege", "mine"
 ]
 
-var _effets: Effets2D = null
+var _effets: Effets = null
 var _donnees: Donnees = null
 
 
 func avant_chaque() -> void:
 	_donnees = Donnees.charger()
-	_effets = Effets2D.new()
+	_effets = Effets.new()
 	arbre.root.add_child(_effets)
 
 
@@ -93,7 +93,7 @@ func test_chaque_couple_type_de_degats_genre_d_effet_des_armes_produit_un_effet(
 			cree = _effets.ajouter(e) or cree
 		verifier(cree, "aucun effet pour %s" % cle)
 		verifier(_effets.nombre_vivants() > 0, "aucun effet vivant pour %s" % cle)
-		var rendu: Dictionary = Effets2D.rendu(type_degats, genre)
+		var rendu: Dictionary = Effets.rendu(type_degats, genre)
 		verifier(not rendu.is_empty(), "pas de rendu décrit pour %s" % cle)
 
 
@@ -114,7 +114,7 @@ func test_chaque_statut_des_armes_laisse_sa_marque_a_l_impact() -> void:
 			e["statut"] = statut
 			verifier(_effets.ajouter(e), "effet pour %s" % statut)
 			var formes: PackedStringArray = _effets.formes_vivantes()
-			var attendue: String = String(Effets2D.FORMES_STATUT[statut])
+			var attendue: String = String(Effets.FORMES_STATUT[statut])
 			verifier(formes.has(attendue), "%s dessine %s" % [statut, attendue])
 			formes_vues[attendue] = true
 	verifier_egal(formes_vues.size(), 4, "quatre marques différentes")
@@ -124,16 +124,16 @@ func test_chaque_type_de_degats_a_sa_propre_forme_de_projectile_et_pas_seulement
 ) -> void:
 	var formes: Dictionary = {}
 	for type_degats: int in TYPES:
-		var forme: String = Effets2D.rendu(type_degats, "cible_unique")["projectile"]
+		var forme: String = Effets.rendu(type_degats, "cible_unique")["projectile"]
 		verifier(forme != "", "forme de projectile pour le type %d" % type_degats)
 		formes[forme] = true
 	verifier_egal(formes.size(), TYPES.size(), "cinq formes de projectile différentes")
 
 
 func test_le_percant_tire_la_fleche_et_le_siege_la_dynamite_du_pack() -> void:
-	var fleche: String = Effets2D.rendu(Types.TypeDegats.PERCANT, "cible_unique")["projectile"]
-	var dynamite: String = Effets2D.rendu(Types.TypeDegats.SIEGE, "cible_unique")["projectile"]
-	var explosion: String = Effets2D.rendu(Types.TypeDegats.SIEGE, "zone")["impact"]
+	var fleche: String = Effets.rendu(Types.TypeDegats.PERCANT, "cible_unique")["projectile"]
+	var dynamite: String = Effets.rendu(Types.TypeDegats.SIEGE, "cible_unique")["projectile"]
+	var explosion: String = Effets.rendu(Types.TypeDegats.SIEGE, "zone")["impact"]
 	verifier_egal(fleche, "fleche")
 	verifier_egal(dynamite, "dynamite")
 	verifier_egal(explosion, "explosion")
@@ -141,7 +141,7 @@ func test_le_percant_tire_la_fleche_et_le_siege_la_dynamite_du_pack() -> void:
 
 func test_le_rebond_trace_un_trait_de_cible_en_cible() -> void:
 	for type_degats: int in TYPES:
-		var forme_rebond: String = Effets2D.rendu(type_degats, "rebond")["impact"]
+		var forme_rebond: String = Effets.rendu(type_degats, "rebond")["impact"]
 		verifier(forme_rebond.begins_with("trait"), "rendu du rebond %s" % forme_rebond)
 		_laisser_finir()
 		_effets.ajouter(_evenement("impact", type_degats, Vector2(100, 0), Vector2(200, 0), 0.0))
@@ -153,7 +153,7 @@ func test_le_rebond_trace_un_trait_de_cible_en_cible() -> void:
 func test_une_onde_et_une_aura_dessinent_un_anneau_qui_s_etend() -> void:
 	for type_degats: int in TYPES:
 		for genre: String in ["onde", "aura"]:
-			var forme: String = Effets2D.rendu(type_degats, genre)["impact"]
+			var forme: String = Effets.rendu(type_degats, genre)["impact"]
 			verifier_egal(forme, "anneau")
 	_effets.ajouter(_evenement("impact", 0, Vector2.ZERO, Vector2.ZERO, 300.0, "onde"))
 	var avant: float = _effets.taille_du_premier()
@@ -180,10 +180,9 @@ func test_le_plafond_tient_sous_une_rafale() -> void:
 			_evenement("impact", i % 5, Vector2(i, 0), Vector2(i, i), float(i % 200), "zone")
 		)
 		_effets.ajouter(_evenement("tir", i % 5, Vector2.ZERO, Vector2(i, 3), 0.0))
-		verifier(_effets.nombre_vivants() <= Effets2D.PLAFOND)
-	verifier_egal(_effets.nombre_vivants(), Effets2D.PLAFOND, "le plafond est atteint")
-	verifier(_effets.taille_pool() <= Effets2D.PLAFOND, "pool %d" % _effets.taille_pool())
-	verifier(Effets2D.PLAFOND >= Effets.PLAFOND, "au moins le plafond de l'arène 3D")
+		verifier(_effets.nombre_vivants() <= Effets.PLAFOND)
+	verifier_egal(_effets.nombre_vivants(), Effets.PLAFOND, "le plafond est atteint")
+	verifier(_effets.taille_pool() <= Effets.PLAFOND, "pool %d" % _effets.taille_pool())
 
 
 func test_le_pool_revient_a_zero_noeud_actif_et_ne_fuit_pas() -> void:
@@ -195,12 +194,12 @@ func test_le_pool_revient_a_zero_noeud_actif_et_ne_fuit_pas() -> void:
 		_laisser_finir()
 		verifier_egal(_effets.nombre_vivants(), 0, "plus rien de vivant (tour %d)" % tour)
 		verifier_egal(_effets.nombre_visibles(), 0, "plus aucun nœud visible (tour %d)" % tour)
-	verifier(_effets.taille_pool() <= Effets2D.PLAFOND, "pool %d" % _effets.taille_pool())
+	verifier(_effets.taille_pool() <= Effets.PLAFOND, "pool %d" % _effets.taille_pool())
 	verifier_egal(_effets.get_child_count(), _effets.taille_pool(), "aucun nœud perdu")
 
 
 func test_chaque_texture_citee_existe() -> void:
-	var chemins: PackedStringArray = Effets2D.textures_citees()
+	var chemins: PackedStringArray = Effets.textures_citees()
 	verifier(chemins.size() >= 4, "au moins flamme, explosion, flèche, dynamite")
 	for chemin: String in chemins:
 		verifier(ResourceLoader.exists(chemin), "texture absente : %s" % chemin)
@@ -222,10 +221,9 @@ func test_un_effet_ne_cache_jamais_la_tour_durablement() -> void:
 			for e: Dictionary in _evenements_du_genre(type_degats, genre):
 				_effets.ajouter(e)
 			verifier(
-				_effets.opacite_max() <= Effets2D.ALPHA_MAX + 0.001,
-				"opacité bornée pour %s" % genre
+				_effets.opacite_max() <= Effets.ALPHA_MAX + 0.001, "opacité bornée pour %s" % genre
 			)
-			_effets.avancer(Effets2D.DUREE_MAX + 0.01)
+			_effets.avancer(Effets.DUREE_MAX + 0.01)
 			verifier_egal(_effets.nombre_vivants(), 0, "%d/%s s'éteint" % [type_degats, genre])
 
 
@@ -289,7 +287,7 @@ func _vue_avec(tick: int, familles: Array[int], evenements: Array[Dictionary]) -
 
 func test_l_arene_envoie_ses_evenements_aux_effets_et_explose_les_tonneaux() -> void:
 	var arene := _arene_avec_effets()
-	var ids: PackedStringArray = Apparence2D.ids_entites(_donnees)
+	var ids: PackedStringArray = Apparence.ids_entites(_donnees)
 	var tonneau: int = ids.find("tonneau_de_poudre")
 	var artificier: int = ids.find("artificier_de_fumee")
 	var autre: int = ids.find("rodeur_de_suie")
@@ -302,7 +300,7 @@ func test_l_arene_envoie_ses_evenements_aux_effets_et_explose_les_tonneaux() -> 
 		_evenement("tir", 2, Vector2.ZERO, Vector2(500, 0), 0.0),
 	]
 	arene.afficher(_vue_avec(2, [], morts), 1.1)
-	var effets := arene.get_node("Effets") as Effets2D
+	var effets := arene.get_node("Effets") as Effets
 	verifier_non_nul(effets, "nœud Effets")
 	if effets != null:
 		verifier_egal(effets.formes_vivantes().count("explosion"), 2, "deux explosions")

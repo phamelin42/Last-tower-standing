@@ -1,6 +1,6 @@
-class_name Recadrages2D
+class_name Recadrages
 extends RefCounted
-## Boîte de contenu de chaque image des feuilles de `Apparence2D`, par modèle : « x,y,l,h »
+## Boîte de contenu de chaque image des feuilles de `Apparence`, par modèle : « x,y,l,h »
 ## dans la case, une chaîne par image, dans l'ordre ligne puis colonne.
 ## GÉNÉRÉ par `tools/generer_recadrages.gd` : ne pas modifier à la main.
 

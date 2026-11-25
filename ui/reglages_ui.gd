@@ -24,6 +24,7 @@ var taille: OptionButton
 var zoom: HSlider
 var nom: LineEdit
 var adresse: LineEdit
+var afficher_ips: CheckButton
 
 var _r: Reglages = Reglages.new()
 var _taille_texte: int = Reglages.TAILLE_TEXTE_BASE
@@ -80,6 +81,11 @@ func _init() -> void:
 	adresse.text_submitted.connect(func(_texte: String) -> void: _sur_adresse())
 	adresse.focus_exited.connect(_sur_adresse)
 
+	afficher_ips = CheckButton.new()
+	afficher_ips.text = tr("REGLAGES_AFFICHER_IPS")
+	_ajouter_sans_libelle(colonne, afficher_ips)
+	afficher_ips.toggled.connect(_sur_afficher_ips)
+
 	_etat = Label.new()
 	colonne.add_child(_etat)
 	appliquer_echelle(Reglages.ECHELLES[0])
@@ -101,6 +107,7 @@ func configurer(r: Reglages) -> void:
 	zoom.set_value_no_signal(r.sensibilite_zoom)
 	nom.text = r.nom_joueur
 	adresse.text = r.derniere_adresse
+	afficher_ips.set_pressed_no_signal(r.afficher_ips)
 	appliquer_echelle(echelle)
 
 
@@ -122,6 +129,7 @@ func controles() -> Array[Control]:
 	liste.append(zoom)
 	liste.append(nom)
 	liste.append(adresse)
+	liste.append(afficher_ips)
 	return liste
 
 
@@ -145,6 +153,11 @@ func _sur_volume(valeur: float) -> void:
 
 func _sur_plein_ecran(actif: bool) -> void:
 	_r.plein_ecran = actif
+	_enregistrer()
+
+
+func _sur_afficher_ips(actif: bool) -> void:
+	_r.afficher_ips = actif
 	_enregistrer()
 
 
