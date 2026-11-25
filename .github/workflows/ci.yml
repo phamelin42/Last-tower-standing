@@ -25,6 +25,9 @@ jobs:
       - name: Import du projet
         run: tools/verifier.sh --etape import
 
+      - name: Fichiers .uid suivis
+        run: tools/verifier.sh --etape uid
+
       - name: Lint GDScript
         run: tools/verifier.sh --etape lint
 
