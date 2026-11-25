@@ -706,3 +706,84 @@ func test_un_ancien_client_de_version_precedente_est_refuse_avec_un_motif() -> v
 	verifier_faux(s.traiter_bonjour(5, ancien))
 	verifier_egal(_refus(5), [Protocole.motif_version(Protocole.VERSION - 1)] as Array[String])
 	verifier_egal(s.joueur_de(5), -1)
+
+
+# --- Événements partagés entre observateurs --------------------------------------------------
+
+
+## Somme des événements des états d'arène émis pour ce pair depuis le dernier `sorties.clear()`.
+func _evenements_recus(pair: int) -> int:
+	var total := 0
+	for v: VueArene in _etats(pair):
+		verifier(v.evenements.size() <= Protocole.MAX_EVENEMENTS)
+		total += v.evenements.size()
+	return total
+
+
+## Le premier pair garde sa tour et achète des armes ; les autres quittent et observent son arène.
+func _observateurs_de(s: Serveur, ids: Array[int]) -> void:
+	BotAchat.jouer(s.partie, ids[0], 4)
+	for k: int in range(1, ids.size()):
+		_intention(s, ids[k], Protocole.Intention.QUITTER)
+		verifier_egal(
+			_intention(s, ids[k], Protocole.Intention.OBSERVER, ids[0]), Types.Resultat.OK
+		)
+
+
+func _jouer_secondes(s: Serveur, secondes: float) -> void:
+	for i: int in roundi(secondes * 60.0):
+		s.tick(1.0 / 60.0)
+
+
+func test_chaque_observateur_recoit_tous_les_evenements_de_l_arene_regardee() -> void:
+	delai_max = 60.0
+	for n: int in range(2, 9):
+		sorties.clear()
+		var s := _serveur(null, 4)
+		var ids := _lancer(s, n)
+		_observateurs_de(s, ids)
+		_jouer_secondes(s, 55.0)
+		var lus := s.evenements_lus(ids[0])
+		verifier(lus > 100, "%d clients : l'arène a produit des événements (%d)" % [n, lus])
+		for pair: int in ids:
+			verifier_egal(
+				_evenements_recus(pair) + s.en_attente(pair),
+				lus,
+				"%d clients, pair %d : tout reçu ou en attente, rien perdu ni dupliqué" % [n, pair]
+			)
+			verifier(s.en_attente(pair) <= Serveur.TAMPON_PAR_ENVOI * 2, "peu de retard")
+
+
+func test_un_observateur_qui_change_d_arene_ne_recoit_pas_les_anciens_evenements() -> void:
+	delai_max = 60.0
+	var s := _serveur(null, 4)
+	var ids := _lancer(s, 3)
+	BotAchat.jouer(s.partie, ids[0], 4)
+	BotAchat.jouer(s.partie, ids[1], 4)
+	_intention(s, ids[2], Protocole.Intention.QUITTER)
+	_intention(s, ids[2], Protocole.Intention.OBSERVER, ids[0])
+	_jouer_secondes(s, 12.0)
+	verifier(s.evenements_lus(ids[1]) > 0, "l'arène suivante produit des événements")
+	var lus_avant := s.evenements_lus(ids[1])
+	verifier_egal(_intention(s, ids[2], Protocole.Intention.OBSERVER, ids[1]), Types.Resultat.OK)
+	verifier_egal(s.en_attente(ids[2]), 0, "rien d'ancien en attente après le changement")
+	var lus_au_changement := s.evenements_lus(ids[1])
+	sorties.clear()
+	_jouer_secondes(s, 3.0)
+	var neufs := s.evenements_lus(ids[1]) - lus_au_changement
+	verifier(neufs > 0, "de nouveaux événements arrivent")
+	verifier_egal(
+		_evenements_recus(ids[2]) + s.en_attente(ids[2]),
+		neufs,
+		"seuls les événements postérieurs au changement sont reçus (%d avant)" % lus_avant
+	)
+
+
+func test_le_tampon_d_une_arene_reste_borne_sous_une_longue_partie() -> void:
+	delai_max = 60.0
+	var s := _serveur(null, 4)
+	var ids := _lancer(s, 1)
+	BotAchat.jouer(s.partie, ids[0], 8)
+	for i: int in 60:
+		_jouer_secondes(s, 3.0)
+		verifier(s.taille_tampon(ids[0]) <= TamponEvenements.CAPACITE)
