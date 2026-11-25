@@ -194,7 +194,7 @@ func _construire_jauge(valeur: Label) -> Control:
 
 
 func _style_barre() -> StyleBoxFlat:
-	var boite := ThemeJeu.boite_panneau()
+	var boite := ThemeJeu.boite_barre()
 	boite.set_content_margin_all(MARGE_BARRE)
 	boite.content_margin_left = ThemeJeu.MARGE_PANNEAU
 	boite.content_margin_right = ThemeJeu.MARGE_PANNEAU

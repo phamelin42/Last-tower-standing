@@ -65,13 +65,15 @@ func _jusqua_la_defaite(jeu: Jeu) -> void:
 
 
 func _fond_opaque(panneau: Control, nom: String) -> void:
-	var boite := panneau.get_theme_stylebox("panel") as StyleBoxFlat
-	verifier_non_nul(boite, "%s : un fond de type StyleBoxFlat" % nom)
-	if boite != null:
-		verifier(
-			boite.bg_color.a >= OPACITE_MIN,
-			"%s : fond opaque (alpha %.2f)" % [nom, boite.bg_color.a]
-		)
+	var style := panneau.get_theme_stylebox("panel")
+	var alpha := -1.0
+	if style is StyleBoxFlat:
+		alpha = (style as StyleBoxFlat).bg_color.a
+	elif style is StyleBoxTexture:
+		# Un panneau du pack est opaque si le centre de sa texture l'est, teinte comprise.
+		alpha = ThemeJeu.fond_moyen(style as StyleBoxTexture).a
+	verifier(alpha >= 0.0, "%s : un fond uni ou une texture" % nom)
+	verifier(alpha >= OPACITE_MIN, "%s : fond opaque (alpha %.2f)" % [nom, alpha])
 
 
 func _vue_globale(autres_en_vie: int) -> VueGlobale:

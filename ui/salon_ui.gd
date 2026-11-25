@@ -34,7 +34,7 @@ var _groupe: ButtonGroup
 
 
 func _init() -> void:
-	theme = ThemeJeu.creer()
+	ThemeJeu.appliquer(self)
 	set_anchors_preset(PRESET_FULL_RECT)
 	add_theme_font_size_override("font_size", TAILLE_TEXTE)
 	var fond := ColorRect.new()
@@ -57,7 +57,7 @@ func _init() -> void:
 	_titre.name = "Titre"
 	_titre.text = tr("SALON_TITRE")
 	_titre.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_titre.theme_type_variation = "Titre"
+	_titre.theme_type_variation = ThemeJeu.TYPE_RUBAN
 	_titre.add_theme_font_size_override("font_size", TAILLE_TITRE)
 	colonne.add_child(_titre)
 	_info = Label.new()

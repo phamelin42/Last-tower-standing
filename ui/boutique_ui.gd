@@ -72,7 +72,7 @@ var _zone_libre: Rect2 = Rect2()
 
 
 func _init() -> void:
-	theme = ThemeJeu.creer()
+	ThemeJeu.appliquer(self)
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_construire_bandeau()
@@ -309,7 +309,7 @@ static func _hauteur_ligne() -> float:
 
 
 func _style_bandeau() -> StyleBoxFlat:
-	var boite := ThemeJeu.boite_panneau()
+	var boite := ThemeJeu.boite_barre()
 	boite.set_content_margin_all(MARGE)
 	boite.set_corner_radius_all(0)
 	boite.border_width_bottom = 0
@@ -425,6 +425,7 @@ func _afficher_armes(vue: VueArene) -> void:
 		var vente := _bouton(Callable(self, "_vendre").bind(i))
 		vente.text = tr("BOUTIQUE_VENDRE_PRIX") % Nombres.groupe(_prix_vente(entree))
 		vente.autowrap_mode = TextServer.AUTOWRAP_OFF
+		vente.theme_type_variation = ThemeJeu.TYPE_DANGER
 		vente.custom_minimum_size.x = LARGEUR_VENTE
 		ligne.add_child(vente)
 		_liste_armes.add_child(ligne)

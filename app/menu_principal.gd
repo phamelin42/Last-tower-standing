@@ -36,7 +36,7 @@ var _bouton_retour: Button
 
 
 func _init() -> void:
-	theme = ThemeJeu.creer()
+	ThemeJeu.appliquer(self)
 	set_anchors_preset(PRESET_FULL_RECT)
 	add_theme_font_size_override("font_size", TAILLE_TEXTE)
 	var fond := ColorRect.new()
@@ -62,7 +62,7 @@ func _init() -> void:
 	titre.name = "Titre"
 	titre.text = tr("MENU_TITRE")
 	titre.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	titre.theme_type_variation = "Titre"
+	titre.theme_type_variation = ThemeJeu.TYPE_RUBAN
 	titre.add_theme_font_size_override("font_size", TAILLE_TITRE)
 	_accueil.add_child(titre)
 
@@ -80,6 +80,8 @@ func _init() -> void:
 	bouton_rejoindre = _bouton("Rejoindre", "MENU_REJOINDRE", _sur_rejoindre)
 	bouton_reglages = _bouton("Reglages", "MENU_REGLAGES", _sur_reglages)
 	bouton_quitter = _bouton("Quitter", "MENU_QUITTER", quitter_demande.emit)
+	bouton_quitter.theme_type_variation = ThemeJeu.TYPE_DANGER
+	bouton_reglages.icon = ThemeJeu.icone("reglages")
 	_message = Label.new()
 	_message.name = "Message"
 	_message.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -101,6 +103,7 @@ func _init() -> void:
 	_bouton_retour.text = tr("MENU_RETOUR")
 	_bouton_retour.custom_minimum_size = Vector2(0.0, HAUTEUR_CONTROLE)
 	_bouton_retour.pressed.connect(_sur_retour)
+	_bouton_retour.icon = ThemeJeu.icone("fermer")
 	_page_reglages.add_child(_bouton_retour)
 
 
