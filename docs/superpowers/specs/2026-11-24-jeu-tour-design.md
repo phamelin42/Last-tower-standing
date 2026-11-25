@@ -26,7 +26,10 @@ ou se protéger), et la boutique aléatoire donne un build différent à chaque 
   (`BoxMesh`, `CylinderMesh`, `SphereMesh`, `CapsuleMesh`, `PrismMesh`, `TorusMesh`) avec des
   `StandardMaterial3D`. Toute la correspondance « entité → apparence » passe par un seul
   endroit (`visuels/`), pour qu'un modèle CC0 puisse remplacer une primitive plus tard sans
-  toucher au code de jeu.
+  toucher au code de jeu. **Direction visuelle visée (Phil, 25/11/2026)** : médiéval fantastique
+  réaliste ; les packs stylisés (Kenney…) sont écartés. Piste à valider : modèles faits par nous
+  (scripts Blender, outil libre) avec textures et éclairages CC0 réalistes (Poly Haven,
+  ambientCG).
 - **Multijoueur : le même que l'original (Phil)** : 1 à 8 joueurs, chacun sa tour, son arène,
   ses ennemis et son or. Aucune interaction directe entre les arènes ; on se compare au tableau
   des scores, et le dernier en vie gagne.
@@ -92,8 +95,13 @@ tools/           install-godot.sh, scripts de vérification
 
 ### 5.1 Déroulement
 
-- **Salon** : l'hôte voit les joueurs connectés (nom, prêt). Ses options : vitesse de partie
-  (×1, ×0,66, ×0,5, qui multiplie toutes les durées) et graine (aléatoire ou fixe).
+- **Menu (Phil, 25/11/2026)** : « Créer une partie » ouvre un salon sur la machine du joueur, qui
+  en devient l'hôte ; « Rejoindre une partie » liste automatiquement les salons du réseau local et
+  permet aussi de saisir une adresse IP et un port (jeu par Internet, avec redirection de port chez
+  l'hôte). Pas de serveur de mise en relation en version 1.
+- **Salon** : l'hôte voit les joueurs connectés (nom, prêt). **Un seul réglage pour l'instant
+  (Phil)** : la vitesse de partie, ×1, ×2 ou ×4 (×2 divise toutes les durées par deux). La graine
+  est toujours aléatoire en jeu ; elle ne reste réglable que pour les tests et le serveur dédié.
 - **Préparation** : 30 s avant la première vague. La boutique est ouverte.
 - **Manches de 30 s**. Au début de chaque manche : une nouvelle offre de boutique, une famille
   d'ennemis tirée au hasard (jamais deux fois de suite), et la difficulté qui monte.
@@ -214,6 +222,12 @@ Le « lumber », la deuxième monnaie de l'original. Les skins à défis et le s
 classements en ligne. Le serveur de mise en relation et le passage des NAT : on joue en LAN, par
 IP directe (redirection de port), ou sur un serveur dédié. Les sons, qui viendront dans un second
 temps (CC0). Les manettes.
+
+**Piste pour une publication (Phil, 25/11/2026)** : si le jeu sort sur Steam, les salons et le
+relais réseau de Steam (Steamworks, par le module libre GodotSteam) pourront remplacer la
+découverte locale et l'IP directe, sans redirection de port. Le réseau passe déjà par un
+`MultiplayerPeer` unique (`reseau/canal.gd`), qu'on remplacerait par celui de Steam. Le SDK
+Steamworks est gratuit mais propriétaire : cette décision passera par un ADR.
 
 ## 9. Laissé à l'implémenteur
 
