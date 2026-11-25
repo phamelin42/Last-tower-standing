@@ -141,6 +141,16 @@ func test_manche_zero_affiche_preparation() -> void:
 	_affiche(_hud, "7", "une manche numérotée")
 
 
+func test_le_mode_sans_fin_se_voit_dans_la_manche() -> void:
+	var vue := _vue(32, 500, 1000.0, 1000.0)
+	vue.sans_fin = true
+	_hud.afficher(vue)
+	_affiche(_hud, "32 ∞", "manche au-delà du boss")
+	vue.sans_fin = false
+	_hud.afficher(vue)
+	_affiche(_hud, "32", "sans le mode, pas de symbole")
+
+
 func test_temps_restant_a_zero_ne_plante_pas_et_affiche_zero_seconde() -> void:
 	var vue := _vue(3, 0, 1000.0, 1000.0)
 	vue.temps_restant = 0.0

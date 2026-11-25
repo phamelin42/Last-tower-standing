@@ -100,6 +100,8 @@ func afficher(vue: VueArene) -> void:
 	_definir(LIGNE_OR, tr("HUD_OR"), Nombres.groupe(vue.argent))
 	_definir(LIGNE_REVENU, tr("HUD_REVENU"), "+" + Nombres.groupe(vue.revenu))
 	var manche := tr("HUD_PREPARATION") if vue.manche == 0 else Nombres.groupe(vue.manche)
+	if vue.sans_fin:
+		manche = tr("HUD_MANCHE_SANS_FIN") % manche
 	_definir(LIGNE_MANCHE, tr("HUD_MANCHE"), manche)
 	_definir(
 		LIGNE_TEMPS, tr("HUD_TEMPS"), tr("HUD_SECONDES") % Nombres.groupe(ceili(vue.temps_restant))
