@@ -190,7 +190,9 @@ création. On prend donc **les deux mesures** :
    salon reste sans hôte (`hote == -1`, accepté par `Salon.depuis_octets` pour un salon vide et non
    lancé) tant que le client local n'est pas arrivé ; personne ne peut lancer. Pour ce salon hébergé,
    le repli « premier pair restant devient hôte » de `Salon.retirer` est supprimé (l'hôte parti ferme
-   le serveur). Le jeton se représente au bonjour qui suit `rouvrir_salon`. Le bonjour change de
+   le serveur). « Retour au salon » (`app/principal.gd:354-364`) ferme la session puis en crée une neuve, donc
+   un nouvel appel à `heberger` : le jeton est tiré de nouveau à chaque `heberger`. `rouvrir_salon`
+   ne sert qu'au serveur dédié, qui n'a pas de jeton. Le bonjour change de
    format : `Protocole.VERSION` passe de 2 à 3 (`reseau/protocole.gd`, `test_protocole.gd`,
    `test_salon.gd`, `test_serveur.gd`, `test_client.gd` mis à jour).
    **Le serveur dédié reste inchangé** : il n'a pas de client local, donc aucun jeton n'y est
@@ -202,6 +204,25 @@ création. On prend donc **les deux mesures** :
    où le client local est dans `joueurs` et vaut `hote` ; l'annonceur l'attend. Un salon listé a donc
    un hôte présent.
 
+## Cycle de vie de l'hôte
+
+La redirection UPnP et le jeton sont liés à la **session** (`SessionReseau`), pas au salon.
+
+- **Séquence d'annonce** : la première annonce part quand le client local est enregistré comme hôte
+  (`hote_enregistre`) **et** que la tentative UPnP est terminée, réussie ou non (au plus quelques
+  secondes : découverte 2 s, ajout, éventuel second essai). Elle ne dépend pas de la réussite d'UPnP.
+- **Port déclaré** : `port_externe` si UPnP a réussi, sinon le port de jeu local (l'hôte l'a peut-être
+  ouvert à la main, comme le décrit le README). La sonde tranche : réponse 2 si le port n'est pas
+  joignable, et l'hôte le voit.
+- **Pendant la partie** : l'annonce est retirée (RETRAIT) au lancement, mais la session reste ouverte
+  et les joueurs connectés : la redirection continue d'être renouvelée (une partie longue, mode sans
+  fin compris, ne perd pas son port).
+- **« Retour au salon »** : la session est fermée (`fermer()` retire la redirection, arrête
+  l'annonce), puis une session neuve est créée : nouveau jeton, nouvelle redirection, nouvelle
+  annonce immédiate. T7.2 attend la fermeture du fil (jusqu'à 2 s) avant d'ouvrir à nouveau.
+- **Serveur dédié** : il n'est ni annoncé à l'annuaire, ni redirigé par UPnP (pas de client local, pas
+  de `SessionReseau`). C'est une limite du lot 7, soumise à Phil (décision 19).
+
 ## UPnP chez l'hôte (T7.2)
 
 Les appels de la classe `UPNP` (`discover`, `add_port_mapping`, `delete_port_mapping`,
@@ -211,11 +232,11 @@ par un signal appelé en différé, et l'écran de création ne gèle jamais. R�
 - **Protocole UDP**, description « Last Tower Standing », port interne = port de jeu.
 - **Découverte** : délai de 2 s (`discover`). Pas de passerelle, ou adresse externe privée (double
   NAT, CGNAT) : échec.
-- **Bail fini** de 3 600 s, renouvelé toutes les 1 800 s tant que le salon est ouvert. Si la box refuse
+- **Bail fini** de 3 600 s, renouvelé toutes les 1 800 s tant que la session est ouverte (partie en cours comprise). Si la box refuse
   un bail fini, repli sur un bail 0 (permanent) ; sinon, un plantage laisserait la redirection
   ouverte. Avec le bail fini, elle expire seule.
-- **Fermeture** : `delete_port_mapping` en quittant le salon et à la fermeture du jeu (le fil est
-  attendu 2 s au plus). Jamais d'écriture de l'ancien état sur disque.
+- **Fermeture** : `delete_port_mapping` en quittant le salon et à la fermeture du jeu (on scrute
+  `is_alive()` du fil jusqu'à 2 s, puis on l'abandonne : le bail fini expire seul). Jamais d'écriture de l'ancien état sur disque.
 - **Port externe** : on demande d'abord le même port qu'en interne. Si la box refuse pour conflit, un
   seul nouvel essai sur un port tiré à l'exécution entre 49 152 et 65 535. `port_externe` (celui
   obtenu) est ce que l'annonce déclare.
@@ -334,6 +355,8 @@ réseau local a le même nom et le même port ; l'entrée locale l'emporte. Ori
 - La sonde fait du VPS un émetteur de paquets ENet : d'où TCP, les rejets d'adresses non publiques et
   les plafonds.
 - L'IP des hôtes publics est visible de tous les consultants : assumé, signalé dans la notice.
+- Le serveur dédié (`--serveur`) n'est pas annoncé à l'annuaire : l'annonce dépend du client local de
+  `SessionReseau`. Hors lot 7 ; à ajouter plus tard si Phil le veut (décision 19).
 - Un salon qui n'ouvre pas son port n'est jamais listé : l'hôte le sait par le message UPnP (T7.2) et
   la réponse 2 de l'annuaire.
 
@@ -390,9 +413,15 @@ réseau local a le même nom et le même port ; l'entrée locale l'emporte. Ori
     contournable).
 16. **Valeur par défaut du réglage** : `annuaire_adresse = annuaire-lts.phamelin.fr:7779`, modifiable
     et vidable dans les réglages.
-17. **UPnP** : UDP, bail de 3 600 s renouvelé toutes les 1 800 s (repli bail 0 si la box refuse), fil
+17. **UPnP** : UDP, renouvelé pendant la partie, bail de 3 600 s renouvelé toutes les 1 800 s (repli bail 0 si la box refuse), fil
     dédié, découverte 2 s, un seul nouvel essai sur un port aléatoire 49 152 à 65 535 en cas de
     conflit. Écarté : bail permanent d'emblée (redirection orpheline après plantage).
 18. **Délais et sondes saturées** : service 3 s pour recevoir le cadre puis 4 s de sonde ; jeu 8 s pour
     la réponse à une annonce, 3 s pour une liste ; 5ᵉ sonde simultanée refusée par la réponse 7, sans
     file. Écarté : file d'attente (connexions retenues, plafonds saturés).
+19. **Serveur dédié non annoncé** (hors lot 7) : l'annuaire ne liste que les salons hébergés par un
+    joueur. Option : l'annoncer plus tard (annonceur sans client local).
+20. **Cycle de vie de l'hôte** : première annonce après l'enregistrement de l'hôte et la fin de la
+    tentative UPnP (réussie ou non) ; port déclaré = `port_externe`, sinon port local ; redirection
+    renouvelée pendant la partie, refaite par « Retour au salon » (nouvelle session). Écarté : annonce
+    conditionnée à la réussite d'UPnP (exclurait les hôtes qui ouvrent leur port à la main).
