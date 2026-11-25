@@ -1,8 +1,9 @@
 class_name Arguments
 extends RefCounted
-## Lecture de la ligne de commande (`--serveur`, `--port N`, `--graine N`, `--vitesse X`,
-## `--solo-auto`). Une valeur invalide donne la valeur par défaut et un message dans `messages` :
-## un lancement mal écrit ne doit jamais empêcher de jouer.
+## Lecture de la ligne de commande (`--serveur`, `--annuaire`, `--autoriser-prive`,
+## `--port N`, `--graine N`, `--vitesse X`, `--solo-auto`). Une valeur invalide donne la valeur
+## par défaut et un message dans `messages` : un lancement mal écrit ne doit jamais empêcher de
+## jouer.
 
 const PORT_DEFAUT := 7777
 const PORT_MAX := 65535
@@ -13,13 +14,17 @@ const VITESSES: Array[float] = [1.0, 0.5, 0.25]
 const ENTIER_MAX_CHIFFRES := 15
 
 
-## Renvoie `{serveur: bool, port: int, graine: int, vitesse: float, solo_auto: bool,
-## messages: Array[String]}`.
+## Renvoie `{serveur: bool, annuaire: bool, autoriser_prive: bool, port: int, port_donne: bool,
+## graine: int, vitesse: float, solo_auto: bool, messages: Array[String]}`. `port_donne` vaut vrai
+## si un `--port` valide est là : l'annuaire a un autre port par défaut que le jeu.
 static func lire(args: PackedStringArray) -> Dictionary:
 	var messages: Array[String] = []
 	var sortie: Dictionary = {
 		"serveur": false,
+		"annuaire": false,
+		"autoriser_prive": false,
 		"port": PORT_DEFAUT,
+		"port_donne": false,
 		"graine": GRAINE_DEFAUT,
 		"vitesse": VITESSE_DEFAUT,
 		"solo_auto": false,
@@ -38,6 +43,10 @@ static func lire(args: PackedStringArray) -> Dictionary:
 		match option:
 			"--serveur":
 				sortie["serveur"] = true
+			"--annuaire":
+				sortie["annuaire"] = true
+			"--autoriser-prive":
+				sortie["autoriser_prive"] = true
 			"--solo-auto":
 				sortie["solo_auto"] = true
 			"--port", "--graine", "--vitesse":
@@ -61,6 +70,7 @@ static func _defaut(sortie: Dictionary, option: String) -> void:
 	match option:
 		"--port":
 			sortie["port"] = PORT_DEFAUT
+			sortie["port_donne"] = false
 		"--graine":
 			sortie["graine"] = GRAINE_DEFAUT
 		_:
@@ -76,6 +86,7 @@ static func _ecrire(
 			var port := _entier(valeur)
 			invalide = port < 1 or port > PORT_MAX
 			sortie["port"] = PORT_DEFAUT if invalide else port
+			sortie["port_donne"] = not invalide
 		"--graine":
 			var graine := _entier(valeur)
 			invalide = graine < 0
