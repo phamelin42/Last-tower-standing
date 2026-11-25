@@ -285,7 +285,6 @@ func test_chaque_reponse_fautive_donne_indisponible_sans_exception() -> void:
 		"taille annoncée trop grande": grande,
 		"taille nulle": PackedByteArray([0, 0]),
 		"type inconnu": PackedByteArray([3, 0, AnnuaireProtocole.MAGIE, 1, 0x55]),
-		"débit dépassé (REPONSE 3)": AnnuaireProtocole.encoder_reponse(3),
 		"du bruit": PackedByteArray([0xDE, 0xAD, 0xBE, 0xEF, 0x00, 0x11, 0x22]),
 	}
 	for nom: String in cas:
@@ -365,6 +364,7 @@ func test_une_nouvelle_demande_remplace_la_precedente() -> void:
 	var port := _faux_annuaire(PackedByteArray(), true)
 	var c := _client(port)
 	c.delai_reponse_liste_ms = 300
+	c.intervalle_liste_ms = 0
 	var recu: Array = []
 	c.liste_terminee.connect(func(etat: int, _s: Array[Dictionary]) -> void: recu.append(etat))
 	c.lister()
@@ -431,9 +431,14 @@ func test_le_changement_de_joueurs_respecte_l_intervalle_minimal() -> void:
 
 
 func test_une_annonce_sans_reponse_ou_invalide_ne_gele_rien_et_se_retente_a_la_periode() -> void:
-	for octets: PackedByteArray in [
-		PackedByteArray(), PackedByteArray([9, 9, 9]), _version_autre()
-	]:
+	var cas: Array[Array] = [
+		[PackedByteArray(), AnnuaireClient.Etat.INDISPONIBLE],
+		[PackedByteArray([9, 9, 9]), AnnuaireClient.Etat.INDISPONIBLE],
+		[_version_autre(), AnnuaireClient.Etat.INCOMPATIBLE],
+	]
+	for un_cas: Array in cas:
+		var octets: PackedByteArray = un_cas[0]
+		var attendu: int = un_cas[1]
 		var port := _faux_annuaire(octets)
 		var hote := _client(port)
 		hote.periode_ms = 300
@@ -442,7 +447,8 @@ func test_une_annonce_sans_reponse_ou_invalide_ne_gele_rien_et_se_retente_a_la_p
 		hote.annonce_terminee.connect(func(e: int, _s: int) -> void: etats.append(e))
 		hote.demarrer_annonce(_fournisseur("Salon", 1, 7777))
 		verifier(await _jusqua(func() -> bool: return etats.size() >= 2), "retentée")
-		verifier(not etats.has(AnnuaireClient.Etat.OK) or octets.is_empty() == false)
+		for etat: int in etats:
+			verifier_egal(etat, attendu, "chaque tentative donne le même état, jamais OK")
 		arbre.root.remove_child(_faux)
 		_faux.free()
 		_faux = null
@@ -544,3 +550,46 @@ func test_une_partie_lancee_retire_l_annonce_une_seule_fois() -> void:
 	await attendre_images(30)
 	verifier_egal(hote.annonces_envoyees, n, "plus d'annonce une fois la partie lancée")
 	verifier_egal(_noeud.service.salons().size(), 0)
+
+
+# --- Garde-fou d'actualisation ----------------------------------------------------------------
+
+
+func test_deux_listes_a_moins_de_2_secondes_n_en_font_qu_une() -> void:
+	var c := AnnuaireClient.new()
+	verifier_egal(c.intervalle_liste_ms, 2000, "la limite du service est 1 liste par 2 s")
+	c.free()
+	var port := _annuaire()
+	var client := _client(port)
+	var recus: Array[int] = []
+	client.liste_terminee.connect(
+		func(etat: int, _s: Array[Dictionary]) -> void: recus.append(etat)
+	)
+	verifier(client.lister(), "la première demande part")
+	for i: int in 6:
+		verifier_faux(client.lister(), "la demande %d, trop proche, est ignorée" % (i + 2))
+	verifier(await _jusqua(func() -> bool: return recus.size() == 1))
+	await attendre_images(10)
+	verifier_egal(recus, [AnnuaireClient.Etat.OK], "une seule réponse, aucune limite de débit")
+	verifier_egal(_noeud.nb_connexions(), 0)
+
+
+func test_une_liste_est_de_nouveau_permise_apres_l_intervalle() -> void:
+	var port := _annuaire()
+	var client := _client(port)
+	client.intervalle_liste_ms = 250
+	var recus: Array[int] = []
+	client.liste_terminee.connect(
+		func(etat: int, _s: Array[Dictionary]) -> void: recus.append(etat)
+	)
+	verifier(client.lister())
+	verifier(await _jusqua(func() -> bool: return recus.size() == 1))
+	verifier(await _jusqua(func() -> bool: return client.lister()), "permise après 250 ms")
+	verifier(await _jusqua(func() -> bool: return recus.size() == 2))
+
+
+func test_une_reponse_de_debit_a_une_liste_est_une_limite_pas_une_panne() -> void:
+	var port := _faux_annuaire(AnnuaireProtocole.encoder_reponse(AnnuaireProtocole.Statut.DEBIT))
+	var r := await _lister(_client(port))
+	verifier_egal(r.get("etat"), AnnuaireClient.Etat.LIMITE)
+	verifier_egal((r.get("salons", [1]) as Array).size(), 0)

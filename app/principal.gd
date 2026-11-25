@@ -55,6 +55,11 @@ var _parametres_hote: Array = []
 var _erreur_creation: String = ""
 
 
+## Seuls les ports de jeu de 1 024 à 65 535 sont listés par l'annuaire (ADR, décision 8).
+static func port_listable(port: int) -> bool:
+	return port >= AnnuaireProtocole.PORT_MIN and port <= AnnuaireProtocole.PORT_MAX
+
+
 ## La scène à charger à la place du menu : l'annuaire si `--annuaire`, le serveur dédié si
 ## `--serveur`, le banc d'essai si `--banc-ips`, sinon rien.
 static func scene_de_demarrage(args: Dictionary) -> String:
@@ -357,6 +362,9 @@ func _interroger_annuaire() -> void:
 
 
 func _sur_liste_annuaire(etat: int, salons: Array[Dictionary]) -> void:
+	# Un refus de débit n'est pas une panne : l'annuaire marche, la dernière liste reste affichée.
+	if etat == AnnuaireClient.Etat.LIMITE:
+		return
 	_salons_annuaire = []
 	if etat == AnnuaireClient.Etat.OK:
 		_salons_annuaire = salons
@@ -430,6 +438,8 @@ func _creer(nom_salon: String, port: int) -> void:
 	_connexion.fermer()
 	_salon.afficher_infos(tr("SALON_ANNONCE_HOTE") % [nom_salon, port])
 	_salon.afficher_avertissement("")
+	if s.salon_public and not s.annuaire_adresse.is_empty() and not port_listable(port):
+		_avertir("annuaire", tr("CONNEXION_ANNUAIRE_PORT_BAS"))
 	_salon.afficher_attente()
 
 

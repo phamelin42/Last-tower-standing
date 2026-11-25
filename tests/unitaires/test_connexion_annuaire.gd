@@ -358,6 +358,7 @@ func test_actualiser_relit_l_annuaire_sans_toucher_au_reste() -> void:
 	_annuaire()
 	var p := _principal_neuf(_adresse_annuaire())
 	_ouvrir_rejoindre(p)
+	(p.get_node("Annuaire") as AnnuaireClient).intervalle_liste_ms = 0
 	await attendre_images(20)
 	verifier_egal(p.connexion().lignes_salons().size(), 0)
 	_annoncer("Nouveau", 1, 7777)
@@ -547,4 +548,86 @@ func test_un_salon_accepte_ou_non_public_n_affiche_aucun_refus() -> void:
 	_creer_salon_public(p)
 	verifier(await _jusqua(func() -> bool: return _noeud.service.salons().size() == 1))
 	await attendre_images(10)
+	verifier_egal(p.salon().avertissement(), "")
+
+
+# --- Actualiser sans insister ; port trop bas --------------------------------------------------
+
+
+func _un_salon_valide() -> PackedByteArray:
+	var salons: Array[Dictionary] = [
+		{
+			"ip": "203.0.113.5",
+			"port": 7777,
+			"version_jeu": Protocole.VERSION,
+			"joueurs": 1,
+			"max": 8,
+			"nom": "Chez Zoé"
+		}
+	]
+	return AnnuaireProtocole.encoder_salons(salons)
+
+
+func test_cliquer_vite_sur_actualiser_n_efface_ni_la_liste_ni_ne_dit_indisponible() -> void:
+	_annuaire()
+	_annoncer("Chez Mina", 2, 7777)
+	verifier(await _jusqua(func() -> bool: return _noeud.service.salons().size() == 1))
+	var p := _principal_neuf(_adresse_annuaire())
+	_ouvrir_rejoindre(p)
+	verifier(await _jusqua(func() -> bool: return p.connexion().lignes_salons().size() == 1))
+	for i: int in 12:
+		p.connexion().bouton_actualiser.pressed.emit()
+		await arbre.process_frame
+	await attendre_images(40)
+	verifier_egal(p.connexion().lignes_salons().size(), 1, "la liste reste affichée")
+	verifier_egal(p.connexion().message_annuaire(), "", "aucun « Annuaire indisponible »")
+
+
+func test_une_reponse_de_debit_garde_la_derniere_liste_sans_message() -> void:
+	_annuaire_faux(_un_salon_valide())
+	var p := _principal_neuf(_adresse_annuaire())
+	_ouvrir_rejoindre(p)
+	verifier(await _jusqua(func() -> bool: return p.connexion().lignes_salons().size() == 1))
+	var client := p.get_node("Annuaire") as AnnuaireClient
+	client.intervalle_liste_ms = 0
+	_faux.octets = AnnuaireProtocole.encoder_reponse(AnnuaireProtocole.Statut.DEBIT)
+	var avant := _faux.recus.size()
+	p.connexion().bouton_actualiser.pressed.emit()
+	verifier(await _jusqua(func() -> bool: return _faux.recus.size() == avant + 1))
+	await attendre_images(30)
+	verifier_egal(p.connexion().lignes_salons().size(), 1, "la dernière liste reste")
+	verifier_egal(p.connexion().message_annuaire(), "")
+
+
+func test_chaque_port_de_jeu_dit_s_il_peut_etre_liste() -> void:
+	for port: int in range(1, 65536):
+		verifier_egal(Principal.port_listable(port), port >= 1024, "port %d" % port)
+
+
+func test_un_port_trop_bas_est_dit_a_l_hote_qui_a_coche_la_case() -> void:
+	var essai := PacketPeerUDP.new()
+	var peut := essai.bind(1000, LOCAL) == OK
+	essai.close()
+	if not peut:
+		# Sans droit sur les ports bas, la création échoue avant tout message : le test ne dit rien.
+		verifier(true, "port 1000 non réservable ici : seul le prédicat est vérifié")
+		return
+	_annuaire()
+	var p := _principal_neuf(_adresse_annuaire())
+	p.menu().champ_nom.text = "Mina"
+	p.menu().bouton_creer.pressed.emit()
+	p.connexion().champ_port_creer.text = "1000"
+	p.connexion().bouton_creer.pressed.emit()
+	var attendu := _t("CONNEXION_ANNUAIRE_PORT_BAS")
+	verifier(attendu.contains("1 024"), attendu)
+	verifier(await _jusqua(func() -> bool: return p.salon().avertissement() == attendu))
+	await attendre_images(20)
+	verifier_egal(_fausse.lancees.size(), 0, "rien n'est listé")
+
+
+func test_un_port_listable_n_a_pas_ce_message() -> void:
+	_annuaire()
+	var p := _principal_neuf(_adresse_annuaire())
+	_creer_salon_public(p)
+	verifier(await _jusqua(func() -> bool: return _noeud.service.salons().size() == 1))
 	verifier_egal(p.salon().avertissement(), "")

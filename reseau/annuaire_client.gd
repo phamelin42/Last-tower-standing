@@ -14,12 +14,14 @@ signal liste_terminee(etat: int, salons: Array[Dictionary])
 signal annonce_terminee(etat: int, statut: int)
 
 ## `OK` : une réponse exploitable est arrivée. `DESACTIVE` : adresse vide, rien n'a été tenté.
-enum Etat { OK, DESACTIVE, INDISPONIBLE, INCOMPATIBLE }
+## `LIMITE` : la liste est refusée pour cause de débit ; l'annuaire marche, on garde la dernière.
+enum Etat { OK, DESACTIVE, INDISPONIBLE, INCOMPATIBLE, LIMITE }
 enum EtatCadre { ATTENTE, COMPLET, INVALIDE, AUTRE_VERSION }
 
 const PERIODE_ANNONCE_MS: int = 10_000
 ## Limite de débit du service : 3 en rafale puis 1 par 5 s.
 const INTERVALLE_MIN_MS: int = 5_000
+const INTERVALLE_LISTE_MS: int = 2_000
 const DELAI_CONNEXION_MS: int = 3_000
 const DELAI_REPONSE_ANNONCE_MS: int = 8_000
 const DELAI_REPONSE_LISTE_MS: int = 3_000
@@ -35,6 +37,9 @@ var periode_ms: int = PERIODE_ANNONCE_MS:
 		if _dernier_envoi_ms > 0:
 			_prochaine_ms = mini(_prochaine_ms, _dernier_envoi_ms + valeur)
 var intervalle_min_ms: int = INTERVALLE_MIN_MS
+## Entre deux demandes de liste : la limite du service est une liste par 2 s, au-delà il répond
+## « débit dépassé ». Le client n'insiste pas.
+var intervalle_liste_ms: int = INTERVALLE_LISTE_MS
 var delai_connexion_ms: int = DELAI_CONNEXION_MS
 var delai_reponse_annonce_ms: int = DELAI_REPONSE_ANNONCE_MS
 var delai_reponse_liste_ms: int = DELAI_REPONSE_LISTE_MS
@@ -51,6 +56,7 @@ var _echange_retrait: _Echange = null
 var _derniere: Dictionary = {}
 var _port_annonce: int = 0
 var _dernier_envoi_ms: int = -1_000_000
+var _dernier_debut_liste_ms: int = -1_000_000
 var _prochaine_ms: int = 0
 var _quitte: bool = false
 
@@ -106,23 +112,28 @@ static func analyser_adresse(brut: String) -> Dictionary:
 
 
 ## Demande la liste des salons. Le résultat arrive par `liste_terminee`, jamais dans l'appel. Une
-## demande en cours est abandonnée : seule la dernière répond.
-func lister() -> void:
+## demande en cours est abandonnée : seule la dernière répond. Vrai si la demande est prise en
+## compte, faux si elle est ignorée parce que la précédente date de moins de `intervalle_liste_ms`.
+func lister() -> bool:
+	var vide := adresse.strip_edges().is_empty()
+	var cible := {} if vide else analyser_adresse(adresse)
+	var reel := not vide and not cible.is_empty()
+	if reel and _maintenant() - _dernier_debut_liste_ms < intervalle_liste_ms:
+		return false
 	_abandonner(_echange_liste)
 	_echange_liste = null
-	if adresse.strip_edges().is_empty():
-		liste_terminee.emit.call_deferred(Etat.DESACTIVE, [] as Array[Dictionary])
-		return
-	var cible := analyser_adresse(adresse)
-	if cible.is_empty():
-		liste_terminee.emit.call_deferred(Etat.INDISPONIBLE, [] as Array[Dictionary])
-		return
+	if not reel:
+		var etat := Etat.DESACTIVE if vide else Etat.INDISPONIBLE
+		liste_terminee.emit.call_deferred(etat, [] as Array[Dictionary])
+		return true
+	_dernier_debut_liste_ms = _maintenant()
 	_echange_liste = _ouvrir(
 		AnnuaireProtocole.Type.LISTE,
 		AnnuaireProtocole.encoder_liste(),
 		cible,
 		delai_reponse_liste_ms
 	)
+	return true
 
 
 func liste_en_cours() -> bool:
@@ -386,8 +397,11 @@ func _conclure(e: _Echange) -> void:
 		_echouer(e)
 		return
 	if e.type == AnnuaireProtocole.Type.LISTE:
-		# Une réponse de statut à la place de la liste (débit, requête refusée) : pas de salons.
-		_echouer(e)
+		# Une réponse de statut à la place de la liste : pas de salons. Le débit n'est pas une panne.
+		if int(reponse["statut"]) == AnnuaireProtocole.Statut.DEBIT:
+			_terminer(e, Etat.LIMITE, STATUT_AUCUN)
+		else:
+			_echouer(e)
 		return
 	_terminer(e, Etat.OK, int(reponse["statut"]))
 
