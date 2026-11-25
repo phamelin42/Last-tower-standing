@@ -1,7 +1,8 @@
 class_name Arene2D
 extends Node2D
-## L'arène vue de dessus en pixel art : sol, cercle d'apparition, tour au centre avec le nom du
-## joueur dessous, un sprite du pack Tiny Swords par ennemi (réserve de sprites par famille,
+## L'arène vue de dessus en pixel art : sol et décor du pack (`Decor2D`, dessinés sous tout le
+## reste), cercle d'apparition, tour au centre avec le nom du joueur dessous, un sprite du pack
+## Tiny Swords par ennemi (réserve de sprites par famille,
 ## triés en profondeur par Y), morts animées. Elle ne lit que `VueArene`, reçue par les signaux
 ## d'une `SourceVue`, et `Donnees`. Index d'entité : 0 à n-1 les familles, n le convoi, n+1 le boss
 ## (voir `Apparence2D`). Contrat identique à `Arene3D` : `donnees`, `lier`, `reinitialiser`,
@@ -13,8 +14,6 @@ const RESERVE_POOL: int = 16
 const PLAFOND_MORTS: int = 64
 ## Au-delà du bord d'arrêt, un ennemi n'est plus « au contact » : marge de lissage (unités).
 const MARGE_CONTACT: float = 10.0
-## Étendue du sol, en pixels du monde de part et d'autre de la tour : couvre l'écran le plus large.
-const RAYON_SOL: float = 6000.0
 const POINTS_CERCLE: int = 96
 const LARGEUR_CERCLE: float = 4.0
 const VITESSE_VOL: float = 3.0
@@ -50,6 +49,11 @@ var _dernier_tick: int = -1
 var _source: SourceVue = null
 var _construite: bool = false
 var _ennemis: Node2D = null
+var _sol: Decor2D = null
+## Graine de la partie, mêlée au numéro du joueur : le décor de chaque arène est le sien et ne
+## bouge pas pendant la partie.
+var _graine_partie: int = 0
+var _graine_decor: int = 0
 var _tour: Sprite2D = null
 var _noms: Node2D = null
 var _nom: Label = null
@@ -184,10 +188,24 @@ func definir_joueur(numero: int, nom: String) -> void:
 	_assurer_construite()
 	if numero != _numero or _tour.texture == null:
 		_numero = numero
+		_poser_le_decor()
 		var t: Dictionary = Apparence2D.tour(numero)
 		_tour.texture = load(String(t["fichier"])) as Texture2D
 		_tour.material = Apparence2D.materiau_tour(numero)
 	_nom.text = "%d. %s" % [Apparence2D.numero_valide(numero), nom] if nom != "" else ""
+
+
+## Graine de la partie : change la disposition du décor de tous les joueurs, pas leur différence.
+func definir_graine(graine_partie: int) -> void:
+	_assurer_construite()
+	_graine_partie = graine_partie
+	_poser_le_decor()
+
+
+## La disposition du terrain et du décor actuellement dessinée.
+func plan_decor() -> PlanDecor2D:
+	_assurer_construite()
+	return _sol.plan
 
 
 func nombre_instances_visibles(famille: int) -> int:
@@ -241,6 +259,7 @@ func _process(delta: float) -> void:
 	_assurer_construite()
 	_horloge += delta
 	_effets.avancer(delta)
+	_sol.avancer(delta)
 	_afficher_echantillon()
 	_ajuster_nom()
 
@@ -551,22 +570,19 @@ func _preparer_images(e: Dictionary) -> void:
 
 
 func _construire_sol() -> void:
-	var s: Dictionary = Apparence2D.SOL
-	var texture := load(String(s["feuille"])) as Texture2D
-	var sol := Sprite2D.new()
-	sol.name = "Sol"
-	sol.texture = texture
-	var taille := Vector2(texture.get_size())
-	sol.scale = Vector2.ONE * (2.0 * RAYON_SOL) / taille
-	var origine: Vector2 = s["origine"]
-	var tuile: Vector2 = s["taille"]
-	var materiau := ShaderMaterial.new()
-	materiau.shader = load(Apparence2D.SHADER_SOL) as Shader
-	materiau.set_shader_parameter("origine_uv", origine / taille)
-	materiau.set_shader_parameter("taille_uv", tuile / taille)
-	materiau.set_shader_parameter("repetitions", Vector2.ONE * (2.0 * RAYON_SOL) / tuile)
-	sol.material = materiau
-	add_child(sol)
+	_sol = Decor2D.new()
+	_sol.name = "Sol"
+	add_child(_sol)
+	_poser_le_decor()
+
+
+## Redessine le décor seulement si la graine de l'arène a changé.
+func _poser_le_decor() -> void:
+	var graine: int = PlanDecor2D.graine_arene(_graine_partie, _numero)
+	if _sol.plan != null and graine == _graine_decor:
+		return
+	_graine_decor = graine
+	_sol.construire(PlanDecor2D.generer(graine))
 
 
 func _construire_cercle() -> void:
