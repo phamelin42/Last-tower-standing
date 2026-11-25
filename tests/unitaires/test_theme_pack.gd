@@ -155,25 +155,69 @@ func _proche(a: Color, b: Color) -> bool:
 
 
 func test_la_police_affiche_chaque_caractere_des_textes_du_jeu() -> void:
+	var codes := _codes_des_csv()
+	verifier(codes.has(0xA0), "le texte contient bien une espace insécable")
+	_verifier_rendu(codes, "csv")
+
+
+## Les symboles de rareté et d'armure, les boutons « × » et les autres signes viennent du code,
+## pas des `.csv` : tout littéral de chaîne de `ui/`, `app/` et `visuels/apparence.gd` compte.
+func test_la_police_affiche_chaque_caractere_des_litteraux_du_code() -> void:
+	var codes := _codes_des_litteraux()
+	verifier(codes.has(0x25CF), "les symboles de rareté sont lus (●)")
+	_verifier_rendu(codes, "code")
+
+
+func _verifier_rendu(codes: Dictionary, origine: String) -> void:
 	var police := ThemeJeu.police()
 	verifier_non_nul(police, "police chargée")
-	var vus: Dictionary = {}
+	for code: int in codes:
+		if code < 32:
+			continue
+		verifier(
+			police.has_char(code),
+			"%s : caractère rendu ni par Tiny5 ni par le repli : U+%04X" % [origine, code]
+		)
+
+
+func _codes_des_csv() -> Dictionary:
+	var codes: Dictionary = {}
 	var dossier := DirAccess.open(DOSSIER_TEXTES)
 	verifier_non_nul(dossier, "dossier des textes")
 	var nb_fichiers := 0
 	for nom: String in dossier.get_files():
-		if not nom.ends_with(".csv"):
-			continue
-		nb_fichiers += 1
-		var contenu := FileAccess.get_file_as_string(DOSSIER_TEXTES + nom)
-		for i: int in contenu.length():
-			vus[contenu.unicode_at(i)] = true
+		if nom.ends_with(".csv"):
+			nb_fichiers += 1
+			_ajouter_codes(codes, FileAccess.get_file_as_string(DOSSIER_TEXTES + nom))
 	verifier(nb_fichiers >= 8, "tous les fichiers de textes sont lus (%d)" % nb_fichiers)
-	for code: int in vus:
-		if code < 32:
-			continue
-		verifier(police.has_char(code), "caractère absent de la police : U+%04X" % code)
-	verifier(vus.has(0xA0), "le texte contient bien une espace insécable")
+	return codes
+
+
+func _codes_des_litteraux() -> Dictionary:
+	var codes: Dictionary = {}
+	var litteral := RegEx.create_from_string('"(?:[^"\\\\\n]|\\\\.)*"')
+	var echappe := RegEx.create_from_string("\\\\u([0-9a-fA-F]{4})")
+	var fichiers: Array[String] = ["res://visuels/apparence.gd"]
+	for dossier_source: String in ["res://ui/", "res://app/"]:
+		for nom: String in DirAccess.get_files_at(dossier_source):
+			if nom.ends_with(".gd"):
+				fichiers.append(dossier_source + nom)
+	verifier(fichiers.size() >= 10, "les sources sont listées (%d)" % fichiers.size())
+	for chemin: String in fichiers:
+		for ligne: String in FileAccess.get_file_as_string(chemin).split("\n"):
+			if ligne.strip_edges().begins_with("#"):
+				continue
+			for m: RegExMatch in litteral.search_all(ligne):
+				var texte := m.get_string()
+				_ajouter_codes(codes, texte)
+				for e: RegExMatch in echappe.search_all(texte):
+					codes[e.get_string(1).hex_to_int()] = true
+	return codes
+
+
+func _ajouter_codes(codes: Dictionary, texte: String) -> void:
+	for i: int in texte.length():
+		codes[texte.unicode_at(i)] = true
 
 
 func test_la_police_est_celle_du_theme() -> void:

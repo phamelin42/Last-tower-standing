@@ -69,6 +69,8 @@ const TEXTURES: Array[String] = [
 	DOSSIER_UI + "Icons/Regular_03.png",
 ]
 const POLICE := "res://assets/polices/tiny5/tiny5-latin-400-normal.woff2"
+## Repli pour tout caractère absent de Tiny5 : symboles de rareté et d'armure, ∅, espace fine.
+const POLICE_REPLI := "res://assets/polices/dejavu-sans/dejavu-sans-latin-400-normal.woff2"
 ## Zone des icônes (64 px, glyphe centré) : on rogne les marges vides.
 const ZONE_ICONE := Rect2(16.0, 9.0, 32.0, 32.0)
 const POINTEUR_POINTE := Vector2(22.0, 17.0)
@@ -222,12 +224,12 @@ static func icone(nom: String) -> Texture2D:
 	return atlas
 
 
-## La police pixel du jeu ; l'infini et les signes qu'elle n'a pas viennent de la police du moteur.
+## La police pixel du jeu ; tout signe qu'elle n'a pas vient de DejaVu Sans, puis du moteur.
 static func police() -> Font:
 	if _police == null:
 		var v := FontVariation.new()
 		v.base_font = load(POLICE) as Font
-		v.fallbacks = [ThemeDB.fallback_font]
+		v.fallbacks = [load(POLICE_REPLI) as Font, ThemeDB.fallback_font]
 		_police = v
 	return _police
 
