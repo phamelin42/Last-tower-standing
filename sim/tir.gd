@@ -31,6 +31,10 @@ class Contexte:
 	var resistance: float
 	var bilan: Bilan
 	var type_degats: int
+	## Index (`VueArene.GENRES_ARME`) de l'effet en cours de résolution ; posé avant chaque effet.
+	var genre: int = 0
+	## Index (`VueArene.STATUTS_ARME`) du statut principal de l'arme, 0 si elle n'en pose pas.
+	var statut: int = 0
 	var degats_base: float
 	var statuts: Array
 	var palier: float
@@ -62,6 +66,7 @@ static func avancer_arme(
 		for brut: Variant in effets:
 			var effet: Dictionary = brut
 			var kind: String = effet["kind"]
+			ctx.genre = VueArene.genre_depuis_nom(kind)
 			if kind != "aura" and _effet(ctx, kind, effet):
 				a_tire = true
 		if a_tire:
@@ -69,6 +74,7 @@ static func avancer_arme(
 	if arme.aura_restante <= 0.0:
 		for brut: Variant in effets:
 			var effet: Dictionary = brut
+			ctx.genre = VueArene.genre_depuis_nom("aura")
 			if effet["kind"] == "aura" and _aura(ctx, effet):
 				arme.aura_restante = float(effet["periode"]) / (1.0 + maxf(stats.cadence, 0.0))
 
@@ -96,6 +102,7 @@ static func _creer(
 		float(arme.def["degats"]) * stats.degats_type[ctx.type_degats] * stats.degats_global
 	)
 	ctx.statuts = arme.def.get("statuts", [])
+	ctx.statut = _statut_principal(ctx.statuts)
 	var critique: Dictionary = donnees.partie["critique"]
 	ctx.palier = float(critique["palier"])
 	ctx.puissance_base = float(critique["puissance_base"])
@@ -104,6 +111,19 @@ static func _creer(
 
 
 # --- Aides communes ----------------------------------------------------------------------------
+
+
+## Le premier statut qui se voit ; le vol de vie, invisible, ne passe qu'en dernier recours.
+static func _statut_principal(statuts: Array) -> int:
+	var repli := 0
+	for brut: Variant in statuts:
+		var statut: Dictionary = brut
+		var index := VueArene.statut_depuis_nom(String(statut["kind"]))
+		if String(statut["kind"]) == "vol_de_vie":
+			repli = index
+		else:
+			return index
+	return repli
 
 
 ## Multiplicateur de critique ; le hasard n'est tiré que si une chance existe.
@@ -119,8 +139,22 @@ static func _critique(ctx: Contexte) -> float:
 static func _evenement(
 	ctx: Contexte, genre: String, de: Vector2, vers: Vector2, rayon: float
 ) -> void:
-	ctx.bilan.evenements.append(
-		{"k": genre, "t": 0, "de": de, "vers": vers, "type_degats": ctx.type_degats, "rayon": rayon}
+	(
+		ctx
+		. bilan
+		. evenements
+		. append(
+			{
+				"k": genre,
+				"t": 0,
+				"de": de,
+				"vers": vers,
+				"type_degats": ctx.type_degats,
+				"rayon": rayon,
+				"genre": ctx.genre,
+				"statut": ctx.statut,
+			}
+		)
 	)
 
 
@@ -369,6 +403,7 @@ static func _avancer_ondes(ctx: Contexte, effets: Array, dt: float) -> void:
 	if effet.is_empty():
 		ondes.clear()
 		return
+	ctx.genre = VueArene.genre_depuis_nom("onde")
 	var rayon_max := float(effet["rayon_max"])
 	var vitesse := float(effet["vitesse"])
 	var ennemis := ctx.ennemis
@@ -430,6 +465,7 @@ static func _declencher_mines(ctx: Contexte, effets: Array) -> void:
 	var effet := _premier_effet(effets, ["mine", "piege"])
 	if effet.is_empty():
 		return
+	ctx.genre = VueArene.genre_depuis_nom(String(effet["kind"]))
 	var rayon := float(effet["rayon"])
 	for k: int in range(mines.size() - 1, -1, -1):
 		var point := mines[k]

@@ -53,6 +53,20 @@ Spécification : `docs/superpowers/specs/2026-11-24-jeu-tour-design.md`. Plan :
 - Ne toucher qu'aux fichiers de sa tâche. Une interface fausse chez un voisin se signale, elle ne se corrige pas.
 - Avant de rendre une tâche : `tools/verifier.sh` vert, `gdlint` et `gdformat --check` verts sur ce qui a changé.
 
+## Tableau d'avancement en direct
+
+Demandé par Phil le 25/11/2026 : https://claude.ai/artifact/QQaqHHiz3E9tmc5tsgiLa2 (tableau de bord
+privé, lu en direct). Ses lignes vivent dans sa base, pas dans la page :
+`data/avancement/taches/T<lot>.<n>` (`statut` : `a_faire`, `en_cours`, `a_valider` ou `fait` ;
+`pourcentage` ; `etape` ; `attend` ; `pr` ; `maj` en ISO UTC), `data/avancement/lots/L<n>` et
+`data/avancement/suivis/S<n>` (`statut` `ouvert` ou `clos`).
+
+- Dès qu'une tâche change d'état (commencée, PR ouverte, attend Phil, cochée, ajoutée au plan),
+  l'agent principal met à jour sa ligne par `ArtifactData` (`get`, puis `update` avec `if_version`),
+  dans la même étape que le plan. `pourcentage` : 0 à faire, 100 cochée, sinon une estimation dont
+  `etape` dit ce qui reste. Un suivi relevé ou réglé met aussi à jour sa ligne.
+- Ne jamais republier la page pour changer un chiffre : les pages ouvertes suivent la base seules.
+
 ## Écarts au contexte commun
 
 - Pas de Node, npm, Angular, Fuda, Playwright ni Vitest. Le hook de session installe Godot et gdtoolkit, pas Node.
@@ -72,3 +86,8 @@ Spécification : `docs/superpowers/specs/2026-11-24-jeu-tour-design.md`. Plan :
 - `.gdlintrc` est en YAML (`max-line-length: 100`), pas en `clé=valeur` : sinon gdlint plante.
 - Le lanceur lance les tests au premier `process_frame`, arbre actif : `_ready`, RPC, `await` et `attendre_images(n)` fonctionnent. Une méthode `test_*` qui dépasse `delai_max` (10 s) échoue, et le moteur libère les nœuds qu'elle a ajoutés sous `arbre.root`. Toute erreur de script ou `push_error` la fait échouer ; `attendre_erreur(motif)` déclare une erreur voulue (Godot l'imprime quand même sur stderr).
 - Tout fichier écrit par un test va sous `dossier_temporaire()` ; tout port réseau est tiré à l'exécution (d'autres agents lancent leurs tests en même temps).
+- Sous Xvfb, le rendu logiciel (llvmpipe) est limité par le remplissage de pixels : une mesure d’images par seconde n’y vaut pas celle d’une vraie carte. Recadrer les images sur leur contenu (`visuels/recadrages_2d.gd`, généré) réduit ce coût. Dans un script lancé par `-s`, lire `DisplayServer.window_get_size()`, pas `root.size`.
+- Tiny Swords : les boutons se posent en `3Slides` (64 px de haut) ; le pack contient une faute de nom (`Archer_Purlple.png`). Tiny5 n’a pas les symboles (●, ◆, ○…) : DejaVu Sans sert de repli, et un test vérifie chaque caractère des `.csv` et des littéraux de `ui/` et `app/`.
+- Une image dessinée par script (`tools/dessiner_*.gd`) se contrôle par un test qui la régénère sous `dossier_temporaire()` et compare les octets.
+- Un `Control` racine n’hérite pas de la hauteur minimale de ses enfants (bug des réglages) : `_get_minimum_size`. Des « UID duplicate » sans doublon dans git viennent d’un cache `.godot` périmé : le supprimer.
+- `godot --headless --path . --import` à froid plante parfois dans le moteur (« double free or corruption », code 134 ; une fois en CI le 25/11/2026, une fois sur environ 150 essais en local) : défaut de Godot 4.7.2, pas du projet. Une seule relance du job, signalée dans la PR.

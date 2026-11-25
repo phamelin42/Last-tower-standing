@@ -19,7 +19,8 @@ enum Intention {
 }
 
 ## 2 : ajout de `RESULTAT` (réponse du serveur à chaque intention).
-const VERSION: int = 2
+## 3 : un octet de plus par événement d'arène (genre et statut de l'arme).
+const VERSION: int = 3
 const MAX_ENNEMIS: int = 2000
 const MAX_EVENEMENTS: int = 64
 const MAX_TAILLE: int = 65536
@@ -44,7 +45,7 @@ const OFFSET_ARMURE: int = 37
 const OFFSET_NB_JOUEURS: int = 10
 
 const _OCTETS_ENNEMI: int = 9
-const _OCTETS_EVENEMENT: int = 11
+const _OCTETS_EVENEMENT: int = 12
 const _OCTETS_JOUEUR_MIN: int = 18
 const _MAX_NOM_OCTETS: int = MAX_NOM * 4
 const _MAX_BONJOUR: int = 3 + _MAX_NOM_OCTETS + 8
@@ -406,6 +407,10 @@ static func encoder_etat_arene(v: VueArene, catalogue: PackedStringArray) -> Pac
 		e.i16(quantifier(vers.x))
 		e.i16(quantifier(vers.y))
 		e.u8(roundi(clampf(float(evt["rayon"]), 0.0, 2040.0) / 8.0))
+		# Genre (4 bits de poids faible) et statut (4 bits de poids fort) de l'arme ; 0 = aucun.
+		var genre_arme := clampi(int(evt.get("genre", 0)), 0, VueArene.GENRES_ARME.size() - 1)
+		var statut_arme := clampi(int(evt.get("statut", 0)), 0, VueArene.STATUTS_ARME.size() - 1)
+		e.u8(genre_arme | (statut_arme << 4))
 	e.u16(v.eliminations)
 	e.f32(v.degats_infliges)
 	e.u16(v.manche_max)
@@ -521,7 +526,15 @@ static func decoder_etat_arene(b: PackedByteArray, catalogue: PackedStringArray)
 		var de := Vector2(l.i16(), l.i16()) / ECHELLE_POS
 		var vers := Vector2(l.i16(), l.i16()) / ECHELLE_POS
 		var rayon := float(l.u8()) * 8.0
-		if genre >= _GENRES_EVENEMENT.size() or type_degats > Types.TypeDegats.CHAOS:
+		var arme := l.u8()
+		var genre_arme := arme & 0x0F
+		var statut_arme := arme >> 4
+		if (
+			genre >= _GENRES_EVENEMENT.size()
+			or type_degats > Types.TypeDegats.CHAOS
+			or genre_arme >= VueArene.GENRES_ARME.size()
+			or statut_arme >= VueArene.STATUTS_ARME.size()
+		):
 			return null
 		(
 			v
@@ -534,6 +547,8 @@ static func decoder_etat_arene(b: PackedByteArray, catalogue: PackedStringArray)
 					"vers": vers,
 					"type_degats": type_degats,
 					"rayon": rayon,
+					"genre": genre_arme,
+					"statut": statut_arme,
 				}
 			)
 		)
