@@ -16,6 +16,6 @@
 	"critique": {"palier": 0.05, "puissance_base": 2.0, "coef_exces": 1.0},
 	"esquive_k": 1.0,
 	"vitesses_partie": [1.0, 0.66, 0.5],
-	"reseau": {"hz_arene": 15, "hz_global": 2},
+	"reseau": {"hz_arene": 15, "hz_global": 2, "hz_min": 5, "budget_octets_s": 50000},
 	"convoi": {"probabilite": 0.08, "manche_min": 4}
 }
