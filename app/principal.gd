@@ -26,6 +26,10 @@ var cibles_decouverte: Array[String] = [Decouverte.DIFFUSION]
 ## `() -> UpnpHote.Passerelle` : la box de la redirection UPnP, remplacée par un double dans les
 ## tests ; vide, la session choisit la vraie.
 var fabrique_passerelle: Callable = Callable()
+## `() -> String` : l'adresse `hote:port` de l'annuaire. Par défaut le réglage du joueur, sauf en
+## mode sans fenêtre (tests, serveur sans écran) où aucun annuaire n'est contacté : comme pour la
+## box, seuls les tests qui le demandent touchent au réseau.
+var adresse_annuaire: Callable = Callable()
 
 var _menu: MenuPrincipal
 var _jeu: Jeu = null
@@ -33,6 +37,8 @@ var _connexion: ConnexionUi
 var _salon: SalonUi
 var _session: SessionReseau = null
 var _chercheur: Decouverte = null
+var _annuaire: AnnuaireClient = null
+var _salons_annuaire: Array[Dictionary] = []
 var _nom_joueur: String = ""
 var _parametres_hote: Array = []
 var _erreur_creation: String = ""
@@ -185,6 +191,13 @@ func _enregistrer_nom(nom: String) -> void:
 		r.sauver(chemin_reglages)
 
 
+func _enregistrer_salon_public(publique: bool) -> void:
+	var r := Reglages.charger(chemin_reglages)
+	if r.salon_public != publique:
+		r.salon_public = publique
+		r.sauver(chemin_reglages)
+
+
 func _appliquer_reglages(r: Reglages) -> void:
 	Jeu.appliquer_fenetre(get_window(), r)
 	BusAudio.appliquer_volume(r.volume_general)
@@ -205,6 +218,7 @@ func _construire_multijoueur() -> void:
 	_connexion.creer_demande.connect(_creer)
 	_connexion.rejoindre_demande.connect(_rejoindre)
 	_connexion.retour_demande.connect(_retour_depuis_connexion)
+	_connexion.actualiser_demande.connect(_interroger_annuaire)
 	_salon.pret_change.connect(_sur_pret)
 	_salon.options_changees.connect(_sur_options)
 	_salon.lancer_demande.connect(_sur_lancer)
@@ -221,7 +235,7 @@ func _ouvrir_creer(nom: String) -> void:
 	_nom_joueur = nom
 	_enregistrer_nom(nom)
 	_menu.visible = false
-	_connexion.ouvrir_creer(nom)
+	_connexion.ouvrir_creer(nom, Reglages.charger(chemin_reglages).salon_public)
 
 
 func _ouvrir_rejoindre(nom: String) -> void:
@@ -235,6 +249,7 @@ func _ouvrir_rejoindre(nom: String) -> void:
 	_chercheur.name = "Chercheur"
 	add_child(_chercheur)
 	_connexion.ouvrir_rejoindre()
+	_interroger_annuaire()
 	var code := _chercheur.chercher(port_decouverte)
 	if code != OK:
 		_connexion.afficher_erreur_rejoindre(tr("CONNEXION_DECOUVERTE_INDISPONIBLE"))
@@ -243,11 +258,54 @@ func _ouvrir_rejoindre(nom: String) -> void:
 
 
 func _sur_liste_changee() -> void:
-	if _chercheur != null:
-		_connexion.afficher_salons(_chercheur.salons())
+	_afficher_liste()
+
+
+## Le réseau local et l'annuaire en une liste. Sans annuaire joint, la liste est celle du réseau.
+func _afficher_liste() -> void:
+	if _chercheur == null:
+		return
+	_connexion.afficher_salons(
+		ConnexionUi.fusionner(_chercheur.salons(), _salons_annuaire, Protocole.VERSION)
+	)
+
+
+func _adresse_de_l_annuaire() -> String:
+	if adresse_annuaire.is_valid():
+		return str(adresse_annuaire.call())
+	if DisplayServer.get_name() == "headless":
+		return ""
+	return Reglages.charger(chemin_reglages).annuaire_adresse
+
+
+## Seuls moments où l'annuaire est contacté : l'ouverture de « Rejoindre » et l'actualisation. Une
+## demande encore en vol n'est pas doublée (limite de débit du service).
+func _interroger_annuaire() -> void:
+	if _annuaire == null:
+		_annuaire = AnnuaireClient.new()
+		_annuaire.name = "Annuaire"
+		add_child(_annuaire)
+		_annuaire.liste_terminee.connect(_sur_liste_annuaire)
+	if _annuaire.liste_en_cours():
+		return
+	_annuaire.adresse = _adresse_de_l_annuaire()
+	_annuaire.lister()
+
+
+func _sur_liste_annuaire(etat: int, salons: Array[Dictionary]) -> void:
+	_salons_annuaire = []
+	if etat == AnnuaireClient.Etat.OK:
+		_salons_annuaire = salons
+	_connexion.afficher_etat_annuaire(etat)
+	_afficher_liste()
 
 
 func _arreter_recherche() -> void:
+	_salons_annuaire = []
+	if _annuaire != null:
+		remove_child(_annuaire)
+		_annuaire.queue_free()
+		_annuaire = null
 	if _chercheur != null:
 		_chercheur.arreter()
 		remove_child(_chercheur)
@@ -292,6 +350,9 @@ func _creer(nom_salon: String, port: int) -> void:
 		_connexion.afficher_erreur_creer(tr("MENU_ERREUR_DONNEES"))
 		return
 	var s := _nouvelle_session()
+	s.annuaire_adresse = _adresse_de_l_annuaire()
+	s.salon_public = _connexion.salon_public()
+	_enregistrer_salon_public(s.salon_public)
 	var code := s.heberger(d, port, nom_salon, _nom_joueur, port_decouverte, cibles_decouverte)
 	if code != OK:
 		_fermer_session()

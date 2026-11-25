@@ -23,7 +23,7 @@ CONNEXION_PORT,Port :
 CONNEXION_CREER,Créer le salon
 CONNEXION_RETOUR,Retour
 CONNEXION_REJOINDRE_TITRE,Rejoindre une partie
-CONNEXION_SALONS_LOCAUX,Salons du réseau local :
+CONNEXION_SALONS,Salons disponibles :
 CONNEXION_AUCUN_SALON,Aucun salon trouvé pour l’instant. Vous pouvez aussi saisir une adresse.
 CONNEXION_SALON_LIGNE,%s — %d sur %d joueurs
 CONNEXION_REJOINDRE,Rejoindre
@@ -37,3 +37,12 @@ CONNEXION_ERREUR_PORT_PRIS,Le port %d est déjà utilisé sur cet ordinateur. Ch
 CONNEXION_ERREUR_CREATION,Impossible de créer le salon (code %d).
 CONNEXION_DECOUVERTE_INDISPONIBLE,La recherche automatique est indisponible (port 7778 occupé) : saisissez une adresse.
 CONNEXION_UPNP_ECHEC,Votre box n’a pas ouvert le port : les joueurs extérieurs ne pourront pas vous rejoindre
+CONNEXION_ORIGINE_LOCAL,Réseau local
+CONNEXION_ORIGINE_ANNUAIRE,Annuaire
+CONNEXION_AUTRE_VERSION,autre version
+CONNEXION_SALON_ORIGINE,%s (%s)
+CONNEXION_ANNUAIRE_INDISPONIBLE,Annuaire indisponible
+CONNEXION_ANNUAIRE_INCOMPATIBLE,Annuaire incompatible : mettez le jeu à jour
+CONNEXION_ACTUALISER,Actualiser
+CONNEXION_PUBLIQUE,Partie publique
+CONNEXION_PUBLIQUE_NOTICE,"Partie publique : votre adresse IP sera transmise à l’annuaire et visible des joueurs qui consultent la liste, tant que le salon est ouvert. Rien n’est conservé ensuite."
