@@ -5,6 +5,8 @@ const DT := 0.05
 const GRAINE := 99
 ## PV des ennemis de test : assez bas pour que la précision 32 bits reste sous le centième.
 const PV := 1000.0
+## Cadence de 1/0,0625 s : une attaque tous les deux pas de 0,05 s, sans arrondi douteux.
+const CADENCE_TEST := 16.0
 
 var d: Donnees
 
@@ -101,27 +103,27 @@ func test_sans_epines_l_attaquant_ne_subit_rien() -> void:
 
 func test_sans_esquive_toutes_les_attaques_touchent() -> void:
 	var a := Arene.new(d, GRAINE)
-	_ennemi(a, Vector2(100, 0), 1.0, 40.0, 20.0)  # une attaque par pas
+	_ennemi(a, Vector2(100, 0), 1.0, 40.0, CADENCE_TEST)  # une attaque tous les 2 pas
 	_avancer(a, 100)
-	verifier_proche(_vue(a).tour_pv, 1000.0 - 100.0, 0.01, "100 attaques, 100 coups")
+	verifier_proche(_vue(a).tour_pv, 1000.0 - 50.0, 0.01, "50 attaques, 50 coups")
 
 
 func test_une_esquive_tres_haute_evite_presque_tout() -> void:
 	var a := Arene.new(d, GRAINE)
 	_avec_amelioration(a, "meurtrieres_biaisees", 1000)  # 80 points
-	_ennemi(a, Vector2(100, 0), 1.0, 40.0, 20.0)
+	_ennemi(a, Vector2(100, 0), 1.0, 40.0, CADENCE_TEST)
 	_avancer(a, 400)
 	var subi := 1000.0 - _vue(a).tour_pv
-	verifier(subi < 40.0, "moins de 10 % des 400 attaques passent (reçu %s)" % subi)
+	verifier(subi < 20.0, "moins de 10 %% des 200 attaques passent (reçu %s)" % subi)
 
 
 func test_esquive_moyenne_evite_une_part_des_attaques() -> void:
 	var a := Arene.new(d, GRAINE)
 	_avec_amelioration(a, "meurtrieres_biaisees", 12)  # 0,96 point → ≈ 49 %
-	_ennemi(a, Vector2(100, 0), 1.0, 40.0, 20.0)
+	_ennemi(a, Vector2(100, 0), 1.0, 40.0, CADENCE_TEST)
 	_avancer(a, 400)
 	var subi := 1000.0 - _vue(a).tour_pv
-	verifier(subi > 120.0 and subi < 280.0, "environ la moitié de 400 (reçu %s)" % subi)
+	verifier(subi > 60.0 and subi < 140.0, "environ la moitié des 200 attaques (reçu %s)" % subi)
 
 
 # --- Régénération et PV max --------------------------------------------------------------------
@@ -179,7 +181,7 @@ func _boss_a_un_pv(a: Arene) -> void:
 	var mult := _mult()
 	mult["pv"] = 0.0001  # 2 PV
 	a.demarrer_boss(mult)
-	a.ennemis.pos[0] = Vector2(140, 0)  # au contact : rayon de la tour 60 + portée 80
+	a.ennemis.pos[0] = Vector2(80, 0)  # le boss attaque à distance : il s'arrête à sa portée (80)
 
 
 func test_la_tour_qui_tombe_avec_le_dernier_ennemi_perd() -> void:
@@ -258,7 +260,7 @@ func test_chaque_arme_du_contenu_reel_tire_sur_un_ennemi_a_portee() -> void:
 func test_le_vol_de_vie_soigne_la_tour() -> void:
 	var a := Arene.new(d, GRAINE)
 	_avec_amelioration(a, "gorgee_de_sang", 1)
-	a.inventaire.ajouter("de_pipe")
+	a.inventaire.ajouter("etincelle_runique")  # sans vol de vie propre
 	a.synchroniser()
 	a.pv = 500.0
 	_ennemi(a, Vector2(300, 0), 0.0, 30.0, 1.0)

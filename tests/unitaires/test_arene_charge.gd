@@ -52,7 +52,7 @@ func test_mille_ennemis_immobiles_au_plancher_sous_5_ms_par_pas() -> void:
 func test_mille_ennemis_en_marche_sous_5_ms_par_pas() -> void:
 	var a := Arene.new(d, GRAINE)
 	_equiper(a)
-	a.demarrer_manche(40, 0, _mult(0.15))
+	a.demarrer_manche(40, 0, _mult(0.1))
 	var ms := _mesurer(a, 1000, 200)
 	verifier(ms < BUDGET_MS, "%.3f ms par pas (budget %s)" % [ms, BUDGET_MS])
 
@@ -67,3 +67,22 @@ func test_aucune_fuite_de_tableaux_apres_de_longues_manches() -> void:
 	verifier_egal(a.ennemis.ids.size(), n, "aucun mort oublié dans les tableaux après la purge")
 	verifier_egal(a.ennemis.pv.size(), n, "tous les tableaux ont la même longueur")
 	verifier(a.nombre_ennemis() < 1500, "les armes et la tour tuent : le nombre se stabilise")
+
+
+func test_mille_attaquants_au_corps_a_corps_avec_epines_sous_5_ms_par_pas() -> void:
+	var a := Arene.new(d, GRAINE)
+	_equiper(a)
+	a.inventaire.ameliorations["couronne_d_epines"] = 1
+	a.inventaire.ameliorations["meurtrieres_biaisees"] = 5
+	a.synchroniser()
+	for k: int in 1200:
+		var angle := TAU * float(k) / 1200.0
+		var p := Vector2.from_angle(angle) * 100.0
+		a.ennemis.ajouter(0, p, 1e7, 0.0, 5.0, 40.0, 4.0, 1, false, Types.Armure.AUCUNE)
+	var debut := Time.get_ticks_usec()
+	for _i: int in 200:
+		a.avancer(DT)
+	var ms := float(Time.get_ticks_usec() - debut) / 1000.0 / 200.0
+	print("  [mesure] 1200 attaquants au contact, %.3f ms par pas" % ms)
+	verifier(ms < BUDGET_MS, "%.3f ms par pas (budget %s)" % [ms, BUDGET_MS])
+	verifier(not a.est_detruite(), "la tour tient")

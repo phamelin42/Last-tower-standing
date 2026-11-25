@@ -79,7 +79,9 @@ func test_plancher_0_1_s_des_la_manche_25() -> void:
 		verifier_egal(a.nombre_ennemis(), 100, "manche %d : 10 par seconde" % manche)
 	var avant := _arene_immobile(24)
 	_avancer(avant, 200)
-	verifier(avant.nombre_ennemis() < 100, "à la manche 24, l'intervalle (0,16 s) est encore > 0,1 s")
+	verifier(
+		avant.nombre_ennemis() < 100, "à la manche 24, l'intervalle (0,16 s) est encore > 0,1 s"
+	)
 
 
 func test_pas_d_apparition_pendant_la_preparation() -> void:
@@ -90,7 +92,7 @@ func test_pas_d_apparition_pendant_la_preparation() -> void:
 
 func test_apparitions_sur_le_cercle_exact_a_des_angles_dans_0_tau() -> void:
 	var a := _arene_immobile(25)
-	_avancer(a, 400)
+	_avancer(a, 800)
 	var rayon := float(d.partie["rayon_spawn"])
 	var octants: Dictionary = {}
 	verifier(a.ennemis.taille >= 300, "assez d'ennemis pour juger la répartition")
@@ -345,9 +347,14 @@ func test_les_evenements_ont_le_tick_courant_et_les_morts_sont_signales() -> voi
 
 
 func test_les_evenements_ne_s_accumulent_pas_sans_fin() -> void:
-	var a := _arene_immobile(40)
+	d.partie["tour"]["pv"] = 1e9
+	var a := Arene.new(d, GRAINE)
+	for _i: int in 8:
+		a.inventaire.ajouter("de_pipe")
+	a.synchroniser()
+	a.demarrer_manche(40, 0, _mult(5.0))
 	_avancer(a, 4000)
-	verifier(_vue(a).evenements.size() <= 2000, "la file d'événements est bornée")
+	verifier_egal(_vue(a).evenements.size(), 2000, "des milliers de tirs, la file reste bornée")
 
 
 # --- Intentions invalides ----------------------------------------------------------------------

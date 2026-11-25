@@ -106,7 +106,9 @@ func test_le_bonus_tous_les_n_est_verse_a_chaque_serie() -> void:
 	var prime := 3
 	for serie: int in 3:
 		for _k: int in n:
-			var i := a.ennemis.ajouter(0, Vector2(1300, 0), 10.0, 0.0, 0.0, 30.0, 1.0, prime, false, 4)
+			var i := a.ennemis.ajouter(
+				0, Vector2(1300, 0), 10.0, 0.0, 0.0, 30.0, 1.0, prime, false, 4
+			)
 			a.ennemis.infliger(a.ennemis.indice_de(i), 1e6, Types.TypeDegats.CHAOS)
 			a.avancer(DT)
 		var attendu := 500 + (serie + 1) * (n * prime + bonus)
