@@ -168,6 +168,7 @@ const MORT: Dictionary = {
 	"pieds": 92.0,
 	"echelle": 1.0,
 	"images_par_seconde": 14.0,
+	"cle_boites": "mort",
 }
 
 ## Une tuile d'herbe pleine du pack (3e colonne, 2e ligne de la grande herbe), répétée.
@@ -177,7 +178,11 @@ const SOL: Dictionary = {
 	"taille": Vector2(64.0, 64.0),
 }
 
-const TOUR_ECHELLE: float = 0.6
+## Grossissement de tous les sprites d'unités par rapport au pack : à 720p, au zoom par défaut, un
+## ennemi ordinaire mesure environ 6 à 7 % de la hauteur de l'écran.
+const ECHELLE_UNITES: float = 1.9
+## La tour mesure environ 18 % de la hauteur de l'écran.
+const TOUR_ECHELLE: float = 2.1
 const TOUR_PIEDS: float = 228.0
 ## Sprite de tour dont on décale la teinte pour les joueurs 5 à 8.
 const TOUR_BASE := "Factions/Knights/Buildings/Tower/Tower_Blue.png"
@@ -231,6 +236,7 @@ static func entree(id: String) -> Dictionary:
 	modele["couleur"] = Color.WHITE
 	modele["volant"] = source.get("volant", false)
 	modele["flottement"] = source.get("flottement", 0.0)
+	modele["cle_boites"] = source["modele"]
 	if source.has("accessoire"):
 		var accessoire: Dictionary = (source["accessoire"] as Dictionary).duplicate()
 		accessoire["feuille"] = RACINE + String(accessoire["feuille"])
@@ -250,6 +256,24 @@ static func distance_arret(portee: float, rayon_tour: float) -> float:
 	if portee <= PORTEE_CORPS_A_CORPS:
 		return rayon_tour + portee
 	return portee
+
+
+## Où poser une image d'une feuille : `region` (dans la feuille) et `offset` du `Sprite2D` centré
+## sur cette région, tels que le pied (centre de la case, ligne `pieds`) tombe sur la position du
+## sprite. Avec `recadre`, la région est réduite au contenu de l'image ; sans, c'est la case
+## entière. En miroir (`flip_h`), le sprite utilise `-offset.x`.
+static func placement(
+	cle: String, image: int, case_px: Vector2i, colonnes: int, pieds: float, recadre: bool
+) -> Dictionary:
+	var origine := Vector2((image % colonnes) * case_px.x, (image / colonnes) * case_px.y)
+	var boite := Rect2i(Vector2i.ZERO, case_px)
+	if recadre:
+		boite = Recadrages2D.boite(cle, image)
+		if boite.size == Vector2i.ZERO:
+			boite = Rect2i(0, 0, 1, 1)
+	var region := Rect2(origine + Vector2(boite.position), Vector2(boite.size))
+	var pied := origine + Vector2(float(case_px.x) * 0.5, pieds)
+	return {"region": region, "offset": region.get_center() - pied}
 
 
 ## Numéro de joueur ramené à 1..8 (au-delà, on reboucle).

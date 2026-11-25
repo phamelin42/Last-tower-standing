@@ -24,6 +24,11 @@ const NOM_CONTOUR: int = 6
 ## Écart entre le pied de la tour et le haut du nom, en pixels d'écran.
 const NOM_ECART: float = 8.0
 
+## Opacité d'un ennemi qui recouvre la tour : elle reste visible dessous.
+const ALPHA_RECOUVRE: float = 0.4
+## Demi-largeur visible de la tour dans sa feuille, en pixels de feuille.
+const TOUR_DEMI_LARGEUR: float = 56.0
+
 ## Ordre des animations dans les tableaux à plat.
 const REPOS: int = 0
 const COURSE: int = 1
@@ -60,9 +65,23 @@ var _arrets: PackedFloat32Array = PackedFloat32Array()
 var _a_distance: PackedByteArray = PackedByteArray()
 var _combat: PackedByteArray = PackedByteArray()
 var _flottements: PackedFloat32Array = PackedFloat32Array()
+var _regions: Array[PackedFloat32Array] = []
+var _decalages: Array[PackedFloat32Array] = []
+var _couvre_x: PackedFloat32Array = PackedFloat32Array()
+var _couvre_h: PackedFloat32Array = PackedFloat32Array()
+var _regions_mort: PackedFloat32Array = PackedFloat32Array()
+var _decalages_mort: PackedFloat32Array = PackedFloat32Array()
 var _morts: Array[Sprite2D] = []
 var _morts_debut: PackedFloat64Array = PackedFloat64Array()
 var _texture_mort: Texture2D = null
+
+
+## Un sprite d'ennemi : retient l'image et le sens affichés pour ne recalculer sa région que
+## lorsqu'ils changent.
+class Lutin:
+	extends Sprite2D
+	var image: int = -1
+	var miroir: bool = false
 
 
 ## Les sprites sont nets : plus proche voisin sur toute l'arène.
@@ -93,6 +112,20 @@ func _assurer_construite() -> void:
 	if donnees != null:
 		_preparer_entites()
 	_texture_mort = load(String(Apparence2D.MORT["feuille"])) as Texture2D
+	var mort: Dictionary = Apparence2D.MORT
+	for image: int in int(mort["images"]):
+		var p: Dictionary = Apparence2D.placement(
+			String(mort["cle_boites"]),
+			image,
+			mort["case"],
+			int(mort["colonnes"]),
+			float(mort["pieds"]),
+			true
+		)
+		var r: Rect2 = p["region"]
+		var d: Vector2 = p["offset"]
+		_regions_mort.append_array([r.position.x, r.position.y, r.size.x, r.size.y])
+		_decalages_mort.append_array([d.x, d.y])
 
 
 ## S'abonne aux vues reçues. Un nouveau `lier` remplace le précédent.
@@ -155,6 +188,20 @@ func nombre_instances_visibles(famille: int) -> int:
 func position_instance(famille: int, i: int) -> Vector2:
 	var sprite := sprite_instance(famille, i)
 	return sprite.position if sprite != null else Vector2.ZERO
+
+
+## Image (ligne × colonnes + colonne dans la feuille) affichée par le i-ème sprite de la famille.
+func image_instance(famille: int, i: int) -> int:
+	var lutin := sprite_instance(famille, i) as Lutin
+	return lutin.image if lutin != null else -1
+
+
+func ligne_instance(famille: int, i: int) -> int:
+	return image_instance(famille, i) / _colonnes[famille]
+
+
+func colonne_instance(famille: int, i: int) -> int:
+	return image_instance(famille, i) % _colonnes[famille]
 
 
 func sprite_instance(famille: int, i: int) -> Sprite2D:
@@ -229,11 +276,21 @@ func _afficher_echantillon() -> void:
 		decompte[f] += 1
 		var p: Vector2 = positions[i]
 		sprite.position = Apparence2D.vers_pixels(p)
-		sprite.flip_h = p.x > 0.0
+		var miroir: bool = p.x > 0.0
 		var cle: int = f * NB_ANIMATIONS + _animation(f, p)
-		sprite.frame = _lignes[cle] * _colonnes[f] + (image_courante + ids[i]) % _images[cle]
+		var image: int = _lignes[cle] * _colonnes[f] + (image_courante + ids[i]) % _images[cle]
+		var lutin: Lutin = sprite as Lutin
+		if lutin.image != image or lutin.miroir != miroir:
+			lutin.image = image
+			lutin.miroir = miroir
+			sprite.flip_h = miroir
+			_poser_image(sprite, _regions[f], _decalages[f], image, miroir)
 		if _flottements[f] > 0.0:
-			_faire_flotter(sprite, f, ids[i])
+			_faire_flotter(sprite, f, image, ids[i])
+		var couvre: bool = p.y >= 0.0 and absf(p.x) < _couvre_x[f] and p.y < _couvre_h[f]
+		var alpha: float = ALPHA_RECOUVRE if couvre else 1.0
+		if sprite.modulate.a != alpha:
+			sprite.modulate = Color(Color(_entrees[f]["couleur"]), alpha)
 	_animer_morts()
 
 
@@ -250,11 +307,27 @@ func _animation(f: int, p: Vector2) -> int:
 	return ATTAQUE
 
 
+## Pose la région de l'image sur le sprite et décale celui-ci pour que le pied reste sur sa
+## position ; en miroir, le décalage horizontal change de sens.
+func _poser_image(
+	sprite: Sprite2D,
+	regions: PackedFloat32Array,
+	decalages: PackedFloat32Array,
+	image: int,
+	miroir: bool
+) -> void:
+	sprite.region_rect = Rect2(
+		regions[image * 4], regions[image * 4 + 1], regions[image * 4 + 2], regions[image * 4 + 3]
+	)
+	var dx: float = decalages[image * 2]
+	sprite.offset = Vector2(-dx if miroir else dx, decalages[image * 2 + 1])
+
+
 ## Le volant monte et descend doucement ; chaque volant a sa phase.
-func _faire_flotter(sprite: Sprite2D, f: int, id: int) -> void:
-	var case_px: Vector2i = _entrees[f]["case"]
-	var base: float = float(case_px.y) * 0.5 - float(_entrees[f]["pieds"])
-	sprite.offset.y = base - sin(_horloge * VITESSE_VOL + float(id)) * _flottements[f]
+func _faire_flotter(sprite: Sprite2D, f: int, image: int, id: int) -> void:
+	sprite.offset.y = (
+		_decalages[f][image * 2 + 1] - sin(_horloge * VITESSE_VOL + float(id)) * _flottements[f]
+	)
 
 
 ## N'agrandit que si le nombre demandé dépasse ce qui existe ; masque le surplus et ne libère que
@@ -278,13 +351,10 @@ func _dimensionner(famille: int, voulu: int) -> void:
 
 func _creer_sprite(famille: int) -> Sprite2D:
 	var e: Dictionary = _entrees[famille]
-	var case_px: Vector2i = e["case"]
-	var sprite := Sprite2D.new()
+	var sprite := Lutin.new()
 	sprite.texture = _textures[famille]
-	sprite.hframes = _colonnes[famille]
-	sprite.vframes = int(e["lignes"])
-	sprite.offset = Vector2(0.0, float(case_px.y) * 0.5 - float(e["pieds"]))
-	sprite.scale = Vector2.ONE * float(e["echelle"])
+	sprite.region_enabled = true
+	sprite.scale = Vector2.ONE * float(e["echelle"]) * Apparence2D.ECHELLE_UNITES
 	sprite.modulate = e["couleur"]
 	if e.has("accessoire"):
 		var a: Dictionary = e["accessoire"]
@@ -313,20 +383,17 @@ func _ajouter_mort(ou: Vector2) -> void:
 	var index: int = _morts.find(sprite)
 	_morts_debut[index] = _horloge
 	sprite.position = Apparence2D.vers_pixels(ou)
-	sprite.frame = 0
+	(sprite as Lutin).image = -1
 	sprite.visible = true
 
 
 func _creer_mort() -> Sprite2D:
 	var m: Dictionary = Apparence2D.MORT
-	var case_px: Vector2i = m["case"]
-	var sprite := Sprite2D.new()
+	var sprite := Lutin.new()
 	sprite.name = "Mort"
 	sprite.texture = _texture_mort
-	sprite.hframes = int(m["colonnes"])
-	sprite.vframes = int(m["lignes"])
-	sprite.offset = Vector2(0.0, float(case_px.y) * 0.5 - float(m["pieds"]))
-	sprite.scale = Vector2.ONE * float(m["echelle"])
+	sprite.region_enabled = true
+	sprite.scale = Vector2.ONE * float(m["echelle"]) * Apparence2D.ECHELLE_UNITES
 	sprite.visible = false
 	_ennemis.add_child(sprite)
 	return sprite
@@ -336,14 +403,15 @@ func _animer_morts() -> void:
 	var images: int = Apparence2D.MORT["images"]
 	var par_seconde: float = Apparence2D.MORT["images_par_seconde"]
 	for i: int in _morts.size():
-		var mort: Sprite2D = _morts[i]
+		var mort: Lutin = _morts[i] as Lutin
 		if not mort.visible:
 			continue
 		var image: int = int((_horloge - _morts_debut[i]) * par_seconde)
 		if image >= images or image < 0:
 			mort.visible = false
-		else:
-			mort.frame = image
+		elif image != mort.image:
+			mort.image = image
+			_poser_image(mort, _regions_mort, _decalages_mort, image, false)
 
 
 ## Garde le nom à taille d'écran constante, quel que soit le zoom.
@@ -380,6 +448,7 @@ func _preparer_entites() -> void:
 			portee = float(donnees.boss["portee_attaque"])
 		_arrets.append(Apparence2D.distance_arret(portee, rayon_tour))
 		_flottements.append(float(e["flottement"]))
+		_preparer_images(e)
 		_a_distance.append(1 if portee > Apparence2D.PORTEE_CORPS_A_CORPS else 0)
 		# Le convoi (index n) ne combat pas.
 		_combat.append(0 if f == nb_familles else 1)
@@ -390,6 +459,32 @@ func _preparer_entites() -> void:
 			var anim: Vector2i = _entrees[f][NOMS_ANIMATIONS[a]]
 			_lignes[f * NB_ANIMATIONS + a] = anim.x
 			_images[f * NB_ANIMATIONS + a] = anim.y
+
+
+## Régions recadrées et décalages de chaque image d'une feuille, calculés une fois ; la couverture
+## de la tour (largeur et hauteur de l'ennemi, en unités de jeu) vient de son image au repos.
+func _preparer_images(e: Dictionary) -> void:
+	var regions := PackedFloat32Array()
+	var decalages := PackedFloat32Array()
+	var cle: String = e["cle_boites"]
+	var case_px: Vector2i = e["case"]
+	var colonnes: int = e["colonnes"]
+	for image: int in colonnes * int(e["lignes"]):
+		var p: Dictionary = Apparence2D.placement(
+			cle, image, case_px, colonnes, float(e["pieds"]), true
+		)
+		var r: Rect2 = p["region"]
+		var d: Vector2 = p["offset"]
+		regions.append_array([r.position.x, r.position.y, r.size.x, r.size.y])
+		decalages.append_array([d.x, d.y])
+	_regions.append(regions)
+	_decalages.append(decalages)
+	var repos: Vector2i = e["repos"]
+	var boite: Rect2i = Recadrages2D.boite(cle, repos.x * colonnes)
+	var echelle: float = float(e["echelle"]) * Apparence2D.ECHELLE_UNITES
+	var tour: float = TOUR_DEMI_LARGEUR * Apparence2D.TOUR_ECHELLE
+	_couvre_x.append((tour + float(boite.size.x) * echelle * 0.5) / Apparence2D.PX_PAR_UNITE)
+	_couvre_h.append(float(boite.size.y) * echelle / Apparence2D.PX_PAR_UNITE)
 
 
 func _construire_sol() -> void:

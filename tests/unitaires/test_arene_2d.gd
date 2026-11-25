@@ -83,11 +83,20 @@ func _entree(entite: int) -> Dictionary:
 	return Apparence2D.entree(Apparence2D.ids_entites(_donnees)[entite])
 
 
-func _ligne(sprite: Sprite2D) -> int:
-	return sprite.frame / sprite.hframes
+func _ligne(entite: int) -> int:
+	return _arene.ligne_instance(entite, 0)
 
 
 ## Nombre d'images de la ligne `ligne` dans les animations d'une entrée (0 si aucune n'y joue).
+## Décalage (offset) de base du sprite pour l'image `image`, miroir ou non.
+func _placement(e: Dictionary, image: int, miroir: bool) -> Vector2:
+	var p: Dictionary = Apparence2D.placement(
+		String(e["cle_boites"]), image, e["case"], int(e["colonnes"]), float(e["pieds"]), true
+	)
+	var offset: Vector2 = p["offset"]
+	return Vector2(-offset.x if miroir else offset.x, offset.y)
+
+
 func _images_ligne(e: Dictionary, ligne: int) -> int:
 	var images: int = 0
 	for nom: String in ["repos", "course", "attaque", "attaque_bas", "attaque_haut"]:
@@ -183,18 +192,16 @@ func test_l_animation_suit_ce_que_fait_l_ennemi() -> void:
 		var a_distance: bool = portee > Apparence2D.PORTEE_CORPS_A_CORPS
 		# Loin de la tour : il court.
 		_arene.afficher(_vue_un(entite, Vector2(RAYON_SPAWN, 0)), 1.0)
-		var loin := _arene.sprite_instance(entite, 0)
-		verifier_egal(_ligne(loin), (e["course"] as Vector2i).x, "entité %d court" % entite)
+		verifier_egal(_ligne(entite), (e["course"] as Vector2i).x, "entité %d court" % entite)
 		# À l'arrêt, au bord de la tour : repos pour un tireur, attaque pour qui est au contact ;
 		# le convoi, qui ne combat pas, continue de marcher.
 		_arene.afficher(_vue_un(entite, Vector2(arret, 0)), 2.0)
-		var contact := _arene.sprite_instance(entite, 0)
 		var attendu: Vector2i = e["attaque"]
 		if entite == _donnees.familles.size():
 			attendu = e["course"]
 		elif a_distance:
 			attendu = e["repos"]
-		verifier_egal(_ligne(contact), attendu.x, "entité %d à l'arrêt" % entite)
+		verifier_egal(_ligne(entite), attendu.x, "entité %d à l'arrêt" % entite)
 
 
 func test_l_attaque_au_contact_regarde_vers_la_tour() -> void:
@@ -205,9 +212,9 @@ func test_l_attaque_au_contact_regarde_vers_la_tour() -> void:
 		var e := _entree(entite)
 		var arret: float = Apparence2D.distance_arret(_portee(entite), _rayon_tour())
 		_arene.afficher(_vue_un(entite, Vector2(0, -arret)), 1.0)
-		verifier_egal(_ligne(_arene.sprite_instance(entite, 0)), (e["attaque_bas"] as Vector2i).x)
+		verifier_egal(_ligne(entite), (e["attaque_bas"] as Vector2i).x)
 		_arene.afficher(_vue_un(entite, Vector2(0, arret)), 2.0)
-		verifier_egal(_ligne(_arene.sprite_instance(entite, 0)), (e["attaque_haut"] as Vector2i).x)
+		verifier_egal(_ligne(entite), (e["attaque_haut"] as Vector2i).x)
 
 
 func test_l_image_affichee_reste_dans_les_images_de_l_animation() -> void:
@@ -217,11 +224,10 @@ func test_l_image_affichee_reste_dans_les_images_de_l_animation() -> void:
 		for p: Vector2 in [Vector2(RAYON_SPAWN, 0), Vector2(arret, 0)]:
 			for t: int in 40:
 				_arene.afficher(_vue_un(entite, p), 1.0 + float(t) * 0.07)
-				var s := _arene.sprite_instance(entite, 0)
-				var colonne: int = s.frame % s.hframes
-				verifier(colonne < s.hframes, "colonne valide")
-				verifier(_ligne(s) < s.vframes, "ligne valide")
-				var images: int = _images_ligne(e, _ligne(s))
+				var colonne: int = _arene.colonne_instance(entite, 0)
+				verifier(colonne < int(e["colonnes"]), "colonne valide")
+				verifier(_ligne(entite) < int(e["lignes"]), "ligne valide")
+				var images: int = _images_ligne(e, _ligne(entite))
 				verifier(
 					colonne < images, "entité %d : colonne %d sur %d" % [entite, colonne, images]
 				)
@@ -230,11 +236,12 @@ func test_l_image_affichee_reste_dans_les_images_de_l_animation() -> void:
 func test_le_volant_flotte_et_les_autres_restent_au_sol() -> void:
 	for entite: int in _nb_entites():
 		var e := _entree(entite)
-		var base: float = float((e["case"] as Vector2i).y) * 0.5 - float(e["pieds"])
 		var amplitude: float = float(e["flottement"])
 		var ecart_max: float = 0.0
 		for t: int in 40:
 			_arene.afficher(_vue_un(entite, Vector2(300, 300)), 1.0 + float(t) * 0.1)
+			var image: int = _arene.image_instance(entite, 0)
+			var base: float = _placement(e, image, false).y
 			var decalage: float = _arene.sprite_instance(entite, 0).offset.y - base
 			ecart_max = maxf(ecart_max, absf(decalage))
 			verifier(absf(decalage) <= amplitude + 0.0001, "entité %d dans l'amplitude" % entite)
@@ -356,3 +363,95 @@ func test_tout_noeud_cree_est_libere() -> void:
 	_liberer(arene)
 	var apres: int = int(Performance.get_monitor(Performance.OBJECT_NODE_COUNT))
 	verifier_egal(apres, avant, "aucun nœud restant")
+
+
+func test_le_pied_reste_au_meme_point_de_l_ecran_apres_recadrage_pour_chaque_image() -> void:
+	# Le point de la case où le pied touche le sol (centre, ligne `pieds`) doit tomber exactement sur
+	# la position de l'ennemi, quelle que soit l'image, le côté d'où il vient et l'animation.
+	var arret_loin := Vector2(RAYON_SPAWN, 0.0)
+	for entite: int in _nb_entites():
+		var e := _entree(entite)
+		var case_px: Vector2i = e["case"]
+		var arret: float = Apparence2D.distance_arret(_portee(entite), _rayon_tour())
+		var vues: Array[Vector2] = [arret_loin, -arret_loin, Vector2(arret, 0), Vector2(-arret, 0)]
+		vues.append_array([Vector2(0, arret), Vector2(0, -arret)])
+		for p: Vector2 in vues:
+			for t: int in 12:
+				_arene.afficher(_vue_un(entite, p), 1.0 + float(t) * 0.1)
+				var s := _arene.sprite_instance(entite, 0)
+				var image: int = _arene.image_instance(entite, 0)
+				var colonne: int = image % int(e["colonnes"])
+				var ligne: int = image / int(e["colonnes"])
+				var pied := Vector2(
+					float(colonne * case_px.x) + float(case_px.x) * 0.5,
+					float(ligne * case_px.y) + float(e["pieds"])
+				)
+				var centre: Vector2 = s.region_rect.get_center()
+				var atterrit := Vector2(
+					(
+						s.offset.x - (pied.x - centre.x)
+						if s.flip_h
+						else s.offset.x + pied.x - centre.x
+					),
+					s.offset.y + pied.y - centre.y
+				)
+				# Un volant flotte : on retire le flottement avant de comparer.
+				if bool(e["volant"]):
+					atterrit.y += _flottement(entite, s, image)
+				verifier_proche(
+					atterrit.x, 0.0, 0.001, "x du pied, entité %d image %d" % [entite, image]
+				)
+				verifier_proche(
+					atterrit.y, 0.0, 0.001, "y du pied, entité %d image %d" % [entite, image]
+				)
+
+
+## Part du décalage vertical due au flottement : la différence avec le placement de base.
+func _flottement(entite: int, s: Sprite2D, image: int) -> float:
+	return -(s.offset.y - _placement(_entree(entite), image, false).y)
+
+
+func test_un_ennemi_qui_recouvre_la_tour_devient_translucide_et_la_retrouve_en_s_eloignant(
+) -> void:
+	for entite: int in _nb_entites():
+		# Devant la tour, sur elle : translucide.
+		_arene.afficher(_vue_un(entite, Vector2(0, 40)), 1.0)
+		var devant := _arene.sprite_instance(entite, 0)
+		verifier(devant.modulate.a < 1.0, "entité %d devant la tour" % entite)
+		verifier(devant.modulate.a > 0.0, "entité %d reste visible" % entite)
+		# Derrière la tour, la tour la cache déjà : opaque.
+		_arene.afficher(_vue_un(entite, Vector2(0, -40)), 2.0)
+		verifier_proche(_arene.sprite_instance(entite, 0).modulate.a, 1.0, 0.0001, "derrière")
+		# Loin de la tour, à droite comme devant : opaque, sur le même sprite réutilisé.
+		_arene.afficher(_vue_un(entite, Vector2(0, 40)), 3.0)
+		_arene.afficher(_vue_un(entite, Vector2(900, 900)), 4.0)
+		verifier_proche(_arene.sprite_instance(entite, 0).modulate.a, 1.0, 0.0001, "loin")
+
+
+func test_le_nom_du_joueur_est_dessine_apres_les_ennemis() -> void:
+	var noms := _arene.get_node("Noms")
+	var ennemis := _arene.get_node("Ennemis")
+	verifier(noms.get_index() > ennemis.get_index(), "le nom reste lisible sous un ennemi")
+
+
+func test_tailles_a_l_ecran_au_zoom_par_defaut() -> void:
+	# Cibles de Phil à 720p : ennemi ordinaire 6 à 7 % de la hauteur, tour 18 %.
+	var zone := Vector2(1280, 720)
+	var camera := _arene.get_node("Camera") as CameraArene2D
+	camera.cadrer(Rect2(0.0, zone.y * 0.1, zone.x, zone.y * 0.65), zone)
+	var zoom: float = camera.zoom.x
+	var tour := _arene.find_child("Tour", true, false) as Sprite2D
+	# Hauteur visible de la tour dans sa feuille (183 px sur 256) : le reste est transparent.
+	var hauteur_tour: float = 183.0 * tour.scale.y * zoom
+	verifier(
+		hauteur_tour / zone.y >= 0.15 and hauteur_tour / zone.y <= 0.21,
+		"tour %f" % (hauteur_tour / zone.y)
+	)
+	for entite: int in _donnees.familles.size():
+		var e := _entree(entite)
+		if float(e["echelle"]) != 1.0 or bool(e["volant"]):
+			continue
+		_arene.afficher(_vue_un(entite, Vector2(RAYON_SPAWN, 0)), 1.0 + float(entite))
+		var s := _arene.sprite_instance(entite, 0)
+		var part: float = s.region_rect.size.y * s.scale.y * zoom / zone.y
+		verifier(part >= 0.04 and part <= 0.09, "entité %d : %f de la hauteur" % [entite, part])
