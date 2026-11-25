@@ -9,6 +9,8 @@ const SCENE_SALON := "res://scenes/salon.tscn"
 const SCENE_CONNEXION := "res://scenes/connexion.tscn"
 ## Serveur dédié (`--serveur`), fourni par `reseau/serveur_dedie.gd`.
 const SCENE_SERVEUR := "res://scenes/serveur.tscn"
+## Annuaire des parties en ligne (`--annuaire`), fourni par `reseau/annuaire_dedie.gd`.
+const SCENE_ANNUAIRE := "res://scenes/annuaire.tscn"
 
 ## Injectable avant `_ready` ; sinon lus sur la ligne de commande.
 var arguments: Dictionary = {}
@@ -33,8 +35,11 @@ var _parametres_hote: Array = []
 var _erreur_creation: String = ""
 
 
-## La scène à charger à la place du menu : le serveur dédié si `--serveur`, sinon rien.
+## La scène à charger à la place du menu : l'annuaire si `--annuaire`, le serveur dédié si
+## `--serveur`, sinon rien.
 static func scene_de_demarrage(args: Dictionary) -> String:
+	if bool(args.get("annuaire", false)):
+		return SCENE_ANNUAIRE
 	return SCENE_SERVEUR if bool(args.get("serveur", false)) else ""
 
 
@@ -45,6 +50,9 @@ func _ready() -> void:
 	for message: Variant in messages:
 		print(message)
 	var scene := scene_de_demarrage(arguments)
+	if scene == SCENE_ANNUAIRE:
+		_lancer_annuaire(scene)
+		return
 	if not scene.is_empty():
 		_lancer_serveur_dedie(scene)
 		return
@@ -96,6 +104,24 @@ func _lancer_serveur_dedie(scene: String) -> void:
 	var donnees_serveur := donnees if donnees != null else Donnees.charger(dossier_donnees)
 	var code := dedie.lancer(arguments, donnees_serveur)
 	if code != ServeurDedie.CODE_OK:
+		_sortir(code)
+
+
+## Le processus ne fait que tenir l'annuaire : ni menu, ni données du jeu.
+func _lancer_annuaire(scene: String) -> void:
+	if not ResourceLoader.exists(scene):
+		printerr("Scène de l'annuaire introuvable : %s" % scene)
+		_sortir(1)
+		return
+	var menu_inutile := get_node_or_null("Menu")
+	if menu_inutile != null:
+		remove_child(menu_inutile)
+		menu_inutile.queue_free()
+	var annuaire := (load(scene) as PackedScene).instantiate() as AnnuaireDedie
+	annuaire.sortie = _sortir
+	add_child(annuaire)
+	var code := annuaire.lancer(arguments)
+	if code != AnnuaireDedie.CODE_OK:
 		_sortir(code)
 
 
