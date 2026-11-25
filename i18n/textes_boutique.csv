@@ -30,24 +30,22 @@ BOUTIQUE_RESULTAT_NON_DISPONIBLE,Cette action n’est pas disponible.
 BOUTIQUE_RESULTAT_INCONNU,Action refusée.
 BOUTIQUE_EFFET_CIBLE_UNIQUE,%s dégâts toutes les %s s
 BOUTIQUE_EFFET_ZONE,%s dégâts toutes les %s s
-BOUTIQUE_EFFET_ZONE_RAYON,zone de %s autour de la cible
+BOUTIQUE_EFFET_ZONE_RAYON,zone de %s
 BOUTIQUE_EFFET_REBOND,%s dégâts toutes les %s s
-BOUTIQUE_EFFET_REBOND_DETAIL,"rebondit sur %s ennemis (−%s par rebond, saut de %s au plus)"
+BOUTIQUE_EFFET_REBOND_DETAIL,rebondit sur %s ennemis (−%s par rebond)
 BOUTIQUE_EFFET_BARRAGE,%s projectiles de %s dégâts toutes les %s s
-BOUTIQUE_EFFET_BARRAGE_DETAIL,"zone de %s par projectile, dispersion de %s°"
+BOUTIQUE_EFFET_BARRAGE_DETAIL,zone de %s chacun
 BOUTIQUE_EFFET_ONDE,onde de %s dégâts toutes les %s s
-BOUTIQUE_EFFET_ONDE_DETAIL,"s’étend jusqu’à %s autour de la tour, touche chaque ennemi une fois"
-BOUTIQUE_EFFET_ONDE_PORTEE,lancée à portée %s
+BOUTIQUE_EFFET_ONDE_DETAIL,rayon %s
 BOUTIQUE_EFFET_MINE,mine de %s dégâts posée toutes les %s s (%s au plus)
-BOUTIQUE_EFFET_MINE_DETAIL,"explose au passage d’un ennemi au sol, zone de %s"
+BOUTIQUE_EFFET_MINE_DETAIL,zone de %s au sol
 BOUTIQUE_EFFET_PIEGE,piège de %s dégâts posé toutes les %s s (%s au plus)
-BOUTIQUE_EFFET_PIEGE_DETAIL,"se déclenche au passage d’un ennemi au sol, zone de %s"
-BOUTIQUE_EFFET_POSE_PORTEE,pose à portée %s
-BOUTIQUE_EFFET_AURA,%s dégâts toutes les %s s à chaque ennemi dans %s autour de la tour
+BOUTIQUE_EFFET_PIEGE_DETAIL,zone de %s au sol
+BOUTIQUE_EFFET_AURA,"%s dégâts toutes les %s s autour de la tour, rayon %s"
 BOUTIQUE_EFFET_PORTEE,portée %s
 BOUTIQUE_EFFET_CIBLAGE_PLUS_PROCHE,vise le plus proche
-BOUTIQUE_EFFET_CIBLAGE_PLUS_FORT,vise les PV les plus hauts
-BOUTIQUE_EFFET_CIBLAGE_PLUS_FAIBLE,vise les PV les plus bas
+BOUTIQUE_EFFET_CIBLAGE_PLUS_FORT,vise le plus de PV
+BOUTIQUE_EFFET_CIBLAGE_PLUS_FAIBLE,vise le moins de PV
 BOUTIQUE_EFFET_EFFICACITE,×%s contre %s
 BOUTIQUE_EFFET_ARMURE_LEGERE,armure légère
 BOUTIQUE_EFFET_ARMURE_MOYENNE,armure moyenne
@@ -55,12 +53,12 @@ BOUTIQUE_EFFET_ARMURE_LOURDE,armure lourde
 BOUTIQUE_EFFET_ARMURE_FORTIFIEE,armure fortifiée
 BOUTIQUE_EFFET_ARMURE_AUCUNE,les ennemis sans armure
 BOUTIQUE_EFFET_ARMURE_BOSS,les boss
-BOUTIQUE_EFFET_POISON,empoisonne : %s des dégâts infligés en %s s
-BOUTIQUE_EFFET_BRULURE,brûle : %s des dégâts infligés en %s s
-BOUTIQUE_EFFET_GIVRE,"givre : ralentit de %s par coup (%s au plus), gèle jusqu’à %s s après %s coups"
+BOUTIQUE_EFFET_POISON,poison : %s des dégâts en %s s
+BOUTIQUE_EFFET_BRULURE,brûlure : %s des dégâts en %s s
+BOUTIQUE_EFFET_GIVRE,"givre : −%s de vitesse par coup, gel de %s s après %s coups"
 BOUTIQUE_EFFET_ETOURDISSEMENT,étourdit %s s
-BOUTIQUE_EFFET_VOL_DE_VIE,vol de vie : rend %s des dégâts infligés à la tour
-BOUTIQUE_EFFET_VOL_DE_VIE_MORT,chaque mort rend %s des PV max de l’ennemi tué à la tour
+BOUTIQUE_EFFET_VOL_DE_VIE,vol de vie : %s des dégâts
+BOUTIQUE_EFFET_VOL_DE_VIE_MORT,chaque mort rend %s des PV max de l’ennemi
 BOUTIQUE_EFFET_DEGATS_TYPE,+%s de dégâts %s
 BOUTIQUE_EFFET_DEGATS_GLOBAL,+%s de dégâts de toutes les armes
 BOUTIQUE_EFFET_RANG,"rang %s : s’additionne aux autres %s, se multiplie aux autres rangs"

@@ -21,7 +21,14 @@ const LARGEUR_ACTIONS := 172.0
 const LARGEUR_COTE := 300.0
 const LARGEUR_NOM_ARME := 110.0
 const LARGEUR_VENTE := 140.0
-const LIGNES_DESCRIPTION := 3
+## L'ambiance est secondaire : deux lignes, le reste en infobulle. L'effet, lui, n'est jamais coupé.
+const LIGNES_AMBIANCE := 2
+## Hauteur d'une ligne de 16 px sans interligne : l'effet et l'ambiance serrent leurs lignes pour
+## que la ligne d'effet la plus longue tienne dans la part de hauteur du bandeau.
+const HAUTEUR_LIGNE_SERREE := 23.0
+## Sous cette hauteur de fenêtre (la fenêtre par défaut de Godot fait 648), le bandeau n'a plus la
+## place de l'ambiance : l'effet passe avant, l'ambiance reste dans l'infobulle de la carte.
+const HAUTEUR_MIN_AMBIANCE := 700.0
 const HAUTEUR_NOTE := 24.0
 const MARGE := 8
 const MARGE_COTE := ThemeJeu.MARGE_PANNEAU
@@ -55,6 +62,7 @@ var _cartes: Array[PanelContainer] = []
 var _raretes: Array[Label] = []
 var _noms: Array[Label] = []
 var _types: Array[Label] = []
+var _effets: Array[Label] = []
 var _descriptions: Array[Label] = []
 var _prix: Array[Label] = []
 var _notes: Array[Label] = []
@@ -190,6 +198,22 @@ func configurer(donnees: Donnees, source: SourceVue) -> void:
 	_construire_marche_noir()
 
 
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_RESIZED:
+		_regler_ambiance()
+
+
+## L'ambiance cède la place à l'effet quand la fenêtre est basse. `max_lines_visible = 0` garde le
+## texte (infobulle, lecteurs d'écran) mais ne réserve plus aucune hauteur.
+func _regler_ambiance() -> void:
+	var a_la_place := size.y <= 0.0 or size.y >= HAUTEUR_MIN_AMBIANCE
+	for description: Label in _descriptions:
+		description.max_lines_visible = LIGNES_AMBIANCE if a_la_place else 0
+		description.custom_minimum_size.y = (
+			LIGNES_AMBIANCE * HAUTEUR_LIGNE_SERREE if a_la_place else 0.0
+		)
+
+
 func afficher(vue: VueArene) -> void:
 	_offres = vue.offres
 	for i: int in NB_OFFRES:
@@ -246,19 +270,21 @@ func _construire_carte(i: int) -> PanelContainer:
 	carte.custom_minimum_size = Vector2(LARGEUR_CARTE, 0.0)
 	carte.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var colonne := VBoxContainer.new()
-	colonne.add_theme_constant_override("separation", 2)
+	# Sans interligne entre les rangées : le bandeau a 45 % de la hauteur au plus.
+	colonne.add_theme_constant_override("separation", 0)
 	carte.add_child(colonne)
 	var rarete := _etiquette("Rarete%d" % i)
 	var nom := _etiquette("Nom%d" % i)
 	var type_degats := _etiquette("Type%d" % i)
+	var effet := _etiquette("Effet%d" % i)
 	var description := _etiquette("Description%d" % i)
 	var prix := _etiquette("Prix%d" % i)
 	var note := _etiquette("Note%d" % i)
-	for libelle: Label in [rarete, nom, type_degats, description, prix, note]:
+	for libelle: Label in [rarete, nom, type_degats, effet, description, prix, note]:
 		libelle.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		libelle.custom_minimum_size = Vector2(LARGEUR_TEXTE, 0.0)
 	# Rangées : rareté et prix ; nom (à la ligne s'il est très long) ; type de dégâts et notes ;
-	# description.
+	# effet (toujours entier) puis ambiance (atténuée).
 	var haut := HBoxContainer.new()
 	colonne.add_child(haut)
 	for libelle: Label in [rarete, prix]:
@@ -284,9 +310,15 @@ func _construire_carte(i: int) -> PanelContainer:
 	note.custom_minimum_size.y = HAUTEUR_NOTE
 	bas.add_child(type_degats)
 	bas.add_child(note)
-	description.max_lines_visible = LIGNES_DESCRIPTION
+	# L'effet prend la hauteur qu'il lui faut et pousse le bouton vers le bas de la carte.
+	effet.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	effet.add_theme_constant_override("line_spacing", 0)
+	description.add_theme_constant_override("line_spacing", 0)
+	colonne.add_child(effet)
+	description.add_theme_color_override("font_color", ThemeJeu.PARCHEMIN_ATTENU)
+	description.max_lines_visible = LIGNES_AMBIANCE
 	description.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	description.custom_minimum_size.y = LIGNES_DESCRIPTION * _hauteur_ligne()
+	description.custom_minimum_size.y = LIGNES_AMBIANCE * HAUTEUR_LIGNE_SERREE
 	colonne.add_child(description)
 	var achat := _bouton(Callable(self, "acheter_offre").bind(i))
 	achat.text = tr("BOUTIQUE_ACHETER")
@@ -295,6 +327,10 @@ func _construire_carte(i: int) -> PanelContainer:
 	_raretes.append(rarete)
 	_noms.append(nom)
 	_types.append(type_degats)
+	# Les infobulles ne s'ouvrent que sur un contrôle qui reçoit la souris : un `Label` l'ignore
+	# par défaut. La carte entière porte celle de l'offre.
+	carte.mouse_filter = Control.MOUSE_FILTER_STOP
+	_effets.append(effet)
 	_descriptions.append(description)
 	_prix.append(prix)
 	_notes.append(note)
@@ -338,7 +374,7 @@ func _construire_marche_noir() -> void:
 		var amelio: Dictionary = _donnees.ameliorations[id]
 		var bouton := _bouton(Callable(self, "_choisir_noir").bind(id))
 		bouton.text = tr("BOUTIQUE_CHOISIR") % str(amelio["nom"])
-		bouton.tooltip_text = str(amelio["description"])
+		bouton.tooltip_text = _infobulle(amelio, Types.Genre.AMELIORATION)
 		_noir.add_child(bouton)
 
 
@@ -354,9 +390,13 @@ func _afficher_carte(i: int, offre: Dictionary, vue: VueArene) -> void:
 	_achats[i].disabled = offre.is_empty() or bool(offre["vendu"])
 	_cartes[i].modulate.a = 1.0
 	if offre.is_empty():
-		for libelle: Label in [_raretes[i], _noms[i], _types[i], _descriptions[i], _prix[i]]:
+		for libelle: Label in [
+			_raretes[i], _noms[i], _types[i], _effets[i], _descriptions[i], _prix[i]
+		]:
 			libelle.text = ""
 		_notes[i].text = ""
+		_cartes[i].tooltip_text = ""
+		_types[i].tooltip_text = ""
 		return
 	var genre: int = offre["genre"]
 	var rarete: int = offre["rarete"]
@@ -369,9 +409,10 @@ func _afficher_carte(i: int, offre: Dictionary, vue: VueArene) -> void:
 	_raretes[i].add_theme_color_override("font_color", Apparence.couleur_rarete(rarete))
 	_noms[i].text = str(entree.get("nom", offre["id"]))
 	_types[i].text = _libelle_type(entree, genre)
+	_types[i].tooltip_text = DescriptionOffre.efficacite(entree, _donnees)
+	_effets[i].text = DescriptionOffre.ligne_effet(entree, genre, _donnees, false)
 	_descriptions[i].text = str(entree.get("description", ""))
-	_descriptions[i].tooltip_text = _descriptions[i].text
-	_noms[i].tooltip_text = _noms[i].text
+	_cartes[i].tooltip_text = _infobulle(entree, genre)
 	_prix[i].text = tr("BOUTIQUE_PRIX") % Nombres.groupe(prix)
 	var notes: Array[String] = []
 	if vendu:
@@ -419,7 +460,8 @@ func _afficher_armes(vue: VueArene) -> void:
 		nom.custom_minimum_size.x = LARGEUR_NOM_ARME
 		nom.clip_text = true
 		nom.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-		nom.tooltip_text = nom.text
+		nom.tooltip_text = _infobulle(entree, Types.Genre.ARME)
+		nom.mouse_filter = Control.MOUSE_FILTER_PASS
 		nom.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		ligne.add_child(nom)
 		var vente := _bouton(Callable(self, "_vendre").bind(i))
@@ -448,6 +490,21 @@ func _entree(id: String, genre: int) -> Dictionary:
 		return {}
 	var table: Dictionary = _donnees.armes if genre == Types.Genre.ARME else _donnees.ameliorations
 	return table.get(id, {})
+
+
+## Nom, ligne d'effet complète (type compris) puis phrase d'ambiance : tout ce qu'on lit sur la
+## carte, pour les endroits où l'offre n'a pas de carte.
+func _infobulle(entree: Dictionary, genre: int) -> String:
+	var morceaux := PackedStringArray()
+	morceaux.append(str(entree.get("nom", "")))
+	var effet := DescriptionOffre.ligne_effet(entree, genre, _donnees)
+	if not effet.is_empty():
+		morceaux.append(effet)
+	var efficacite := DescriptionOffre.efficacite(entree, _donnees)
+	if not efficacite.is_empty():
+		morceaux.append(efficacite)
+	morceaux.append(str(entree.get("description", "")))
+	return "\n".join(morceaux)
 
 
 func _libelle_type(entree: Dictionary, genre: int) -> String:

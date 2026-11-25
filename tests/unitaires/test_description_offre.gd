@@ -84,7 +84,10 @@ func _chiffres_attendus(entree: Dictionary, genre: int) -> Array[String]:
 		for brut: Variant in effets:
 			var effet: Dictionary = brut
 			for cle: String in effet:
-				if cle != "kind" and cle != "decroissance" and cle != "vitesse":
+				if (
+					cle != "kind"
+					and cle not in ["decroissance", "vitesse", "dispersion_deg", "portee_saut"]
+				):
 					attendus.append(_fr(float(effet[cle])))
 		var statuts: Array = entree["statuts"]
 		for brut: Variant in statuts:
@@ -198,13 +201,53 @@ func test_une_arme_dit_son_type_ses_degats_sa_recharge_sa_portee_et_sa_cible() -
 		"Tranchant",
 		"30,6 dégâts toutes les 0,8 s",
 		"portée 300",
-		"vise le plus proche",
-		"×2 contre armure moyenne",
 	]:
 		verifier(ligne.contains(attendu), "« %s » absent de « %s »" % [attendu, ligne])
 	verifier_faux(
 		_ligne("lame_de_fil", Types.Genre.ARME, false).contains("Tranchant"),
 		"sans le type, la carte ne le répète pas"
+	)
+
+
+func test_le_ciblage_ne_s_ecrit_que_s_il_change_du_plus_proche() -> void:
+	# `Tir._choisir` : plus proche par défaut, sinon le plus de PV ou le moins de PV.
+	var attendu := {
+		"baliste_de_guet": "vise le plus de PV",
+		"carreau_ricochet": "vise le moins de PV",
+		"trebuchet_de_chambre": "vise le plus de PV",
+	}
+	for id: String in attendu:
+		var ligne := _ligne(id, Types.Genre.ARME)
+		verifier(ligne.contains(attendu[id]), "%s : %s" % [id, ligne])
+	var ids: Array = _donnees.armes.keys()
+	for id: String in ids:
+		var entree: Dictionary = _donnees.armes[id]
+		var effet: Dictionary = (entree["effets"] as Array)[0]
+		var vise := String(effet["kind"]) not in ["aura", "onde"]
+		var ligne := _ligne(id, Types.Genre.ARME)
+		var par_defaut := int(entree["ciblage"]) == Types.Ciblage.PLUS_PROCHE
+		verifier_faux(ligne.contains("le plus proche") and not par_defaut, id)
+		if par_defaut or not vise:
+			verifier_faux(ligne.contains("vise"), "%s : rien à dire du ciblage : %s" % [id, ligne])
+
+
+func test_l_efficacite_contre_l_armure_se_lit_dans_l_infobulle_pas_dans_la_ligne() -> void:
+	# `efficacite.json` : tranchant ×2 contre l'armure moyenne, perçant contre la légère, etc.
+	var attendu := {
+		"lame_de_fil": "×2 contre armure moyenne",
+		"arbalete_de_bureau": "×2 contre armure légère",
+		"etincelle_runique": "×2 contre armure lourde",
+		"bombarde_de_poche": "×2 contre armure fortifiée",
+	}
+	for id: String in attendu:
+		var entree: Dictionary = _donnees.armes[id]
+		verifier_egal(DescriptionOffre.efficacite(entree, _donnees), attendu[id], id)
+		verifier_faux(_ligne(id, Types.Genre.ARME).contains("contre"), "%s : hors de la ligne" % id)
+	var chaos: Dictionary = _donnees.armes["de_pipe"]
+	verifier_egal(DescriptionOffre.efficacite(chaos, _donnees), "", "le chaos n'a aucun avantage")
+	var amelio: Dictionary = _donnees.ameliorations["affutage_fin"]
+	verifier_egal(
+		DescriptionOffre.efficacite(amelio, _donnees), "", "une amélioration n'attaque pas"
 	)
 
 
@@ -217,7 +260,6 @@ func test_le_rebond_dit_le_nombre_de_cibles_et_la_perte_par_saut() -> void:
 	var ligne := _ligne("disque_scie", Types.Genre.ARME)
 	verifier(ligne.contains("rebondit sur 4 ennemis"), ligne)
 	verifier(ligne.contains("−10" + NBSP + "% par rebond"), ligne)
-	verifier(ligne.contains("saut de 220"), ligne)
 
 
 func test_l_aura_ne_montre_pas_une_portee_que_la_simulation_ignore() -> void:
@@ -242,14 +284,12 @@ func test_mines_et_pieges_disent_qu_ils_ne_touchent_que_le_sol() -> void:
 
 func test_statuts_en_clair() -> void:
 	var poison := _ligne("baliste_de_guet", Types.Genre.ARME)
-	verifier(poison.contains("empoisonne"), poison)
-	verifier(poison.contains("40" + NBSP + "% des dégâts infligés en 5 s"), poison)
+	verifier(poison.contains("poison" + NBSP + ": 40" + NBSP + "% des dégâts en 5 s"), poison)
 	var givre := _ligne("orbe_de_brume", Types.Genre.ARME)
-	verifier(givre.contains("8" + NBSP + "% par coup"), givre)
-	verifier(givre.contains("60" + NBSP + "% au plus"), givre)
-	verifier(givre.contains("après 8 coups"), givre)
+	verifier(givre.contains("−8" + NBSP + "% de vitesse par coup"), givre)
+	verifier(givre.contains("gel de 3 s après 8 coups"), givre)
 	var mort := _ligne("vortex_de_verre", Types.Genre.ARME)
-	verifier(mort.contains("PV max de l’ennemi tué"), mort)
+	verifier(mort.contains("3" + NBSP + "% des PV max de l’ennemi"), mort)
 
 
 func test_la_focalisation_ne_vaut_que_pour_les_armes_a_cible_unique() -> void:
@@ -383,6 +423,7 @@ func test_la_phrase_d_ambiance_ne_contredit_pas_la_ligne_d_effet() -> void:
 			parle_de_soin = parle_de_soin or mots_de_soin.has(mot)
 		var soigne := (
 			ligne.contains("rend")
+			or ligne.contains("vol de vie")
 			or ligne.contains("régénère")
 			or ligne.contains("pv par seconde")
 			or ligne.contains("pv max")

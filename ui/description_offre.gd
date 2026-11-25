@@ -67,12 +67,16 @@ const CLES_CIBLAGE: Dictionary = {
 }
 
 ## Genres d'effet dont le premier tir est choisi par le ciblage de l'arme. Une onde et une aura
-## ne visent personne : `Tir` ne s'en sert que pour déclencher l'onde.
+## ne visent personne : `Tir` ne s'en sert que pour déclencher l'onde. Le ciblage par défaut, le
+## plus proche, ne s'écrit pas : la carte n'a pas la place de le répéter vingt fois.
 const EFFETS_QUI_VISENT: Array[String] = [
 	"cible_unique", "zone", "rebond", "barrage", "mine", "piege"
 ]
-## Genres d'effet dont la portée de `data/` est celle du tir lui-même.
-const EFFETS_A_PORTEE: Array[String] = ["cible_unique", "zone", "rebond", "barrage"]
+## Genres d'effet dont la portée de `data/` compte : celle du tir, ou celle qui déclenche l'onde ou
+## la pose. L'aura ne la lit jamais.
+const EFFETS_A_PORTEE: Array[String] = [
+	"cible_unique", "zone", "rebond", "barrage", "onde", "mine", "piege"
+]
 
 
 ## Ligne d'effet de l'entrée de `Donnees` (arme ou amélioration). `avec_type` ajoute le type de
@@ -89,6 +93,14 @@ static func ligne_effet(
 	else:
 		morceaux = _morceaux_amelioration(entree, donnees)
 	return SEPARATEUR.join(morceaux)
+
+
+## « ×2 contre armure moyenne » : ce que la table d'efficacité fait de l'arme. Chaîne vide pour
+## une amélioration ou une arme sans avantage. Hors de la ligne d'effet : la carte n'a pas la place.
+static func efficacite(entree: Dictionary, donnees: Donnees) -> String:
+	if donnees == null or not entree.has("type_degats"):
+		return ""
+	return SEPARATEUR.join(_morceaux_efficacite(int(entree["type_degats"]), donnees))
 
 
 ## Vrai si chaque effet, statut ou statistique de l'entrée a son modèle.
@@ -128,15 +140,14 @@ static func _morceaux_arme(entree: Dictionary, donnees: Donnees, avec_type: bool
 		var effet: Dictionary = brut
 		var kind: String = effet["kind"]
 		kinds.append(kind)
-		morceaux.append_array(_morceaux_effet(kind, effet, degats, recharge, portee))
+		morceaux.append_array(_morceaux_effet(kind, effet, degats, recharge))
 	# La portée du tir et le ciblage ne se disent qu'une fois, après le dernier effet qui s'en sert.
 	if _contient_un(kinds, EFFETS_A_PORTEE):
 		morceaux.append(_t("BOUTIQUE_EFFET_PORTEE", [portee]))
 	if _contient_un(kinds, EFFETS_QUI_VISENT):
 		var ciblage := int(entree["ciblage"])
-		if CLES_CIBLAGE.has(ciblage):
+		if ciblage != Types.Ciblage.PLUS_PROCHE and CLES_CIBLAGE.has(ciblage):
 			morceaux.append(_t(CLES_CIBLAGE[ciblage]))
-	morceaux.append_array(_morceaux_efficacite(type_degats, donnees))
 	var statuts: Array = entree.get("statuts", [])
 	for brut: Variant in statuts:
 		var statut: Dictionary = brut
@@ -145,7 +156,7 @@ static func _morceaux_arme(entree: Dictionary, donnees: Donnees, avec_type: bool
 
 
 static func _morceaux_effet(
-	kind: String, effet: Dictionary, degats: String, recharge: String, portee: String
+	kind: String, effet: Dictionary, degats: String, recharge: String
 ) -> Array[String]:
 	var morceaux: Array[String] = []
 	match kind:
@@ -157,19 +168,8 @@ static func _morceaux_effet(
 		"rebond":
 			var perte := 1.0 - float(effet["decroissance"])
 			morceaux.append(_t("BOUTIQUE_EFFET_REBOND", [degats, recharge]))
-			(
-				morceaux
-				. append(
-					_t(
-						"BOUTIQUE_EFFET_REBOND_DETAIL",
-						[
-							_nombre(float(effet["cibles"]), 0),
-							_pourcent(perte),
-							_nombre(float(effet["portee_saut"]), 0),
-						]
-					)
-				)
-			)
+			var restant := [_nombre(float(effet["cibles"]), 0), _pourcent(perte)]
+			morceaux.append(_t("BOUTIQUE_EFFET_REBOND_DETAIL", restant))
 		"barrage":
 			morceaux.append(
 				_t(
@@ -178,17 +178,13 @@ static func _morceaux_effet(
 				)
 			)
 			morceaux.append(
-				_t(
-					"BOUTIQUE_EFFET_BARRAGE_DETAIL",
-					[_nombre(float(effet["rayon"]), 0), _nombre(float(effet["dispersion_deg"]), 0)]
-				)
+				_t("BOUTIQUE_EFFET_BARRAGE_DETAIL", [_nombre(float(effet["rayon"]), 0)])
 			)
 		"onde":
 			morceaux.append(_t("BOUTIQUE_EFFET_ONDE", [degats, recharge]))
 			morceaux.append(
 				_t("BOUTIQUE_EFFET_ONDE_DETAIL", [_nombre(float(effet["rayon_max"]), 0)])
 			)
-			morceaux.append(_t("BOUTIQUE_EFFET_ONDE_PORTEE", [portee]))
 		"mine", "piege":
 			var majuscule := kind.to_upper()
 			var maximum := _nombre(float(effet["max_actives"]), 0)
@@ -196,7 +192,6 @@ static func _morceaux_effet(
 			morceaux.append(
 				_t("BOUTIQUE_EFFET_" + majuscule + "_DETAIL", [_nombre(float(effet["rayon"]), 0)])
 			)
-			morceaux.append(_t("BOUTIQUE_EFFET_POSE_PORTEE", [portee]))
 		"aura":
 			# `Tir._aura` tire à chaque `periode` ; la recharge et la portée de data/ ne servent pas.
 			(
@@ -249,7 +244,6 @@ static func _statut(statut: Dictionary, donnees: Donnees) -> String:
 				"BOUTIQUE_EFFET_GIVRE",
 				[
 					_pourcent(float(givre["ralentissement_par_cumul"])),
-					_pourcent(float(givre["plafond"])),
 					_nombre(float(donnees.partie["gel_max_s"])),
 					_nombre(float(givre["cumuls_max"]), 0),
 				]
