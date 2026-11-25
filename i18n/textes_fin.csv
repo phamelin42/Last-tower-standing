@@ -1,0 +1,19 @@
+keys,fr
+FIN_DEFAITE_TITRE,Votre tour est tombée
+FIN_VICTOIRE_TITRE,Victoire : le boss est vaincu
+FIN_RECAP_MANCHE,Manche atteinte
+FIN_RECAP_ELIMINATIONS,Éliminations
+FIN_RECAP_DEGATS,Dégâts infligés
+FIN_CLASSEMENT_TITRE,Classement final
+FIN_CLASSEMENT_VIDE,Aucun joueur n’a été classé.
+FIN_RANG,Rang
+FIN_JOUEUR,Joueur
+FIN_MANCHE,Manche
+FIN_ELIMINATIONS,Éliminations
+FIN_DEGATS,Dégâts
+FIN_VOUS,vous
+FIN_DERNIER_REMPART,Dernier rempart : %s
+FIN_REJOUER,Rejouer
+FIN_MENU_PRINCIPAL,Menu principal
+FIN_CONTINUER_SANS_FIN,Continuer sans fin
+FIN_OBSERVER,Observer les autres arènes
