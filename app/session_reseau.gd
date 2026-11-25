@@ -12,6 +12,9 @@ signal connexion_perdue(motif: String)
 ## La redirection UPnP est tentée (réussie ou non) : le port externe obtenu, 0 si échec. Émis une
 ## seule fois par `heberger`.
 signal tentative_upnp_terminee(port_externe: int)
+## Le client local est dans le salon et en est l'hôte. Émis une seule fois par `heberger` : c'est
+## le feu vert de l'annuaire (un salon listé a un hôte présent).
+signal hote_enregistre
 
 const ADRESSE_LOCALE := "127.0.0.1"
 
@@ -33,10 +36,18 @@ var port_externe: int = 0
 ## valeur nulle (aucune redirection) est celle du mode sans fenêtre : ni les tests ni un serveur
 ## sans écran n'interrogent le réseau de la machine.
 var fabrique_passerelle: Callable = _passerelle_par_defaut
+## `hote:port` de l'annuaire et choix « Partie publique » : réglés avant `heberger`. Sans adresse
+## ou sans la case, rien n'est jamais envoyé.
+var annuaire_adresse: String = ""
+var salon_public: bool = false
+## L'annonceur de la session hébergée, `null` tant que les conditions ne sont pas réunies.
+var annuaire: AnnuaireClient = null
 
 var _racines: Array[Node] = []
 var _apis: Array[SceneMultiplayer] = []
 var _perdue: bool = false
+var _hote_enregistre: bool = false
+var _upnp_terminee: bool = false
 
 
 ## Le motif lisible d'une erreur de création (port occupé, port invalide, données absentes).
@@ -70,6 +81,8 @@ func heberger(
 	cibles: Array[String] = [Decouverte.DIFFUSION]
 ) -> Error:
 	fermer()
+	_hote_enregistre = false
+	_upnp_terminee = false
 	var tirage: Variant = source_octets.call(Protocole.JETON_OCTETS)
 	# Un jeton absent ou de mauvaise taille ferait retomber le salon sur « le premier pair est
 	# hôte » : on n'ouvre rien plutôt que de laisser un pair distant prendre le rôle.
@@ -116,6 +129,9 @@ func rejoindre(donnees: Donnees, adresse: String, port_jeu: int, nom_joueur: Str
 
 ## Ferme tout, dans l'ordre : l'annonce, le client (départ voulu), le serveur, les racines.
 func fermer() -> void:
+	_arreter_annonce_annuaire()
+	_hote_enregistre = false
+	_upnp_terminee = false
 	if decouverte != null:
 		decouverte.arreter()
 		remove_child(decouverte)
@@ -150,6 +166,9 @@ static func _passerelle_par_defaut() -> UpnpHote.Passerelle:
 func _ouvrir_port(port_jeu: int) -> void:
 	var box: Variant = fabrique_passerelle.call()
 	if not box is UpnpHote.Passerelle:
+		# Pas de box à interroger : la tentative est « terminée » d'emblée, l'annonce n'attend rien.
+		_upnp_terminee = true
+		_essayer_annonce_annuaire()
 		return
 	upnp = UpnpHote.new()
 	upnp.name = "Upnp"
@@ -174,7 +193,9 @@ func _fermer_port() -> void:
 
 func _sur_tentative_upnp(port_obtenu: int) -> void:
 	port_externe = port_obtenu
+	_upnp_terminee = true
 	tentative_upnp_terminee.emit(port_obtenu)
+	_essayer_annonce_annuaire()
 
 
 static func _octets_aleatoires(n: int) -> PackedByteArray:
@@ -211,7 +232,7 @@ func _connecter_client(
 	if code != OK:
 		return code
 	client = c
-	c.salon_mis_a_jour.connect(salon_mis_a_jour.emit)
+	c.salon_mis_a_jour.connect(_sur_salon_du_client)
 	c.partie_demarree.connect(partie_demarree.emit)
 	c.connexion_perdue.connect(_sur_perte)
 	return OK
@@ -237,3 +258,50 @@ func _annonce() -> Dictionary:
 		"max": Salon.MAX_JOUEURS,
 		"port": port,
 	}
+
+
+func _sur_salon_du_client(salon: Salon) -> void:
+	salon_mis_a_jour.emit(salon)
+	if _hote_enregistre or serveur == null or client == null:
+		return
+	var moi := client.id_local()
+	if salon.hote == moi and salon.joueurs.has(moi):
+		_hote_enregistre = true
+		hote_enregistre.emit()
+		_essayer_annonce_annuaire()
+
+
+## Première annonce : hôte enregistré **et** tentative UPnP terminée (ADR, décision 20), case
+## cochée, annuaire configuré. Le serveur dédié n'a pas de `SessionReseau` : jamais annoncé.
+func _essayer_annonce_annuaire() -> void:
+	if annuaire != null or serveur == null or not salon_public:
+		return
+	if not _hote_enregistre or not _upnp_terminee:
+		return
+	if annuaire_adresse.strip_edges().is_empty():
+		return
+	var a := AnnuaireClient.new()
+	a.name = "Annuaire"
+	a.adresse = annuaire_adresse
+	add_child(a)
+	annuaire = a
+	a.demarrer_annonce(_annonce_annuaire)
+
+
+## Ce que l'annuaire reçoit : l'annonce locale, avec le port que les autres joueurs peuvent
+## atteindre (le port externe d'UPnP, sinon le port de jeu).
+func _annonce_annuaire() -> Dictionary:
+	var a := _annonce()
+	if a.is_empty():
+		return a
+	a["port"] = port_externe if port_externe > 0 else port
+	return a
+
+
+func _arreter_annonce_annuaire() -> void:
+	if annuaire == null:
+		return
+	var a := annuaire
+	annuaire = null
+	# Le RETRAIT part même si la session disparaît aussitôt : l'annonceur finit seul.
+	a.retirer_et_quitter()
