@@ -19,4 +19,4 @@ Vorbis par ffmpeg : silence de tête coupé, volume normalisé (`loudnorm`, −1
 | `ambiance`     | —                    | aucun : silence de substitution (1) |
 
 (1) Le pack n’a pas de boucle de fond : `ambient_wind` (8,6 s) a un raccord de boucle qui peut
-claquer, et rien n’est musical. Le fichier `ambiance.ogg` reste à fournir.
+claquer, et rien n’est musical. Musique d’ambiance reportée par Phil le 25/11/2026.
