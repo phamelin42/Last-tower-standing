@@ -49,7 +49,7 @@ var _temps_vue: float = 0.0
 var _hasard := RandomNumberGenerator.new()
 var _rayons: PackedFloat32Array = PackedFloat32Array()
 var _familles: PackedByteArray = PackedByteArray()
-var _camera: CameraArene2D = null
+var _camera: CameraArene = null
 var _texte: Label = null
 
 
@@ -64,7 +64,7 @@ func lancer(donnees: Donnees, nombre: int) -> bool:
 	arene = (load(SCENE_ARENE) as PackedScene).instantiate() as Arene2D
 	arene.donnees = donnees
 	add_child(arene)
-	_camera = arene.get_node("Camera") as CameraArene2D
+	_camera = arene.get_node("Camera") as CameraArene
 	_source = SourceVue.new()
 	_source.name = "SourceSynthetique"
 	add_child(_source)

@@ -1,40 +1,40 @@
 extends SceneTree
-## Génère `visuels/recadrages_2d.gd` : pour chaque image de chaque feuille du pack, le plus petit
+## Génère `visuels/recadrages.gd` : pour chaque image de chaque feuille du pack, le plus petit
 ## rectangle qui contient tous ses pixels visibles (union sur les quatre couleurs du pack, dont la
 ## silhouette est la même). Le rendu ne remplit ainsi que le contenu, pas les cases transparentes.
 ##   godot --headless --path . --script res://tools/generer_recadrages.gd
-##   gdformat visuels/recadrages_2d.gd
-## À relancer si une feuille change ; `tests/unitaires/test_recadrages_2d.gd` détecte une table
+##   gdformat visuels/recadrages.gd
+## À relancer si une feuille change ; `tests/unitaires/test_recadrages.gd` détecte une table
 ## périmée.
 
-const SORTIE := "res://visuels/recadrages_2d.gd"
+const SORTIE := "res://visuels/recadrages.gd"
 const COULEURS: Array[String] = ["Blue", "Red", "Yellow", "Purple"]
 
 
 func _init() -> void:
 	var lignes: Array[String] = [
-		"class_name Recadrages2D",
+		"class_name Recadrages",
 		"extends RefCounted",
-		"## Boîte de contenu de chaque image des feuilles de `Apparence2D`, par modèle : « x,y,l,h »",
+		"## Boîte de contenu de chaque image des feuilles de `Apparence`, par modèle : « x,y,l,h »",
 		"## dans la case, une chaîne par image, dans l'ordre ligne puis colonne.",
 		"## GÉNÉRÉ par `tools/generer_recadrages.gd` : ne pas modifier à la main.",
 		"",
 		"const BOITES: Dictionary = {",
 	]
 	var cles: Array[String] = []
-	for cle: String in Apparence2D.MODELES:
+	for cle: String in Apparence.MODELES:
 		cles.append(cle)
 	for cle: String in cles:
-		var modele: Dictionary = Apparence2D.MODELES[cle]
+		var modele: Dictionary = Apparence.MODELES[cle]
 		var chemin: String = modele["chemin"]
 		var fichiers: Array[String] = []
 		if chemin.contains("%s"):
 			for couleur: String in COULEURS:
-				fichiers.append(Apparence2D.RACINE + chemin % [couleur, couleur])
+				fichiers.append(Apparence.RACINE + chemin % [couleur, couleur])
 		else:
-			fichiers.append(chemin if chemin.begins_with("res://") else Apparence2D.RACINE + chemin)
+			fichiers.append(chemin if chemin.begins_with("res://") else Apparence.RACINE + chemin)
 		lignes.append(_entree(cle, fichiers, modele))
-	var mort: Dictionary = Apparence2D.MORT
+	var mort: Dictionary = Apparence.MORT
 	lignes.append(_entree("mort", [String(mort["feuille"])], mort))
 	lignes.append("}")
 	lignes.append("")
