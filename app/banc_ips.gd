@@ -192,8 +192,17 @@ func _construire_interface() -> void:
 	couche.add_child(racine)
 	var bandeau := PanelContainer.new()
 	bandeau.name = "Bandeau"
-	bandeau.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
 	bandeau.custom_minimum_size.y = HAUTEUR_BANDEAU
+	# Collé au bord bas : il grandit vers le haut si le texte passe sur deux lignes.
+	bandeau.anchor_left = 0.0
+	bandeau.anchor_right = 1.0
+	bandeau.anchor_top = 1.0
+	bandeau.anchor_bottom = 1.0
+	bandeau.offset_left = 0.0
+	bandeau.offset_right = 0.0
+	bandeau.offset_top = -HAUTEUR_BANDEAU
+	bandeau.offset_bottom = 0.0
+	bandeau.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	bandeau.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	bandeau.add_theme_stylebox_override("panel", ThemeJeu.boite_barre())
 	racine.add_child(bandeau)

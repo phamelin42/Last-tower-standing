@@ -67,12 +67,14 @@ func test_une_chute_recente_reste_visible_jusqu_a_cinq_secondes() -> void:
 
 func test_la_mise_a_jour_se_fait_environ_quatre_fois_par_seconde() -> void:
 	var c := _creer()
-	var avant := c.nombre_mesures()
-	for i: int in 20:
+	# Le compteur du moteur n'est fiable qu'après une seconde : rien n'est retenu avant.
+	for i: int in 19:
 		c._process(0.05)
-	var prises := c.nombre_mesures() - avant
-	verifier(prises >= 3 and prises <= 5, "20 images de 0,05 s : %d mesures" % prises)
-	verifier(prises < 20, "jamais une mesure à chaque image")
+	verifier_egal(c.nombre_mesures(), 0, "pas de mesure pendant la première seconde")
+	for i: int in 41:
+		c._process(0.05)
+	# 2 s de mesures, une tous les 0,25 s.
+	verifier(c.nombre_mesures() >= 7 and c.nombre_mesures() <= 9, "%d mesures" % c.nombre_mesures())
 
 
 # --- Le texte -----------------------------------------------------------------------------------

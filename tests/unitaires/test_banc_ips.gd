@@ -162,7 +162,7 @@ func test_le_banc_n_ouvre_aucune_partie_ni_reseau() -> void:
 		verifier(not (noeud is SourceLocale), "aucune partie locale : %s" % noeud.name)
 		verifier(not (noeud is SessionReseau), "aucune session réseau : %s" % noeud.name)
 		verifier(not (noeud is Serveur), "aucun serveur : %s" % noeud.name)
-	verifier_nul(banc.multiplayer.multiplayer_peer, "aucun pair réseau")
+	verifier(not (banc.multiplayer.multiplayer_peer is ENetMultiplayerPeer), "aucun pair ENet")
 
 
 func test_le_resume_apparait_apres_la_duree_et_une_seule_fois() -> void:

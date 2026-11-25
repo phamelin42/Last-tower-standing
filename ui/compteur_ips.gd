@@ -12,6 +12,8 @@ const ACTION := "afficher_ips"
 const CLE_TEXTE := "IPS_COMPTEUR"
 const FENETRE_S := 5.0
 const PERIODE_S := 0.25
+## Le compteur du moteur ne vaut rien avant une seconde pleine : on ne retient rien avant.
+const CHAUFFE_S := 1.0
 const TAILLE_TEXTE := 16
 const MARGE := 8.0
 ## Sous la barre du HUD (≈ 60 px), pour ne la recouvrir à aucune échelle d'interface.
@@ -125,7 +127,10 @@ func _process(delta: float) -> void:
 	if _reste < PERIODE_S:
 		return
 	_reste -= PERIODE_S
-	mesurer(_temps, Engine.get_frames_per_second())
+	if _temps >= CHAUFFE_S:
+		mesurer(_temps, Engine.get_frames_per_second())
+	else:
+		_rafraichir()
 
 
 func _unhandled_input(event: InputEvent) -> void:
