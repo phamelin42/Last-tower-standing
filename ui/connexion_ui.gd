@@ -36,7 +36,7 @@ var _salons: Array[Dictionary] = []
 
 
 func _init() -> void:
-	theme = ThemeJeu.creer()
+	ThemeJeu.appliquer(self)
 	set_anchors_preset(PRESET_FULL_RECT)
 	add_theme_font_size_override("font_size", TAILLE_TEXTE)
 	var fond := ColorRect.new()
@@ -279,7 +279,7 @@ func _titre(cle: String) -> Label:
 	var titre := Label.new()
 	titre.text = tr(cle)
 	titre.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	titre.theme_type_variation = "Titre"
+	titre.theme_type_variation = ThemeJeu.TYPE_RUBAN
 	titre.add_theme_font_size_override("font_size", TAILLE_TITRE)
 	return titre
 

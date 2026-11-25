@@ -32,7 +32,7 @@ var _liste: VBoxContainer
 
 
 func _init() -> void:
-	theme = ThemeJeu.creer()
+	ThemeJeu.appliquer(self)
 	custom_minimum_size = Vector2(LARGEUR, 0.0)
 	visible = false
 	panneau = PanelContainer.new()
