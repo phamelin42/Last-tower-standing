@@ -38,6 +38,7 @@ Ces décisions ne se remettent pas en cause ; une objection se dit dans la PR.
 | D11 | PV de la tour      | Une **barre de PV au-dessus de la tour**, plus dans la barre du haut.                                                                                                        |
 | D12 | Mécaniques         | Reprendre celles de la map. La **mana** est un **bouclier** : elle absorbe les coups à la place des PV. **Certaines armes font des dégâts en fonction de la mana maximale.** |
 | D13 | ATH                | Trop grand : **c'est la boutique qui prend trop de place**.                                                                                                                  |
+| D14 | Catégories         | Dans la boutique, on distingue d'un coup d'œil **les armes, les améliorations et le revenu** (demandé après la première version de cette conception).                        |
 
 Les propositions de la session de pilotage acceptées par Phil le même soir :
 
@@ -227,6 +228,10 @@ un choix de la session de pilotage, à relire par Phil.
     infobulle ;
   - le panneau se replie et se déplie (touche B et bouton) ;
   - les raccourcis 1 à 4 et R restent.
+- **Catégories des offres** _(Phil, D14)_ : une arme, une amélioration et une offre de revenu se reconnaissent d'un coup d'œil.
+  - _(proposition)_ Chaque carte porte en tête un ruban du pack Tiny Swords, d'une couleur propre à sa catégorie (rouge pour une arme, bleu pour une amélioration, jaune pour le revenu, selon les couleurs que le pack fournit), avec une icône (épée, flèche montante, pièce) et le mot écrit « Arme », « Amélioration » ou « Revenu ». La couleur ne porte jamais seule l'information.
+  - Le revenu regroupe les améliorations économiques : revenu fixe, revenu croissant, multiplicateurs de revenu et de prime, bonus d'éliminations. La catégorie devient un champ de `data/`, validé au chargement, plutôt qu'une déduction du code.
+  - Les mêmes repères servent dans la grille des armes équipées, dans la liste des améliorations achetées et au marché noir.
 - **Taille de l'interface** : réglage de 75 à 125 % (défaut 100 %), persistant, appliqué à
   tout l'ATH.
 - **Barres au-dessus de la tour** _(Phil)_ : PV (vert vers rouge sous 30 %), chiffres « x / y »,
@@ -294,12 +299,12 @@ sont revus avec ces nouvelles valeurs.
 la vue globale et à `StatsTour`, schéma des familles d'ennemis (modèle, couleur, palier, classe
 de portée), signature d'arme, messages de la version 5.
 
-| Vague                         | Session                       | Tâches                                                                                                                                                |
-| ----------------------------- | ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1                             | Simulation, données et réseau | armes illimitées ; 24 ennemis, paliers, vagues mêlées, retrait du vol ; portées et vitesses ; mana ; DPS ; carte de densité ; protocole v5            |
-| 2 (dès les interfaces figées) | Rendu                         | sprites des 24 ennemis et retrait de la guêpe ; barres de PV et de mana ; caméra libre et dézoom ; planche puis intégration des 30 signatures d'armes |
-| 2 (dès les interfaces figées) | Interface                     | police ; barre du haut à icônes ; boutique compacte et repliable ; grille des armes ; taille de l'interface ; tableau des scores ; mini-carte         |
-| 3                             | Équilibrage                   | passe d'équilibrage (6.12)                                                                                                                            |
+| Vague                         | Session                       | Tâches                                                                                                                                                               |
+| ----------------------------- | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1                             | Simulation, données et réseau | armes illimitées ; 24 ennemis, paliers, vagues mêlées, retrait du vol ; portées et vitesses ; mana ; DPS ; carte de densité ; protocole v5                           |
+| 2 (dès les interfaces figées) | Rendu                         | sprites des 24 ennemis et retrait de la guêpe ; barres de PV et de mana ; caméra libre et dézoom ; planche puis intégration des 30 signatures d'armes                |
+| 2 (dès les interfaces figées) | Interface                     | police ; barre du haut à icônes ; boutique compacte et repliable, catégories des offres ; grille des armes ; taille de l'interface ; tableau des scores ; mini-carte |
+| 3                             | Équilibrage                   | passe d'équilibrage (6.12)                                                                                                                                           |
 
 T5.5 (bascule et retrait de l'arène 3D) passe avant la vague 2, puisque le rendu 3D n'a pas à
 suivre ces changements.
