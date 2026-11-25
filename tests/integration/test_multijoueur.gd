@@ -378,6 +378,55 @@ func test_par_le_menu_retour_au_salon_rouvre_un_salon_neuf_ou_la_joueuse_peut_re
 	verifier_egal(int(Performance.get_monitor(Performance.OBJECT_NODE_COUNT)), _noeuds_avant)
 
 
+func test_par_le_menu_la_connexion_perdue_en_partie_ramene_au_menu_avec_le_motif() -> void:
+	var hote := _session()
+	verifier_egal(hote.heberger(_donnees, _port_jeu, "Salon", "Mina", _port_udp, [ADRESSE]), OK)
+	verifier(
+		await _jusqua(func() -> bool: return hote.client.salon != null),
+		"l'hôte est dans son propre salon avant l'arrivée de B"
+	)
+	var principal := _principal_neuf()
+	principal.menu().champ_nom.text = "Bo"
+	principal.menu().bouton_rejoindre.pressed.emit()
+	principal.connexion().champ_adresse.text = ADRESSE
+	principal.connexion().champ_port_rejoindre.text = str(_port_jeu)
+	principal.connexion().bouton_rejoindre_adresse.pressed.emit()
+	var salon := principal.salon()
+	verifier(
+		await _jusqua(func() -> bool: return salon.visible and salon.lignes_joueurs().size() == 2),
+		"le client du menu entre dans le salon de l'hôte"
+	)
+	principal.session().client.pret(true)
+	verifier(await _jusqua(func() -> bool: return _tous_prets(hote)), "l'hôte voit B prête")
+	hote.client.lancer()
+	verifier(await _jusqua(func() -> bool: return principal.jeu() != null), "la partie s'ouvre")
+	verifier(principal.jeu().en_reseau, "elle est en réseau")
+	# L'hôte disparaît : la joueuse revient au menu et lit pourquoi.
+	hote.fermer()
+	verifier(
+		await _jusqua(func() -> bool: return principal.jeu() == null and principal.menu().visible),
+		"retour au menu"
+	)
+	verifier_nul(principal.session())
+	var attendu := "Connexion perdue"
+	var trouve := false
+	for n: Node in principal.menu().find_children("*", "Label", true, false):
+		var l := n as Label
+		trouve = trouve or (l.visible and l.text.begins_with(attendu) and l.text.length() > attendu.length() + 4)
+	verifier(trouve, "le motif est lisible au menu")
+	_fermer_tout()
+
+
+func _tous_prets(s: SessionReseau) -> bool:
+	var salon := s.client.salon
+	if salon == null:
+		return false
+	for id: int in salon.joueurs:
+		if id != salon.hote and not bool((salon.joueurs[id] as Dictionary)["pret"]):
+			return false
+	return salon.joueurs.size() == 2
+
+
 func test_par_le_menu_port_pris_message_dans_le_dialogue_et_retour_possible() -> void:
 	var occupant := _session()
 	verifier_egal(occupant.heberger(_donnees, _port_jeu, "A", "Mina", _port_udp, [ADRESSE]), OK)
