@@ -508,6 +508,7 @@ Chaque famille : un `MultiMeshInstance3D` dont `instance_count` suit le maximum 
 
 ### Task 2.7 : Assemblage solo : menu, partie, boucle jouable — `sonnet`
 - [ ] **Objectif :** `godot --path .` ouvre un menu, « Jouer seul » lance une partie jouable.
+- **À reprendre des tâches précédentes :** déclarer dans `project.godot` (`[input]`) l'action `afficher_scores` liée à Tab, lue par `TableauScores` ; enregistrer tous les `i18n/*.csv` (dont `textes_communs.csv`) ; appeler `Hud.configurer(donnees)` ; dans la scène 3D, poser les maillages d'`Apparence` à une demi-hauteur au-dessus du sol (leur centre est à l'origine du nœud).
 - **Fichiers (crée) :** `app/jeu.gd`, `app/menu_principal.gd`, `app/arguments.gd`, `scenes/principal.tscn`, `scenes/jeu.tscn`, `i18n/textes_menu.csv` ; **modifie** `project.godot` (scène principale, liste des CSV de traduction), `tests/integration/test_solo.gd` (crée).
 - **Lire :** toutes les interfaces du lot 2 ; spec §1, §6.
 - **Interfaces :** `class_name Jeu extends Node` : `func demarrer_solo(donnees: Donnees, graine: int, facteur_duree: float) -> void` (instancie `SourceLocale`, `Arene3D`, `CameraArene`, `Hud`, `BoutiqueUi`, `TableauScores` et les câble) ; `class_name Arguments`, `static func lire(args: PackedStringArray) -> Dictionary` (`--serveur`, `--port N` défaut 7777, `--graine N`, `--acceleration N`, `--vitesse 1|0.66|0.5`, `--quitter-a-la-fin`) : valeur invalide → clé d'erreur, jamais d'exception. Menu : « Jouer seul », options de vitesse et de graine, « Quitter » ; données invalides → écran d'erreur lisible.
@@ -572,7 +573,8 @@ signal etat_arene_recu(octets: PackedByteArray); signal etat_global_recu(octets:
 
 ### Task 3.3 : Serveur autoritaire — `sonnet`
 - [ ] **Objectif :** ENet, boucle à pas fixe, intentions validées, états envoyés à 15 Hz et 2 Hz.
-- **Fichiers (crée) :** `reseau/serveur.gd`, `tests/unitaires/test_serveur.gd`.
+- **Débit adaptatif (décision de l'agent principal, mesures de T3.1) :** un état d'arène pèse ~9 octets par ennemi (300 ennemis ≈ 2,8 à 3,5 Ko ; 1 000 ≈ 9 à 10 Ko). Par client, la fréquence d'envoi de l'état d'arène s'adapte à la taille du dernier paquet pour tenir `reseau.budget_octets_s` (nouvelle clé de `data/partie.json`, 50 000, validée par `Donnees`) : `hz = clamp(budget / taille, hz_min, hz_arene)` avec `hz_min = 5` (nouvelle clé `reseau.hz_min`). Le combat est automatique, l'interpolation lisse : la fréquence plus basse ne gêne pas le joueur. Tests : 300 ennemis → 15 Hz ; 1 000 ennemis → ≤ 5,6 Hz et ≥ 5 Hz ; débit mesuré sur 10 s simulées ≤ budget + un paquet.
+- **Fichiers (crée) :** `reseau/serveur.gd`, `tests/unitaires/test_serveur.gd` ; **modifie** `data/partie.json` et `sim/donnees.gd` (deux clés `reseau.budget_octets_s` et `reseau.hz_min`, avec leur validation et leurs tests dans `test_donnees.gd`).
 - **Lire :** spec §3, §4 ; `reseau/canal.gd`, `reseau/protocole.gd`, `reseau/salon.gd`, `sim/partie.gd` (API publique uniquement).
 - **Interfaces :**
 ```gdscript

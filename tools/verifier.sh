@@ -5,7 +5,7 @@
 #   tools/verifier.sh                    toutes les étapes, dans l'ordre, arrêt à la première rouge
 #   tools/verifier.sh --etape <nom>      une seule étape
 #
-# Étapes : import, lint, format, tests, controle, integration.
+# Étapes : import, uid, lint, format, tests, controle, integration.
 # Code de sortie : 0 si tout passe, sinon celui de l'étape fautive (2 si l'étape est inconnue).
 # Les noms d'étapes sont repris tels quels par .github/workflows/ci.yml : les renommer des deux côtés.
 
@@ -13,17 +13,47 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-ETAPES="import lint format tests controle integration"
+ETAPES="import uid lint format tests controle integration"
 
 # Lance le lanceur de tests maison. Forme : T --filtre test_<fichier> pour un test ciblé.
 lanceur() {
 	godot --headless --path . --script res://tests/lanceur.gd -- "$@"
 }
 
+# Chaque script GDScript suivi par git doit avoir son `.gd.uid` suivi, et réciproquement : un
+# `.uid` absent de l'index est recréé par Godot dans une autre copie, et la fusion échoue.
+# `.claude/` est ignoré (worktrees des agents).
+verifier_uid() {
+	local manquants orphelins gd_attendus uid_suivis
+	lister_suivis() {
+		git ls-files -- "$1" | { grep -v '^\.claude/' || true; } | LC_ALL=C sort
+	}
+	gd_attendus=$(lister_suivis '*.gd' | sed 's/$/.uid/')
+	uid_suivis=$(lister_suivis '*.gd.uid')
+	manquants=$(LC_ALL=C comm -23 <(printf '%s\n' "$gd_attendus" | sed '/^$/d') <(printf '%s\n' "$uid_suivis" | sed '/^$/d'))
+	orphelins=$(LC_ALL=C comm -13 <(printf '%s\n' "$gd_attendus" | sed '/^$/d') <(printf '%s\n' "$uid_suivis" | sed '/^$/d'))
+	if [[ -z "$manquants" && -z "$orphelins" ]]; then
+		echo "étape uid : chaque .gd suivi a son .uid suivi"
+		return 0
+	fi
+	if [[ -n "$manquants" ]]; then
+		echo "étape uid : .uid suivi absent pour :" >&2
+		sed 's/\.uid$//; s/^/  /' <<<"$manquants" >&2
+	fi
+	if [[ -n "$orphelins" ]]; then
+		echo "étape uid : .uid suivi sans .gd suivi :" >&2
+		sed 's/^/  /' <<<"$orphelins" >&2
+	fi
+	return 1
+}
+
 executer_etape() {
 	case "$1" in
 	import)
 		godot --headless --path . --import
+		;;
+	uid)
+		verifier_uid
 		;;
 	lint)
 		gdlint .
