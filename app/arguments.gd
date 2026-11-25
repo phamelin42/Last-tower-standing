@@ -1,9 +1,9 @@
 class_name Arguments
 extends RefCounted
 ## Lecture de la ligne de commande (`--serveur`, `--annuaire`, `--autoriser-prive`,
-## `--port N`, `--graine N`, `--vitesse X`, `--solo-auto`). Une valeur invalide donne la valeur
-## par défaut et un message dans `messages` : un lancement mal écrit ne doit jamais empêcher de
-## jouer.
+## `--port N`, `--graine N`, `--vitesse X`, `--solo-auto`, `--banc-ips [N]`). Une valeur invalide
+## donne la valeur par défaut et un message dans `messages` : un lancement mal écrit ne doit
+## jamais empêcher de jouer.
 
 const PORT_DEFAUT := 7777
 const PORT_MAX := 65535
@@ -12,11 +12,16 @@ const GRAINE_DEFAUT := -1
 const VITESSE_DEFAUT := 1.0
 const VITESSES: Array[float] = [1.0, 0.5, 0.25]
 const ENTIER_MAX_CHIFFRES := 15
+## Banc d'essai (`--banc-ips`) : nombre d'ennemis par défaut et bornes. 0 vaut « pas de banc ».
+const BANC_DEFAUT := 1000
+const BANC_MIN := 1
+const BANC_MAX := 5000
 
 
 ## Renvoie `{serveur: bool, annuaire: bool, autoriser_prive: bool, port: int, port_donne: bool,
-## graine: int, vitesse: float, solo_auto: bool, messages: Array[String]}`. `port_donne` vaut vrai
-## si un `--port` valide est là : l'annuaire a un autre port par défaut que le jeu.
+## graine: int, vitesse: float, solo_auto: bool, banc_ips: int, messages: Array[String]}`.
+## `port_donne` vaut vrai si un `--port` valide est là : l'annuaire a un autre port par défaut
+## que le jeu.
 static func lire(args: PackedStringArray) -> Dictionary:
 	var messages: Array[String] = []
 	var sortie: Dictionary = {
@@ -28,6 +33,7 @@ static func lire(args: PackedStringArray) -> Dictionary:
 		"graine": GRAINE_DEFAUT,
 		"vitesse": VITESSE_DEFAUT,
 		"solo_auto": false,
+		"banc_ips": 0,
 		"messages": messages,
 	}
 	var i := 0
@@ -49,6 +55,13 @@ static func lire(args: PackedStringArray) -> Dictionary:
 				sortie["autoriser_prive"] = true
 			"--solo-auto":
 				sortie["solo_auto"] = true
+			"--banc-ips":
+				# Le nombre est facultatif : l'option suivante n'est jamais prise pour une valeur.
+				if not a_valeur and i + 1 < args.size() and not args[i + 1].begins_with("--"):
+					i += 1
+					valeur = args[i]
+					a_valeur = true
+				sortie["banc_ips"] = _banc(valeur, a_valeur, messages)
 			"--port", "--graine", "--vitesse":
 				if not a_valeur:
 					if i + 1 < args.size() and not args[i + 1].begins_with("--"):
@@ -97,6 +110,22 @@ static func _ecrire(
 			sortie["vitesse"] = VITESSE_DEFAUT if invalide else vitesse
 	if invalide:
 		messages.append("Valeur invalide pour %s : « %s » (valeur par défaut)" % [option, valeur])
+
+
+## Nombre d'ennemis du banc d'essai : `BANC_DEFAUT` sans nombre ou illisible, borné à
+## `BANC_MIN`..`BANC_MAX` sinon. Un nombre hors bornes ou illisible laisse un message.
+static func _banc(valeur: String, donnee: bool, messages: Array[String]) -> int:
+	if not donnee:
+		return BANC_DEFAUT
+	if valeur.is_empty() or valeur.length() > ENTIER_MAX_CHIFFRES or not valeur.is_valid_int():
+		messages.append(
+			"Valeur invalide pour --banc-ips : « %s » (%d par défaut)" % [valeur, BANC_DEFAUT]
+		)
+		return BANC_DEFAUT
+	var n := valeur.to_int()
+	if n < BANC_MIN or n > BANC_MAX:
+		messages.append("Nombre d'ennemis borné à l'intervalle %d à %d." % [BANC_MIN, BANC_MAX])
+	return clampi(n, BANC_MIN, BANC_MAX)
 
 
 ## -1 si `texte` n'est pas un entier décimal positif ou nul d'au plus 15 chiffres.
