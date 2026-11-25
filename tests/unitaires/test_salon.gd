@@ -404,3 +404,19 @@ func test_le_salon_envoye_apres_l_arrivee_du_porteur_du_jeton_se_relit_avec_lui_
 	if relu != null:
 		verifier_egal(relu.hote, 1)
 		verifier_egal(relu.joueurs.size(), 2)
+
+
+func test_le_jeton_d_hote_ne_sort_jamais_du_salon_dans_ses_octets() -> void:
+	var jeton := PackedByteArray([0xA1, 0xB2, 0xC3, 0xD4, 0xE5, 0xF6, 0x97, 0x88])
+	var avec := Salon.new()
+	avec.jeton_hote = jeton
+	verifier(avec.ajouter(1, "Alix", jeton), "le porteur du jeton entre")
+	verifier(avec.ajouter(2, "Zoé"), "un autre joueur entre")
+	var sans := Salon.new()
+	verifier(sans.ajouter(1, "Alix"))
+	verifier(sans.ajouter(2, "Zoé"))
+	var octets := avec.vers_octets()
+	verifier_egal(
+		octets, sans.vers_octets(), "un salon à jeton se diffuse comme un salon sans jeton"
+	)
+	verifier_egal(octets.hex_encode().find(jeton.hex_encode()), -1, "aucune trace du jeton")
