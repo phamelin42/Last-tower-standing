@@ -5,7 +5,6 @@ extends CasDeTest
 const FICHIERS_REELS: Array[String] = [
 	"partie.json", "economie.json", "difficulte.json", "efficacite.json", "boutique.json"
 ]
-const DOSSIER_TEST := "user://test_donnees"
 ## Valeur de mutation : supprimer la clé (StringName, donc distinct de tout texte du fichier).
 const SUP := &"__supprimer__"
 const PALIERS_NON_TRIES: Array = [
@@ -18,15 +17,6 @@ const NOMS_TYPES: Array[String] = ["tranchant", "perçant", "magique", "siège",
 const NOMS_ARMURES: Array[String] = ["légère", "moyenne", "lourde", "fortifiée", "aucune", "boss"]
 const NOMS_RARETES: Array[String] = ["commune", "peu_commune", "rare", "epique"]
 const NOMS_CIBLAGES: Array[String] = ["plus_proche", "plus_fort", "plus_faible"]
-
-
-func avant_chaque() -> void:
-	_nettoyer_dossier()
-
-
-func apres_chaque() -> void:
-	_nettoyer_dossier()
-
 
 # --- Aides -----------------------------------------------------------------------------------
 
@@ -178,8 +168,8 @@ func _muter(
 
 func _ecrire(nom: String, contenu: Variant) -> void:
 	var texte: String = contenu if contenu is String else JSON.stringify(contenu)
-	DirAccess.make_dir_recursive_absolute(DOSSIER_TEST)
-	var f := FileAccess.open(DOSSIER_TEST + "/" + nom, FileAccess.WRITE)
+	DirAccess.make_dir_recursive_absolute(dossier_temporaire())
+	var f := FileAccess.open(dossier_temporaire().path_join(nom), FileAccess.WRITE)
 	f.store_string(texte)
 	f.close()
 
@@ -187,15 +177,6 @@ func _ecrire(nom: String, contenu: Variant) -> void:
 func _ecrire_dossier(brut: Dictionary) -> void:
 	for nom: String in brut:
 		_ecrire(nom, brut[nom])
-
-
-func _nettoyer_dossier() -> void:
-	var dossier := DirAccess.open(DOSSIER_TEST)
-	if dossier == null:
-		return
-	for nom in dossier.get_files():
-		dossier.remove(nom)
-	DirAccess.remove_absolute(DOSSIER_TEST)
 
 
 func _un_message_nomme(messages: PackedStringArray, fichier: String, champ: String) -> bool:
@@ -339,7 +320,7 @@ func test_charger_renvoie_une_instance_sur_un_dossier_de_test_avec_les_cinq_fich
 	for nom in FICHIERS_REELS:
 		brut[nom] = _lire_reel(nom)
 	_ecrire_dossier(brut)
-	var d := Donnees.charger(DOSSIER_TEST)
+	var d := Donnees.charger(dossier_temporaire())
 	verifier_non_nul(d)
 	if d == null:
 		return
@@ -353,7 +334,7 @@ func test_charger_renvoie_une_instance_sur_un_dossier_de_test_avec_les_cinq_fich
 
 func test_charger_lit_aussi_les_trois_fichiers_de_contenu_quand_ils_existent() -> void:
 	_ecrire_dossier(_brut_valide())
-	var d := Donnees.charger(DOSSIER_TEST)
+	var d := Donnees.charger(dossier_temporaire())
 	verifier_non_nul(d)
 	if d == null:
 		return
@@ -701,7 +682,7 @@ func test_charger_refuse_un_json_malforme_en_nommant_le_fichier() -> void:
 	brut["partie.json"] = '{"pas_s": 0.05,'
 	_ecrire_dossier(brut)
 	attendre_erreur("partie.json")
-	verifier_nul(Donnees.charger(DOSSIER_TEST))
+	verifier_nul(Donnees.charger(dossier_temporaire()))
 
 
 func test_charger_refuse_nan_et_infini_ecrits_dans_le_json() -> void:
@@ -713,8 +694,8 @@ func test_charger_refuse_nan_et_infini_ecrits_dans_le_json() -> void:
 		brut["partie.json"] = texte
 		_ecrire_dossier(brut)
 		attendre_erreur("partie.json")
-		verifier_nul(Donnees.charger(DOSSIER_TEST), litteral)
-		_nettoyer_dossier()
+		verifier_nul(Donnees.charger(dossier_temporaire()), litteral)
+		supprimer_dossier_temporaire()
 
 
 func test_charger_refuse_une_racine_tableau() -> void:
@@ -722,7 +703,7 @@ func test_charger_refuse_une_racine_tableau() -> void:
 	brut["economie.json"] = "[]"
 	_ecrire_dossier(brut)
 	attendre_erreur("economie.json")
-	verifier_nul(Donnees.charger(DOSSIER_TEST))
+	verifier_nul(Donnees.charger(dossier_temporaire()))
 
 
 func test_charger_refuse_un_nombre_ecrit_en_chaine() -> void:
@@ -732,7 +713,7 @@ func test_charger_refuse_un_nombre_ecrit_en_chaine() -> void:
 	brut["partie.json"] = partie
 	_ecrire_dossier(brut)
 	attendre_erreur("preparation_s")
-	verifier_nul(Donnees.charger(DOSSIER_TEST))
+	verifier_nul(Donnees.charger(dossier_temporaire()))
 
 
 func test_charger_signale_un_fichier_obligatoire_absent() -> void:
@@ -740,14 +721,14 @@ func test_charger_signale_un_fichier_obligatoire_absent() -> void:
 	brut.erase("boutique.json")
 	_ecrire_dossier(brut)
 	attendre_erreur("boutique.json")
-	verifier_nul(Donnees.charger(DOSSIER_TEST))
+	verifier_nul(Donnees.charger(dossier_temporaire()))
 
 
 func test_charger_signale_un_dossier_inexistant() -> void:
 	# Cinq fichiers obligatoires manquants : un message par fichier.
 	for nom in FICHIERS_REELS:
 		attendre_erreur(nom)
-	verifier_nul(Donnees.charger("user://dossier_qui_n_existe_pas"))
+	verifier_nul(Donnees.charger(dossier_temporaire().path_join("absent")))
 
 
 # --- palier() --------------------------------------------------------------------------------
@@ -805,8 +786,8 @@ func test_palier_sur_table_vide_ou_cle_inconnue_signale_sans_planter() -> void:
 
 func test_deux_chargements_donnent_la_meme_empreinte() -> void:
 	_ecrire_dossier(_brut_valide())
-	var a := Donnees.charger(DOSSIER_TEST)
-	var b := Donnees.charger(DOSSIER_TEST)
+	var a := Donnees.charger(dossier_temporaire())
+	var b := Donnees.charger(dossier_temporaire())
 	verifier_non_nul(a)
 	verifier_non_nul(b)
 	if a == null or b == null:
@@ -818,7 +799,7 @@ func test_deux_chargements_donnent_la_meme_empreinte() -> void:
 func test_charger_et_depuis_brut_donnent_la_meme_empreinte() -> void:
 	var brut := _brut_valide()
 	_ecrire_dossier(brut)
-	var chargee := Donnees.charger(DOSSIER_TEST)
+	var chargee := Donnees.charger(dossier_temporaire())
 	var memoire := Donnees.depuis_brut(brut)
 	verifier_non_nul(chargee)
 	verifier_non_nul(memoire)

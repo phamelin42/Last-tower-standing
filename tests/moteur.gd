@@ -28,14 +28,23 @@ func decouvrir(dossier: String, filtre: String, controle: bool) -> PackedStringA
 
 ## Exécute les fichiers. Retourne {tests, echecs, assertions, lignes}.
 ## Un test = une méthode `test_*` ; un fichier inutilisable compte pour un test échoué.
+## À `await`er : une méthode peut attendre des images ou des signaux (arbre actif requis).
 func executer(chemins: PackedStringArray, filtre: String, arbre: SceneTree) -> Dictionary:
 	var bilan := {"tests": 0, "echecs": 0, "assertions": 0, "lignes": PackedStringArray()}
 	_journal = JournalErreurs.new()
 	OS.add_logger(_journal)
 	for chemin: String in chemins:
-		_executer_fichier(chemin, filtre, arbre, bilan)
+		await _executer_fichier(chemin, filtre, arbre, bilan)
 	OS.remove_logger(_journal)
 	return bilan
+
+
+## Supprime les dossiers temporaires du processus. Appelé une fois par le lanceur, pas par
+## `executer` : un moteur lancé depuis un test ne doit pas effacer ceux du test.
+static func nettoyer_dossiers_temporaires() -> void:
+	CasDeTest.supprimer_recursivement(CasDeTest.racine_temporaire())
+	# Échoue sans effet tant que d'autres processus y écrivent encore.
+	DirAccess.remove_absolute("user://tests_tmp")
 
 
 ## 0 si tout est bon ; en mode contrôle, 0 seulement si CHAQUE test a échoué
@@ -102,7 +111,7 @@ func _executer_fichier(chemin: String, filtre: String, arbre: SceneTree, bilan: 
 		_echec_fichier(chemin, "la classe doit étendre CasDeTest", bilan)
 		return
 	for nom: String in _methodes_a_lancer(script, chemin, filtre):
-		_executer_methode(script, chemin, nom, arbre, bilan)
+		await _executer_methode(script, chemin, nom, arbre, bilan)
 
 
 func _texte_erreurs(erreurs: Array[Dictionary]) -> String:
@@ -132,10 +141,24 @@ func _executer_methode(
 	# Une instance neuve par méthode : aucun état ne fuit d'un test à l'autre.
 	var cas: CasDeTest = script.new()
 	cas.arbre = arbre
-	cas.avant_chaque()
-	cas.call(nom)
-	cas.apres_chaque()
-	var messages: Array[String] = cas.echecs.duplicate()
+	cas.nom_fichier = chemin.get_file()
+	cas.nom_methode = nom
+	cas.noter_noeuds_initiaux()
+	var suivi := SuiviMethode.new()
+	_derouler(cas, nom, suivi)
+	var debut := Time.get_ticks_msec()
+	while not suivi.fini and (Time.get_ticks_msec() - debut) < cas.delai_max * 1000.0:
+		await arbre.process_frame
+	var messages: Array[String] = []
+	if not suivi.fini:
+		messages.append("délai dépassé (%s s)" % cas.delai_max)
+	messages.append_array(cas.echecs)
+	# Un test en retard n'a pas fini : son `apres_chaque` ne le rattrape pas.
+	if suivi.fini:
+		await cas.apres_chaque()
+	cas.liberer_ajouts()
+	cas.supprimer_dossier_temporaire()
+	await arbre.process_frame
 	_rapprocher_erreurs(cas, _journal.prendre(), messages)
 	if cas.nb_assertions == 0:
 		messages.append("aucune assertion")
@@ -147,6 +170,13 @@ func _executer_methode(
 	var lignes: PackedStringArray = bilan["lignes"]
 	for message in messages:
 		lignes.append("ECHEC %s::%s — %s" % [chemin, nom, message])
+
+
+## Déroule avant, test et après dans une coroutine que le moteur surveille.
+func _derouler(cas: CasDeTest, nom: String, suivi: SuiviMethode) -> void:
+	await cas.avant_chaque()
+	await cas.call(nom)
+	suivi.fini = true
 
 
 ## Une erreur journalisée fait échouer la méthode, sauf si elle était attendue.
@@ -168,6 +198,12 @@ func _rapprocher_erreurs(
 			messages.append("erreur non attendue : %s [%s]" % [message, erreur["lieu"]])
 	for motif: String in attendues:
 		messages.append("erreur attendue qui n'est jamais survenue : %s" % motif)
+
+
+## État partagé entre la coroutine d'un test et le moteur qui la surveille.
+class SuiviMethode:
+	extends RefCounted
+	var fini := false
 
 
 ## Reçoit les erreurs du moteur (script, `push_error`, chargement). Les rappels peuvent
