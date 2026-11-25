@@ -295,7 +295,7 @@ func test_le_decor_est_dessine_sous_les_ennemis_et_sous_le_cercle() -> void:
 		nb += 1
 		verifier((noeud as Sprite2D).z_index <= ennemis.z_index, "sprite du décor au-dessus")
 		verifier((noeud as Sprite2D).z_as_relative, "indice Z absolu dans le décor")
-	verifier(nb >= 100, "décor trop pauvre : %d sprites" % nb)
+	verifier(nb >= 80, "décor trop pauvre : %d sprites" % nb)
 	# Le décor ne se glisse jamais dans la couche triée des ennemis.
 	verifier_egal(ennemis.find_children("*", "Decor2D", true, false).size(), 0)
 

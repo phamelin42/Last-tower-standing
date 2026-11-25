@@ -484,7 +484,7 @@ const PLATS: Array[String] = [
 	"caillou_moyen",
 	"os_court",
 ]
-const NB_SAPINS: int = 90
+const NB_SAPINS: int = 70
 const NB_GROUPES_SAPINS: int = 8
 const NB_BUISSONS: int = 30
 const NB_ROCHERS: int = 10
