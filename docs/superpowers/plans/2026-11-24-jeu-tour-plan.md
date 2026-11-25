@@ -805,8 +805,11 @@ crédité dans `CREDITS.md` (le crédit est facultatif en CC0, mais on cite touj
 
 ### Task 5.2 : Terrain et décor — `sonnet`
 
-- [ ] **Objectif :** sol en tuiles (herbe, chemins, rochers, eau en bordure), décor qui ne gêne pas
+- [x] **Objectif :** sol en tuiles (herbe, chemins, rochers, eau en bordure), décor qui ne gêne pas
       la lecture des ennemis ; le cercle d’apparition reste visible.
+      **Fait (25/11/2026)** : sol en tuiles de `Tilemap_Flat` et rivage tirés d’une graine par arène,
+      composés en une seule image ; sapins, moutons et rochers d’eau animés ; aucun objet haut dans la
+      zone de marche.
 
 ### Task 5.3 : Effets — `haiku`
 
