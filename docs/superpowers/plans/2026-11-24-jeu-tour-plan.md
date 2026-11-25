@@ -836,7 +836,7 @@ ADR dédié, avec Phil. Exports Windows et Linux par la CI avant cela.
 
 ---
 
-# Lot 7 — Annuaire des parties en ligne et UPnP (décision de Phil du 25/11/2026, dernier lot)
+# Lot 7 — Annuaire des parties en ligne et UPnP (décisions de Phil du 25/11/2026 : lancé avant le lot 5)
 
 **Principe :** l'hôte héberge toujours la partie sur sa machine. Un petit service sur le VPS de
 Phil ne fait que tenir **l'annuaire des salons ouverts** : nom, nombre de joueurs, version, et
@@ -898,6 +898,5 @@ son port par **UPnP** (classe `UPNP` intégrée à Godot), avec un message clair
   arrive avant le client local de l'hôte, il devient hôte. Réserver ce rôle au client local
   (jeton tiré à la création du salon). « Retour au salon » recrée le salon et fait revenir les
   autres par la liste ; un vrai retour sans reconnexion demande `Client.retourner_au_salon()`.
-- **Annuaire** : voir le lot 7, en dernier.
+- **Annuaire** : lot 7, lancé le 25/11/2026 avant le lot 5 (décision de Phil).
 - **Lots 3 et 4** : terminés (T3.7, T4.3, T4.5 et T4.6 fusionnés par la PR #2).
-  désactivé en attendant), T4.5.
