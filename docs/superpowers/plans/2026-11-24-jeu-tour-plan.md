@@ -817,10 +817,12 @@ crédité dans `CREDITS.md` (le crédit est facultatif en CC0, mais on cite touj
 
 ### Task 5.3b : Genre d’arme et statut dans les événements de tir — `sonnet`
 
-- [ ] **Objectif :** `sim/tir.gd` ajoute à chaque événement le genre de l’effet d’arme et le statut
+- [x] **Objectif :** `sim/tir.gd` ajoute à chaque événement le genre de l’effet d’arme et le statut
       posé ; `SCHEMA_EVENEMENT` et le protocole binaire les transportent (version augmentée) ;
       `Effets2D` les lit au lieu de deviner. Sans cela, mines, pièges et statuts ne s’affichent pas en
       partie.
+      **Fait (25/11/2026)** : protocole en version 3, un octet de plus par événement (genre et statut
+      sur 4 bits chacun), champs facultatifs (une mort n’a pas d’arme).
 
 ### Task 5.4 : Interface aux couleurs du pack — `sonnet`
 
