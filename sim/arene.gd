@@ -102,6 +102,8 @@ func demarrer_manche(numero: int, famille: int, mult: Dictionary) -> void:
 	_famille = famille
 	_lire_mult(mult)
 	_boss_en_cours = false
+	# Sans fin : le boss tombé ne doit pas redonner la victoire à chaque pas.
+	_boss_mort = false
 	_cumul_apparition = 0.0
 	_relances_utilisees = 0
 	boutique.nouvelle_manche(_manche, _relances_gratuites())

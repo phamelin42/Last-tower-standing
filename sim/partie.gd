@@ -9,6 +9,9 @@ extends RefCounted
 ## est figée en phase VICTOIRE et il reste en jeu jusqu'à ce qu'il quitte. La partie se termine
 ## quand plus personne n'est en jeu.
 ##
+## Mode sans fin : un vainqueur peut reprendre les manches (32, 33…) seul, à son rythme, avec sa
+## propre suite de familles ; la difficulté continue de monter par `apres_table`.
+##
 ## Ajouts à l'interface du plan : `PAS_MAX_PAR_APPEL` ; un id négatif est refusé à l'ajout (−1 dit
 ## « aucun joueur » ailleurs).
 
@@ -142,6 +145,11 @@ func _un_pas() -> void:
 			_eliminer(j, Classement.Cause.DEFAITE)
 		elif j.arene.boss_vaincu():
 			_vaincre(j)
+	for j: JoueurPartie in _ordre:
+		if j.sans_fin and not j.fige:
+			j.pas_manche_sans_fin += 1
+			if j.pas_manche_sans_fin >= _pas_manche:
+				_commencer_manche_sans_fin(j)
 	_pas_phase += 1
 	if _phase == Types.Phase.PREPARATION and _pas_phase >= _pas_preparation:
 		_commencer_manche(1)
@@ -157,16 +165,26 @@ func _commencer_manche(numero: int) -> void:
 	if numero >= _manche_boss:
 		_phase = Types.Phase.BOSS
 		for j: JoueurPartie in _ordre:
-			if j.arene != null and not j.fige:
+			if j.arene != null and not j.fige and not j.sans_fin:
 				j.arene.demarrer_boss(mult)
 	else:
 		_phase = Types.Phase.MANCHE
 		var famille := _famille_suivante
 		_famille_suivante = _planning.tirer(numero + 1) if numero + 1 < _manche_boss else -1
 		for j: JoueurPartie in _ordre:
-			if j.arene != null and not j.fige:
+			if j.arene != null and not j.fige and not j.sans_fin:
 				j.arene.demarrer_manche(numero, famille, mult)
 	manche_commencee.emit(numero)
+
+
+## Manche suivante d'un joueur en sans fin : sa famille annoncée, puis la suivante tirée.
+func _commencer_manche_sans_fin(j: JoueurPartie) -> void:
+	j.manche_sans_fin += 1
+	j.pas_manche_sans_fin = 0
+	var mult := Planning.multiplicateurs(_donnees, j.manche_sans_fin, temps_ecoule())
+	var famille := j.famille_suivante_sans_fin
+	j.famille_suivante_sans_fin = j.planning_sans_fin.tirer(j.manche_sans_fin + 1)
+	j.arene.demarrer_manche(j.manche_sans_fin, famille, mult)
 
 
 # --- Fin de joueur, fin de partie --------------------------------------------------------------
@@ -269,9 +287,25 @@ func intention_marche_noir(id: int, ami: String) -> int:
 	return j.joueur.arene.choisir_marche_noir(ami)
 
 
-## Pas encore disponible (mode sans fin, T4.3).
-func intention_continuer_sans_fin(_id: int) -> int:
-	return Types.Resultat.NON_DISPONIBLE
+## Réservé à un vainqueur encore en jeu : son arène repart à la manche qui suit le boss. Les
+## autres joueurs ne sont pas touchés.
+func intention_continuer_sans_fin(id: int) -> int:
+	var j := _joueur(id)
+	if j == null or not j.en_jeu():
+		return Types.Resultat.ARENE_MORTE
+	if not _demarree or _terminee or not j.victorieux:
+		return Types.Resultat.MAUVAISE_PHASE
+	j.victorieux = false
+	j.sans_fin = true
+	j.fige = false
+	j.pas_fin = -1
+	j.planning_sans_fin = Planning.new(
+		_donnees, _graine + DECALAGE_GRAINE_PARTIE + PAS_GRAINE_ARENE * (_ordre.find(j) + 1)
+	)
+	j.manche_sans_fin = _manche_boss
+	j.famille_suivante_sans_fin = j.planning_sans_fin.tirer(_manche_boss + 1)
+	_commencer_manche_sans_fin(j)
+	return Types.Resultat.OK
 
 
 ## Quitter en cours de partie vaut élimination ; un vainqueur ou un joueur tombé est
@@ -319,7 +353,7 @@ func vue_arene(demandeur: int, cible: int) -> VueArene:
 		return null
 	if d.en_jeu() and cible != demandeur:
 		return null
-	var v := c.arene.vue(_phase_vue(c), _temps_restant(c), _famille_annoncee(), false)
+	var v := c.arene.vue(_phase_vue(c), _temps_restant(c), _famille_annoncee(c), c.sans_fin)
 	_enregistrer(c, v)
 	var attente := c.evenements_en_attente
 	if not attente.is_empty():
@@ -361,12 +395,16 @@ func _joueur(id: int) -> JoueurPartie:
 
 
 func _phase_vue(j: JoueurPartie) -> int:
+	if j.sans_fin:
+		return Types.Phase.MANCHE
 	return Types.Phase.VICTOIRE if j.victorieux else _phase
 
 
 func _temps_restant(j: JoueurPartie) -> float:
 	if j.victorieux:
 		return 0.0
+	if j.sans_fin:
+		return float(_pas_manche - j.pas_manche_sans_fin) * _pas_s
 	var duree := 0
 	match _phase:
 		Types.Phase.PREPARATION:
@@ -378,7 +416,9 @@ func _temps_restant(j: JoueurPartie) -> float:
 	return float(duree - _pas_phase) * _pas_s
 
 
-func _famille_annoncee() -> int:
+func _famille_annoncee(j: JoueurPartie) -> int:
+	if j.sans_fin:
+		return j.famille_suivante_sans_fin
 	if _phase == Types.Phase.PREPARATION or _phase == Types.Phase.MANCHE:
 		return _famille_suivante
 	return -1
@@ -393,7 +433,7 @@ func _enregistrer(j: JoueurPartie, v: VueArene) -> void:
 
 
 func _lire_statistiques(j: JoueurPartie) -> void:
-	var v := j.arene.vue(_phase_vue(j), _temps_restant(j), _famille_annoncee(), false)
+	var v := j.arene.vue(_phase_vue(j), _temps_restant(j), _famille_annoncee(j), j.sans_fin)
 	_enregistrer(j, v)
 	var place := Arene.EVENEMENTS_MAX - j.evenements_en_attente.size()
 	if place > 0:

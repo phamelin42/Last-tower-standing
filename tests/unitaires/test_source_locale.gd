@@ -115,7 +115,7 @@ func test_chaque_intention_renvoie_son_resultat() -> void:
 	verifier_egal(resultats[0][1], Types.Resultat.INDICE_INVALIDE)
 	resultats = []
 	source.continuer_sans_fin()
-	verifier_egal(resultats[0][1], Types.Resultat.NON_DISPONIBLE)
+	verifier_egal(resultats[0][1], Types.Resultat.MAUVAISE_PHASE)
 
 
 func test_un_indice_invalide_ne_change_rien() -> void:

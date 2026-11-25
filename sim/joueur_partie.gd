@@ -14,6 +14,14 @@ var parti: bool = false
 ## Plus rien à simuler : tour détruite, boss vaincu ou joueur parti.
 var fige: bool = false
 var pas_fin: int = -1
+## Mode sans fin : après le boss, ce joueur rejoue des manches à son propre rythme. Il n'est plus
+## « victorieux » (il est de nouveau en train de jouer) ; sa manche et sa prochaine famille sont
+## les siennes, les autres arènes n'en savent rien.
+var sans_fin: bool = false
+var manche_sans_fin: int = 0
+var pas_manche_sans_fin: int = 0
+var famille_suivante_sans_fin: int = -1
+var planning_sans_fin: Planning = null
 var cause: int = Classement.Cause.DEFAITE
 var manche: int = 0
 var eliminations: int = 0
