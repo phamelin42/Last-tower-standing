@@ -98,12 +98,6 @@ func afficher_erreur_creer(texte: String) -> void:
 	_message_creer.visible = not texte.is_empty()
 
 
-## Avertissement, pas une erreur : le salon est ouvert, seuls les joueurs d'Internet ne peuvent
-## pas le rejoindre.
-func afficher_echec_redirection() -> void:
-	afficher_erreur_creer(tr("CONNEXION_UPNP_ECHEC"))
-
-
 func afficher_erreur_rejoindre(texte: String) -> void:
 	_message_rejoindre.text = texte
 	_message_rejoindre.visible = not texte.is_empty()

@@ -23,6 +23,9 @@ var sortie: Callable = Callable()
 ## Découverte des salons : seuls les tests changent le port et les cibles (127.0.0.1).
 var port_decouverte: int = Decouverte.PORT_DECOUVERTE
 var cibles_decouverte: Array[String] = [Decouverte.DIFFUSION]
+## `() -> UpnpHote.Passerelle` : la box de la redirection UPnP, remplacée par un double dans les
+## tests ; vide, la session choisit la vraie.
+var fabrique_passerelle: Callable = Callable()
 
 var _menu: MenuPrincipal
 var _jeu: Jeu = null
@@ -267,6 +270,9 @@ func _nouvelle_session() -> SessionReseau:
 	_session.salon_mis_a_jour.connect(_sur_salon)
 	_session.partie_demarree.connect(_sur_partie_demarree)
 	_session.connexion_perdue.connect(_sur_perte)
+	_session.tentative_upnp_terminee.connect(_sur_upnp)
+	if fabrique_passerelle.is_valid():
+		_session.fabrique_passerelle = fabrique_passerelle
 	return _session
 
 
@@ -296,6 +302,7 @@ func _creer(nom_salon: String, port: int) -> void:
 	_parametres_hote = [nom_salon, port]
 	_connexion.fermer()
 	_salon.afficher_infos(tr("SALON_ANNONCE_HOTE") % [nom_salon, port])
+	_salon.afficher_avertissement("")
 	_salon.afficher_attente()
 
 
@@ -314,7 +321,13 @@ func _rejoindre(adresse: String, port: int) -> void:
 	_arreter_recherche()
 	_connexion.fermer()
 	_salon.afficher_infos("")
+	_salon.afficher_avertissement("")
 	_salon.afficher_attente()
+
+
+## La box a répondu : sans port ouvert, l'hôte le lit sur le salon (le réseau local fonctionne).
+func _sur_upnp(port_obtenu: int) -> void:
+	_salon.afficher_avertissement(tr("CONNEXION_UPNP_ECHEC") if port_obtenu == 0 else "")
 
 
 func _sur_salon(s: Salon) -> void:
