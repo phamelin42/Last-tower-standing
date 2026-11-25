@@ -28,6 +28,7 @@ BOUTIQUE_RESULTAT_MAUVAISE_PHASE,La boutique est fermée pour le moment.
 BOUTIQUE_RESULTAT_ARENE_MORTE,Votre tour est tombée.
 BOUTIQUE_RESULTAT_INDICE_INVALIDE,Cet emplacement n’existe pas.
 BOUTIQUE_RESULTAT_NON_DISPONIBLE,Cette action n’est pas disponible.
+BOUTIQUE_RESULTAT_ARMES_AU_MAXIMUM,Le nombre maximal d’armes est atteint.
 BOUTIQUE_RESULTAT_INCONNU,Action refusée.
 BOUTIQUE_EFFET_CIBLE_UNIQUE,%s dégâts toutes les %s s
 BOUTIQUE_EFFET_ZONE,%s dégâts toutes les %s s
