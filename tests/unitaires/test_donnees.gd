@@ -695,7 +695,7 @@ func test_charger_refuse_nan_et_infini_ecrits_dans_le_json() -> void:
 		_ecrire_dossier(brut)
 		attendre_erreur("partie.json")
 		verifier_nul(Donnees.charger(dossier_temporaire()), litteral)
-		_nettoyer_dossier()
+		supprimer_dossier_temporaire()
 
 
 func test_charger_refuse_une_racine_tableau() -> void:
