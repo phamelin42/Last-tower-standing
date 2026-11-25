@@ -107,10 +107,9 @@ Les chiffres d'équilibrage sont dans `data/*.json`, validés au chargement.
 
 ## À venir
 
-- **Mode sans fin** : après la victoire contre le boss, la partie continue et la difficulté ne cesse
-  de monter.
-- **Annuaire en ligne** des salons : hors de la version 1, qui ne joue qu'en réseau local ou par
-  adresse IP directe.
+- **Graphismes 2D pixel art** avec l’ancienne version CC0 du pack Tiny Swords de Pixel Frog.
+- **Annuaire en ligne** des salons, avec ouverture du port par UPnP : en attendant, on joue
+  en réseau local ou par adresse IP directe.
 
 ## Licence
 
