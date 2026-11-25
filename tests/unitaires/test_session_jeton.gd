@@ -103,3 +103,22 @@ func test_rejoindre_ne_porte_aucun_jeton() -> void:
 	verifier_egal(s.rejoindre(_donnees, ADRESSE, 9, "Bo"), OK)
 	verifier_egal(s.jeton_hote, PackedByteArray())
 	verifier_egal(_tirages, 0)
+
+
+func test_un_tirage_de_jeton_qui_n_a_pas_8_octets_empeche_d_heberger() -> void:
+	for taille: int in [0, 1, 7, 9, 16]:
+		var s := SessionReseau.new()
+		arbre.root.add_child(s)
+		_sessions.append(s)
+		s.source_octets = func(_n: int) -> PackedByteArray:
+			var b := PackedByteArray()
+			b.resize(taille)
+			return b
+		verifier_egal(_heberger(s), ERR_UNAVAILABLE, "tirage de %d octets" % taille)
+		verifier_faux(s.est_ouverte(), "aucun client, tirage de %d octets" % taille)
+		verifier_faux(s.est_hote(), "aucun serveur, tirage de %d octets" % taille)
+		verifier_egal(s.jeton_hote, PackedByteArray(), "pas de jeton gardé, %d octets" % taille)
+		verifier_egal(s.get_child_count(), 0, "rien d'ouvert, %d octets" % taille)
+		verifier(
+			not SessionReseau.message_erreur(ERR_UNAVAILABLE, 1).is_empty(), "message d'erreur"
+		)

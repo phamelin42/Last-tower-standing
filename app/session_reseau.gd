@@ -59,7 +59,15 @@ func heberger(
 	cibles: Array[String] = [Decouverte.DIFFUSION]
 ) -> Error:
 	fermer()
-	jeton_hote = source_octets.call(Protocole.JETON_OCTETS) as PackedByteArray
+	var tirage: Variant = source_octets.call(Protocole.JETON_OCTETS)
+	# Un jeton absent ou de mauvaise taille ferait retomber le salon sur « le premier pair est
+	# hôte » : on n'ouvre rien plutôt que de laisser un pair distant prendre le rôle.
+	if (
+		not tirage is PackedByteArray
+		or (tirage as PackedByteArray).size() != Protocole.JETON_OCTETS
+	):
+		return ERR_UNAVAILABLE
+	jeton_hote = tirage as PackedByteArray
 	var canal_serveur := _nouvelle_racine("RacineHote")
 	var s := Serveur.new()
 	s.name = "Serveur"
