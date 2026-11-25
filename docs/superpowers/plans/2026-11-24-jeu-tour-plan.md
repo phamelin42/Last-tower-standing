@@ -115,6 +115,7 @@ func observer(id_joueur: int) -> void                  # refusé si le joueur lo
 func continuer_sans_fin() -> void
 func quitter_partie() -> void
 ```
+
 Implémentations : `SourceLocale` (solo, `Partie` en processus, T2.1) et `Client` (réseau, T3.4).
 
 ### Schémas de données (`data/`, validés par `Donnees`, exemples valides)
@@ -135,7 +136,8 @@ Implémentations : `SourceLocale` (solo, `Partie` en processus, T2.1) et `Client
 **Parallélisme :** T0.1 d'abord ; puis T0.2, T0.3, T0.4, T0.5 en parallèle (fichiers disjoints).
 
 ### Task 0.1 : Squelette du projet — `haiku`
-- [ ] **Objectif :** projet Godot vide qui s'ouvre en `--headless`, avec les arborescences et les réglages de typage stricts.
+
+- [x] **Objectif :** projet Godot vide qui s'ouvre en `--headless`, avec les arborescences et les réglages de typage stricts.
 - **Fichiers (crée) :** `project.godot` (nom, `run/main_scene` provisoire vide, `config/features=["4.7"]`, avertissements typés en erreur, `[internationalization] locale/translations` vide, `[rendering]` Forward+), `.gdlintrc` (limite de ligne 100), `.gitignore` (`.godot/`, `*.translation`, `export/`), `CREDITS.md` (en-tête + tableau vide source/auteur/licence), `sim/.gitkeep`, `data/.gitkeep`, `app/.gitkeep`, `visuels/.gitkeep`, `ui/.gitkeep`, `scenes/.gitkeep`, `i18n/.gitkeep`, `reseau/.gitkeep`, `tests/unitaires/.gitkeep`.
 - **Lire :** spec §2, §4, §7.
 - **Interfaces :** aucune.
@@ -143,7 +145,8 @@ Implémentations : `SourceLocale` (solo, `Partie` en processus, T2.1) et `Client
 - **Vérif :** `godot --headless --path . --import` sort avec le code 0 et sans « ERROR ». **Terminé :** idem + `git status` propre après commit.
 
 ### Task 0.2 : Lanceur de tests maison — `sonnet`
-- [ ] **Objectif :** exécuter `tests/**/test_*.gd` sans dépendance externe.
+
+- [x] **Objectif :** exécuter `tests/**/test_*.gd` sans dépendance externe.
 - **Fichiers (crée) :** `tests/lanceur.gd` (fin : `extends SceneTree`, lit les arguments, appelle le moteur, `quit(code)`), `tests/moteur.gd`, `tests/cas_de_test.gd`, `tests/unitaires/test_moteur.gd`, `tests/unitaires/test_cas_de_test.gd`, `tests/controle/test_echec_volontaire.gd`.
 - **Lire :** spec §7 ; doc Godot `SceneTree`, `OS.get_cmdline_user_args`, `DirAccess`.
 - **Contrat du lanceur :** `godot --headless --path . --script res://tests/lanceur.gd -- [--filtre motif] [--dossier res://tests/unitaires] [--controle]`.
@@ -153,6 +156,7 @@ Implémentations : `SourceLocale` (solo, `Partie` en processus, T2.1) et `Client
   - Sortie : une ligne `OK`/`ECHEC res://chemin.gd::test_nom — message (attendu … reçu …)` par échec, puis `N tests, M échecs, K assertions`. Code de sortie **0** si M = 0, sinon **1**.
   - `--controle` : ne lance **que** `res://tests/controle/` et sort **0 si et seulement si chaque test y a échoué** (preuve que le lanceur détecte un échec), sinon 1.
 - **Interfaces :**
+
 ```gdscript
 class_name CasDeTest extends RefCounted
 var arbre: SceneTree                 # fourni par le lanceur (pour instancier des nœuds)
@@ -169,11 +173,13 @@ class_name MoteurDeTests extends RefCounted
 func decouvrir(dossier: String, filtre: String, controle: bool) -> PackedStringArray
 func executer(chemins: PackedStringArray, filtre: String, arbre: SceneTree) -> Dictionary   # {tests:int, echecs:int, assertions:int, lignes:PackedStringArray}
 ```
+
 - **Tests :** (dans `test_cas_de_test.gd`, instancier une sous-classe interne et lire `echecs`) chaque assertion réussit sur une valeur juste et échoue sur une fausse ; `verifier_egal` sur tableaux imbriqués, `null`, `int` contre `float` (`1` ≠ `1.0` : documenter et tester) ; `verifier_proche` aux bornes exactes de la tolérance ; message vide accepté. (Dans `test_moteur.gd`) `decouvrir` exclut `controle/`, trie, respecte `--filtre` ; un test sans assertion est rapporté en échec ; un fichier non chargeable est un échec et n'arrête pas les autres ; une classe qui n'étend pas `CasDeTest` est rejetée ; code de sortie 1 sur un échec, 0 sinon. **Contrôle :** `tests/controle/test_echec_volontaire.gd` contient `test_echec_assertion` (assertion fausse) et `test_sans_assertion` (corps vide).
 - **Vérif :** `T` (suite normale : code 0, aucun test du dossier `controle/`) **et** `T --controle` (code 0). **Terminé :** les deux commandes, le code de sortie lu avec `echo $?`, et la preuve qu'un `verifier(false)` temporaire dans `test_moteur.gd` donne le code 1 (à annuler avant de commiter).
 
 ### Task 0.3 : `tools/verifier.sh` et installation — `haiku`
-- [ ] **Objectif :** une seule commande locale qui fait exactement ce que fait la CI.
+
+- [x] **Objectif :** une seule commande locale qui fait exactement ce que fait la CI.
 - **Fichiers (crée) :** `tools/verifier.sh`, `tools/install-godot.sh`, `tools/install-gdtoolkit.sh`.
 - **Lire :** spec §7 ; `tests/lanceur.gd` (contrat ci-dessus).
 - **Interfaces :** `tools/verifier.sh [--etape import|lint|format|tests|controle|integration]` ; sans argument, toutes les étapes dans cet ordre, **arrêt à la première rouge**, code de sortie de l'étape fautive. Étapes : `godot --headless --path . --import` ; `gdlint .` ; `gdformat --check sim app visuels ui reseau tests tools` (dossiers existants seulement) ; `T` ; `T --controle` ; `tools/integration.sh` **si le fichier existe** (sinon « étape absente, ignorée » affiché clairement). `install-godot.sh` : saute si `godot --version` commence par `4.7.2`, sinon télécharge la version headless Linux x86_64 depuis les sources officielles de Godot, vérifie la somme SHA-512 publiée, installe dans `/usr/local/bin/godot`. `install-gdtoolkit.sh` : `pip install "gdtoolkit==4.*"`.
@@ -181,7 +187,8 @@ func executer(chemins: PackedStringArray, filtre: String, arbre: SceneTree) -> D
 - **Vérif :** `bash -n tools/*.sh && tools/verifier.sh` (vert une fois 0.1 et 0.2 fusionnés). **Terminé :** sortie complète collée dans le rapport.
 
 ### Task 0.4 : CI GitHub Actions — `haiku`
-- [ ] **Objectif :** la CI rejoue `tools/verifier.sh`, étape par étape.
+
+- [x] **Objectif :** la CI rejoue `tools/verifier.sh`, étape par étape.
 - **Fichiers (crée) :** `.github/workflows/ci.yml`.
 - **Lire :** `tools/verifier.sh`, spec §7.
 - **Interfaces :** déclencheurs `pull_request` et `push` sur `main` ; un job `qualite` (Ubuntu) : checkout → `tools/install-godot.sh` → `tools/install-gdtoolkit.sh` → une étape nommée par `--etape` (import, lint, format, tests unitaires, contrôle du lanceur, intégration). Jamais `continue-on-error`. Pas d'export (second temps).
@@ -189,7 +196,8 @@ func executer(chemins: PackedStringArray, filtre: String, arbre: SceneTree) -> D
 - **Vérif :** YAML valide ; relecture croisée avec `verifier.sh`. **Terminé :** idem.
 
 ### Task 0.5 : Hook de session et `CLAUDE.md` du projet — `haiku`
-- [ ] **Objectif :** une session cloud neuve est prête sans bricolage.
+
+- [x] **Objectif :** une session cloud neuve est prête sans bricolage.
 - **Fichiers (crée) :** `.claude/hooks/session-start.sh`, `.claude/settings.json` (déclare le hook `SessionStart`), `CLAUDE.md` (≤ 80 lignes : ce qu'est le projet, structure §4, règles de dépendance `sim/` ← `reseau/`, `visuels/`, `ui/`, commande `tools/verifier.sh`, règles pour les agents ci-dessus résumées).
 - **Lire :** spec entière ; `tools/install-godot.sh`.
 - **Interfaces :** le hook lance `tools/install-godot.sh` puis `tools/install-gdtoolkit.sh` puis `godot --headless --path . --import`, est idempotent, n'échoue jamais bruyamment hors-ligne (message et code 0).
@@ -203,10 +211,12 @@ func executer(chemins: PackedStringArray, filtre: String, arbre: SceneTree) -> D
 **Parallélisme :** vague A : T1.1 seule. Vague B (en parallèle) : T1.2, T1.3, T1.4, T1.5, T1.7. Vague C (en parallèle) : T1.6 (après 1.1, 1.3, 1.5), T1.8 (après 1.2, 1.7). Vague D : T1.9. Vague E : T1.10. **Chaque test de ce lot tourne sans nœud de scène** (pas d'`add_child`).
 
 ### Task 1.1 : Types, chargement et validation des données — `sonnet`
-- [ ] **Objectif :** `Types`, `StatsTour`, `Donnees` ; les fichiers `data/partie.json`, `economie.json`, `difficulte.json`, `efficacite.json`, `boutique.json` aux valeurs de départ des schémas ci-dessus.
+
+- [x] **Objectif :** `Types`, `StatsTour`, `Donnees` ; les fichiers `data/partie.json`, `economie.json`, `difficulte.json`, `efficacite.json`, `boutique.json` aux valeurs de départ des schémas ci-dessus.
 - **Fichiers (crée) :** `sim/types.gd`, `sim/stats_tour.gd`, `sim/donnees.gd`, `data/partie.json`, `data/economie.json`, `data/difficulte.json`, `data/efficacite.json`, `data/boutique.json`, `tests/unitaires/test_donnees.gd`.
 - **Lire :** spec §2, §5.2 à §5.5 ; la section « Schémas de données » de ce plan.
 - **Interfaces :**
+
 ```gdscript
 class_name StatsTour extends RefCounted   # agrégat des améliorations, toutes à leur valeur neutre par défaut
 var degats_type: Array[float]             # 5 entrées, multiplicateur final par Types.TypeDegats (1.0 neutre)
@@ -228,15 +238,19 @@ static func valider(brut: Dictionary) -> PackedStringArray               # brut:
 static func depuis_brut(brut: Dictionary) -> Donnees                     # null si valider() ≠ []
 func palier(table: Array, manche: int, cle: String) -> float             # dernier palier dont .manche ≤ manche
 ```
+
 `charger` accepte l'absence d'`armes.json`, `ameliorations.json`, `ennemis.json` **uniquement** si le dossier est un dossier de test (liste vide) ; sur `res://data` leur absence est une erreur.
+
 - **Tests :** données réelles valides ; fichier absent, JSON malformé, champ manquant, mauvais type, `rarete` inconnue, `kind` inconnu, id dupliqué (armes et améliorations dans le même espace), `portee` hors {300,600,900,1200}, `cibles` de rebond hors 4..8, palier de manche non trié ou ne commençant pas à 1, poids de rareté tous nuls, ratio négatif : **chaque cas** produit un message contenant le nom du fichier et le champ (boucle sur une table de mutations) ; `palier()` aux bornes (manche 1, manche entre deux paliers, manche > dernier) ; la matrice d'efficacité de la spec **entière** (30 cases, en boucle) ; deux chargements donnent la même `empreinte`, une valeur modifiée change l'empreinte ; `Types.*_depuis_nom` pour chaque nom FR avec accents.
 - **Vérif :** `T --filtre test_donnees`. **Terminé :** vert, `Donnees.charger()` renvoie une instance sur les cinq fichiers de cette tâche.
 
 ### Task 1.2 : Formules de combat — `sonnet`
-- [ ] **Objectif :** toutes les formules pures de §5.4, aucune dépendance aux arènes.
+
+- [x] **Objectif :** toutes les formules pures de §5.4, aucune dépendance aux arènes.
 - **Fichiers (crée) :** `sim/combat.gd`, `tests/unitaires/test_combat.gd`.
 - **Lire :** spec §5.4 ; `sim/types.gd`, `sim/donnees.gd` (champs `efficacite`, `partie`).
 - **Interfaces :** `class_name Combat extends RefCounted`, toutes `static` :
+
 ```gdscript
 func efficacite(table: Array, type_degats: int, armure: int) -> float
 func reduction_armure(armure: float) -> float                     # 0,05·a / (1 + 0,05·a) ; armure < 0 → 0
@@ -250,14 +264,17 @@ func duree_gel(base: float, resistance: float, gel_max: float) -> float        #
 func repartir_dot(total: float, duree: float, dt: float) -> float # dégâts d'un pas : total × dt / durée
 func soin_vol_de_vie(degats: float, ratio: float) -> float
 ```
+
 - **Tests :** les 30 couples type/armure en boucle (×2 aux quatre cases de la spec, ×1 ailleurs, **aucun malus**, chaos ×1 partout, BOSS et AUCUNE ×1) ; réduction d'armure : 0 → 0, 20 → 0,5, très grande → < 1 sans jamais l'atteindre, négative → 0 ; critique : 0 %, 4 %, 5 %, 99 %, 100 %, 150 %, 300 % (excédent), valeur exactement sur un palier malgré l'arrondi flottant (0,15) ; esquive : 0 → 0, croissante, < 1 pour toute valeur, rendement décroissant (2e point < 1er) ; étourdissement : résistance 1,0 / 0,5 / plancher 0,1 / 0 ; givre : 0 cumul, cumul max, plafond ; gel jamais > 3 s même base 100 ; DoT : la somme des pas = total (tolérance), durée 0 sans division par zéro.
 - **Vérif :** `T --filtre test_combat`. **Terminé :** vert.
 
 ### Task 1.3 : Économie — `haiku`
-- [ ] **Objectif :** or, revenu périodique, primes, bonus d'éliminations.
+
+- [x] **Objectif :** or, revenu périodique, primes, bonus d'éliminations.
 - **Fichiers (crée) :** `sim/economie.gd`, `tests/unitaires/test_economie.gd`.
 - **Lire :** spec §5.2 ; `sim/donnees.gd` (`palier`, `economie`), `sim/stats_tour.gd`.
 - **Interfaces :**
+
 ```gdscript
 class_name Economie extends RefCounted
 var argent: int
@@ -271,11 +288,13 @@ func peut_payer(montant: int) -> bool
 func payer(montant: int) -> bool                                   # faux et aucun effet si insuffisant ou montant < 0
 func gagner(montant: int) -> void                                  # ignore les montants ≤ 0
 ```
+
 - **Tests :** or de départ 500 ; `payer` exact (or = prix → 0), insuffisant (prix = or + 1 : refus, or inchangé), montant 0, négatif ; versement à 10,0 s pile, à 9,95 s non, un grand `dt` (35 s) verse trois fois ; revenu de base aux paliers de manche (1, 5, 6, 40) ; revenu fixe + croissant, avec `revenu_mult` (seule la partie achetée est multipliée, pas la base) ; prime avec multiplicateur à plusieurs paliers et `prime_mult` des objets ; bonus tous les n (n = 0 → jamais, n = 3 : 3e, 6e) ; `dt` négatif ignoré.
 - **Vérif :** `T --filtre test_economie`. **Terminé :** vert.
 
 ### Task 1.4 : Vue d'arène et vue globale sérialisables — `haiku`
-- [ ] **Objectif :** les deux structures figées de ce plan, avec aller-retour dictionnaire.
+
+- [x] **Objectif :** les deux structures figées de ce plan, avec aller-retour dictionnaire.
 - **Fichiers (crée) :** `sim/vue_arene.gd`, `sim/vue_globale.gd`, `tests/unitaires/test_vues.gd`.
 - **Lire :** la section « Vue d'arène » de ce plan.
 - **Interfaces :** exactement celles de la section « Interfaces figées » (champs, types, `to_dict`, `from_dict`) ; `from_dict` renvoie `null` si une clé manque, si un type est faux ou si les tableaux d'ennemis n'ont pas la même longueur ; les `Packed*Array` sont copiés (une vue ne partage pas de mémoire avec la simulation).
@@ -283,11 +302,13 @@ func gagner(montant: int) -> void                                  # ignore les 
 - **Vérif :** `T --filtre test_vues`. **Terminé :** vert.
 
 ### Task 1.5 : Contenu et équilibrage (armes, améliorations, familles) — `sonnet`
-- [ ] **Objectif :** le contenu de la version 1, **entièrement original** (noms et textes en français inventés, chiffres propres ; rien de la map d'origine), plus les tests du §5.6.
+
+- [x] **Objectif :** le contenu de la version 1, **entièrement original** (noms et textes en français inventés, chiffres propres ; rien de la map d'origine), plus les tests du §5.6.
 - **Fichiers (crée) :** `data/armes.json`, `data/ameliorations.json`, `data/ennemis.json`, `sim/equilibrage.gd`, `tests/unitaires/test_contenu.gd`.
 - **Lire :** spec §5.3 à §5.6 ; schémas de données ; `sim/donnees.gd`, `sim/types.gd`.
 - **Contenu exigé :** ≥ 25 armes (≥ 5 par type de dégâts, **les quatre raretés présentes dans chaque type**, les sept `kind` d'effet tous représentés, les cinq `kind` de statut tous représentés, portées 300/600/900/1200 toutes utilisées) ; ≥ 30 améliorations (chaque `stat` du schéma utilisée au moins une fois, y compris `marche_noir` ; les trois catégories A/B/C) ; 8 familles (au moins une par armure légère, moyenne, lourde, fortifiée ; au moins une volante ; au moins une à distance ; PV, vitesse et portée tous différents), un convoi sans dégâts, un boss à armure `boss`. Textes courts (≤ 90 caractères), typographie française soignée.
 - **Interfaces :**
+
 ```gdscript
 class_name Equilibrage extends RefCounted
 static func tirs_par_seconde(arme: Dictionary) -> float            # 1 / recharge
@@ -295,14 +316,17 @@ static func cibles_estimees(arme: Dictionary) -> float             # cible_uniqu
 static func dps_estime(arme: Dictionary) -> float                  # degats × tirs/s × cibles_estimees
 static func rendement(arme: Dictionary) -> float                   # dps_estime / prix
 ```
+
 - **Tests :** (sur les données réelles) comptages ci-dessus **en boucle** sur chaque type, chaque rareté, chaque `kind`, chaque `stat` ; ids uniques et en snake_case ; noms uniques ; aucune description vide ; **équilibrage** : par type de dégâts, le rendement moyen par rareté croît strictement commune < peu commune < rare < épique ; aucune arme n'a un rendement > 4× ou < 1/4 de la médiane de son type ; **atteignabilité des données** : chaque arme et chaque amélioration a une rareté dont le poids est > 0 à au moins une manche de 1 à 31 ; `Equilibrage` sur cas limites (recharge minimale, prix 1). Les tests de tirage effectif sont dans T1.6.
 - **Vérif :** `T --filtre test_contenu` ; `Donnees.charger()` doit renvoyer une instance. **Terminé :** vert et les chiffres relus pour ne rien reprendre de l'original.
 
 ### Task 1.6 : Inventaire et boutique — `sonnet`
-- [ ] **Objectif :** 8 emplacements, agrégation des améliorations en `StatsTour`, offres par rareté, achat, relance, vente, marché noir.
+
+- [x] **Objectif :** 8 emplacements, agrégation des améliorations en `StatsTour`, offres par rareté, achat, relance, vente, marché noir.
 - **Fichiers (crée) :** `sim/inventaire.gd`, `sim/boutique.gd`, `tests/unitaires/test_inventaire.gd`, `tests/unitaires/test_boutique.gd`.
 - **Lire :** spec §5.3, §5.4 (cumul des améliorations) ; `sim/donnees.gd`, `sim/economie.gd`, `sim/stats_tour.gd`, `data/boutique.json`.
 - **Interfaces :**
+
 ```gdscript
 class_name Inventaire extends RefCounted
 var armes: Array[String]                                           # ids, ≤ emplacements_armes
@@ -325,15 +349,19 @@ func vendre(index_arme: int, economie: Economie, inventaire: Inventaire) -> int
 func choix_marche_noir(donnees: Donnees) -> PackedStringArray      # ids des améliorations de rareté ≤ raretes_max, triés
 func acheter_marche_noir(id: String, economie: Economie, inventaire: Inventaire) -> int   # consomme un jeton `marche_noir` obtenu en achetant l'objet du même nom
 ```
+
 Tirage : choisir la rareté selon les poids de la manche (`Donnees.palier`), puis un objet **uniforme** de cette rareté parmi armes + améliorations ; une rareté sans objet est retirée du tirage ; jamais deux fois le même id dans les 4 offres tant qu'il reste des candidats. Relance : coût `cout_depart + n × increment` pour la n-ième relance de la manche ; une relance gratuite ne fait pas monter le coût.
+
 - **Tests :** 4 offres toujours (boucle sur les manches 1 à 40, graine fixe) ; **8 emplacements pleins** : la 9e arme est refusée, **l'or n'est pas débité**, l'offre reste ; amélioration acceptée même à 8 armes ; **or insuffisant** (prix − 1) : refus, rien ne bouge ; or exact : OK et or à 0 ; achat d'une offre déjà vendue : `DEJA_ACHETE` ; indice −1 / 4 / 99 : `INDICE_INVALIDE` ; **relance à 0 or** : refusée, offres inchangées ; coûts 50, 75, 100 ; remise à 50 à la manche suivante ; relance gratuite consommée avant l'or et ne faisant pas monter le coût ; vente à 50 % (prix impair : arrondi inférieur), vente d'un emplacement vide refusée, l'emplacement libéré est réutilisable ; **cumul des améliorations** : deux +10 % dans la même catégorie = +20 %, deux catégories = ×1,1 × 1,1, types indépendants, état vide = valeurs neutres ; marché noir : refusé sans jeton, un jeton = un choix ; **reproductibilité** : même graine → mêmes offres sur 20 manches ; **atteignabilité** : sur 20 000 tirages (graine fixe) à chaque manche de 1 à 40, chaque arme et chaque amélioration est proposée au moins une fois à au moins une manche ; les poids de la manche 1 ne proposent jamais d'épique.
 - **Vérif :** `T --filtre test_inventaire` et `T --filtre test_boutique`. **Terminé :** vert.
 
 ### Task 1.7 : Ennemis en tableaux compacts et statuts — `sonnet`
-- [ ] **Objectif :** stockage compact, déplacement, attaques, statuts (poison, brûlure, givre, étourdissement), morts différées.
+
+- [x] **Objectif :** stockage compact, déplacement, attaques, statuts (poison, brûlure, givre, étourdissement), morts différées.
 - **Fichiers (crée) :** `sim/ennemis.gd`, `tests/unitaires/test_ennemis.gd`.
 - **Lire :** spec §4 (tableaux), §5.4 (effets), §5.5 ; `sim/combat.gd` (interface), `sim/types.gd`.
 - **Interfaces :**
+
 ```gdscript
 class_name Ennemis extends RefCounted
 var taille: int                                                    # vivants, morts en attente non comptés
@@ -351,15 +379,19 @@ func choisir(centre: Vector2, portee: float, mode: int) -> int     # indice ou �
 func purger() -> Array[Dictionary]                                 # retire les morts (échange avec le dernier) → [{id, famille, prime, pos}] ; ordre stable par id
 func vers_vue(vue: VueArene) -> void                               # remplit les 5 tableaux ennemis_* (copie)
 ```
+
 Pseudo-algorithmes : **ciblage** = parmi les ennemis vivants à distance ≤ portée du centre (volants inclus), `PLUS_PROCHE` min de `|pos − centre|²`, `PLUS_FORT` max de PV, `PLUS_FAIBLE` min de PV, égalité → plus petit id. **Givre** : `cumuls++` ; ralentissement = `Combat.ralentissement(cumuls, …)` appliqué à la vitesse ; si `cumuls ≥ cumuls_max` → `gel = Combat.duree_gel(…)`, `cumuls = 0` ; les cumuls non entretenus retombent d'un cran par seconde. **Déplacement** : corps à corps → droit sur la tour, s'arrête à `rayon_tour + portee_attaque` et attaque à la cadence ; à distance → s'arrête à `portee_attaque` ; gelé ou étourdi → immobile et n'attaque pas.
+
 - **Tests :** ajout/purge de 0, 1, 1 000 ennemis ; **zéro ennemi** : toutes les méthodes sans exception, `choisir` → −1 ; ids stables après purges successives (swap-remove) ; mort unique (deux `infliger` mortels dans le même pas : un seul `purger`, prime comptée une fois) ; poison seul (somme = total), brûlure seule, **poison + brûlure + givre + étourdissement sur le même ennemi** (chaque effet agit, la mort par statut n'est comptée qu'une fois) ; poison recommencé cumule sans dépasser l'intention ; **givre** : 7 cumuls = ralenti mais pas gelé, 8e = gelé 3 s (jamais plus), pendant le gel pas de nouveau cumul, dégel puis re-gel possible ; **résistance** : étourdissement ×0,5, ×0,1, ×0 ; gel plafonné à 3 s même à résistance 1 ; volants et sol traités par `dans_rayon` selon le drapeau ; ciblage aux trois modes avec égalités exactes ; ennemi à distance s'arrête à sa portée ; corps à corps listé dans `attaquants_cac` ; `vers_vue` copie 300 ennemis sans partage de mémoire ; **performance** : 1 000 ennemis, 100 pas en moins de 500 ms au total, soit 5 ms/pas en moyenne (`Time.get_ticks_usec`, marge large).
 - **Vérif :** `T --filtre test_ennemis`. **Terminé :** vert.
 
 ### Task 1.8 : Armes équipées et résolution des tirs — `sonnet`
-- [ ] **Objectif :** recharge, ciblage, effets cible unique / zone / rebond / onde / barrage / mine / piège / aura, critique, statuts, vol de vie, éclaboussure, tirs multiples, focalisation.
+
+- [x] **Objectif :** recharge, ciblage, effets cible unique / zone / rebond / onde / barrage / mine / piège / aura, critique, statuts, vol de vie, éclaboussure, tirs multiples, focalisation.
 - **Fichiers (crée) :** `sim/arme_equipee.gd`, `sim/tir.gd`, `tests/unitaires/test_tir.gd`.
 - **Lire :** spec §5.4 ; `sim/ennemis.gd`, `sim/combat.gd`, `sim/stats_tour.gd`, schéma d'`armes.json`.
 - **Interfaces :**
+
 ```gdscript
 class_name ArmeEquipee extends RefCounted
 var id: String; var def: Dictionary; var recharge_restante: float
@@ -371,16 +403,20 @@ class_name Tir extends RefCounted
 class Bilan: var degats: float; var tues_directs: int; var soin: float; var evenements: Array[Dictionary]
 static func avancer_arme(arme: ArmeEquipee, dt: float, stats: StatsTour, ennemis: Ennemis, centre: Vector2, donnees: Donnees, rng: RandomNumberGenerator, resistance: float, bilan: Bilan) -> void
 ```
+
 Formules : `recharge_eff = recharge / (1 + stats.cadence)` ; `dégâts = degats × degats_type[type] × degats_global × (critique ? puissance : 1) × (cible_unique ? 1 + focalisation : 1)`, puis `Ennemis.infliger(i, dégâts, type)`, qui applique **seul et une seule fois** l'efficacité type/armure (ne jamais la multiplier aussi dans `Tir` : un test vérifie qu'un tir tranchant sur armure moyenne fait exactement ×2, pas ×4) ; nombre de tirs = `1 + tirs_multiples`, chaque tir vise une cible **distincte** quand il y en a assez (sinon la même). Critique : tirage `rng.randf() < chance_effective`.
 **Rebond (pseudo)** : `touchees = {}` ; `c = choisir(centre, portee, ciblage)` ; pour `k = 0 .. cibles−1` : frapper `c` avec `dégâts × decroissance^k` ; `touchees += c` ; `c = plus proche non touchée dans portee_saut autour de c` ; arrêt si aucune. **Zone** : tous les ennemis dans `rayon` du point d'impact (volants inclus). **Onde** : anneau centré sur la tour qui grandit de `vitesse × dt` jusqu'à `rayon_max` et touche **une seule fois** chaque ennemi traversé. **Barrage** : `projectiles` impacts de rayon `rayon`, dirigés autour de la cible avec une dispersion `dispersion_deg` tirée par le `rng`. **Mine / piège** : pose jusqu'à `max_actives` à la position d'un ennemi **au sol** ; se déclenche quand un ennemi **au sol** passe dans le rayon ; **les volants l'ignorent**. **Aura** : à chaque `periode`, frappe tous les ennemis dans `rayon`. **Éclaboussure** : autour de la cible d'un tir `cible_unique`, ratio × dégâts dans 80 unités. Statuts appliqués sur chaque cible touchée, un coup à la fois.
+
 - **Tests :** chaque `kind` d'effet en boucle sur une arme-type ; recharge (pas de tir avant la fin, un seul tir par recharge malgré un grand `dt`) ; cadence ×2 ; **zéro ennemi** : aucune exception, aucun tir consommé, recharge conservée prête ; cible hors portée aux quatre paliers de portée (299/300/301 unités…) ; rebond avec 1, 3, 8 ennemis autour (jamais deux fois le même, jamais plus que `cibles`, décroissance respectée) ; zone qui touche les volants, **mine qui ignore un volant** et se déclenche pour un fantassin, `max_actives` respecté ; onde : chaque ennemi touché une seule fois ; critique : 0 % jamais, 100 % toujours, 200 % → puissance accrue, graine fixe reproductible ; efficacité ×2 appliquée aux 4 couples, ×1 sinon ; focalisation uniquement en cible unique ; vol de vie au coup / à la mort ; **plusieurs effets sur le même ennemi** (givre + poison + brûlure du même tir) ; éclaboussure ; tirs multiples sur cibles distinctes ; évènements `tir` et `impact` émis avec positions et types.
 - **Vérif :** `T --filtre test_tir`. **Terminé :** vert.
 
 ### Task 1.9 : Arène (une tour, un joueur) — `sonnet`
-- [ ] **Objectif :** assembler économie, boutique, inventaire, ennemis, armes, apparitions, tour ; produire la `VueArene`.
+
+- [x] **Objectif :** assembler économie, boutique, inventaire, ennemis, armes, apparitions, tour ; produire la `VueArene`.
 - **Fichiers (crée) :** `sim/arene.gd`, `tests/unitaires/test_arene.gd`.
 - **Lire :** spec §5.1 à §5.5 ; interfaces de 1.3, 1.4, 1.6, 1.7, 1.8.
 - **Interfaces :**
+
 ```gdscript
 class_name Arene extends RefCounted
 signal tour_detruite
@@ -393,15 +429,19 @@ func vue(phase: int, temps_restant: float, prochaine_famille: int, sans_fin: boo
 func est_detruite() -> bool; func boss_vaincu() -> bool
 func nombre_ennemis() -> int
 ```
+
 Apparitions : cumulateur de temps, intervalle `max(plancher, depart − baisse × (manche−1))`, angle `rng.randf() × TAU` sur le cercle de rayon 1300, PV/vitesse/dégâts × `mult`. Dégâts à la tour : `Combat.degats_subis(dégâts, armure)` ; esquive de la tour : tirage par attaque ; épines : chaque attaquant au corps à corps subit `stats.epines × dégâts` ; régénération par seconde ; PV max = base + `pv_max_bonus`. Le convoi n'inflige aucun dégât et verse sa prime élevée. Intentions d'une arène détruite : `ARENE_MORTE` ; la boutique est ouverte dans toute phase d'une arène non détruite (préparation comprise).
+
 - **Tests :** **reproductibilité** : même graine et mêmes intentions → mêmes 2 000 pas (comparer `vue().to_dict()` tous les 100 pas) ; graines différentes → apparitions différentes ; apparitions aux angles dans [0, TAU), sur le cercle exact ; intervalle 2,0 s à la manche 1, 1,92 s à la 2, plancher 0,1 s dès la manche 25+ ; **1 000+ ennemis** sur plancher sans exception et pas moyen < 5 ms ; défaite à PV 0 : `tour_detruite` émis **une fois**, intentions suivantes → `ARENE_MORTE` ; armure de la tour (0, 20, 1000) ; épines sur corps à corps seulement ; esquive à 0 et très haute ; regen ; primes et revenus versés, bonus d'éliminations ; achat/vente/relance via l'arène (débit exact, 8 armes) ; convoi : or élevé, aucun dégât ; arme achetée tire dès qu'un ennemi est à portée ; boss : plus d'apparitions normales ; `vue()` : 4 offres, ≤ 8 armes, tableaux ennemis de même longueur, événements vidés après lecture ; **intentions invalides** (indices −1, 4, 8, 99) → `INDICE_INVALIDE`, aucun effet.
 - **Vérif :** `T --filtre test_arene`. **Terminé :** vert.
 
 ### Task 1.10 : Partie (N arènes, manches, difficulté, boss, fin) — `sonnet`
-- [ ] **Objectif :** le seul point d'entrée public de la simulation, consommé tel quel par `reseau/` et `SourceLocale`.
+
+- [x] **Objectif :** le seul point d'entrée public de la simulation, consommé tel quel par `reseau/` et `SourceLocale`.
 - **Fichiers (crée) :** `sim/partie.gd`, `tests/unitaires/test_partie.gd`.
 - **Lire :** spec §5.1, §5.5 ; `sim/arene.gd`, `sim/vue_globale.gd`, `data/difficulte.json`.
 - **Interfaces :**
+
 ```gdscript
 class_name Partie extends RefCounted
 signal manche_commencee(numero: int); signal joueur_elimine(id: int); signal joueur_victorieux(id: int); signal partie_terminee(classement: Array)
@@ -418,7 +458,9 @@ func vue_arene(demandeur: int, cible: int) -> VueArene            # null si le d
 func vue_globale() -> VueGlobale
 func temps_ecoule() -> float; func est_terminee() -> bool
 ```
+
 Déroulement : préparation 30 s (manche 0) puis manches de 30 s ; à chaque manche, **une famille commune à tous les joueurs**, tirée par le `rng` de la partie, **jamais deux fois de suite**, convoi avec `convoi.probabilite` à partir de `manche_min` (jamais deux manches de suite) ; multiplicateurs = `paliers` (`Donnees.palier`) × accélérations dont `temps_s ≤ temps_ecoule`, au-delà du dernier palier `apres_table` appliqué par manche supplémentaire (borné par `resistance_plancher`) ; `manche_boss` = 31 → boss sur chaque arène vivante ; boss mort → `VICTOIRE` (arène figée, en attente de `continuer`/`quitter`). Fin : plus aucun joueur « en jeu » (vivant et non vainqueur parti). Classement : manche atteinte puis dégâts infligés, égalités par id ; `dernier_rempart` = le dernier éliminé s'il y a eu des éliminés avant lui et qu'il l'était à la fin, sinon −1. Graine d'une arène = `config.graine + 7919 × rang d'arrivée`.
+
 - **Tests :** **1 à 8 joueurs en boucle** (démarrage, 600 pas, vues globales cohérentes) ; 9e joueur refusé ; id dupliqué refusé ; ajout après démarrage refusé ; **zéro joueur** : `demarrer()` faux, `avancer` sans effet, pas d'exception ; **tous déconnectés pendant la préparation** : `partie_terminee` émis une fois, classement vide ; déconnexion en cours de partie : éliminé, arène retirée, les autres continuent ; **reproductibilité** : même graine + mêmes intentions horodatées au pas → mêmes `VueGlobale` et vues d'arène au pas 3 000 ; **vitesse** : facteur 0,5 atteint le même état que le facteur 1 en simulant deux fois moins de temps réel (même nombre de pas) ; `dt` énorme (60 s) : boucle bornée, pas de gel ; manche N : familles jamais identiques deux fois de suite (200 manches, boucle sur 20 graines), convoi jamais deux fois de suite ; paliers de difficulté exacts aux manches 1, 5, 31, 40 et aux temps 299/300/600/900 s ; boss uniquement à la manche 31 ; victoire → phase `VICTOIRE`, `intention_quitter` → joueur terminé (le mode sans fin n'est pas testé ici : son test vient avec T4.3, aucun test ne fige le `NON_DISPONIBLE` provisoire) ; classement : manche puis dégâts puis id ; mention « Dernier rempart » seulement si pertinente ; **observation** : demandeur mort peut voir n'importe quelle arène existante, vivant seulement la sienne, cible inconnue → `null` ; intentions d'un id inconnu / mort : refus sans exception.
 - **Vérif :** `T --filtre test_partie`, puis `tools/verifier.sh`. **Terminé :** vert ; la simulation complète (1 joueur, bot d'achat simple) joue une partie entière, jusqu'à la défaite ou au-delà de la manche du boss, sans erreur ni avertissement.
 
@@ -429,7 +471,8 @@ Déroulement : préparation 30 s (manche 0) puis manches de 30 s ; à chaque man
 **Parallélisme :** vague A (en parallèle) : T2.1, T2.2, T2.3, T2.5, T2.6. Vague B : T2.4 (après 2.2, 2.3). Vague C : T2.7 (assemblage, après toutes). Les tests de ce lot instancient des nœuds via `arbre.root.add_child` (rendu factice de `--headless`).
 
 ### Task 2.1 : `SourceVue` et `SourceLocale` — `sonnet`
-- [ ] **Objectif :** l'interface unique entre simulation et présentation, et son implémentation solo.
+
+- [x] **Objectif :** l'interface unique entre simulation et présentation, et son implémentation solo.
 - **Fichiers (crée) :** `app/source_vue.gd`, `app/source_locale.gd`, `tests/unitaires/test_source_locale.gd`.
 - **Lire :** « Source de vue » de ce plan ; `sim/partie.gd`, `sim/vue_arene.gd`.
 - **Interfaces :** `SourceVue` exactement comme la section figée. `SourceLocale extends SourceVue` : `func demarrer(donnees: Donnees, graine: int, facteur_duree: float, nom: String) -> bool` (une `Partie` en processus, 1 joueur d'id 1) ; `_process(delta)` appelle `Partie.avancer`, émet `vue_arene_recue` à 15 Hz et `vue_globale_recue` à 2 Hz, **en passant par `to_dict()`/`from_dict()`** (garantit que le solo exerce le même chemin de sérialisation que le réseau) ; chaque intention renvoie son code par `resultat_intention`. Aucune API navigateur ; `Donnees` injectée (pas de `load` dans le composant).
@@ -437,10 +480,12 @@ Déroulement : préparation 30 s (manche 0) puis manches de 30 s ; à chaque man
 - **Vérif :** `T --filtre test_source_locale`. **Terminé :** vert.
 
 ### Task 2.2 : Apparence (entité → primitive) — `haiku`
-- [ ] **Objectif :** l'unique endroit qui connaît les formes et couleurs.
+
+- [x] **Objectif :** l'unique endroit qui connaît les formes et couleurs.
 - **Fichiers (crée) :** `visuels/apparence.gd`, `tests/unitaires/test_apparence.gd`.
 - **Lire :** spec §2, §6 ; `data/ennemis.json`, `data/armes.json`.
 - **Interfaces :**
+
 ```gdscript
 class_name Apparence extends RefCounted
 const ECHELLE: float = 0.02                                        # mètres par unité de jeu
@@ -453,15 +498,19 @@ static func forme_projectile(type_degats: int) -> Mesh
 static func couleur_rarete(r: int) -> Color; static func symbole_rarete(r: int) -> String   # la couleur n'est jamais seule : symbole et texte
 static func couleur_armure(a: int) -> Color; static func symbole_armure(a: int) -> String
 ```
+
 Familles inconnues : primitive de repli visible (jamais `null`).
+
 - **Tests :** **chaque** famille, type de dégâts, rareté et armure (boucle) a un maillage/une couleur non nuls ; deux raretés n'ont ni le même symbole ni la même couleur ; contraste de chaque couleur de texte de rareté ≥ 4,5:1 sur le fond d'interface (fonction de luminance relative écrite dans le test) ; index hors bornes → repli ; `position_monde` : `(1300, 0)` → x = 26 m.
 - **Vérif :** `T --filtre test_apparence`. **Terminé :** vert.
 
 ### Task 2.3 : Interpolation des états — `sonnet`
-- [ ] **Objectif :** lisser entre deux vues reçues, quelle que soit la source.
+
+- [x] **Objectif :** lisser entre deux vues reçues, quelle que soit la source.
 - **Fichiers (crée) :** `visuels/interpolation.gd`, `tests/unitaires/test_interpolation.gd`.
 - **Lire :** spec §4, §6 ; `sim/vue_arene.gd`.
 - **Interfaces :**
+
 ```gdscript
 class_name Interpolation extends RefCounted
 const DELAI_S: float = 0.12                                        # ~2 intervalles à 15 Hz
@@ -469,15 +518,19 @@ func pousser(vue: VueArene, temps_reception: float) -> void        # ignore une 
 func echantillon(temps_rendu: float) -> Dictionary                 # {vue: VueArene (la plus récente des deux), ids: PackedInt32Array, pos: PackedVector2Array}
 func reinitialiser() -> void
 ```
+
 Pseudo : garder `a` (précédente) et `b` (courante) ; `t = temps_rendu − DELAI_S` ; `alpha = clamp((t − a.t) / (b.t − a.t), 0, 1)` ; index de `a` par `Dictionary id → indice` construit une seule fois par `pousser` ; pour chaque id de `b` : si présent dans `a` et distance < 200 unités → `lerp`, sinon position de `b` (apparition ou saut) ; les ids seulement dans `a` disparaissent. Pas d'extrapolation : au-delà de `b`, `alpha = 1`.
+
 - **Tests :** `alpha` 0, 0,5, 1 et > 1 (aucune extrapolation) ; une seule vue reçue → renvoie ses positions ; **zéro ennemi** ; ennemi apparu / disparu entre les deux vues ; saut > 200 unités non interpolé ; ids qui changent d'indice entre deux vues (purge) : chaque ennemi suit **son** id ; vues dans le désordre ou dupliquées ignorées ; `temps_rendu` antérieur à `a` ; 300 ennemis en moins de 2 ms.
 - **Vérif :** `T --filtre test_interpolation`. **Terminé :** vert.
 
 ### Task 2.4 : Arène 3D et caméra — `sonnet`
-- [ ] **Objectif :** sol en damier, tour, `MultiMeshInstance3D` par famille, projectiles et impacts, caméra fixe inclinée avec zoom.
+
+- [x] **Objectif :** sol en damier, tour, `MultiMeshInstance3D` par famille, projectiles et impacts, caméra fixe inclinée avec zoom.
 - **Fichiers (crée) :** `visuels/arene_3d.gd`, `visuels/camera_arene.gd`, `visuels/effets.gd`, `scenes/arene_3d.tscn`, `tests/unitaires/test_arene_3d.gd`.
 - **Lire :** spec §6 ; `visuels/apparence.gd`, `visuels/interpolation.gd`, `app/source_vue.gd`.
 - **Interfaces :**
+
 ```gdscript
 class_name Arene3D extends Node3D
 func lier(source: SourceVue) -> void                               # s'abonne à vue_arene_recue ; ne lit rien d'autre que VueArene
@@ -486,12 +539,15 @@ func nombre_instances_visibles(famille: int) -> int
 class_name CameraArene extends Camera3D
 func zoomer(delta: float) -> void                                  # bornes min/max ; clamp
 ```
+
 Chaque famille : un `MultiMeshInstance3D` dont `instance_count` suit le maximum vu (jamais réalloué à chaque vue) et `visible_instance_count` = nombre d'ennemis ; événements `tir` → projectile léger de durée de vie courte ; `impact` → anneau de rayon `rayon × ECHELLE` ; effets en pool (pas de `queue_free` par événement). Aucun accès à `Partie`.
+
 - **Tests :** 0, 1, 300, 1 000 ennemis (compteurs exacts par famille) ; passage de 300 à 0 ennemi ; une famille inconnue n'échoue pas ; événements : 100 impacts dans une vue n'agrandissent pas le pool au-delà d'une borne ; `zoomer` aux bornes ; la tour est à l'origine ; **le même `VueArene` reconstruit par `from_dict(to_dict())` produit le même affichage** (comparer les compteurs et les transformations).
 - **Vérif :** `T --filtre test_arene_3d`. **Terminé :** vert.
 
 ### Task 2.5 : HUD et tableau des scores — `haiku`
-- [ ] **Objectif :** PV, or et revenu, manche et temps, prochaine famille et armure, armes ; tableau des scores (Tab).
+
+- [x] **Objectif :** PV, or et revenu, manche et temps, prochaine famille et armure, armes ; tableau des scores (Tab).
 - **Fichiers (crée) :** `ui/hud.gd`, `ui/scores.gd`, `scenes/hud.tscn`, `scenes/scores.tscn`, `i18n/textes_hud.csv`, `tests/unitaires/test_hud.gd`.
 - **Lire :** spec §6 ; `sim/vue_arene.gd`, `sim/vue_globale.gd`, `visuels/apparence.gd`.
 - **Interfaces :** `class_name Hud extends Control` : `func afficher(vue: VueArene) -> void` ; `class_name TableauScores extends Control` : `func afficher(vue: VueGlobale, id_local: int) -> void`, visible tant que Tab est maintenu. Clés CSV `HUD_*` et `SCORES_*` (colonne `fr`). Armure annoncée **en texte et symbole**, pas en couleur seule ; chaque contrôle ≥ 48 px de haut ; texte ≥ 16 px.
@@ -499,7 +555,8 @@ Chaque famille : un `MultiMeshInstance3D` dont `instance_count` suit le maximum 
 - **Vérif :** `T --filtre test_hud`. **Terminé :** vert.
 
 ### Task 2.6 : Panneau de boutique — `sonnet`
-- [ ] **Objectif :** 4 cartes, achat, relance, raccourcis 1 à 4 et R, marché noir.
+
+- [x] **Objectif :** 4 cartes, achat, relance, raccourcis 1 à 4 et R, marché noir.
 - **Fichiers (crée) :** `ui/boutique_ui.gd`, `scenes/boutique.tscn`, `i18n/textes_boutique.csv`, `tests/unitaires/test_boutique_ui.gd`.
 - **Lire :** spec §6 ; `app/source_vue.gd`, `sim/vue_arene.gd`, `visuels/apparence.gd`, `data/armes.json` (noms et descriptions via `Donnees`).
 - **Interfaces :** `class_name BoutiqueUi extends Control` : `func configurer(donnees: Donnees, source: SourceVue) -> void` ; `func afficher(vue: VueArene) -> void` ; chaque carte : nom, rareté (couleur **et** texte), prix, type de dégâts, description courte ; boutons « Acheter » et « Relancer (coût) » ; un bouton désactivé reste focalisable (`aria`-équivalent : texte « or insuffisant »). Touches 1 à 4 / R **uniquement** si aucun champ de saisie n'a le focus et si la boutique est visible. Une offre vendue est grisée avec le mot « Vendu ».
@@ -507,7 +564,8 @@ Chaque famille : un `MultiMeshInstance3D` dont `instance_count` suit le maximum 
 - **Vérif :** `T --filtre test_boutique_ui`. **Terminé :** vert.
 
 ### Task 2.7 : Assemblage solo : menu, partie, boucle jouable — `sonnet`
-- [ ] **Objectif :** `godot --path .` ouvre un menu, « Jouer seul » lance une partie jouable.
+
+- [x] **Objectif :** `godot --path .` ouvre un menu, « Jouer seul » lance une partie jouable.
 - **À reprendre des tâches précédentes :** déclarer dans `project.godot` (`[input]`) l'action `afficher_scores` liée à Tab, lue par `TableauScores` ; enregistrer tous les `i18n/*.csv` (dont `textes_communs.csv`) ; appeler `Hud.configurer(donnees)` ; dans la scène 3D, poser les maillages d'`Apparence` à une demi-hauteur au-dessus du sol (leur centre est à l'origine du nœud).
 - **Fichiers (crée) :** `app/jeu.gd`, `app/menu_principal.gd`, `app/arguments.gd`, `scenes/principal.tscn`, `scenes/jeu.tscn`, `i18n/textes_menu.csv` ; **modifie** `project.godot` (scène principale, liste des CSV de traduction), `tests/integration/test_solo.gd` (crée).
 - **Lire :** toutes les interfaces du lot 2 ; spec §1, §6.
@@ -522,10 +580,12 @@ Chaque famille : un `MultiMeshInstance3D` dont `instance_count` suit le maximum 
 **Parallélisme :** vague A (en parallèle) : T3.1, T3.2. Vague B (en parallèle) : T3.3, T3.4, T3.6. Vague C : T3.5 (après 3.3). Vague D : T3.7. `reseau/` n'importe **que** `Partie`, `VueArene`, `VueGlobale`, `Donnees`, `Types`.
 
 ### Task 3.1 : Protocole binaire — `sonnet`
-- [ ] **Objectif :** encodage compact et décodage défensif de tous les messages.
+
+- [x] **Objectif :** encodage compact et décodage défensif de tous les messages.
 - **Fichiers (crée) :** `reseau/protocole.gd`, `tests/unitaires/test_protocole.gd`.
 - **Lire :** spec §4 ; `sim/vue_arene.gd`, `sim/vue_globale.gd`, `sim/donnees.gd` (`ids_catalogue`, `empreinte`).
 - **Interfaces :** `class_name Protocole extends RefCounted` ; `const VERSION: int = 1`, `const MAX_ENNEMIS: int = 2000`, `const MAX_EVENEMENTS: int = 64`, `const MAX_TAILLE: int = 65536`.
+
 ```gdscript
 enum Msg { BONJOUR = 1, ETAT_ARENE, ETAT_GLOBAL, INTENTION, SALON, REFUS }
 static func encoder_bonjour(nom: String, empreinte: int) -> PackedByteArray
@@ -539,15 +599,19 @@ static func decoder_intention(b: PackedByteArray) -> Dictionary                 
 enum Intention { ACHETER = 1, RELANCER, VENDRE, MARCHE_NOIR, OBSERVER, SANS_FIN, QUITTER, PRET, OPTIONS }
 static func encoder_refus(motif: String) -> PackedByteArray; static func decoder_refus(b: PackedByteArray) -> String
 ```
+
 **Encodage de `ETAT_ARENE`** (little-endian, `PackedByteArray.encode_*`) : `u8 type` · `u32 tick` · `u8 phase` · `u16 manche` · `u16 temps_restant × 10` · `u8 flags (sans_fin, marche_noir_ouvert)` · `f32 tour_pv` · `f32 tour_pv_max` · `f32 tour_armure` · `i32 argent` · `i32 revenu` · `u16 revenu_dans × 10` · `u16 cout_relance` · `u8 relances_gratuites` · `i8 prochaine_famille` · `u8 prochaine_armure` · `u8 n_offres` + n × `[u8 genre|rarete<<1|vendu<<4, u16 idx_catalogue, u16 prix]` · `u8 n_armes` + n × `[u16 idx_catalogue, u8 recharge_ratio×255]` · `u16 n_amel` + n × `[u16 idx, u8 compte]` · `u16 n_ennemis` + n × `[u16 id (modulo 65 536), i16 x×16, i16 y×16, u8 famille, u8 pv, u8 statuts]` (**9 octets**) · `u8 n_evt` + n × `[u8 genre, u8 type_degats, i16 x1×16, i16 y1×16, i16 x2×16, i16 y2×16, u8 rayon/8]` · `u16 eliminations` · `f32 degats_infliges` · `u16 manche_max`. Précision de position : 1/16 d'unité (rayon max ≈ 1 400 → ±22 400 dans un `i16`).
+
 - **Tests :** aller-retour pour chaque message ; erreur de position ≤ 1/32 unité sur 1 000 positions aléatoires (graine fixe) dont les bornes (±1 400) ; **300 ennemis × 15 Hz ≤ 50 Ko/s** (taille d'un message × 15 < 50 000, chaîne de 8 armes, 4 offres, 64 événements) ; 0 ennemi ; 2 000 ennemis (borne) accepté, 2 001 refusé à l'encodage ; **décodage défensif** : paquet vide, tronqué à chaque longueur possible (boucle sur toute la longueur d'un message valide), type inconnu, version fausse, compteur annonçant plus que les octets restants, octets en trop, 65 536 octets de bruit aléatoire (graine fixe) → toujours `null`/`{}`, jamais d'erreur ; id d'objet absent du catalogue → `null` ; nom Unicode de 24 caractères et de 1 000 caractères ; `VERSION` différente → motif dans le refus.
 - **Vérif :** `T --filtre test_protocole`. **Terminé :** vert.
 
 ### Task 3.2 : Salon et canal RPC — `sonnet`
-- [ ] **Objectif :** état du salon pur (testable sans réseau) et déclaration unique des RPC.
+
+- [x] **Objectif :** état du salon pur (testable sans réseau) et déclaration unique des RPC.
 - **Fichiers (crée) :** `reseau/salon.gd`, `reseau/canal.gd`, `tests/unitaires/test_salon.gd`.
 - **Lire :** spec §5.1 (salon), §4 (réseau) ; `reseau/protocole.gd` (interfaces ci-dessus).
 - **Interfaces :**
+
 ```gdscript
 class_name Salon extends RefCounted
 var joueurs: Dictionary                                            # id → {nom: String, pret: bool}
@@ -567,16 +631,20 @@ signal etat_arene_recu(octets: PackedByteArray); signal etat_global_recu(octets:
 @rpc("authority", "reliable") func rpc_salon(octets: PackedByteArray) -> void
 @rpc("authority", "reliable") func rpc_refus(octets: PackedByteArray) -> void
 ```
+
 `Canal` est un nœud nommé `Canal` à la racine ; `Serveur` et `Client` en sont des enfants au même chemin des deux côtés (même nom de nœud → mêmes RPC). Corps des RPC : émettre le signal (avec `multiplayer.get_remote_sender_id()` pour les `any_peer`), rien d'autre.
+
 - **Tests :** 1 à 8 joueurs en boucle, 9e refusé ; id dupliqué ; retrait d'un absent ; prêt d'un inconnu ; `peut_demarrer` avec 0 joueur, un non prêt, tous prêts ; `regler` par un non-hôte refusé, vitesse hors {1, 0,66, 0,5} refusée, graine fixe / aléatoire ; sérialisation aller-retour et décodage défensif (tronqué, bruit) → `null`.
 - **Vérif :** `T --filtre test_salon`. **Terminé :** vert.
 
 ### Task 3.3 : Serveur autoritaire — `sonnet`
-- [ ] **Objectif :** ENet, boucle à pas fixe, intentions validées, états envoyés à 15 Hz et 2 Hz.
+
+- [x] **Objectif :** ENet, boucle à pas fixe, intentions validées, états envoyés à 15 Hz et 2 Hz.
 - **Débit adaptatif (décision de l'agent principal, mesures de T3.1) :** un état d'arène pèse ~9 octets par ennemi (300 ennemis ≈ 2,8 à 3,5 Ko ; 1 000 ≈ 9 à 10 Ko). Par client, la fréquence d'envoi de l'état d'arène s'adapte à la taille du dernier paquet pour tenir `reseau.budget_octets_s` (nouvelle clé de `data/partie.json`, 50 000, validée par `Donnees`) : `hz = clamp(budget / taille, hz_min, hz_arene)` avec `hz_min = 5` (nouvelle clé `reseau.hz_min`). Le combat est automatique, l'interpolation lisse : la fréquence plus basse ne gêne pas le joueur. Tests : 300 ennemis → 15 Hz ; 1 000 ennemis → ≤ 5,6 Hz et ≥ 5 Hz ; débit mesuré sur 10 s simulées ≤ budget + un paquet.
 - **Fichiers (crée) :** `reseau/serveur.gd`, `tests/unitaires/test_serveur.gd` ; **modifie** `data/partie.json` et `sim/donnees.gd` (deux clés `reseau.budget_octets_s` et `reseau.hz_min`, avec leur validation et leurs tests dans `test_donnees.gd`).
 - **Lire :** spec §3, §4 ; `reseau/canal.gd`, `reseau/protocole.gd`, `reseau/salon.gd`, `sim/partie.gd` (API publique uniquement).
 - **Interfaces :**
+
 ```gdscript
 class_name Serveur extends Node
 signal partie_terminee_serveur
@@ -585,15 +653,19 @@ func arreter() -> void
 func traiter_intention(pair: int, octets: PackedByteArray) -> int  # public pour les tests, renvoie un Types.Resultat ou NON_DISPONIBLE
 func joueur_de(pair: int) -> int                                    # id de joueur ou -1
 ```
+
 Règles : poignée de main `BONJOUR` obligatoire avant toute autre message (sinon ignoré), refus avec motif si `version` ou `empreinte` diffèrent ou salon plein ou partie déjà démarrée ; l'hôte = premier pair connecté ; dans le salon, intentions `PRET`, `OPTIONS` (hôte seul) ; partie démarrée quand `Salon.peut_demarrer()` ; chaque `_physics_process` appelle `Partie.avancer(delta)` `acceleration` fois ; **par pair** : `Partie.vue_arene(joueur, cible_observee)` → `Protocole.encoder_etat_arene` → `rpc_id(pair, "rpc_etat_arene", …)` à 15 Hz (accumulateur indépendant du pas) ; état global à 2 Hz fiable ; **limite de débit** par pair : 30 intentions/s (le surplus ignoré, compté) ; indices et ids validés par `Partie` ; `OBSERVER` mémorisé seulement si `Partie` renvoie une vue non nulle ; déconnexion → `Partie.retirer_joueur` ; si plus aucun pair et partie démarrée → `partie_terminee_serveur`. **Jamais** de logique de jeu ici : uniquement `Partie`.
+
 - **Tests (sans socket : appeler directement `traiter_intention` avec des `PackedByteArray`)** : intention avant `BONJOUR` ignorée ; intention de type inconnu, tronquée, bruit, genre valide mais argument hors bornes (−1, 4, 255) → refus sans exception ; rafale de 1 000 intentions en une seconde : au plus 30 traitées ; acheter après la mort → `ARENE_MORTE` ; observer sa propre arène vivant OK, celle d'un autre vivant refusé, après la mort OK, cible inconnue refusée ; deux pairs même nom ; 9e pair refusé ; **tous déconnectés pendant la préparation** → fin propre ; pair déconnecté en pleine partie → joueur éliminé et les autres continuent ; version ou empreinte différente → refus avec motif ; port 0, 70 000 et déjà occupé → code d'erreur (le port occupé est ouvert par le test lui-même).
 - **Vérif :** `T --filtre test_serveur`. **Terminé :** vert.
 
 ### Task 3.4 : Client réseau — `sonnet`
-- [ ] **Objectif :** `SourceVue` réseau : connexion, intentions, réception, interpolation, perte de connexion.
+
+- [x] **Objectif :** `SourceVue` réseau : connexion, intentions, réception, interpolation, perte de connexion.
 - **Fichiers (crée) :** `reseau/client.gd`, `tests/unitaires/test_client.gd`.
 - **Lire :** `app/source_vue.gd`, `reseau/canal.gd`, `reseau/protocole.gd`, `reseau/salon.gd`.
 - **Interfaces :**
+
 ```gdscript
 class_name Client extends SourceVue
 signal salon_mis_a_jour(salon: Salon); signal partie_demarree()
@@ -601,11 +673,14 @@ func connecter(donnees: Donnees, adresse: String, port: int, nom: String) -> Err
 func deconnecter() -> void
 func envoyer_pret(pret: bool) -> void; func envoyer_options(vitesse: float, graine: int, graine_fixe: bool) -> void
 ```
+
 Toutes les méthodes de `SourceVue` envoient `Protocole.encoder_intention` ; les messages reçus sont décodés par `Protocole`, **un message invalide est ignoré et compté** (jamais d'exception) ; `vue_arene_recue` n'est émis que pour un tick **strictement croissant** (les paquets non fiables arrivent dans le désordre) ; refus du serveur → `connexion_perdue(motif)` avec le texte du refus ; coupure ou délai > 5 s sans état → `connexion_perdue("Connexion perdue")`. Aucune règle de jeu.
+
 - **Tests (en injectant des octets dans les signaux du `Canal`, sans socket)** : états dans l'ordre, dupliqués, anciens, **dans le désordre** (seul le plus récent compte) ; message tronqué ou bruit ignoré ; état global valide ; refus de version → motif relayé ; silence de 5 s (horloge injectée) → perte ; `connecter` avec adresse vide, port 0, port 70 000 ; `acheter(-1)` n'envoie rien (ou refus local) ; **le `VueArene` reçu égale celui encodé** à la quantification près (comparaison à 1/32).
 - **Vérif :** `T --filtre test_client`. **Terminé :** vert.
 
 ### Task 3.5 : Serveur dédié et lancement — `haiku`
+
 - [ ] **Objectif :** `godot --headless -- --serveur --port 7777` fait tourner une partie.
 - **Fichiers (crée) :** `reseau/serveur_dedie.gd`, `scenes/serveur.tscn`, `tests/unitaires/test_serveur_dedie.gd` ; **modifie** `app/jeu.gd` (une ligne : si `Arguments` contient `serveur`, charger `scenes/serveur.tscn`) — fichier propriété du lot 2, seul changement autorisé ici.
 - **Lire :** `reseau/serveur.gd`, `app/arguments.gd`.
@@ -614,7 +689,8 @@ Toutes les méthodes de `SourceVue` envoient `Protocole.encoder_intention` ; les
 - **Vérif :** `T --filtre test_serveur_dedie` puis `godot --headless --path . -- --serveur --port 17777 --quitter-a-la-fin` interrompu au bout de 5 s sans erreur dans la sortie. **Terminé :** vert.
 
 ### Task 3.6 : Interface de salon et connexion — `haiku`
-- [ ] **Objectif :** héberger, rejoindre, prêt, options de l'hôte.
+
+- [ ] **Objectif :** héberger, rejoindre, prêt, options de l’hôte. **Revu par Phil (25/11/2026)** : le menu principal propose « Créer une partie » et « Rejoindre une partie » ; « Rejoindre » liste les salons du réseau local (découverte UDP, `reseau/decouverte.gd`) et accepte une adresse IP et un port ; un seul réglage de salon, la vitesse ×1, ×2 ou ×4 (`vitesses_partie` = `[1.0, 0.5, 0.25]`). Regroupée avec le branchement réseau de T4.6 (en cours).
 - **Fichiers (crée) :** `ui/salon_ui.gd`, `ui/connexion_ui.gd`, `scenes/salon.tscn`, `scenes/connexion.tscn`, `i18n/textes_salon.csv`, `tests/unitaires/test_salon_ui.gd`.
 - **Lire :** spec §5.1, §6 ; `reseau/salon.gd`, `reseau/client.gd` (interfaces ci-dessus), `app/arguments.gd`.
 - **Interfaces :** `class_name SalonUi extends Control` : `func afficher(salon: Salon, id_local: int) -> void` ; signaux `pret_change(pret: bool)`, `options_changees(vitesse: float, graine: int, graine_fixe: bool)`, `quitter()` ; options **actives seulement pour l'hôte** ; `class_name ConnexionUi extends Control` : champs adresse (défaut `127.0.0.1`), port (défaut 7777), nom ; `signal rejoindre(adresse: String, port: int, nom: String)` ; validation locale avec message en français (port hors 1..65535, adresse vide, nom > 24 caractères) ; libellés visibles, cibles ≥ 48 px.
@@ -622,6 +698,7 @@ Toutes les méthodes de `SourceVue` envoient `Protocole.encoder_intention` ; les
 - **Vérif :** `T --filtre test_salon_ui`. **Terminé :** vert.
 
 ### Task 3.7 : Test d'intégration serveur + 2 robots — `sonnet`
+
 - [ ] **Objectif :** un vrai serveur sans interface et deux clients robots jouent une partie accélérée jusqu'au bout.
 - **Fichiers (crée) :** `tools/integration.sh`, `tests/integration/robot.gd`, `tests/integration/test_reseau_complet.gd` (test unitaire du protocole bout en bout sur boucle locale, dans le même processus).
 - **Lire :** `reseau/serveur.gd`, `reseau/client.gd`, `reseau/serveur_dedie.gd`, `tools/verifier.sh`.
@@ -636,7 +713,8 @@ Toutes les méthodes de `SourceVue` envoient `Protocole.encoder_intention` ; les
 **Parallélisme :** vague A (en parallèle) : T4.1, T4.2, T4.3, T4.4, T4.5. Vague B : T4.6 (câblage, après 4.1, 4.2, 4.4).
 
 ### Task 4.1 : Observation après la mort — `haiku`
-- [ ] **Objectif :** après sa défaite, le joueur choisit l'arène à regarder.
+
+- [x] **Objectif :** après sa défaite, le joueur choisit l'arène à regarder.
 - **Fichiers (crée) :** `ui/observation_ui.gd`, `scenes/observation.tscn`, `i18n/textes_observation.csv`, `tests/unitaires/test_observation_ui.gd`.
 - **Lire :** spec §5.1 ; `app/source_vue.gd`, `sim/vue_globale.gd`.
 - **Interfaces :** `class_name ObservationUi extends Control` : `func afficher(vue: VueGlobale, id_local: int, cible: int) -> void` ; liste des joueurs **vivants** à observer (flèches gauche/droite pour passer au suivant), visible **seulement** si le joueur local est éliminé ; appelle `SourceVue.observer(id)` ; texte « Vous observez : {nom} ».
@@ -644,7 +722,8 @@ Toutes les méthodes de `SourceVue` envoient `Protocole.encoder_intention` ; les
 - **Vérif :** `T --filtre test_observation_ui`. **Terminé :** vert.
 
 ### Task 4.2 : Écran de fin — `haiku`
-- [ ] **Objectif :** récapitulatif de défaite ou de victoire, classement, « Dernier rempart », choix sans fin / quitter.
+
+- [x] **Objectif :** récapitulatif de défaite ou de victoire, classement, « Dernier rempart », choix sans fin / quitter.
 - **Fichiers (crée) :** `ui/fin_ui.gd`, `scenes/fin.tscn`, `i18n/textes_fin.csv`, `tests/unitaires/test_fin_ui.gd`.
 - **Lire :** spec §5.1 ; `sim/vue_globale.gd`, `sim/vue_arene.gd`.
 - **Interfaces :** `class_name FinUi extends Control` : `func afficher_defaite(vue: VueArene, globale: VueGlobale) -> void`, `func afficher_victoire(vue: VueArene, globale: VueGlobale) -> void`, `func afficher_classement(globale: VueGlobale, id_local: int) -> void` ; signaux `continuer_sans_fin()`, `quitter()`, `observer()` ; le bouton « Continuer sans fin » n'existe qu'en victoire ; mention « Dernier rempart » si `dernier_rempart` = joueur concerné.
@@ -652,6 +731,7 @@ Toutes les méthodes de `SourceVue` envoient `Protocole.encoder_intention` ; les
 - **Vérif :** `T --filtre test_fin_ui`. **Terminé :** vert.
 
 ### Task 4.3 : Mode sans fin (simulation) — `sonnet`
+
 - [ ] **Objectif :** après la victoire, les manches reprennent et la difficulté continue de monter.
 - **Fichiers (modifie) :** `sim/partie.gd`, `tests/unitaires/test_partie.gd` (ajouts de cas) ; **ajoute** `tests/unitaires/test_partie_sans_fin.gd`.
 - **Lire :** `sim/partie.gd`, `data/difficulte.json` (`apres_table`), spec §5.1.
@@ -660,7 +740,8 @@ Toutes les méthodes de `SourceVue` envoient `Protocole.encoder_intention` ; les
 - **Vérif :** `T --filtre test_partie` ; `tools/verifier.sh`. **Terminé :** vert (les tests de T1.10 qui attendaient `NON_DISPONIBLE` sont **inversés**, pas supprimés).
 
 ### Task 4.4 : Réglages — `haiku`
-- [ ] **Objectif :** réglages locaux persistants et leur écran.
+
+- [x] **Objectif :** réglages locaux persistants et leur écran.
 - **Fichiers (crée) :** `app/reglages.gd`, `ui/reglages_ui.gd`, `scenes/reglages.tscn`, `i18n/textes_reglages.csv`, `tests/unitaires/test_reglages.gd`.
 - **Lire :** spec §6 (lisibilité) ; doc Godot `ConfigFile`.
 - **Interfaces :** `class_name Reglages extends RefCounted` : `var echelle_ui: float = 1.0` (1,0 / 1,25 / 1,5), `var plein_ecran: bool`, `var sensibilite_zoom: float = 1.0` (0,5..2,0), `var nom_joueur: String` ; `static func charger(chemin: String = "user://reglages.cfg") -> Reglages` (fichier absent, corrompu ou valeurs hors bornes → valeurs par défaut, **jamais d'exception**) ; `func sauver(chemin: String = "user://reglages.cfg") -> bool` ; `class_name ReglagesUi extends Control` : `signal modifies(r: Reglages)`.
@@ -668,6 +749,7 @@ Toutes les méthodes de `SourceVue` envoient `Protocole.encoder_intention` ; les
 - **Vérif :** `T --filtre test_reglages`. **Terminé :** vert.
 
 ### Task 4.5 : Crédits et documentation — `haiku`
+
 - [ ] **Objectif :** `CREDITS.md` à jour et `README.md` utilisable.
 - **Fichiers (modifie) :** `CREDITS.md`, `README.md`.
 - **Lire :** spec §2, §7, §8 ; `tools/verifier.sh`, `.github/workflows/ci.yml`.
@@ -676,9 +758,100 @@ Toutes les méthodes de `SourceVue` envoient `Protocole.encoder_intention` ; les
 - **Vérif :** `tools/verifier.sh`. **Terminé :** vert.
 
 ### Task 4.6 : Câblage final (observation, fin, sans fin, réglages) — `sonnet`
+
 - [ ] **Objectif :** le parcours complet depuis le menu : solo ou réseau, mort, observation, fin, sans fin.
 - **Fichiers (modifie) :** `app/jeu.gd`, `app/menu_principal.gd`, `scenes/jeu.tscn`, `scenes/principal.tscn`, `tests/integration/test_solo.gd`.
 - **Lire :** toutes les interfaces des lots 2 à 4.
 - **Interfaces :** `Jeu` choisit `SourceLocale` ou `Client` ; sur `vue_arene_recue` avec `phase == DEFAITE` affiche `FinUi.afficher_defaite` puis `ObservationUi` ; `VICTOIRE` → `afficher_victoire` ; `partie_terminee` → classement ; les réglages (`Reglages.charger()`) s'appliquent au démarrage (échelle d'interface, plein écran, zoom) ; le menu ajoute « Héberger », « Rejoindre » (→ `ConnexionUi`, `SalonUi`) et « Réglages ».
 - **Tests :** solo : défaite → écran de défaite puis observation (0 autre joueur : message sans erreur) ; victoire → bouton « Continuer sans fin » → manche 32 ; quitter revient au menu et libère les nœuds (aucune fuite signalée à la sortie du lanceur) ; perte de connexion en réseau → retour au menu avec le motif ; réglages invalides ignorés.
 - **Vérif :** `tools/verifier.sh` complet (incluant `tools/integration.sh`). **Terminé :** vert ; rapport final de lot avec la rétro.
+
+---
+
+# Lot 5 — Habillage médiéval fantastique réaliste (décision de Phil du 25/11/2026)
+
+**Direction :** médiéval fantastique **réaliste** ; les packs stylisés (Kenney et équivalents) sont
+écartés. Les modèles sont **faits par nous**, par scripts Blender (outil libre), avec des textures et
+des éclairages **CC0** réalistes (Poly Haven, ambientCG). Les créatures animées de façon réaliste
+dépassent ce qu'un script produit : on vise des silhouettes lisibles en vue plongeante, des
+matières crédibles et une lumière soignée, plutôt que le détail fin. Licences : seulement CC0 ou
+équivalent, chaque ressource listée dans `CREDITS.md`.
+
+**Parallélisme :** T5.0 seule, et rien d'autre avant la validation de Phil. Puis T5.1, puis
+{T5.2, T5.3, T5.4, T5.6, T5.7} en parallèle, puis T5.5 et T5.8.
+
+### Task 5.0 : Essai jetable (validé par Phil le 25/11/2026) — `sonnet`
+
+- [ ] **Objectif :** juger le style avant de s'engager. Une tour de garde en pierre, un carré de sol
+      et un ennemi (un golem de pierre ou d'argile, plus facile à rendre réaliste qu'une créature de
+      chair), modélisés par script Blender, texturés en CC0, rendus dans Godot (rendu de compatibilité
+      sous Xvfb) à l'angle de la caméra du jeu et en gros plan. **Rien dans le dépôt** : tout dans le
+      scratchpad. Les captures vont à Phil, qui valide ou réoriente.
+
+### Task 5.1 : Chaîne de fabrication des modèles — `sonnet`
+
+- [ ] **Objectif :** `tools/modeles/` : installation épinglée de Blender (somme vérifiée, comme
+      Godot), scripts Python Blender reproductibles, un par modèle, qui produisent des `.glb` dans
+      `assets/modeles/` ; un script qui télécharge les textures et éclairages CC0 nécessaires, avec
+      leur source et leur licence, et régénère la section correspondante de `CREDITS.md`. Une étape de
+      `tools/verifier.sh` vérifie que chaque `.glb` suivi a son script et sa ligne de crédits.
+
+### Task 5.2 : La tour — `sonnet`
+
+- [ ] **Objectif :** la tour de garde en pierre et bois, avec des variantes visuelles selon les armes
+      équipées si c'est simple (bannières, braseros).
+
+### Task 5.3 : Le terrain et l'ambiance — `sonnet`
+
+- [ ] **Objectif :** sol (herbe, terre, pierres), bordure d'arène, ciel ou HDRI CC0, lumière du jour,
+      ombres, brume légère, tout en restant lisible en vue plongeante.
+
+### Task 5.4 : Les ennemis — `sonnet`
+
+- [ ] **Objectif :** un modèle par famille (8), le convoi et le boss. Les familles se distinguent par
+      la **silhouette** (jamais la couleur seule). L'animation reste simple : balancement ou marche
+      procédurale par nuanceur ou par os simples, compatible avec `MultiMeshInstance3D`.
+
+### Task 5.5 : Projectiles, impacts et morts — `sonnet`
+
+- [ ] **Objectif :** effets par type de dégâts (particules sobres), plafond d'effets conservé.
+
+### Task 5.6 : Sons — `haiku`
+
+- [ ] **Objectif :** sons CC0 (tirs par type, impacts, achat, relance, alerte de PV bas, début de
+      manche, boss, victoire, défaite) et une musique d'ambiance CC0 ; volume des réglages appliqué.
+
+### Task 5.7 : Interface médiévale — `sonnet`
+
+- [ ] **Objectif :** thème de l'interface (parchemin, bois, métal) et police libre (licence OFL),
+      contrastes AA conservés, sans régression des tests de mise en page.
+
+### Task 5.8 : Bascule d'`Apparence` — `sonnet`
+
+- [ ] **Objectif :** `visuels/apparence.gd` charge les `.glb` quand ils existent et retombe sur les
+      primitives sinon ; le test de garde des primitives est adapté. Captures de contrôle aux trois
+      résolutions.
+
+---
+
+# Lot 6 — Publication (piste, non planifiée)
+
+Si le jeu sort sur Steam : salons et relais réseau Steam par GodotSteam (module libre, SDK
+Steamworks gratuit mais propriétaire) à la place de la découverte locale et de l'IP directe. Le
+réseau passe déjà par un `MultiplayerPeer` unique (`reseau/canal.gd`). Décision à prendre par un
+ADR (`docs/adr-001-steam.md`), avec Phil. Exports Windows et Linux par la CI avant cela.
+
+---
+
+# Suivis relevés en cours de route
+
+- **Équilibrage** (rapport de la passe du 25/11/2026, `docs/equilibrage.md`) : rampe de dégâts
+  ennemis très raide (×0,03 à ×1 entre les manches 1 et 10) ; mur de PV après la manche 20 (×2 000
+  à la manche 31), car la puissance du joueur croît sans plafond (améliorations multiplicatives,
+  or inutilisé) ; boss retenu par les gels ; archers (portée 450) hors de portée des armes à 300.
+- **Caméra** : vue lointaine pour cadrer le cercle d'apparition ; régler le zoom par défaut à
+  l'usage.
+- **Réglages** : vérifier sous Windows que le renommage écrase bien l'ancien fichier.
+- **Tests** : avertissement « ObjectDB instances were leaked » à la sortie (tests réseau).
+- **Reste des lots 3 et 4** : T3.5 et T3.6 en cours, T3.7, T4.3 (mode sans fin, son bouton est
+  désactivé en attendant), T4.5.
