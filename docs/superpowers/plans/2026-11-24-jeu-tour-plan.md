@@ -794,7 +794,7 @@ crédité dans `CREDITS.md` (le crédit est facultatif en CC0, mais on cite touj
 
 ### Task 5.1 : Arène 2D — `sonnet`
 
-- [ ] **Objectif :** `visuels/arene_2d.gd` remplace l’arène 3D : terrain, tour au centre, ennemis
+- [x] **Objectif :** `visuels/arene_2d.gd` remplace l’arène 3D : terrain, tour au centre, ennemis
       animés (marche, attaque, mort), tri en profondeur, `Camera2D` avec zoom borné, même contrat
       (`SourceVue`, interpolation). Performance : 1 000 ennemis visibles sans chute sous 60 images/s
       (pool de sprites ou `MultiMeshInstance2D` avec atlas animé par nuanceur), mesurée. Captures de
@@ -802,6 +802,7 @@ crédité dans `CREDITS.md` (le crédit est facultatif en CC0, mais on cite touj
       **Fait, fusionné par la PR #7** : unités à ×1,9, tour à ×2,1, ennemi translucide devant la tour,
       images recadrées. Reste la preuve des 60 images/s : 22,6 images/s en rendu logiciel sous Xvfb,
       à mesurer sur une vraie carte graphique.
+      **60 images/s constants mesurés par Phil le 25/11/2026** (banc à 1 000 ennemis, T5.1b).
 
 ### Task 5.1b : Compteur d’images par seconde et banc d’essai — `sonnet`
 
@@ -980,6 +981,497 @@ avant l'écran « Rejoindre »).
       vérification de bout en bout depuis le conteneur (annonce, liste, expiration). Ce qui reste à
       faire sur le VPS lui-même (ports, pare-feu) est donné à Phil en liste numérotée.
 - **Lire :** `docs/adr-001-annuaire.md` (Déploiement, Repli, Sécurité et vie privée, Fichiers et tâches).
+
+---
+
+# Lot 8 — Retours de la première partie de Phil (conception validée le 25/11/2026)
+
+**Conception :** `docs/superpowers/specs/2026-11-25-retours-partie-design.md` (à lire en entier ; décisions D1 à D17 de Phil, elles ne se discutent pas, une objection se dit dans la PR ; les « (proposition) » sont acceptées). Elle complète la spec du jeu et l'emporte là où elles diffèrent. **Les noms de fichiers et de classes sont ceux de `main` après T5.5** (PR #24) : `visuels/apparence.gd` (`Apparence`), `camera_arene.gd` (`CameraArene`), `effets.gd` (`Effets`), `decor.gd`, `plan_decor.gd`, `recadrages.gd` ; `visuels/arene_2d.gd` garde `Arene2D`.
+
+**Intention :** lire la partie (texte net, boutique compacte, icônes, PV de la tour sur la tour, un effet et un son par arme, revenu et dégâts par seconde au tableau), démarrer plus vite (portées 500 / 750 / 1 000 / 1 250, ennemis ×1,5), et se rapprocher de « Tower Survivors » (armes illimitées, vagues mêlées, mana en bouclier, seulement les 24 ennemis du pack). Un jeu « beaucoup trop simple » (D16, D17) devient un jeu où la difficulté monte à chaque manche.
+
+**Décisions de Phil reprises par les tâches :** D1 icônes · D2 armes sans plafond · D3 dézoom · D4 mini-carte avec les arènes des autres · D5 un effet par arme · D6 portées et vitesse · D7 24 ennemis du pack, plusieurs par vague · D8 trois classes de portée · D9 police Metamorphous · D10 revenu et dégâts par seconde au tableau · D11 PV sur la tour · D12 mana en bouclier et armes de mana · D13 boutique trop grande · D14 catégories arme, amélioration, revenu · D15 un son de tir par arme · D16 sans achat, la tour tombe au plus tard à la fin de la manche 3 · D17 PV et dégâts ennemis strictement croissants à chaque manche. Phil, le 25/11/2026 : « Ennemis corps à corps trop lents, portée des ennemis et de la tour trop courte. »
+
+**Parallélisme :** trois sessions, chacune sur ses fichiers, plus une passe finale.
+
+- **Simulation** (`sim/`, `data/`, `reseau/`, `app/source_vue.gd`, `app/source_locale.gd`), à lancer tout de suite, tâches à la suite : T8.1, T8.2, T8.3, T8.4 **avec T8.11** (décision de pilotage, pour le couplage ci-dessous), T8.5, T8.6, T8.7, T8.8, T8.9, T8.10. Un fichier (`sim/donnees.gd`, `sim/arene.gd`, `sim/tir.gd`, `data/ennemis.json`…) passe d'une tâche à la suivante ; entre sessions, chaque fichier n'a qu'une tâche propriétaire par moment.
+- **Rendu** (`visuels/`, `sons/`, `assets/sons/`, `project.godot`) : T8.14 (attend Phil) et T8.15 (indépendante de la planche) dès que T8.1 est fusionnée, puis T8.12 et T8.13 dès que T8.4 et T8.11 sont fusionnées, puis T8.16 (après la validation de Phil). T8.11 est faite par la session Simulation.
+- **Interface** (`ui/`, `i18n/`, `assets/polices/`, `app/reglages.gd`, `app/jeu.gd`) : T8.17, T8.18, T8.19, T8.20. Démarre quand T8.1 est fusionnée ; T8.20 attend T8.10 et T8.13.
+- **Passe finale** : T8.21, quand tout est fusionné.
+- **Dépendances :** T8.1 aucune · T8.2 T8.1 · T8.3 T8.1 · T8.4 T8.1 · T8.5 T8.4 · T8.6 T8.4 · T8.7 T8.1, T8.4 · T8.8 T8.4 à T8.7 · T8.9 T8.1 · T8.10 T8.2, T8.9 · T8.11 T8.1, T8.4 (PR commune avec T8.4) · T8.12 T8.1, T8.11 · T8.13 T8.1, T8.12 · T8.14 T8.1 (**attend Phil**) · T8.15 T8.1, T8.3 · T8.16 T8.3, T8.13, T8.14 validée par Phil · T8.17 aucune · T8.18 T8.1, T8.6, T8.9, T8.17 · T8.19 T8.1, T8.3, T8.13, T8.17, T8.18 · T8.20 T8.9, T8.10, T8.13, T8.17, T8.18, T8.19 · T8.21 toutes.
+- **Couplage à respecter :** T8.4 change les identifiants des familles (24 au lieu de 8) et casse `Apparence.ENTITES` et `Effets.FAMILLES_EXPLOSIVES` tant que T8.11 n'est pas faite. Les deux ne vont vers `main` **qu'ensemble** : dans une seule PR de la session Simulation, qui touche alors `visuels/apparence.gd`, `visuels/effets.gd` et `assets/maison/` le temps de T8.11. Même règle pour T8.3 et T8.19 au sujet de `emplacements_armes` : T8.3 cesse de l'exiger mais laisse la clé dans `data/partie.json`, T8.18 et T8.19 cessent de la lire, T8.21 la supprime.
+- **Fichiers partagés, un seul propriétaire :** `CREDITS.md` appartient à T8.21 (les autres tâches y écrivent leurs lignes dans leur rapport) ; `project.godot` (actions de touches) à T8.13 ; `ui/theme.gd` à l'Interface, `i18n/*.csv` à l'Interface (les textes visibles des autres sessions y passent par les clés existantes ou sont demandés à l'Interface dans le rapport).
+
+**Choix du plan faute d'information dans la conception** (à relire par Phil) :
+
+1. Les familles à venir sont portées par `VueArene.prochaines_familles` (par arène, donc juste en mode sans fin) et non par la vue globale ; `prochaine_famille` et `prochaine_armure` restent la majoritaire.
+2. `Resultat.EMPLACEMENTS_PLEINS` reste dans l'énumération, inutilisé, pour ne pas renuméroter les codes du réseau ; `Resultat.ARMES_AU_MAXIMUM` s'ajoute à la fin (255 armes).
+3. Les familles dérivent de 6 modèles × 4 paliers dans `data/ennemis.json` ; elles ont 4 noms originaux par modèle écrits dans les données (et non dans `i18n/`, comme les 8 familles d'aujourd'hui).
+4. Les événements de tir et d'impact portent l'arme (`arme`, index du catalogue) : sans cela, ni l'effet ni le son propres à une arme ne sont possibles. Nouveau genre d'événement `absorption` pour l'éclat de mana.
+5. Les 4 armes de mana sont 4 armes magiques existantes modifiées : il reste 30 armes, donc 30 signatures et 30 sons. La vitesse ×1,5 vaut aussi pour le convoi et le boss.
+6. Les cartes de densité voyagent dans l'état global, une diffusion sur deux (1 Hz) ; l'arène regardée a son propre message et sa propre fréquence, calculée sur le budget restant (plancher 1 Hz).
+7. Touches de caméra : flèches et touches physiques W A S D (Z Q S D sur un clavier AZERTY) ; dézoom au niveau 2,0 ; décalage de la vue limité à deux rayons d'apparition.
+8. Le « robot de référence » de la passe d'équilibrage est le robot `bonne` de `tests/outils/strategies_joueur.gd`.
+
+## Interfaces figées du lot 8 (créées par T8.1, T8.2, T8.9, T8.10, T8.13 ; citées partout)
+
+```gdscript
+# sim/types.gd — ajouts
+enum Categorie { ARME, AMELIORATION, REVENU }
+const NOMS_CATEGORIES: Array[String] = ["arme", "amelioration", "revenu"]  # clés JSON sans accent
+enum ClassePortee { CORPS_A_CORPS, MOYENNE, LONGUE }
+const NOMS_CLASSES_PORTEE: Array[String] = ["corps_a_corps", "moyenne", "longue"]
+# Resultat : ARMES_AU_MAXIMUM ajouté à la fin ; EMPLACEMENTS_PLEINS reste, jamais renvoyé.
+# sim/stats_tour.gd — ajouts
+var mana_max_bonus: float = 0.0   # somme des améliorations « mana_max »
+var mana_regen: float = 0.0       # points par seconde, somme des améliorations « mana_regen »
+```
+
+**`VueArene` (champs ajoutés, `SCHEMA` et `from_dict` à jour ; types stricts comme les autres) :**
+
+```gdscript
+var tour_mana: float; var tour_mana_max: float
+var prochaines_familles: PackedInt32Array   # 0 à 3 index de Donnees.familles, majoritaire en premier ;
+                                            # [index_convoi] pour le convoi ; vide si aucune
+var prochaines_armures: PackedByteArray     # Types.Armure, même taille que prochaines_familles
+# prochaine_famille == prochaines_familles[0] (ou -1), prochaine_armure == prochaines_armures[0]
+# armes: Array[Dictionary] — jusqu'à 255 entrées (Protocole.MAX_ARMES)
+# evenements : k ∈ "tir" | "impact" | "mort" | "absorption" ; champs facultatifs de tir et d'impact :
+#   genre: int, statut: int (inchangés) et arme: int (index dans Donnees.ids_catalogue)
+# absorption : {k, t, de: Vector2.ZERO, vers: Vector2.ZERO, type_degats: 0, rayon: 0.0}
+```
+
+**`VueGlobale` :** `joueurs[i]` gagne `dps: float` ; `var densites: Dictionary` (id de joueur `int` → `PackedByteArray` de 256 octets, 16 × 16 cases, ligne par ligne, une case = nombre d'ennemis saturé à 255, couvrant le carré de côté `2 × rayon_spawn` centré sur la tour) ; vide si non diffusée à ce tour.
+
+**`Donnees` :** `familles: Array[Dictionary]` — 24 entrées, ordre modèle puis palier (`index = 4 × modèle + palier`), chacune `{id: "<modele>_<palier>", modele: String, palier: String, indice_palier: int, nom: String, armure: int, classe_portee: int, pv: float, vitesse: float, degats: float, portee_attaque: float, cadence_attaque: float, prime: int, manche_min: int, manche_entree: int, explose: bool}` ; le convoi est l'index 24 (`familles.size()`), le boss 25. `func categorie_de(id: String) -> int` (`Types.Categorie`). `Donnees.PORTEES = [500, 750, 1000, 1250]`.
+
+**Schémas de données ajoutés ou changés :**
+
+- `ennemis.json` : `{"modeles":[{"id":"torche","noms":["…","…","…","…"],"armure":"légère","classe_portee":"corps_a_corps","pv":45,"vitesse":75,"degats":4,"portee_attaque":40,"cadence_attaque":1.0,"prime":2,"manche_min":1,"explose":false,"raison_lenteur":""}],"paliers":[{"id":"jaune","manche_entree":1,"pv":1.0,"degats":1.0,"prime":1.0}],"convoi":{…},"boss":{…}}` ; modèles `torche, paysan, guerrier, tonneau, dynamite, archer` ; paliers `jaune, rouge, violet, bleu` (`manche_entree` strictement croissante, le premier à 1). Plus de champ `volant`.
+- `armes.json` : `portee` ∈ {500, 750, 1000, 1250} ; champ facultatif `degats_par_mana_max` (ratio ≥ 0, 0 par défaut).
+- `ameliorations.json` : champ obligatoire `categorie` ∈ `amelioration | revenu` ; `stat` ∈ + `mana_max`, `mana_regen`. Une arme est toujours de catégorie `arme`.
+- `partie.json` : `tour.mana_max` (0) et `tour.mana_regen` (points par seconde, valeur de départ 1,0) ; `vagues: {"part_majoritaire": 0.6, "familles_min": 2, "familles_max": 3}` ; `reseau.hz_arene_regardee` (5), `reseau.hz_min_regardee` (1) ; `emplacements_armes` devient facultatif et ignoré (supprimé par T8.21).
+
+**Réseau, protocole version 5 (T8.2) :** `Protocole.VERSION = 5` ; `MAX_ARMES = 255` ; octets d'un événement 12 → 14 (index de l'arme sur 2 octets, `0xFFFF` = aucune) ; état d'arène : mana, famille(s) suivante(s) ; état global : `dps` par joueur et densités facultatives ; `Msg.ETAT_ARENE_REGARDEE = 8` ; `Intention.REGARDER = 10` (arg : id du joueur, `-1` pour cesser).
+
+```gdscript
+static func encoder_etat_arene_regardee(id_joueur: int, v: VueArene, catalogue: PackedStringArray) -> PackedByteArray
+static func decoder_etat_arene_regardee(b: PackedByteArray, catalogue: PackedStringArray) -> Dictionary  # {id: int, vue: VueArene} ou {}
+```
+
+**`SourceVue` (stubs en T8.1, réels en T8.10) :**
+
+```gdscript
+signal vue_regardee_recue(id_joueur: int, vue: VueArene)   # arène d'un autre, de son vivant
+func regarder(id_joueur: int) -> void   # -1 : cesser ; sans effet en solo
+func id_regarde() -> int                # -1 si aucune
+# observer(id) reste réservé au joueur mort ; vue_arene_recue reste l'arène du joueur (ou observée)
+```
+
+**Simulation (T8.7, T8.9) :** `Arene.mana: float`, `Arene.mana_max() -> float`, `Arene.dps() -> float` (`FENETRE_DPS_S = 10.0`), `Arene.carte_densite() -> PackedByteArray` (256 octets, `DENSITE_COTE = 16`) ; `Partie.vue_globale(avec_densites: bool = false) -> VueGlobale` ; `Partie.observation_permise(id: int) -> bool` (faux tant que le joueur est en jeu) ; `Partie.vue_arene(demandeur, cible)` rend désormais toute arène existante, y compris à un joueur vivant. `Composition` (T8.6) : `sim/composition.gd`, `familles: PackedInt32Array`, `poids: PackedFloat32Array` (somme 1), `static func unique(famille: int) -> Composition`, `func majoritaire() -> int`, `func tirer(rng: RandomNumberGenerator) -> int` ; `Planning.tirer(manche: int) -> Composition` ; `Arene.demarrer_manche(numero: int, composition: Composition, mult: Dictionary) -> void`. `Serveur.frequence_arene_regardee(budget: float, reserve: float, octets_propre: int, hz_propre: float, octets_regardee: int, hz_max: float, hz_min: float) -> float`.
+
+**Caméra (T8.13) :** `CameraArene` : `ZOOM_MIN = 0.25`, `ZOOM_DEFAUT = 1.0` (cercle d'apparition entier), `ZOOM_MAX = 2.0` (deux fois le cercle) ; `DEPLACEMENT_MAX_UNITES = 2600.0` ; `var decalage_unites: Vector2` (centre de la vue par rapport à la tour, unités de jeu) ; `var vitesse_relative: float = 1.0` ; `func deplacer(delta_unites: Vector2) -> void` ; `func centrer_sur(point_unites: Vector2) -> void` ; `func recentrer() -> void` (existante : remet aussi le décalage à zéro, garde le zoom) ; `func cadre_visible() -> Rect2` (zone libre vue par la caméra, unités de jeu). `Arene2D` : `func camera() -> CameraArene` ; `func montrer_arene(id_joueur: int, nom: String, numero: int) -> void` (`-1` : revenir à la sienne). Actions de touches dans `project.godot` : `camera_gauche`, `camera_droite`, `camera_haut`, `camera_bas`, `camera_recentrer` (Espace), `boutique_replier` (B).
+
+**Signature d'arme (T8.14) :** `visuels/signatures_armes.gd`, `class_name SignaturesArmes` : `static func ids() -> PackedStringArray` (les 30 armes) ; `static func de(id_arme: String) -> Dictionary` `{projectile: String, couleur: Color, trainee: String, impact: String, statut: String, son: String}` (`{}` si inconnue) ; `son == "tir_" + id_arme`.
+
+**Sons (T8.15) :** `CatalogueSons.id_tir(id_arme: String) -> String` (`"tir_<id>"`), `CatalogueSons.id_impact(type_degats: int) -> String` (`"impact_tranchant"`, `"impact_percant"`, `"impact_magique"`, `"impact_siege"`, `"impact_chaos"`), repli sur `tir` et `impact`.
+
+## Points de vigilance du lot 8 (« Review Focus »), chacun pinglé par un test dans la tâche indiquée
+
+1. Regarder un joueur qui n'existe pas, soi-même, un joueur parti ou qui quitte pendant qu'on le regarde, ou une partie à un seul joueur : arrêt propre, retour à sa propre arène, aucune erreur (T8.10).
+2. Barres et chiffres avec `tour_pv_max` ou `tour_mana_max` à 0, PV au-dessus du maximum, valeurs non finies : ratio borné, jamais de division par zéro, barre de mana cachée sans mana (T8.12).
+3. Paquets v5 forgés : plus de 3 familles suivantes, densité qui n'a pas 256 octets, index d'arme hors catalogue, type d'événement inconnu, 256 armes, tous tronqués à chaque longueur : `null` ou `{}`, jamais d'exception (T8.2).
+4. Réglages d'un ancien fichier (échelle 1,25 ou 1,5 de l'ancienne liste), et les plus longs libellés réels (24 noms de familles, noms d'armes) à 75 % et à 125 % aux trois résolutions : rien ne déborde ni ne se coupe (T8.17).
+5. Clic de mini-carte hors de la carte, à une coordonnée non finie, ou sur la vignette d'un joueur qui vient de partir : la vue ne bouge pas ; Espace revient toujours à sa tour (T8.20).
+
+---
+
+## Session « Simulation »
+
+### Task 8.1 : Types, vues et schémas de données — `sonnet`
+
+- [ ] **Objectif :** figer en code les interfaces de simulation du lot : énumérations, `StatsTour`, champs de `VueArene` et de `VueGlobale`, schémas validés de `data/` (catégorie, mana, armes de mana, classes de portée, familles), stubs de `SourceVue`. Aucun comportement de jeu ne change encore : les données du jeu restent valides (les 8 familles et leurs portées actuelles sont migrées par T8.4 et T8.5, pas ici ; ici, seules les nouvelles clés facultatives et la catégorie des améliorations entrent).
+- **Conception :** §6.3, §6.4, §6.7 (catégories), §6.8, §6.11, §7.
+- **Fichiers :** `sim/types.gd`, `sim/stats_tour.gd`, `sim/vue_arene.gd`, `sim/vue_globale.gd`, `sim/donnees.gd` (catégorie, `degats_par_mana_max`, `mana_max`, `mana_regen`, clés `tour` et `vagues` et `reseau` ci-dessus, `emplacements_armes` facultatif), `data/ameliorations.json` (champ `categorie` des 40 améliorations), `data/partie.json`, `app/source_vue.gd` (stubs `regarder`, `id_regarde`, signal), `tests/outils/source_factice.gd` (même API, appels notés).
+- **Lire :** `sim/vue_arene.gd` et `sim/vue_globale.gd` en entier ; `sim/donnees.gd` par `grep -n '_valider_\|_normaliser_'`.
+- **Interfaces :** produit tout ce qui est sous « Interfaces figées » pour `Types`, `StatsTour`, `VueArene`, `VueGlobale`, `Donnees.categorie_de`, `SourceVue`. Les schémas d'`ennemis.json` et de `PORTEES` sont écrits par T8.4 et T8.5.
+- **Tests :** `tests/unitaires/test_vues.gd`, `test_donnees.gd`, `test_contenu_donnees.gd`.
+  - `test_vue_arene_aller_retour_avec_mana_et_prochaines_familles` : en boucle sur 0, 1, 2 et 3 familles, `from_dict(to_dict())` rend les mêmes `tour_mana`, `tour_mana_max`, `prochaines_familles`, `prochaines_armures`.
+  - `test_vue_arene_refuse_plus_de_trois_familles_ou_des_armures_de_taille_differente` : `from_dict` rend `null` pour 4 familles, et pour 2 familles avec 3 armures.
+  - `test_vue_arene_accepte_255_armes_et_les_evenements_absorption_et_arme` : 255 armes, un événement `absorption`, un tir avec `arme`.
+  - `test_vue_globale_porte_dps_et_densites` : aller-retour ; une densité de 255 ou 257 octets, ou un id non entier, donne `null`.
+  - `test_chaque_amelioration_a_une_categorie_valide` et `test_la_categorie_revenu_regroupe_exactement_les_stats_economiques` : en boucle sur les améliorations, `revenu` si et seulement si tous ses effets sont `revenu_fixe`, `revenu_croissant`, `revenu_mult`, `prime_mult` ou `bonus_elim` ; `relance_gratuite` et `marche_noir` sont `amelioration`.
+  - `test_categorie_absente_ou_inconnue_est_refusee_en_nommant_le_fichier_et_le_champ` ; `test_categorie_de_rend_arme_pour_chaque_arme_et_la_categorie_des_donnees_sinon`.
+  - `test_degats_par_mana_max_negatif_est_refuse` ; `test_le_mana_de_depart_est_zero_dans_les_donnees` (`tour.mana_max == 0`).
+  - `test_la_source_factice_note_regarder_et_id_regarde`.
+- **Vérif :** `T --filtre test_vues`, `test_donnees`, `test_contenu_donnees`, puis `tools/verifier.sh`.
+
+### Task 8.2 : Protocole version 5 — `sonnet`
+
+- [ ] **Objectif :** une seule montée de version pour toutes les nouveautés réseau du lot : 255 armes, mana, familles suivantes, événements `absorption` et `arme`, `dps` et densités dans l'état global, état d'arène regardée, intention `REGARDER`. Décodage défensif et fuzz comme les versions précédentes.
+- **Conception :** §6.3, §6.4, §6.8, §6.10, §6.11.
+- **Fichiers :** `reseau/protocole.gd` ; tests `test_protocole.gd`, `test_protocole_resultat.gd`, `test_protocole_jeton.gd` (version).
+- **Lire :** `reseau/protocole.gd` : `grep -n 'static func\|^const'`, puis `encoder_etat_arene` et `decoder_etat_arene` par plage.
+- **Interfaces :** consomme `VueArene`, `VueGlobale` (T8.1). Produit `VERSION = 5`, `MAX_ARMES = 255`, `Msg.ETAT_ARENE_REGARDEE`, `Intention.REGARDER`, `encoder_etat_arene_regardee`, `decoder_etat_arene_regardee`, `TAILLE_FIXE` recalculée (un état vide a exactement cette taille). `Protocole.MAX_ARMES` doit égaler `Inventaire.ARMES_MAX` (T8.3).
+- **Tests :**
+  - `test_la_version_est_5_et_un_bonjour_de_version_4_est_refuse_avec_un_motif`.
+  - `test_mana_et_prochaines_familles_traversent_le_protocole` : en boucle sur 0 à 3 familles.
+  - `test_255_armes_s_encodent_et_256_sont_refusees` : l'encodeur rend un paquet vide pour 256.
+  - `test_un_evenement_absorption_traverse_et_un_type_inconnu_est_refuse` ; `test_un_evenement_porte_l_arme_et_sans_arme_il_n_a_pas_la_cle` (index du catalogue, `0xFFFF` à l'encodage de l'absence).
+  - `test_l_etat_global_porte_dps_et_densites` ; `test_un_etat_global_sans_densites_les_decode_vides`.
+  - `test_etat_arene_regardee_aller_retour` et `test_intention_regarder_aller_retour_avec_moins_un`.
+  - `test_un_etat_de_mille_ennemis_255_armes_et_40_ameliorations_tient_sous_max_taille`.
+  - **Review Focus 3 :** `test_aucun_paquet_v5_forge_ne_leve_d_exception` : pour chaque décodeur de v5, tous les préfixes d'un paquet valide, puis 2 000 tableaux d'octets tirés d'une graine fixe, rendent `null` ou `{}` ; plus de 3 familles, densité de 255 octets, index d'arme hors catalogue, type d'événement inconnu, id de joueur regardé hors 0 à 255.
+- **Vérif :** `T --filtre test_protocole`, puis `tools/verifier.sh`.
+
+### Task 8.3 : Armes illimitées et arme dans les événements — `sonnet`
+
+- [ ] **Objectif :** plus de plafond de huit armes (D2) : `Inventaire.ajouter` n'échoue plus pour cette raison, la boutique non plus ; au-delà de 255 armes l'achat est refusé proprement sans débit (`ARMES_AU_MAXIMUM`). Les événements de tir et d'impact portent l'arme. Le pas reste sous 5 ms avec 40 armes face à 1 000 ennemis. Les tests qui figeaient « la 9e arme refusée » sont inversés, pas supprimés.
+- **Conception :** §6.3, §6.5 (l'arme dans l'événement), §6.5 bis.
+- **Fichiers :** `sim/inventaire.gd`, `sim/boutique.gd`, `sim/tir.gd`, `sim/arene.gd`, `tests/outils/strategies_joueur.gd` si un robot suppose huit armes ; tests `test_inventaire.gd`, `test_boutique.gd`, `test_arene_boutique.gd`, `test_arene_charge.gd`, `test_tir.gd`, `test_evenements_genre.gd`.
+- **Lire :** `sim/inventaire.gd` (134 lignes), `sim/boutique.gd` `acheter`, `sim/tir.gd` `_evenement` et `_choisir` ; les trois tests cités par `grep -n 'EMPLACEMENTS_PLEINS\|huit'`.
+- **Interfaces :** produit `Inventaire.ARMES_MAX: int = 255` ; plus aucun renvoi de `EMPLACEMENTS_PLEINS` ; événements `tir` et `impact` avec `arme: int` (index dans `Donnees.ids_catalogue`) ; `emplacements_armes` n'est plus lu par `sim/`.
+- **Tests :**
+  - `test_la_neuvieme_et_la_quarantieme_arme_sont_acceptees` (inverse `test_inventaire.gd:69`, `test_boutique.gd:267`, `test_arene_boutique.gd:173` et `:181`).
+  - `test_la_256e_arme_est_refusee_sans_debit_avec_armes_au_maximum` : l'or est intact, l'inventaire a 255 armes.
+  - `test_emplacements_pleins_n_est_jamais_renvoye` : 1 à 40 achats d'armes.
+  - `test_la_vente_de_la_40e_arme_rend_50_pour_cent_de_son_prix`.
+  - `test_la_vue_porte_les_40_armes_avec_leur_recharge`.
+  - `test_chaque_tir_et_chaque_impact_portent_l_index_de_leur_arme` : en boucle sur les 30 armes, un ennemi à portée ; une mort n'a pas de clé `arme`.
+  - `test_quarante_armes_contre_mille_ennemis_sous_5_ms_par_pas` (dans `test_arene_charge.gd`) : 40 armes (les 30 en boucle, puis 10 de plus), 1 000 ennemis, moyenne sur 200 pas sous 5 ms. Si le seuil n'est pas tenu, optimiser la recherche de cible de `sim/tir.gd` (grille) plutôt que relever le seuil.
+- **Vérif :** `T --filtre test_inventaire`, `test_arene_charge`, puis `tools/verifier.sh`.
+
+### Task 8.4 : Les 24 ennemis du pack, classes de portée, explosion du Tonneau, retrait du vol — `sonnet`
+
+- [ ] **Objectif :** `data/ennemis.json` passe à 6 modèles × 4 paliers de couleur (24 familles) ; la classe de portée suit le modèle (corps à corps ≤ 60 ; Dynamite 350 ; Archer 650) ; le Tonneau explose au contact (dégâts sur la tour puis disparaît, sans prime) ; le vol (`volant`, mines et pièges qui l'ignorent) disparaît des données et de `sim/`. Vitesses : **les valeurs d'aujourd'hui** (Torche 75, Paysan 60, Guerrier 35, Tonneau 25, Dynamite 65, Archer 50 ; convoi 45, boss 35), T8.5 les multiplie. Valeurs de départ des autres champs : reprendre celles des familles actuelles (Torche ← rôdeur de suie, Paysan ← pillard de brume, Guerrier ← heaume d'argile, Tonneau, Dynamite ← artificier, Archer) ; paliers de départ pv ×1 / 2,5 / 6 / 15, dégâts ×1 / 1,5 / 2,2 / 3, prime ×1 / 1,6 / 2,5 / 4, entrées aux manches 1 / 8 / 16 / 24, Archer `manche_min` 5, les autres 1 : T8.8 et T8.21 les règlent. La brute de forge disparaît (second guerrier).
+- **Conception :** §6.1 (tableau modèle → rôle), §6.2, §6.12 (leviers).
+- **Fichiers :** `data/ennemis.json`, `sim/donnees.gd` (`_valider_ennemis`, construction de `familles`), `sim/ennemis.gd` (`volant` retiré, `explose`), `sim/arene.gd` (`_apparaitre`, explosion), `sim/tir.gd` (plus d'argument `au_sol` ni `volants`) ; tests `test_donnees.gd`, `test_ennemis.gd`, `test_ennemis_statuts.gd`, `test_tir.gd`, `test_tir_effets.gd`, `test_arene.gd`, `test_vues.gd` (familles `% 24`), nouveau `test_ennemis_portee.gd`.
+- **Lire :** `sim/donnees.gd` `_valider_ennemis` et `_normaliser_famille` ; `sim/ennemis.gd` `ajouter`, `avancer` ; `sim/arene.gd` `_apparaitre`, `_pas_tour_et_ennemis` ; `grep -n volant -r sim tests`.
+- **Interfaces :** consomme T8.1. Produit les 24 familles (schéma figé ci-dessus) ; `Ennemis.ajouter(famille: int, position: Vector2, pv: float, vitesse: float, degats: float, portee: float, cadence: float, prime: int, armure: int, explose: bool = false) -> int` ; `Ennemis.avancer(...)` rend en plus `"explosions": PackedInt32Array` (indices).
+- **Tests :**
+  - `test_vingt_quatre_familles_six_modeles_quatre_paliers` : `familles.size() == 24`, ids `<modele>_<palier>` uniques, ordre modèle puis palier, `indice_palier` ; convoi = index 24, boss = 25.
+  - `test_les_noms_des_24_familles_sont_distincts_et_non_vides`.
+  - `test_chaque_modele_a_son_role` : en boucle, Torche légère, Paysan moyenne, Guerrier lourde, Tonneau fortifiée, tous corps à corps ; Dynamite sans armure, moyenne ; Archer moyenne, longue.
+  - `test_la_classe_de_portee_est_coherente_avec_la_portee_d_attaque` : corps à corps ⇒ `portee_attaque ≤ 60` ; moyenne ⇒ 350 ; longue ⇒ 650 (en boucle sur les 24).
+  - `test_la_force_croit_avec_le_palier` : par modèle, pv, dégâts et prime strictement croissants jaune → rouge → violet → bleu ; vitesse identique ; `manche_entree` strictement croissante.
+  - `test_aucun_champ_volant_dans_les_donnees_ni_la_simulation` : absent de `ennemis.json` et de `Ennemis` ; `test_les_mines_et_les_pieges_touchent_tous_les_ennemis` (inverse le test des volants de `test_tir_effets.gd`).
+  - `test_les_donnees_refusent_un_modele_ou_un_palier_invalide` : classe de portée inconnue, palier en double, `manche_entree` non croissante, nombre de noms différent de 4 ; message nommant `ennemis.json` et le champ.
+  - `test_la_dynamite_s_arrete_a_350_et_l_archer_a_650` : distance à la tour égale à la portée à `TOLERANCE_ARRET` près après assez de pas.
+  - `test_le_tonneau_explose_au_contact` : dégâts à la tour = dégâts × multiplicateur après armure, une seule fois ; ennemi retiré ; or et éliminations inchangés ; événement `mort` à sa position.
+  - `test_un_tonneau_tue_avant_le_contact_rapporte_sa_prime` ; `test_l_explosion_peut_etre_esquivee_mais_le_tonneau_disparait_quand_meme` ; `test_l_explosion_ne_declenche_pas_les_epines`.
+  - `test_mille_tonneaux_au_contact_sous_5_ms_par_pas`.
+- **Vérif :** `T --filtre test_donnees`, `test_ennemis`, `test_tir`, puis `tools/verifier.sh`. À fusionner avec T8.11.
+
+### Task 8.5 : Portées des armes et vitesse des ennemis ×1,5 — `sonnet`
+
+- [ ] **Objectif :** paliers de portée des armes 500 / 750 / 1 000 / 1 250 (correspondance position à position avec 300 / 600 / 900 / 1 200), vitesse de toutes les familles ×1,5 (convoi et boss compris). Phil, le 25/11/2026 : « Ennemis corps à corps trop lents, portée des ennemis et de la tour trop courte. » Le test des vitesses est écrit d'abord et échoue sur les valeurs de T8.4.
+- **Conception :** §6.2, §6.1 (portées), §6.12 (valeurs interdites).
+- **Fichiers :** `data/armes.json`, `data/ennemis.json`, `sim/donnees.gd` (`PORTEES`) ; tests `test_donnees.gd`, `test_contenu.gd`, nouveau `test_vitesses_ennemis.gd`.
+- **Lire :** `grep -n '"portee"' data/armes.json`, `grep -n 'PORTEES' -r sim tests`.
+- **Interfaces :** produit `Donnees.PORTEES = [500, 750, 1000, 1250]`. Vitesses finales : Torche 112,5 · Paysan 90 · Guerrier ≥ 52,5 · Tonneau ≥ 52,5 · Dynamite 97,5 · Archer 75 · convoi 67,5 · boss 52,5 (le Guerrier à 52,5 exactement, le Tonneau égal ou plus rapide).
+- **Tests :**
+  - `test_les_portees_d_armes_sont_500_750_1000_1250` : en boucle sur les 30 armes ; chacune des 4 valeurs est utilisée ; `test_une_ancienne_portee_est_refusee_en_nommant_armes_json_et_portee`.
+  - `test_chaque_famille_au_corps_a_corps_va_au_moins_aussi_vite_qu_avant_fois_1_5` : constante `VITESSES_AVANT` du test (Torche 75, Paysan 60, Guerrier 35, Tonneau 25), en boucle sur les 24 familles.
+  - `test_toute_famille_le_convoi_et_le_boss_vont_au_moins_1_5_fois_plus_vite_qu_avant` (Dynamite 65, Archer 50, convoi 45, boss 35).
+  - `test_le_guerrier_reste_lent_mais_plus_rapide_qu_avant` : plus rapide que 35, plus lent que les trois autres modèles au corps à corps.
+  - `test_aucune_famille_n_est_la_plus_lente_sans_raison_ecrite` : parmi les 6 modèles et le convoi, le plus lent est le seul à porter une `raison_lenteur` non vide (le Guerrier) ; le Tonneau n'est pas plus lent que lui.
+  - `test_un_ennemi_avance_de_vitesse_fois_multiplicateur_par_seconde` (sim inchangée).
+- **Vérif :** `T --filtre test_vitesses_ennemis`, `test_contenu`, puis `tools/verifier.sh`.
+
+### Task 8.6 : Vagues mêlées — `sonnet`
+
+- [ ] **Objectif :** `Planning` tire pour chaque manche 2 ou 3 familles dont une majoritaire (60 % des apparitions, le reste partagé), parmi celles qu'autorisent les paliers de couleur et l'Archer (manche 5). Le budget (nombre d'apparitions, cadence) ne change pas, seule la composition. Même tirage pour tous les joueurs (graine de partie), jamais la même famille majoritaire deux manches de suite. La vue annonce les familles et leurs armures. Mode sans fin : tous les paliers restent dans le tirage.
+- **Conception :** §6.1 (vagues mêlées, budget, annonce), §6.11.
+- **Fichiers :** `sim/composition.gd` (nouveau), `sim/planning.gd`, `sim/arene.gd` (`demarrer_manche`, `_apparaitre`), `sim/partie.gd`, `sim/joueur_partie.gd`, `sim/donnees.gd` (clé `vagues`) ; tests `test_planning.gd`, `test_partie.gd`, `test_partie_sans_fin.gd`, `test_arene.gd`, `test_equilibrage.gd`.
+- **Lire :** `sim/planning.gd` (69 lignes), `sim/partie.gd` `_commencer_manche`, `_famille_annoncee`, `vue_arene` ; `sim/arene.gd` `demarrer_manche`, `_apparaitre`.
+- **Interfaces :** `Composition`, `Planning.tirer(manche) -> Composition`, `Arene.demarrer_manche(numero, composition, mult)` (figées plus haut) ; `VueArene.prochaines_familles` et `prochaines_armures` remplis (vides après le boss et en victoire).
+- **Tests :**
+  - `test_chaque_manche_a_deux_ou_trois_familles_distinctes_dont_une_majoritaire` : manches 1 à 60 × graines 1 à 20.
+  - `test_les_poids_valent_60_pour_la_majoritaire_et_le_reste_est_partage` (somme 1 à 1e-6 près).
+  - `test_jamais_la_meme_majoritaire_deux_manches_de_suite`, convoi intercalé compris.
+  - `test_l_archer_n_apparait_qu_a_partir_de_la_manche_5` : aucune composition des manches 1 à 4 ne le contient ; il apparaît au moins une fois ensuite sur 20 graines.
+  - `test_un_palier_n_entre_qu_a_sa_manche_d_entree` : en boucle sur les 4 paliers.
+  - `test_le_tirage_est_le_meme_pour_tous_les_joueurs` : 3 joueurs, mêmes `prochaines_familles` à chaque manche.
+  - `test_le_tirage_est_reproductible_avec_la_meme_graine`.
+  - `test_les_apparitions_suivent_les_poids_en_melange_et_non_par_blocs` : 600 apparitions d'une composition 0,6 / 0,4, graine fixe : part de la majoritaire dans 0,6 ± 0,06 et plus de 100 changements de famille.
+  - `test_le_budget_de_la_manche_est_inchange` : même nombre d'apparitions sur 30 s qu'avec `spawn_intervalle_depart − spawn_baisse_par_manche × (manche − 1)` (plancher 0,1 s).
+  - `test_le_convoi_garde_sa_composition_unique_et_le_boss_n_en_a_pas`.
+  - `test_le_mode_sans_fin_garde_les_24_familles_possibles_et_les_multiplicateurs_continuent` : manche 40.
+  - `test_la_vue_annonce_les_familles_et_leurs_armures` : pendant `PREPARATION` et `MANCHE`, 1 à 3 entrées, `prochaine_famille` égale à la première.
+- **Vérif :** `T --filtre test_planning`, `test_partie`, puis `tools/verifier.sh`.
+
+### Task 8.7 : Mana, bouclier de la tour — `sonnet`
+
+- [ ] **Objectif :** la mana absorbe les coups à la place des PV (ordre : esquive, armure, mana, PV ; 1 point absorbe 1 point) et se régénère chaque seconde ; la tour démarre à 0 de mana maximale ; nouvelles améliorations de mana ; 4 armes magiques font des dégâts selon la mana maximale.
+- **Conception :** §6.4.
+- **Fichiers :** `sim/arene.gd`, `sim/inventaire.gd`, `sim/tir.gd`, `data/ameliorations.json` (au moins 2 `mana_max`, 1 `mana_regen`, catégorie `amelioration`), `data/armes.json` (`degats_par_mana_max` sur 4 armes magiques existantes), `data/partie.json` (`tour.mana_regen`) ; tests `test_arene_tour.gd`, `test_inventaire.gd`, `test_tir.gd`, `test_contenu.gd`.
+- **Lire :** `sim/arene.gd` `_pas_tour_et_ennemis`, `synchroniser`, `vue` ; le test de rendement par rareté de `test_contenu.gd` (`grep -n 'rendement'`).
+- **Interfaces :** produit `Arene.mana`, `Arene.mana_max()`, l'événement `absorption`, `VueArene.tour_mana` et `tour_mana_max`. Un maximum qui monte soigne du même montant en mana (comme les PV), sinon la mana reste à 0 et ne sert à rien.
+- **Tests :**
+  - `test_la_tour_demarre_a_zero_de_mana_et_de_mana_maximale`.
+  - `test_la_mana_absorbe_un_pour_un_apres_l_esquive_et_l_armure` : armure 10 (réduction 1/3), coup de 30 → 20 après armure ; mana 15 → PV −5, mana 0 ; esquive certaine → mana et PV intacts.
+  - `test_la_mana_ne_descend_pas_sous_zero_et_le_reste_va_aux_pv`.
+  - `test_la_mana_se_regenere_chaque_seconde_jusqu_au_maximum`.
+  - `test_une_amelioration_de_mana_maximale_ajoute_la_meme_quantite_de_mana`.
+  - `test_les_epines_se_declenchent_meme_quand_la_mana_absorbe_tout` ; `test_l_explosion_du_tonneau_est_absorbee_par_la_mana`.
+  - `test_chaque_absorption_emet_un_evenement_et_la_vue_porte_la_mana` : en boucle sur les valeurs de coup.
+  - `test_une_arme_de_mana_ajoute_ratio_fois_mana_maximale_aux_degats_de_base` : dégâts 100, ratio 0,5, mana maximale 40, ennemi sans armure → 120 avant critique ; sans mana, 100.
+  - `test_au_moins_quatre_armes_de_mana_toutes_magiques_et_il_reste_30_armes`.
+  - `test_le_rendement_par_piece_d_or_croit_avec_la_rarete_mana_comprise` : le test existant, avec une mana maximale de référence de 100 écrite dans le test.
+  - `test_la_mana_est_propre_a_chaque_arene`.
+- **Vérif :** `T --filtre test_arene_tour`, `test_contenu`, puis `tools/verifier.sh`.
+
+### Task 8.8 : Rampe de difficulté — sans achat, la tour tombe avant la fin de la manche 3 (D16), montée continue (D17) — `sonnet`
+
+- [ ] **Objectif :** relever la rampe de `data/difficulte.json` (aujourd'hui dégâts ×0,03 aux manches 1 à 4 et PV à ×1 des manches 1 à 10) pour que, **sans aucun achat, la tour tombe au plus tard à la fin de la manche 3**, et pour que **PV et dégâts des ennemis croissent strictement d'une manche à la suivante**, de la manche 1 à la 30 puis en mode sans fin (`apres_table`). Les paliers de couleur s'y ajoutent sans la remplacer. À régler **après** T8.4 à T8.7 (portées, vitesse ×1,5, 24 familles, vagues mêlées, mana), sur les données finales de ces tâches. Leviers : la rampe de `difficulte.json`, puis les paliers (`manche_entree`, multiplicateurs), les poids de familles ; jamais les valeurs interdites de §6.12. L'autre borne reste gardée par la passe finale : un robot qui achète ne meurt pas avant la manche 20.
+- **Conception :** §6.12 (« Seuil bas », « Montée continue »), D16, D17.
+- **Fichiers :** `data/difficulte.json`, `data/ennemis.json` (paliers, si la rampe seule ne suffit pas), `tests/unitaires/test_equilibrage_partie.gd`, `test_planning.gd`.
+- **Lire :** `docs/equilibrage.md` (cibles et réglages d'avant), `tests/outils/simulation_equilibrage.gd` `jouer`, `Planning.multiplicateurs`.
+- **Interfaces :** consomme `SimulationEquilibrage.jouer(d, graine, strategie, manche_arret) -> Dictionary` (`manche`, `victoire`, `duree_s`) et `Planning.multiplicateurs(donnees, manche, temps) -> Dictionary` (`pv`, `degats`, …).
+- **Tests :**
+  - `test_sans_achat_la_tour_tombe_avant_la_fin_de_la_manche_3` : robot `passive`, graines fixes 1 à 10 en boucle, `r["manche"] <= 3` et pas de victoire. Remplace `test_un_joueur_passif_tombe_avant_la_manche_huit_sur_chaque_graine`.
+  - `test_pv_et_degats_des_ennemis_augmentent_a_chaque_manche` : en boucle sur les manches 1 à 40 (le mode sans fin sur 10 manches au-delà de 30), `pv(n + 1) > pv(n)` et `degats(n + 1) > degats(n)` avec `Planning.multiplicateurs`, au temps 0 puis au temps de début de chaque manche.
+  - `test_la_force_d_une_meme_famille_augmente_a_chaque_manche` : pour chacune des 24 familles, pv et dégâts effectifs (famille × palier × difficulté) strictement croissants sur les manches où elle est autorisée.
+  - `test_un_robot_qui_achete_ne_tombe_pas_avant_la_manche_6` : robots `raisonnable` et `bonne`, graines 1 à 10 (garde contre une rampe trop dure ; seuil à régler avec la passe finale).
+  - Les tests existants `test_un_joueur_raisonnable_atteint_au_moins_la_manche_douze_en_mediane` restent verts.
+- **Vérif :** `T --filtre test_equilibrage_partie`, `test_planning`, puis `tools/verifier.sh`. Rapporter les manches atteintes par robot et par graine.
+
+### Task 8.9 : DPS, carte de densité et observation d'une autre arène de son vivant — `sonnet`
+
+- [ ] **Objectif :** côté simulation, les trois données dont l'interface a besoin : dégâts par seconde (moyenne glissante des 10 dernières secondes, épines comprises), carte de densité 16 × 16 des ennemis, et accès à toute arène existante pour un joueur vivant (mais `observer`, qui remplace sa propre vue, reste réservé aux morts).
+- **Conception :** §6.8, §6.10.
+- **Fichiers :** `sim/arene.gd`, `sim/partie.gd`, `sim/joueur_partie.gd` ; tests `test_arene.gd`, `test_partie.gd`, `test_vues.gd`, nouveaux `test_dps.gd` et `test_densite.gd`.
+- **Lire :** `sim/arene.gd` (attributs et `avancer`), `sim/partie.gd` `vue_arene`, `vue_globale`, `_enregistrer`.
+- **Interfaces :** produit `Arene.dps()`, `Arene.carte_densite()`, `Partie.vue_globale(avec_densites)`, `Partie.observation_permise(id)`, `VueGlobale.joueurs[i].dps`.
+- **Tests :**
+  - `test_le_dps_est_la_moyenne_glissante_des_10_dernieres_secondes` : une arme de 10 dégâts toutes les 1,0 s sur un ennemi de PV énormes sans armure : 10 ± 1 après 10 s ; avant 10 s on divise par le temps écoulé.
+  - `test_les_degats_hors_de_la_fenetre_ne_comptent_plus` : un coup à t = 0, plus rien ensuite, `dps() == 0` à t = 10,5 s.
+  - `test_les_epines_comptent_dans_le_dps` ; `test_le_dps_vaut_zero_au_depart_et_n_est_jamais_nan`.
+  - `test_la_vue_globale_porte_le_dps_de_chaque_joueur` (2 joueurs).
+  - `test_la_carte_de_densite_fait_256_octets_une_case_par_16_sur_16` : un ennemi → une seule case non nulle, valeur 1 ; ennemi en (0, 0) → case du centre ; positions à ± `rayon_spawn` → cases de bord.
+  - `test_une_case_sature_a_255` (300 ennemis dans la même case) ; `test_la_somme_des_cases_egale_le_nombre_d_ennemis_sans_saturation` (1 000 ennemis, graine fixe).
+  - `test_un_joueur_vivant_voit_une_autre_arene_mais_ne_peut_pas_l_observer` : inverse le refus de `Partie.vue_arene` ; `observation_permise` faux en jeu, vrai après élimination, victoire ou départ.
+  - `test_la_vue_globale_ne_calcule_les_densites_que_sur_demande`.
+- **Vérif :** `T --filtre test_dps`, `test_densite`, `test_partie`, puis `tools/verifier.sh`.
+
+### Task 8.10 : Réseau : arène regardée, densités, `SourceVue` réelle, budget — `sonnet`
+
+- [ ] **Objectif :** le serveur envoie, sur demande (`REGARDER`), l'arène d'un autre joueur à 5 Hz en plus de la sienne (15 Hz), et les densités à 1 Hz ; le client et la source locale exposent `regarder`, `id_regarde` et `vue_regardee_recue` ; la mesure de T3.3 est refaite à 8 clients et 1 000 ennemis, en regardant : **50 000 o/s par client** tenus, sinon la fréquence de l'arène regardée baisse (plancher 1 Hz).
+- **Conception :** §6.10 (réseau), §6.11, §3 (budget).
+- **Fichiers :** `reseau/serveur.gd`, `reseau/client.gd`, `reseau/canal.gd` (RPC `rpc_etat_arene_regardee`, non fiable), `app/source_locale.gd`, `tests/outils/source_factice.gd` ; tests `test_serveur.gd`, `test_client.gd`, `test_serveur_debit.gd`, `test_source_locale.gd`, `tests/integration/test_multijoueur.gd`.
+- **Lire :** `reseau/serveur.gd` `_envoyer_etats`, `_frequence`, `_observer`, `frequence_arene` ; `reseau/client.gd` réception des états ; `tests/unitaires/test_serveur_debit.gd`.
+- **Interfaces :** consomme T8.2 et T8.9. Produit `Serveur.frequence_arene_regardee(...)` (fonction pure), `Client.regarder`, `Client.id_regarde`, le cache des dernières densités du client (une `VueGlobale` reçue sans densités porte les dernières).
+- **Tests :**
+  - `test_regarder_une_autre_arene_envoie_ses_etats_a_5_hz_en_plus_des_siens` : 2 clients, A vivant regarde B, 2 s de pas : environ 30 états propres et 10 de B (± 1), l'arène propre inchangée.
+  - `test_regarder_soi_meme_ou_un_inconnu_est_refuse_et_moins_un_arrete` : `INDICE_INVALIDE` ; après `-1` plus aucun envoi.
+  - **Review Focus 1 :** `test_regarder_un_joueur_qui_quitte_ramene_a_sa_propre_arene` : le serveur remet `regarde` à −1 sans erreur, le client reçoit un `vue_regardee_recue` jamais obsolète ; partie à un seul joueur : `regarder` n'a rien à regarder, sans erreur.
+  - `test_les_densites_arrivent_a_1_hz_dans_la_vue_globale` et `test_le_client_garde_les_dernieres_densites_entre_deux_envois`.
+  - `test_frequence_arene_regardee_en_boucle_sur_les_budgets` : budget large → `hz_max` ; budget nul → `hz_min` ; monotone croissante avec le budget restant.
+  - `test_le_budget_de_50000_octets_par_seconde_tient_a_8_clients_et_1000_ennemis_en_regardant` : octets par client sur 10 s, états propres, arène regardée, états globaux et densités compris, ≤ 50 000 ; la fréquence regardée mesurée est écrite en commentaire du test.
+  - `test_un_etat_d_arene_regardee_recu_sans_l_avoir_demande_est_ignore` ; `test_solo_regarder_est_sans_effet`.
+  - `test_l_intention_regarder_est_encodee_avec_l_id_ou_moins_un`.
+- **Vérif :** `T --filtre test_serveur`, `test_client`, `test_serveur_debit`, puis `tools/verifier.sh` (étape `integration` comprise).
+
+---
+
+## Session « Rendu »
+
+### Task 8.11 : Sprites des 24 ennemis et retrait de la guêpe — `sonnet`
+
+- [ ] **Objectif :** `Apparence.ENTITES` couvre les 24 familles (modèle du pack, couleur du palier : jaune → `Yellow`, rouge → `Red`, violet → `Purple`, bleu → `Blue` ; Torche `torch`, Paysan `pawn`, Guerrier `warrior`, Tonneau `barrel` ×1,5, Dynamite `tnt`, Archer `archer`), le convoi et le boss gardent leurs sprites ; la guêpe maison et tout ce qui vole disparaissent. L'explosion des familles à explosion suit le modèle, plus la liste de 2 ids.
+- **Conception :** §6.1, §4 (aucun sprite d'ennemi dessiné par nous).
+- **Fichiers :** `visuels/apparence.gd` (`MODELES`, `ENTITES`), `visuels/recadrages.gd` (régénéré par `tools/generer_recadrages.gd`), `tools/generer_recadrages.gd`, `visuels/arene_2d.gd` (`VITESSE_VOL`, flottement), `visuels/effets.gd` (`FAMILLES_EXPLOSIVES` dérivée des modèles `barrel` et `tnt`), suppression de `assets/maison/` et de `tools/dessiner_guepe.gd` ; tests `test_apparence.gd`, `test_arene_2d.gd`, `test_effets.gd`, `test_recadrages.gd`, `test_garde_ressources.gd`, suppression de `test_sprite_guepe.gd`. `CREDITS.md` : voir T8.21 (la ligne de la guêpe y est retirée).
+- **Lire :** `grep -n 'guepe\|volant\|flottement' -r visuels tools tests`, `visuels/apparence.gd` `ENTITES` et `entree`.
+- **Interfaces :** consomme les 24 familles de T8.4 (`Donnees.familles[i].modele`, `.palier`).
+- **Tests :**
+  - `test_chaque_famille_le_convoi_et_le_boss_ont_une_entree_dans_l_ordre_des_index` : 24 + convoi + boss.
+  - `test_les_24_entrees_se_distinguent_par_modele_et_couleur` ; `test_la_couleur_de_l_entree_suit_le_palier` (en boucle sur les 24).
+  - `test_chaque_entree_designe_une_feuille_qui_existe_et_se_decoupe_juste` (en boucle sur les 24) ; `test_chaque_feuille_a_ses_boites_de_recadrage`.
+  - `test_aucune_trace_de_la_guepe` : pas de `guepe` dans `visuels/`, `tools/`, `assets/maison/` (dossier absent), aucune entité n'a `volant` ni `flottement`.
+  - `test_chaque_famille_s_affiche_dans_une_vue_a_25_familles` : une vue avec une instance de chaque famille, convoi et boss compris, sans erreur ; `nombre_instances_visibles` par famille.
+  - `test_un_tonneau_qui_explose_au_contact_declenche_l_explosion_et_une_dynamite_aussi` (événement `mort` aux positions voulues).
+- **Vérif :** `T --filtre test_apparence`, `test_arene_2d`, `test_garde_ressources`, puis `tools/verifier.sh`. À fusionner avec T8.4.
+
+### Task 8.12 : Barres de PV et de mana au-dessus de la tour, barre du boss, éclat d'absorption — `sonnet`
+
+- [ ] **Objectif :** une barre de PV (vert, rouge sous 30 %) avec « x / y » au-dessus de la tour, une barre de mana bleue dessous (cachée tant que la mana maximale est nulle), une barre de PV au-dessus du boss, un éclat bleu sur la tour quand la mana absorbe un coup. Lisibles au zoom le plus lointain.
+- **Conception :** §6.4 (rendu), §6.7 (barres), D11.
+- **Fichiers :** `visuels/barres.gd` (nouveau, `class_name BarresArene`, dessin par code, aucune image), `visuels/arene_2d.gd`, `visuels/effets.gd` (effet `absorption`) ; tests nouveau `test_barres.gd`, `test_arene_2d.gd`, `test_effets.gd`.
+- **Lire :** `visuels/arene_2d.gd` `_assurer_construite`, `afficher`, `_afficher_echantillon` (par plage) ; `visuels/effets.gd` `ajouter`, `_statut`.
+- **Interfaces :** consomme `VueArene.tour_pv`, `tour_pv_max`, `tour_mana`, `tour_mana_max`, l'événement `absorption`. Produit `BarresArene` : `static func couleur_pv(ratio: float) -> Color` (`ThemeJeu.JAUGE_PLEINE` au-dessus de `SEUIL_PV_BAS = 0.3`, `ThemeJeu.JAUGE_BASSE` en dessous), `func afficher(vue: VueArene) -> void`, `ratio_pv()`, `ratio_mana()`, `texte_pv() -> String`, `barre_mana_visible() -> bool`, `barre_boss_visible() -> bool`, `ratio_boss() -> float`.
+- **Tests :**
+  - `test_la_barre_de_pv_est_verte_au_dessus_de_30_pour_cent_et_rouge_en_dessous` : 1,0 · 0,31 vert ; 0,30 · 0,1 rouge.
+  - `test_les_chiffres_sont_x_sur_y_avec_les_separateurs_de_milliers` : 1 234 / 1 500 par `Nombres.groupe`.
+  - **Review Focus 2 :** `test_les_ratios_sont_bornes_et_sans_division_par_zero` : en boucle sur `tour_pv_max` ∈ {0, 1, 1000}, PV ∈ {−5, 0, 500, 2000, NaN, INF} et la même grille pour la mana : ratio dans [0, 1], jamais NaN ; barre de mana cachée si `tour_mana_max == 0`.
+  - `test_les_barres_suivent_la_vue_a_chaque_pas`.
+  - `test_la_taille_a_l_ecran_reste_lisible_du_zoom_le_plus_proche_au_plus_lointain` : largeur de la barre entre 60 et 400 px aux niveaux 0,25, 1,0 et 2,0.
+  - `test_la_barre_du_boss_apparait_avec_le_boss_suit_ses_pv_et_disparait_avec_lui` : ratio 0,5 ± 1/255.
+  - `test_un_evenement_absorption_cree_un_eclat_bleu_dans_le_plafond` : une forme vivante, durée ≤ `DUREE_MAX`, plafond de 200 tenu avec 300 absorptions.
+- **Vérif :** `T --filtre test_barres`, `test_effets`, `test_arene_2d`, puis `tools/verifier.sh`.
+
+### Task 8.13 : Caméra libre, dézoom et arène regardée — `sonnet`
+
+- [ ] **Objectif :** déplacement de la vue aux flèches et aux touches physiques W A S D (Z Q S D en AZERTY), **Espace** recentre sur la tour, dézoom jusqu'à deux fois le cercle d'apparition, décalage limité à deux rayons ; `Arene2D` sait afficher l'arène d'un autre joueur (vue regardée), `Espace` y met fin. Déclare aussi l'action `boutique_replier` (B) pour T8.19.
+- **Conception :** §6.9, §6.10, D3.
+- **Fichiers :** `visuels/camera_arene.gd`, `visuels/arene_2d.gd`, `project.godot` (six actions) ; tests `test_camera_arene.gd`, `test_arene_2d.gd`, `test_configuration_projet.gd`.
+- **Lire :** `visuels/camera_arene.gd` (128 lignes), `visuels/arene_2d.gd` `lier`, `afficher`, `definir_joueur`.
+- **Interfaces :** produit les interfaces « Caméra » ci-dessus ; consomme `SourceVue.vue_regardee_recue` (T8.1). Vitesse de base `VITESSE_BASE = 900.0` unités par seconde, multipliée par `vitesse_relative` (réglage ajouté par T8.17, câblé par T8.20).
+- **Tests :**
+  - `test_le_zoom_maximal_montre_deux_fois_le_cercle_d_apparition` : `cadre_visible().size.y / 2 >= 2 × RAYON_APPARITION` ; au zoom par défaut le cercle entier est visible (test existant).
+  - `test_le_decalage_est_limite_a_deux_rayons_dans_les_huit_directions` ; `test_deplacer_ignore_les_valeurs_non_finies`.
+  - `test_les_fleches_et_wasd_deplacent_la_vue` : en boucle sur les quatre actions et leurs touches, `Input.action_press` puis un pas de une seconde, décalage de `VITESSE_BASE` ; `test_la_diagonale_n_est_pas_plus_rapide`.
+  - `test_espace_recentre_sur_la_tour_et_garde_le_zoom`.
+  - `test_centrer_sur_place_le_point_au_centre_de_la_zone_libre_et_borne_les_points_trop_loin`.
+  - `test_le_cadre_visible_suit_le_zoom_et_le_decalage` : zoom ×2, taille ÷2, centre = décalage.
+  - `test_les_six_actions_existent_avec_leurs_touches` : en boucle, y compris B et Espace.
+  - `test_montrer_une_arene_affiche_la_vue_regardee_et_moins_un_revient_a_la_sienne` : avec `SourceFactice`, 3 ennemis regardés, puis la vue propre ignorée tant qu'on regarde ; nom et teinte de tour du joueur regardé.
+- **Vérif :** `T --filtre test_camera_arene`, `test_arene_2d`, `test_configuration_projet`, puis `tools/verifier.sh`.
+
+### Task 8.14 : Planche des 30 signatures d'armes — `sonnet` — **attend Phil**
+
+- [ ] **Objectif :** proposer une signature visuelle par arme (forme du projectile, couleur, traînée, impact, statut) dans `visuels/signatures_armes.gd` (table, sans l'intégrer en jeu), et la montrer sur une planche : `docs/planche_signatures.png`, composée par un script de `tools/` avec `Image`, sans fenêtre, sur le modèle de `tools/composer_images_offres.gd`. Sources : effets du pack d'abord, puis formes dessinées par code aux couleurs du pack. Chaque carte nomme l'arme. **Aucune intégration avant la validation de Phil** : l'agent principal met la ligne du tableau d'avancement à `a_valider` avec `attend` renseigné.
+- **Conception :** §6.5, D5, §7 (planche avant intégration).
+- **Fichiers :** `visuels/signatures_armes.gd`, `tools/planche_signatures.gd`, `docs/planche_signatures.png` ; tests nouveau `test_signatures_armes.gd` ; `test_garde_ressources.gd` si le script cite une image du pack.
+- **Lire :** `visuels/effets.gd` `PROJECTILES`, `IMPACTS`, `TRAITS`, `COULEURS`, `_dessiner` ; `data/armes.json` (id, type, statuts de chacune, par script `jq`-équivalent, pas en entier).
+- **Interfaces :** produit `SignaturesArmes` (figée ci-dessus).
+- **Tests :**
+  - `test_chaque_arme_a_une_signature_et_il_n_y_en_a_pas_d_autre` : les 30 ids de `Donnees.armes`, ni plus ni moins.
+  - `test_deux_armes_n_ont_jamais_la_meme_signature` : les 435 paires, sur projectile, couleur, traînée et impact.
+  - `test_deux_armes_ne_partagent_jamais_la_forme_et_la_couleur_du_projectile` : les 435 paires (reconnaissance d'un coup d'œil).
+  - `test_les_signatures_restent_lisibles_au_zoom_le_plus_lointain` : couleur de saturation et de valeur suffisantes (valeur ≥ 0,6), opacité ≥ 0,8.
+  - `test_le_statut_de_la_signature_est_celui_de_l_arme_vol_de_vie_compris` : en boucle sur les 30.
+  - `test_une_arme_inconnue_n_a_pas_de_signature` (`{}`).
+- **Vérif :** `T --filtre test_signatures_armes`, `godot --headless --path . --script res://tools/planche_signatures.gd`, puis `tools/verifier.sh`. Rapport : lien vers la planche.
+
+### Task 8.15 : Sons de tir par arme et d'impact par type de dégâts — `sonnet`
+
+- [ ] **Objectif :** D15. Un son de tir propre à chacune des 30 armes et un son d'impact par type de dégâts (5), pris dans le « 400+ Sounds Pack » (CC0, déjà cité dans `CREDITS.md`), surtout dans ses dossiers Weapons et Combat and Gore, puis dans tout dossier adapté (Magic, Explosions…) s'il n'y a pas 30 sons distincts ; jamais le même fichier d'origine deux fois. Dossier du pack : https://drive.google.com/drive/folders/10Owjc3qqK0tWUJANwKOYmKsidLofonc0 (liste par `https://drive.google.com/embeddedfolderview?id=<id du dossier>`, téléchargement par `https://drive.google.com/uc?export=download&id=<id>`). Même conversion que T5.6 : Ogg Vorbis par ffmpeg, silence de tête coupé, `loudnorm` à −18 LUFS. Indépendante de la planche.
+- **Conception :** §6.5 bis, D15.
+- **Fichiers :** `sons/catalogue_sons.gd`, `sons/detecteur_sons.gd`, `sons/lecteur_sons.gd`, `assets/sons/tir_<id>.ogg` (30) et `assets/sons/impact_<type>.ogg` (5) avec leurs `.import`, `assets/sons/SOURCES.md` (une ligne par son : identifiant, sous-dossier, fichier d'origine) ; tests `test_catalogue_sons.gd`, `test_detecteur_sons.gd`, `test_lecteur_sons.gd`. `CREDITS.md` : voir T8.21 (la ligne du pack existe déjà, son nombre de sons y est mis à jour).
+- **Lire :** `sons/*.gd` (les trois), `assets/sons/SOURCES.md`, `tests/unitaires/test_catalogue_sons.gd`.
+- **Interfaces :** produit `CatalogueSons.id_tir`, `CatalogueSons.id_impact`, repli sur `tir` / `impact` ; `DetecteurSons.sons_du_pas(precedente: VueArene, courante: VueArene, catalogue: PackedStringArray = PackedStringArray()) -> Array[String]` (le catalogue de `Donnees.ids_catalogue` traduit l'index `arme` d'un événement en son) ; le lecteur varie la hauteur de ± 5 % à chaque tir (graine réglable pour les tests).
+- **Tests :**
+  - `test_chaque_arme_a_son_fichier_de_tir` : en boucle sur les 30 armes, le fichier existe et n'est pas un silence de substitution.
+  - `test_deux_armes_n_ont_jamais_le_meme_fichier` : les 435 paires sur l'empreinte du fichier **et** sur le fichier d'origine lu dans `SOURCES.md`.
+  - `test_chaque_son_est_liste_dans_sources_md` : les 30 tirs et les 5 impacts.
+  - `test_chaque_type_de_degats_a_son_impact_et_les_cinq_sont_distincts`.
+  - `test_un_tir_d_arme_inconnue_retombe_sur_le_son_tir`.
+  - `test_le_detecteur_choisit_le_son_de_l_arme_de_l_evenement` : en boucle sur les 30 ; `test_un_evenement_sans_arme_donne_le_son_tir` ; `test_l_impact_depend_du_type_de_degats` (5).
+  - `test_la_hauteur_varie_dans_5_pour_cent_et_prend_plusieurs_valeurs` : 20 tirs, graine fixe.
+  - `test_chaque_fichier_de_son_pese_moins_de_80_ko`.
+  - `test_la_liste_des_ids_d_armes_du_catalogue_suit_les_donnees` (anti-dérive).
+- **Vérif :** `T --filtre test_catalogue_sons`, `test_detecteur_sons`, puis `tools/verifier.sh`.
+
+### Task 8.16 : Signatures d'armes en jeu et statuts visibles — `sonnet`
+
+- [ ] **Objectif :** après la validation de Phil de la planche (T8.14), l'effet de tir et d'impact suit la signature de l'arme de l'événement ; les cinq statuts sont tous visibles, **vol de vie compris** (un soin vert qui remonte de l'ennemi vers la tour) ; plafond d'effets simultanés conservé ; taille et luminosité suffisantes au zoom le plus lointain.
+- **Conception :** §6.5, D5.
+- **Fichiers :** `visuels/effets.gd`, `visuels/arene_2d.gd` (catalogue, teinte des ennemis à statut) ; tests `test_effets.gd`, `test_evenements_genre.gd`, `test_arene_2d.gd`.
+- **Lire :** `visuels/effets.gd` `rendu`, `_tir`, `_impact`, `_statut` ; `visuels/signatures_armes.gd` ; la planche validée.
+- **Interfaces :** consomme `SignaturesArmes.de` (T8.14), l'index `arme` des événements (T8.3), `Donnees.ids_catalogue`. Produit `Effets.catalogue: PackedStringArray` (posé par `Arene2D`), `Arene2D.teinte_instance(famille: int, i: int) -> Color`, `Effets.COULEUR_SOIN`.
+- **Tests :**
+  - `test_chaque_arme_produit_un_tir_aux_formes_et_a_la_couleur_de_sa_signature` : en boucle sur les 30.
+  - `test_deux_armes_ne_produisent_jamais_le_meme_rendu` : les 435 paires sur formes vivantes, couleur du premier effet et taille.
+  - `test_l_impact_suit_la_signature_de_l_arme`.
+  - `test_un_evenement_sans_arme_garde_le_rendu_par_type_de_degats` (`Effets.rendu` inchangé).
+  - `test_chaque_statut_a_un_visuel_distinct` : en boucle sur les 5 statuts (poison, brûlure, givre, étourdissement, vol de vie), forme et couleur distinctes deux à deux.
+  - `test_le_vol_de_vie_remonte_vers_la_tour_en_vert` : l'effet part de l'ennemi, finit à la tour, de couleur `COULEUR_SOIN`.
+  - `test_un_ennemi_a_statut_est_teinte_et_cinq_statuts_donnent_cinq_teintes` : sans statut, `Color.WHITE`.
+  - `test_le_plafond_de_200_effets_tient_avec_40_armes_qui_tirent`.
+- **Vérif :** `T --filtre test_effets`, `test_evenements_genre`, puis `tools/verifier.sh`. Captures de contrôle aux trois résolutions relues.
+
+---
+
+## Session « Interface »
+
+### Task 8.17 : Police Metamorphous, tailles du thème et taille de l'interface — `sonnet`
+
+- [ ] **Objectif :** Metamorphous (SIL OFL 1.1) remplace Tiny5 partout, DejaVu Sans reste en repli pour les symboles ; les tailles de texte passent par un seul réglage de `ThemeJeu` au lieu des surcharges locales ; réglage « Taille de l'interface » de 75 à 125 % (défaut 100 %), persistant, appliqué à tout l'ATH.
+- **Conception :** §6.6, §6.7 (taille), D9.
+- **Fichiers :** `assets/polices/metamorphous/` (fichier woff2 latin du paquet npm `@fontsource/metamorphous`, `OFL.txt`, `.import`), `ui/theme.gd`, `ui/hud.gd`, `ui/boutique_ui.gd`, `ui/scores.gd`, `ui/reglages_ui.gd`, `app/reglages.gd`, `i18n/textes_reglages.csv` ; tests `test_theme_pack.gd`, `test_mise_en_page.gd`, `test_reglages.gd`, `test_reglages_mise_en_page.gd`, `test_garde_ressources.gd` (liste fermée : la police est citée par `ui/theme.gd` seul). `CREDITS.md` : voir T8.21.
+- **Lire :** `ui/theme.gd` (constantes, `_construire`), `app/reglages.gd` en entier, `grep -n 'font_size\|TAILLE_' ui/*.gd`.
+- **Interfaces :** produit `ThemeJeu.taille(role: String) -> int` (rôles `"texte"`, `"petit"`, `"titre"`) multiplié par l'échelle ; `Reglages.ECHELLES = [0.75, 0.875, 1.0, 1.125, 1.25]` (réglage : cinq crans, défaut 1,0), `Reglages.echelle_valide(valeur)` ramène à un cran ; `Reglages.vitesse_camera: float` (0,5 à 2,0, défaut 1,0, lue par T8.20).
+- **Tests :**
+  - `test_metamorphous_couvre_les_caracteres_du_francais` : `FontFile.has_char` en boucle sur é è ê à ç œ « » espace insécable ; l'espace fine tombe sur le repli sans erreur.
+  - `test_la_police_du_theme_est_metamorphous_avec_dejavu_en_repli` ; `test_tiny5_n_est_plus_cite`.
+  - `test_aucune_taille_de_texte_en_dur_dans_ui` : aucun `font_size` ni `TAILLE_*` local ne subsiste hors de `ThemeJeu`.
+  - `test_les_cinq_crans_d_echelle_sont_acceptes_et_les_autres_ramenes_au_plus_proche` : en boucle.
+  - **Review Focus 4 :** `test_un_ancien_fichier_de_reglages_garde_une_echelle_valide` (1,25 ancien reste 1,25 ; 1,5 ancien devient 1,25) et `test_aucun_texte_ne_deborde_ni_ne_se_coupe_a_75_et_125_pour_cent` : les plus longs libellés réels (24 noms de familles, noms d'armes, descriptions) aux 3 résolutions de `test_mise_en_page.gd`, aux échelles 0,75 et 1,25.
+  - `test_la_vitesse_de_camera_est_bornee_et_persistante`.
+- **Vérif :** `T --filtre test_theme_pack`, `test_reglages`, `test_mise_en_page`, puis `tools/verifier.sh`.
+
+### Task 8.18 : Barre du haut à icônes et tableau des scores — `sonnet`
+
+- [ ] **Objectif :** la barre du haut montre une icône par information (or, revenu, manche, temps avec un sablier, armures de la prochaine manche, nombre d'armes), sans PV, d'environ 40 px de haut ; l'annonce de la manche suivante montre les armures de ses 2 ou 3 familles (texte en infobulle) ; le tableau des scores ajoute « Revenu / 10 s », « Dégâts par seconde » et dégâts totaux. Sablier sous licence libre (CC0 ou CC BY) à trouver dans les packs déjà utilisés ou sur OpenGameArt ; **à défaut, le demander à Phil** (le rapport le dit, la tâche attend).
+- **Conception :** §6.7 (barre du haut), §6.8, D1, D10, D11.
+- **Fichiers :** `ui/hud.gd`, `ui/scores.gd`, `ui/theme.gd` (icônes citées ici : `ICONES`, `TEXTURES`), `assets/icones/…` (sablier et sa `LICENCE.md`), `i18n/textes_hud.csv`, `i18n/textes_communs.csv` si besoin ; tests `test_hud.gd`, `test_fin_ui.gd`, `test_garde_ressources.gd`, `test_contraste.gd`. `emplacements_armes` n'est plus lu (le nombre d'armes est un compte, sans capacité). `CREDITS.md` : voir T8.21.
+- **Lire :** `ui/hud.gd` (215 lignes), `ui/scores.gd`, `ui/theme.gd` `ICONES`.
+- **Interfaces :** consomme `VueArene.prochaines_familles`, `prochaines_armures`, `armes` (jusqu'à 255), `VueGlobale.joueurs[i].dps`, `.revenu`, `.degats`. Produit `Hud.hauteur_barre() -> float` (≈ 40) et `Scores.COLONNES` à 8.
+- **Tests :**
+  - `test_la_barre_n_affiche_plus_les_pv_et_montre_six_informations_avec_icone`.
+  - `test_chaque_icone_a_un_nom_accessible_et_une_infobulle` : l'information ne repose jamais sur l'icône ou la couleur seule.
+  - `test_la_barre_fait_au_plus_44_px_de_haut_aux_trois_resolutions`.
+  - `test_l_annonce_montre_les_armures_de_chaque_famille_suivante` : en boucle sur 0 à 3 familles ; vide sans famille.
+  - `test_le_nombre_d_armes_tient_pour_0_8_40_et_255_armes`.
+  - `test_le_tableau_montre_revenu_dps_et_degats_totaux_pour_huit_joueurs` : valeurs formatées par `Nombres`, intitulé exact « Revenu / 10 s ».
+  - `test_les_textes_de_la_barre_et_du_tableau_gardent_un_contraste_aa`.
+- **Vérif :** `T --filtre test_hud`, `test_garde_ressources`, `test_contraste`, puis `tools/verifier.sh`.
+
+### Task 8.19 : Boutique compacte et repliable, catégories, grille des armes — `sonnet`
+
+- [ ] **Objectif :** cartes compactes (image, nom, prix, rareté ; description en infobulle), panneau qui se replie et se déplie (touche B et bouton), raccourcis 1 à 4 et R conservés ; chaque carte porte en tête un ruban du pack de la couleur de sa catégorie (rouge « Arme », bleu « Amélioration », jaune « Revenu »), avec icône et mot écrit ; les mêmes repères dans la grille des armes équipées, la liste des améliorations achetées et le marché noir ; la liste des armes équipées devient une grille compacte d'icônes qui défile (jusqu'à 255), détail en infobulle.
+- **Conception :** §6.3 (interface), §6.7 (boutique, catégories), D13, D14.
+- **Fichiers :** `ui/boutique_ui.gd`, `ui/categorie_offre.gd` (nouveau : ruban, icône, mot), `ui/theme.gd` (rubans cités ici), `ui/description_offre.gd` si l'infobulle l'exige, `i18n/textes_boutique.csv` ; tests `test_boutique_ui.gd`, `test_boutique_images.gd`, `test_boutique_description.gd`, `test_mise_en_page.gd`, nouveau `test_categorie_offre.gd`. `emplacements_armes` n'est plus lu (`_capacite` supprimée).
+- **Lire :** `ui/boutique_ui.gd` par plage (`_construire_carte`, `_construire_cote`, `_afficher_armes`), `Donnees.categorie_de`, `ui/theme.gd` (`TEX_RUBAN`).
+- **Interfaces :** consomme `Donnees.categorie_de`, `ACTION_REPLIER = "boutique_replier"` (T8.13), `SourceVue.vendre`. Produit `CategorieOffre.rubrique(categorie: int) -> Dictionary` `{ruban: String, icone: String, mot_cle: String}`.
+- **Tests :**
+  - `test_chaque_categorie_a_un_ruban_une_icone_et_un_mot_et_les_trois_se_distinguent` : couleur, icône et mot distincts deux à deux, en boucle sur `Types.Categorie`.
+  - `test_chaque_offre_affiche_sa_categorie_d_apres_les_donnees` : en boucle sur les 70 offres, le mot écrit est « Arme », « Amélioration » ou « Revenu ».
+  - `test_le_panneau_se_replie_et_se_deplie_a_la_touche_b_et_au_bouton` ; `test_replie_le_panneau_laisse_le_bouton_pour_le_deplier_et_libere_la_zone` ; `test_les_raccourcis_1_a_4_et_r_restent`.
+  - `test_la_boutique_est_au_moins_30_pour_cent_plus_petite_qu_avant` : surface du bandeau et du côté aux trois résolutions, comparée à la constante `SURFACE_AVANT` du test (mesurée avant la tâche).
+  - `test_la_grille_des_armes_defile_et_tient_255_armes_sans_deborder` ; `test_chaque_arme_de_la_grille_a_une_infobulle_et_son_repere_de_categorie`.
+  - `test_aucun_libelle_ne_se_coupe_avec_les_plus_longs_noms_reels_a_75_et_125_pour_cent`.
+  - `test_la_vente_a_50_pour_cent_depuis_la_grille_envoie_le_bon_index`.
+  - `test_le_marche_noir_et_les_ameliorations_achetees_portent_leurs_reperes`.
+- **Vérif :** `T --filtre test_boutique_ui`, `test_categorie_offre`, `test_mise_en_page`, puis `tools/verifier.sh`. Captures de contrôle relues aux trois résolutions.
+
+### Task 8.20 : Mini-carte et câblage de la partie — `sonnet`
+
+- [ ] **Objectif :** mini-carte en bas à droite : sa propre arène (tour, ennemis en points de la couleur de leur palier, cercle d'apparition, cadre de la vue), un clic y déplace la vue ; les arènes des autres joueurs en vignettes (nom, barre de PV, densité), un clic sur une vignette affiche cette arène dans la vue principale, **Espace** revient à la sienne (le HUD et la boutique restent ceux du joueur) ; pas de vignette en solo. Câble dans `app/jeu.gd` tout ce que le lot ajoute : caméra, mini-carte, taille de l'interface, vitesse de caméra, barre du haut, boutique repliable, `regarder`.
+- **Conception :** §6.9, §6.10, D4.
+- **Fichiers :** `ui/minicarte.gd` (nouveau), `app/jeu.gd`, `i18n/textes_minicarte.csv` (nouveau) ; tests nouveau `test_minicarte.gd`, `test_observation_ui.gd`, `tests/integration/test_solo.gd`, `test_mise_en_page.gd`.
+- **Lire :** `app/jeu.gd` (`_monter`, `_sur_arene`, `_sur_globale`, `_unhandled_input`, `placer_dans`), `ui/observation_ui.gd`, `visuels/camera_arene.gd`.
+- **Interfaces :** consomme `Arene2D.camera() -> CameraArene` (`cadre_visible`, `centrer_sur`, `recentrer`), `Arene2D.montrer_arene`, `SourceVue.regarder`, `id_regarde`, `vue_regardee_recue`, `VueGlobale.densites` et `joueurs`. Produit `Minicarte` : `func afficher(vue: VueArene, globale: VueGlobale, id_local: int, cadre: Rect2) -> void`, `func case_vers_unites(position_locale: Vector2) -> Vector2`, `func joueur_sous(position_locale: Vector2) -> int` (−1 si aucun), signaux `demande_centrage(point_unites: Vector2)` et `demande_regarder(id_joueur: int)`.
+- **Tests :**
+  - `test_un_clic_sur_la_carte_demande_le_centrage_au_bon_point_du_monde` : en boucle sur les quatre coins et le centre.
+  - **Review Focus 5 :** `test_un_clic_hors_de_la_carte_ou_non_fini_ne_deplace_pas_la_vue_et_espace_revient_toujours` : coordonnées hors carte, NaN, INF ; clic sur la vignette d'un joueur qui vient de partir ; après chaque cas, `camera_recentrer` remet la tour au centre et `montrer_arene(-1)`.
+  - `test_les_ennemis_ont_la_couleur_de_leur_palier` : en boucle sur les 4 paliers, 1 000 ennemis sans dépasser le budget d'affichage.
+  - `test_le_cadre_de_la_vue_suit_le_zoom_et_le_decalage`.
+  - `test_une_vignette_par_autre_joueur_avec_son_nom_et_sa_barre_de_pv` : 2 à 8 joueurs ; aucune en solo.
+  - `test_un_clic_sur_une_vignette_regarde_cette_arene_et_espace_revient_a_la_sienne` (avec `SourceFactice`).
+  - `test_la_minicarte_ne_couvre_ni_la_boutique_ni_la_barre_du_haut_aux_trois_resolutions_et_aux_cinq_echelles`.
+  - `test_le_hud_et_la_boutique_restent_ceux_du_joueur_pendant_qu_il_regarde`.
+  - `test_la_taille_de_l_interface_et_la_vitesse_de_camera_des_reglages_sont_appliquees`.
+  - Tests d'intégration solo (`test_solo.gd`) et réseau (`test_multijoueur.gd`) toujours verts.
+- **Vérif :** `T --filtre test_minicarte`, `test_observation_ui`, puis `tools/verifier.sh` (étape `integration` comprise). Captures de contrôle relues.
+
+---
+
+## Passe finale
+
+### Task 8.21 : Passe d'équilibrage et clôture du lot — `sonnet`
+
+- [ ] **Objectif :** rejouer l'outil d'équilibrage (`tools/equilibrage.gd`) avec toutes les données du lot, vérifier que la partie reste gagnable et que la difficulté monte sans mur, consigner les chiffres dans `docs/equilibrage.md`, revoir les suivis ouverts (rampe de dégâts, mur de PV après la manche 20). **Critère :** les cibles du robot consignées restent atteintes, le robot de référence (`bonne`) n'est pas éliminé avant la manche 20, un robot qui n'achète rien tombe au plus tard à la fin de la manche 3 (T8.8) et les PV et dégâts croissent à chaque manche. **Leviers autorisés sans revenir à Phil :** manches d'entrée des paliers et de l'Archer, PV, dégâts et primes par palier, poids des familles, chiffres de la mana et des armes de mana, poids de rareté de la boutique, rampe de dégâts et de PV de `data/difficulte.json`. **Non modifiables sans Phil :** paliers de portée des armes (500 / 750 / 1 000 / 1 250), vitesse ×1,5, portées d'ennemis 350 et 650. Clôture : suppression d'`emplacements_armes` de `data/partie.json` (avec un test garde qu'aucun fichier ne le lit), `CREDITS.md` à jour pour tout le lot (retrait de la guêpe, Metamorphous, sablier, nombre de sons du pack), `docs/jouer.md` (caméra, mini-carte, catégories, mana, taille de l'interface), `CLAUDE.md` (pièges rencontrés, rétros des tâches), suivis fermés dans « Suivis relevés en cours de route ».
+- **Conception :** §6.12, §6.1 (Archer, paliers).
+- **Fichiers :** `data/difficulte.json`, `data/ennemis.json`, `data/armes.json`, `data/ameliorations.json`, `data/boutique.json`, `data/partie.json`, `docs/equilibrage.md`, `docs/jouer.md`, `CREDITS.md`, `CLAUDE.md`, ce plan (suivis), `tests/unitaires/test_equilibrage_partie.gd`, `test_donnees.gd`.
+- **Lire :** `docs/equilibrage.md` en entier ; les rapports et rétros des tâches 8.1 à 8.20.
+- **Interfaces :** consomme tout le lot ; ne change aucune interface.
+- **Tests :**
+  - `test_le_robot_de_reference_n_est_pas_elimine_avant_la_manche_20` : robot `bonne`, graines 1 à 10.
+  - `test_un_joueur_raisonnable_atteint_au_moins_la_manche_douze_en_mediane` (seuil du test existant, relevé si les mesures le permettent).
+  - `test_emplacements_armes_n_est_plus_lu_nulle_part` : aucune occurrence dans `sim/`, `ui/`, `app/`, `reseau/`, ni dans `data/partie.json`.
+  - Tests de T8.8 (seuil bas et montée continue) toujours verts.
+- **Vérif :** `godot --headless --path . --script res://tools/equilibrage.gd -- --graines 50 --strategie toutes`, `npx -y prettier@3.9.10 --check` sur les Markdown touchés, puis `tools/verifier.sh` complet.
 
 ---
 
