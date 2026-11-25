@@ -7,7 +7,7 @@
 	"spawn_intervalle_depart": 2.0,
 	"spawn_baisse_par_manche": 0.08,
 	"spawn_plancher": 0.1,
-	"tour": {"pv": 1000, "armure": 0, "regen": 0, "rayon": 60},
+	"tour": {"pv": 1000, "armure": 0, "regen": 0, "rayon": 60, "mana_max": 0, "mana_regen": 1.0},
 	"emplacements_armes": 8,
 	"nb_offres": 4,
 	"vente_ratio": 0.5,
@@ -16,6 +16,14 @@
 	"critique": {"palier": 0.05, "puissance_base": 2.0, "coef_exces": 1.0},
 	"esquive_k": 1.0,
 	"vitesses_partie": [1.0, 0.5, 0.25],
-	"reseau": {"hz_arene": 15, "hz_global": 2, "hz_min": 5, "budget_octets_s": 50000},
+	"reseau": {
+		"hz_arene": 15,
+		"hz_global": 2,
+		"hz_min": 5,
+		"hz_arene_regardee": 5,
+		"hz_min_regardee": 1,
+		"budget_octets_s": 50000
+	},
+	"vagues": {"part_majoritaire": 0.6, "familles_min": 2, "familles_max": 3},
 	"convoi": {"probabilite": 0.08, "manche_min": 4}
 }
