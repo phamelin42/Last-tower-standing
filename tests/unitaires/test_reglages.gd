@@ -401,4 +401,6 @@ func test_la_vitesse_de_camera_est_bornee_et_persistante() -> void:
 		var r := Reglages.new()
 		r.vitesse_camera = c[0]
 		verifier(r.sauver(_chemin()))
-		verifier_proche(Reglages.charger(_chemin()).vitesse_camera, c[1], 0.0001, "vitesse %s" % c[0])
+		verifier_proche(
+			Reglages.charger(_chemin()).vitesse_camera, c[1], 0.0001, "vitesse %s" % c[0]
+		)

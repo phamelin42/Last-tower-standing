@@ -347,11 +347,18 @@ func test_aucun_texte_ne_deborde_ni_ne_se_coupe_a_75_et_125_pour_cent() -> void:
 			for panneau: Control in [jeu.hud, jeu.boutique]:
 				for noeud: Node in panneau.find_children("*", "Label", true, false):
 					var libelle := noeud as Label
-					if not libelle.is_visible_in_tree() or libelle.autowrap_mode != TextServer.AUTOWRAP_OFF:
+					if (
+						not libelle.is_visible_in_tree()
+						or libelle.autowrap_mode != TextServer.AUTOWRAP_OFF
+					):
 						continue
-					var largeur := police.get_string_size(
-						libelle.text, 0, -1, libelle.get_theme_font_size("font_size")
-					).x
+					var largeur := (
+						police
+						. get_string_size(
+							libelle.text, 0, -1, libelle.get_theme_font_size("font_size")
+						)
+						. x
+					)
 					verifier(
 						largeur <= libelle.size.x + 1.0,
 						"« %s » coupé à %s, échelle %s" % [libelle.text, resolution, echelle]
