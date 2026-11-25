@@ -34,10 +34,10 @@ func test_des_valeurs_valides_sont_lues() -> void:
 
 
 func test_la_forme_avec_egal_est_acceptee() -> void:
-	var r := _lire(["--port=9000", "--graine=0", "--vitesse=0.66"])
+	var r := _lire(["--port=9000", "--graine=0", "--vitesse=0.25"])
 	verifier_egal(r["port"], 9000)
 	verifier_egal(r["graine"], 0)
-	verifier_egal(r["vitesse"], 0.66)
+	verifier_egal(r["vitesse"], 0.25)
 
 
 func test_chaque_port_invalide_donne_7777_et_un_message() -> void:
@@ -62,9 +62,9 @@ func test_graine_negative_ou_illisible_donne_le_defaut() -> void:
 
 
 func test_seules_les_trois_vitesses_sont_acceptees() -> void:
-	for brut: String in ["1", "0.66", "0.5"]:
+	for brut: String in ["1", "0.5", "0.25"]:
 		verifier_egal(_lire(["--vitesse", brut])["vitesse"], float(brut))
-	for brut: String in ["2", "0", "0.7", "vite", "-1", "nan"]:
+	for brut: String in ["2", "0", "0.7", "0.66", "vite", "-1", "nan"]:
 		var r := _lire(["--vitesse", brut])
 		verifier_egal(r["vitesse"], 1.0, "vitesse « %s »" % brut)
 		verifier_egal(_messages(r).size(), 1)

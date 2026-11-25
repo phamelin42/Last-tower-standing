@@ -6,7 +6,7 @@ extends RefCounted
 
 const MAX_JOUEURS: int = 8
 const MAX_NOM: int = Protocole.MAX_NOM
-const VITESSES: Array[float] = [1.0, 0.66, 0.5]
+const VITESSES: Array[float] = [1.0, 0.5, 0.25]
 const _TOLERANCE_VITESSE: float = 0.001
 const _OCTETS_JOUEUR_MIN: int = 6
 

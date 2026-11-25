@@ -261,7 +261,7 @@ func test_hote_qui_part_passe_la_main_au_suivant() -> void:
 	_connecter(s, 6)
 	s.pair_deconnecte(5)
 	verifier_egal(s.salon.hote, 6)
-	verifier_egal(s.traiter_intention(6, Serveur.encoder_options(0.66, 1, false)), 0)
+	verifier_egal(s.traiter_intention(6, Serveur.encoder_options(0.25, 1, false)), 0)
 
 
 # --- Intentions de jeu et robustesse ---------------------------------------------------------
