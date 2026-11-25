@@ -15,9 +15,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        variante: [base, threads_off, arena1, un_coeur, sans_textures]
+        variante: [apres_a, apres_b, apres_c]
     env:
-      N: 60
+      N: 100
     steps:
       - uses: actions/checkout@v7
       - run: tools/install-godot.sh

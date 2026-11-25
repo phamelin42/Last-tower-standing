@@ -14,6 +14,12 @@ gdscript/warnings/untyped_declaration=2
 gdscript/warnings/unsafe_method_access=2
 gdscript/warnings/unsafe_property_access=2
 
+[editor]
+
+; Import séquentiel : l'import parallèle plante au réimport du premier CSV de traduction
+; (« double free or corruption », 20 à 47 % des imports à froid sur ubuntu-latest).
+import/use_multiple_threads=false
+
 [input]
 
 afficher_scores={
