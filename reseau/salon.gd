@@ -130,7 +130,7 @@ func vers_octets() -> PackedByteArray:
 static func depuis_octets(b: PackedByteArray) -> Salon:
 	if b.size() > Protocole.MAX_TAILLE:
 		return null
-	var l := Protocole._Lecteur.new(b)
+	var l := Protocole.LecteurOctets.new(b)
 	if l.u8() != Protocole.Msg.SALON:
 		return null
 	var s := Salon.new()

@@ -832,3 +832,12 @@ func test_fuzz_10000_paquets_sans_plantage_ni_erreur_journalisee() -> void:
 			acceptes += 1
 	verifier(acceptes > 100, "le fuzz atteint des paquets valides (%d acceptés)" % acceptes)
 	verifier(acceptes < 20000, "le fuzz ne rend pas tout valide")
+
+
+func test_lecteur_public_refuse_toute_lecture_hors_des_octets_disponibles() -> void:
+	var l := Protocole.LecteurOctets.new(PackedByteArray([1, 2, 3]))
+	verifier_egal(l.u16(), 0x0201, "deux octets lus en petit-boutiste")
+	verifier(l.ok, "lecture dans les bornes")
+	verifier_egal(l.u32(), 0, "quatre octets demandés, un seul disponible")
+	verifier(not l.ok, "une lecture hors bornes invalide le lecteur")
+	verifier_egal(l.reste(), 1, "le curseur n'a pas avancé sur la lecture refusée")

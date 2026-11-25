@@ -72,7 +72,7 @@ static func encoder_bonjour(nom: String, empreinte: int) -> PackedByteArray:
 static func decoder_bonjour(b: PackedByteArray) -> Dictionary:
 	if b.size() > _MAX_BONJOUR:
 		return {}
-	var l := _Lecteur.new(b)
+	var l := LecteurOctets.new(b)
 	if l.u8() != Msg.BONJOUR or l.u8() != VERSION:
 		return {}
 	var nom := l.texte(l.u8(), MAX_NOM)
@@ -118,7 +118,7 @@ static func encoder_intention(genre: int, arg: int, texte: String = "") -> Packe
 static func decoder_intention(b: PackedByteArray) -> Dictionary:
 	if b.size() > _MAX_INTENTION:
 		return {}
-	var l := _Lecteur.new(b)
+	var l := LecteurOctets.new(b)
 	if l.u8() != Msg.INTENTION:
 		return {}
 	var genre := l.u8()
@@ -151,7 +151,7 @@ static func encoder_refus(motif: String) -> PackedByteArray:
 static func decoder_refus(b: PackedByteArray) -> String:
 	if b.size() > _MAX_REFUS:
 		return ""
-	var l := _Lecteur.new(b)
+	var l := LecteurOctets.new(b)
 	if l.u8() != Msg.REFUS:
 		return ""
 	var n := l.u8()
@@ -209,7 +209,7 @@ static func encoder_etat_global(v: VueGlobale) -> PackedByteArray:
 static func decoder_etat_global(b: PackedByteArray) -> VueGlobale:
 	if b.size() > MAX_TAILLE:
 		return null
-	var l := _Lecteur.new(b)
+	var l := LecteurOctets.new(b)
 	if l.u8() != Msg.ETAT_GLOBAL:
 		return null
 	var v := VueGlobale.new()
@@ -384,7 +384,7 @@ static func encoder_etat_arene(v: VueArene, catalogue: PackedStringArray) -> Pac
 static func decoder_etat_arene(b: PackedByteArray, catalogue: PackedStringArray) -> VueArene:
 	if b.size() > MAX_TAILLE or b.size() < TAILLE_FIXE:
 		return null
-	var l := _Lecteur.new(b)
+	var l := LecteurOctets.new(b)
 	if l.u8() != Msg.ETAT_ARENE:
 		return null
 	var v := VueArene.new()
@@ -585,7 +585,7 @@ static func _utf8_valide(raw: PackedByteArray) -> bool:
 
 ## Lecteur à curseur : toute lecture hors des octets disponibles passe `ok` à faux et renvoie 0,
 ## sans jamais appeler `decode_*` hors bornes.
-class _Lecteur:
+class LecteurOctets:
 	extends RefCounted
 	var b: PackedByteArray
 	var p: int = 0
