@@ -85,8 +85,8 @@ reconnaissable.
   validé par `LecteurOctets.texte` (UTF-8 valide, aucun contrôle) ; `max` entre 1 et
   `Salon.MAX_JOUEURS` (8) ; `joueurs` ≤ `max` ; `port` entre 1 024 et 65 535 ; `n` ≤ 100. Reste de
   lecture nul, sinon refus.
-- **Limites de taille** : le service refuse tout cadre entrant de plus de **128 octets** de corps
-  (le plus grand message légitime en fait 105) ; le client refuse tout cadre de plus de **16 384
+- **Limites de taille** : le service refuse tout cadre entrant de plus de **128 octets** de corps,
+  une fois la version contrôlée (le plus grand message légitime en fait 105) ; le client refuse tout cadre de plus de **16 384
   octets** (le plus grand légitime en fait 10 604).
 - **Statuts de REPONSE** : 0 accepté · 1 version d'annuaire différente · 2 port injoignable · 3
   débit dépassé · 4 message invalide · 5 annuaire plein ou quota par IP atteint · 6 adresse non
