@@ -9,12 +9,16 @@ découverte automatique (`reseau/decouverte.gd`) ne couvre que le réseau local 
 7778). Phil a lancé le lot 7 le 25/11/2026, avant l'habillage graphique : un petit **annuaire** sur
 son VPS liste les salons ouverts, et l'hôte ouvre son port par UPnP.
 
-Principe fixé par Phil, appliqué tel quel :
+Principe fixé par Phil (25/11/2026) :
 
 - L'hôte héberge toujours la partie sur sa machine. Aucune donnée de jeu ne passe par le VPS.
-- L'annuaire ne tient que : nom, joueurs, maximum, version, et l'IP **vue par le VPS** (jamais une
-  IP déclarée par le client) avec le port annoncé.
+- L'annuaire ne tient que : nom, joueurs, maximum, version, et l'adresse IP et le port **vus par le
+  VPS** (jamais une adresse déclarée par le client).
 - Une entrée disparaît **30 s** après la dernière annonce.
+
+**Écart technique à ce principe** : l'IP est bien celle que le VPS voit, mais le **port** ne peut
+pas l'être. En TCP, le port vu est un port éphémère sans rapport avec le port UDP de jeu. Le port est
+donc **déclaré par l'hôte** (voir Décision et décision 1).
 
 Ce que le code fait aujourd'hui et qui contraint la décision :
 
@@ -30,7 +34,9 @@ Ce que le code fait aujourd'hui et qui contraint la décision :
 - `Serveur` ouvre `PLACES_ENET = MAX_CLIENTS + 1 = 9` places ; un pair qui se connecte sans dire
   bonjour n'entre pas dans le salon (`reseau/serveur.gd:217-220`, `257-283`).
 - Le serveur dédié (`--serveur`, `reseau/serveur_dedie.gd`, scène `res://scenes/serveur.tscn`,
-  aiguillée par `app/principal.gd:36-38`) prouve qu'un processus Godot sans interface convient.
+  aiguillée par `app/principal.gd:36-38`) prouve qu'un processus Godot sans interface convient. Il n'a
+  **pas de client local** : son hôte est le premier pair connecté, et `Serveur._lancer_partie`
+  (`reseau/serveur.gd:407`) lance la partie avec `salon.hote`.
 - `tools/install-godot.sh` fixe Godot 4.7.2 et vérifie la somme SHA-512 de la liste officielle
   (`SHA512-SUMS.txt` de la release `godotengine/godot-builds`).
 
@@ -50,17 +56,18 @@ poignée de main à trois temps prouve que l'adresse source est celle de l'annon
 retenue est celle que le VPS voit, jamais un champ du message** (il n'y en a d'ailleurs aucun). Le
 service ne peut donc sonder que l'adresse de celui qui parle, et la liste ne contient que des
 adresses qui ont prouvé leur contrôle d'un port ENet ouvert. Seul le **port** est déclaré (TCP ne
-révèle pas le port UDP de jeu) ; il doit être le port **externe** (celui qu'ouvre UPnP, qui peut
-différer du port local si la box en a choisi un autre : T7.2 le fournit).
+révèle pas le port UDP de jeu). **Écart à la phrase de Phil** (« l'IP et le port vus par le VPS ») :
+le port vient du message, l'IP de la connexion. Risque résiduel : un port arbitraire, mais la sonde
+ne vise que l'IP de l'émetteur, donc elle est inoffensive pour un tiers. Le port déclaré est le port
+**externe** (celui qu'ouvre UPnP, qui peut différer du port local : T7.2 le fournit).
 
 ## Protocole
 
 Constantes de `AnnuaireProtocole` : `MAGIE = 0x41`, `VERSION = 1` (version de l'annuaire, distincte
 de `Protocole.VERSION` du jeu, valant 2 aujourd'hui), `PORT_DEFAUT = 7779` (TCP). Entiers en petit
-boutisse, comme `LecteurOctets`. Tout octet reçu est une donnée non fiable : invalide, trop grand ou
-tronqué, il est refusé sans exception.
-
-**Cadre** : `u16 taille · corps`. La taille est contrôlée avant toute lecture du corps. Le corps
+**Cadre** : `u16 taille · corps`. Le corps commence toujours par `u8 magie · u8 version · u8 type`.
+**Le préfixe `u16` et ces 3 octets ne changent jamais**, pour qu'une version inconnue reste
+reconnaissable ; l'ordre des contrôles est fixé plus bas.
 commence toujours par `u8 magie · u8 version · u8 type` (**ces 3 octets ne changent jamais**, pour
 qu'une version inconnue reste reconnaissable).
 
@@ -81,7 +88,7 @@ qu'une version inconnue reste reconnaissable).
   octets** (le plus grand légitime en fait 10 604).
 - **Statuts de REPONSE** : 0 accepté · 1 version d'annuaire différente · 2 port injoignable · 3
   débit dépassé · 4 message invalide · 5 annuaire plein ou quota par IP atteint · 6 adresse non
-  publique.
+  publique · 7 service occupé (sondes saturées, réessayer à la période suivante).
 - **Version différente** : le service répond `magie · VERSION du service · 0x81 · statut 1 · VERSION`
   quelle que soit la requête, sans en lire le reste, puis ferme. Un client qui reçoit une version
   autre que la sienne n'interprète rien d'autre et affiche « Annuaire incompatible : mettez le jeu
@@ -103,18 +110,22 @@ qu'une version inconnue reste reconnaissable).
 Avant de **lister** un salon (première annonce, puis toutes les 120 s tant qu'il est listé), le
 service tente une **connexion ENet** depuis le VPS vers `ip_source:port`, puis la coupe aussitôt.
 Succès : l'entrée est créée ou conservée. Échec ou dépassement de **4 s** : réponse 2, entrée
-absente ou supprimée.
+absente ou supprimée. La connexion TCP de l'annonce reste ouverte pendant la sonde (voir Délais).
 
 Pourquoi ENet plutôt qu'un ping UDP propre : la sonde éprouve exactement ce dont un joueur aura
 besoin (port ouvert, redirection de box, pare-feu, ENet qui répond) sans rien ajouter au serveur de
-jeu, dont le port ne répond à aucun autre paquet. Effet de bord chez l'hôte : un pair apparaît puis
-disparaît sans bonjour ; `Serveur` ne l'inscrit pas au salon et la neuvième place d'ENet
-(`PLACES_ENET`) existe justement pour qu'il ne prenne pas celle d'un joueur.
+jeu, dont le port ne répond à aucun autre paquet. Effet de bord chez l'hôte : une place ENet est
+occupée un instant ; l'`ENetMultiplayerPeer` du serveur n'émet ni `peer_connected` ni
+`peer_disconnected` (vérifié à la relecture), donc rien n'entre au salon. La neuvième place d'ENet
+(`PLACES_ENET`) existe justement pour qu'elle ne prenne pas celle d'un joueur.
 
 Garde-fous de la sonde (elle est une capacité d'envoi de paquets) : jamais vers une adresse non
 publique (boucle locale, privée, lien local, CGNAT 100.64/10, multicast, non spécifiée : réponse 6),
-une sonde par couple (IP, port) toutes les 30 s, **4 sondes simultanées** au plus, aucune sonde sur
-une annonce invalide ou refusée par le débit. Le service n'écoute qu'en IPv4 (ENet de Godot aussi).
+une sonde par couple (IP, port) toutes les 30 s (le résultat de la dernière est réutilisé entre-temps),
+**4 sondes simultanées** au plus, aucune sonde sur une annonce invalide ou refusée par le débit.
+Quand 4 sondes sont en cours, une annonce qui en exigerait une cinquième reçoit tout de suite la
+réponse 7 : **pas de file d'attente** ; l'hôte réessaie à sa période suivante (10 s). Le service
+n'écoute qu'en IPv4 (ENet de Godot aussi).
 
 ## Limites de débit et de mémoire
 
@@ -127,12 +138,41 @@ Par IP source, en seau à jetons (mémoire seule) :
 | Message invalide   | 5 par 60 s | au-delà : IP mise de côté 5 min |
 
 Autres plafonds : **100 entrées** au total ; **3 entrées par IP** ; **64 connexions** simultanées,
-**4 par IP** ; une requête par connexion ; **3 s** pour recevoir le cadre complet (sinon coupure :
-connexions lentes) ; **1 024 IP** suivies par la table de débit (les plus anciennes sortent) et
-oubliées 60 s après leur dernière requête (5 min si mises de côté). Une demande qui dépasse un
-plafond reçoit la réponse 3 ou 5, ou est coupée sans réponse si le plafond de connexions est
-atteint. Horloge, vérificateur de joignabilité et source d'adresse sont **injectables** (tests
-sans réseau, graine fixe pour le fuzz).
+**4 par IP** (une connexion en attente d'une sonde compte dans les deux) ; une requête par connexion ;
+**1 024 IP** suivies par la table de débit (les plus anciennes sortent) et oubliées 60 s après leur
+dernière requête (5 min si mises de côté). Horloge, vérificateur de joignabilité et source d'adresse
+sont **injectables** (tests sans réseau, graine fixe pour le fuzz).
+
+### Délais
+
+Côté service : **3 s** pour recevoir le cadre complet depuis l'acceptation (connexions lentes), puis
+au plus **4 s** de sonde ; une connexion vit donc **7 s au plus**. Côté jeu : **3 s** pour joindre le
+service, puis **8 s** pour la réponse à une ANNONCE ou à un RETRAIT (3 + 4 s de sonde + 1 s de marge),
+**3 s** pour la réponse à LISTE. Sans cela, un salon injoignable n'obtiendrait jamais la réponse 2.
+L'hôte n'envoie pas une nouvelle annonce tant que la précédente attend sa réponse.
+
+### Ordre des contrôles
+
+Le service applique ces contrôles dans cet ordre et s'arrête au premier qui échoue.
+
+| N°  | Contrôle                                                                                    | Si échec                                                                                                  |
+| --- | ------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| 1   | IP mise de côté (5 min)                                                                     | Fermeture à l'acceptation, sans lire ni répondre                                                          |
+| 2   | 64 connexions, ou 4 pour cette IP                                                           | Fermeture, sans réponse                                                                                   |
+| 3   | Préfixe `u16` reçu en 3 s ; taille ≥ 3                                                      | Fermeture, sans réponse ; compte comme message invalide                                                   |
+| 4   | Les 3 octets d'en-tête reçus en 3 s (même si la taille dépasse 128, on ne lit rien de plus) | Fermeture, sans réponse ; invalide                                                                        |
+| 5   | `magie`                                                                                     | Fermeture, sans réponse ; invalide                                                                        |
+| 6   | `version` différente                                                                        | REPONSE 1, fermeture ; ne compte pas comme invalide (un cadre de version future peut dépasser 128 octets) |
+| 7   | Taille ≤ 128 octets, reste du corps reçu en 3 s                                             | REPONSE 4 (ou fermeture si le délai passe) ; invalide                                                     |
+| 8   | Type connu                                                                                  | REPONSE 4 ; invalide                                                                                      |
+| 9   | Seau à jetons du type                                                                       | REPONSE 3                                                                                                 |
+| 10  | Décodage et bornes de champ                                                                 | REPONSE 4 ; invalide                                                                                      |
+| 11  | Adresse source publique (ANNONCE)                                                           | REPONSE 6                                                                                                 |
+| 12  | Quota (3 par IP, 100 au total ; une mise à jour d'entrée existante en est exemptée)         | REPONSE 5                                                                                                 |
+| 13  | Sonde (ANNONCE) : résultat récent réutilisé, sinon 4 sondes au plus                         | REPONSE 7 si saturé ; REPONSE 2 si échec ; sinon REPONSE 0                                                |
+
+RETRAIT et LISTE s'arrêtent après le contrôle 10 (RETRAIT répond toujours 0, même sans entrée). La 6ᵉ
+erreur « invalide » en 60 s met l'IP de côté.
 
 ## Rôle d'hôte
 
@@ -140,20 +180,47 @@ Constat vérifié dans le code (voir Contexte) : l'ordre des étapes ne suffit 
 ouvert avant que le client local ait dit bonjour, et UPnP (T7.2) l'ouvre vers l'extérieur dès la
 création. On prend donc **les deux mesures** :
 
-1. **Jeton d'hôte, prérequis de T7.3** (porté par une tâche à part, **T7.2b**). `SessionReseau.heberger`
-   tire un jeton de 8 octets (`Crypto.generate_random_bytes`), le remet au `Serveur` et au `Client`
-   local. Le bonjour du client local le porte ; `Salon.ajouter` ne donne le rôle d'hôte qu'à un pair
-   dont le jeton correspond. Un bonjour sans jeton ou avec un mauvais jeton entre au salon comme
-   joueur, jamais comme hôte. Le salon reste sans hôte (`hote == -1`, déjà accepté par
-   `Salon.depuis_octets`) tant que le client local n'est pas arrivé ; personne ne peut lancer. Le
-   repli « premier pair restant devient hôte » de `Salon.retirer` est supprimé (l'hôte parti ferme
-   le serveur). Le jeton se représente au bonjour qui suit `rouvrir_salon`. Ce changement modifie le
-   format du bonjour : `Protocole.VERSION` passe de 2 à 3, les tests de bonjour et de salon sont
-   mis à jour.
+1. **Jeton d'hôte, prérequis de T7.3** (proposition : tâche à part **T7.2b**, soumise à Phil,
+   décision 5). `SessionReseau.heberger` tire un jeton de 8 octets (`Crypto.generate_random_bytes`),
+   le remet au `Serveur` et au `Client` local. Le bonjour du client local le porte ; quand un jeton
+   est configuré, `Salon.ajouter` ne donne le rôle d'hôte qu'à un pair dont le jeton correspond. Un
+   bonjour sans jeton ou avec un mauvais jeton entre au salon comme joueur, jamais comme hôte. Le
+   salon reste sans hôte (`hote == -1`, accepté par `Salon.depuis_octets` pour un salon vide et non
+   lancé) tant que le client local n'est pas arrivé ; personne ne peut lancer. Pour ce salon hébergé,
+   le repli « premier pair restant devient hôte » de `Salon.retirer` est supprimé (l'hôte parti ferme
+   le serveur). Le jeton se représente au bonjour qui suit `rouvrir_salon`. Le bonjour change de
+   format : `Protocole.VERSION` passe de 2 à 3 (`reseau/protocole.gd`, `test_protocole.gd`,
+   `test_salon.gd`, `test_serveur.gd`, `test_client.gd` mis à jour).
+   **Le serveur dédié reste inchangé** : il n'a pas de client local, donc aucun jeton n'y est
+   configuré ; sans jeton, l'ancienne règle (le premier pair devient hôte, repli sur le suivant)
+   s'applique. `test_serveur_dedie.gd` garde ce comportement. Le jeton est donc optionnel côté
+   `Serveur` et `Salon`.
 2. **Ordre, porté par T7.3** : l'annonce à l'annuaire ne part qu'une fois le client local enregistré
    comme hôte. `SessionReseau` émet un signal `hote_enregistre` à la première mise à jour de salon
    où le client local est dans `joueurs` et vaut `hote` ; l'annonceur l'attend. Un salon listé a donc
    un hôte présent.
+
+## UPnP chez l'hôte (T7.2)
+
+Les appels de la classe `UPNP` (`discover`, `add_port_mapping`, `delete_port_mapping`,
+`query_external_address`) **bloquent** : ils s'exécutent dans un `Thread` dédié, le résultat revient
+par un signal appelé en différé, et l'écran de création ne gèle jamais. Règles :
+
+- **Protocole UDP**, description « Last Tower Standing », port interne = port de jeu.
+- **Découverte** : délai de 2 s (`discover`). Pas de passerelle, ou adresse externe privée (double
+  NAT, CGNAT) : échec.
+- **Bail fini** de 3 600 s, renouvelé toutes les 1 800 s tant que le salon est ouvert. Si la box refuse
+  un bail fini, repli sur un bail 0 (permanent) ; sinon, un plantage laisserait la redirection
+  ouverte. Avec le bail fini, elle expire seule.
+- **Fermeture** : `delete_port_mapping` en quittant le salon et à la fermeture du jeu (le fil est
+  attendu 2 s au plus). Jamais d'écriture de l'ancien état sur disque.
+- **Port externe** : on demande d'abord le même port qu'en interne. Si la box refuse pour conflit, un
+  seul nouvel essai sur un port tiré à l'exécution entre 49 152 et 65 535. `port_externe` (celui
+  obtenu) est ce que l'annonce déclare.
+- **Échec** : jamais bloquant. Le jeu affiche « Votre box n’a pas ouvert le port : les joueurs
+  extérieurs ne pourront pas vous rejoindre ». Le réseau local et l'IP saisie fonctionnent.
+- Test avec un double de `UPNP` injecté (succès, refus de bail, conflit de port, absence de
+  passerelle, fermeture).
 
 ## Sécurité et vie privée
 
@@ -203,15 +270,17 @@ création. On prend donc **les deux mesures** :
   `infra` par une PR (T7.4). Je n'ai pas accès au dépôt `infra` : **ce que `projects.json` sait
   exprimer (un A vers un VPS, hors Vercel) est à vérifier en T7.4** ; sinon c'est à Phil d'en décider
   (extension d'`infra`, ou enregistrement manuel exceptionnel).
-- **Écart au contexte commun** : le § 20 de `CLAUDE.commun.md` dit « ni `infra` » pour
-  last-tower-standing. Le lot 7, décision plus récente de Phil, demande ce sous-domaine : il
-  l'emporte pour ce point. Le § 20 est à corriger dans `claude-context` par une PR (décision 14).
+- **Écart au contexte commun, résolu** : le § 20 de `CLAUDE.commun.md` disait « ni `infra` » pour
+  last-tower-standing, alors que le lot 7 (décision plus récente de Phil) demande ce sous-domaine.
+  Le § 20 de `claude-context` a été corrigé par la PR #13 (fusionnée, commit 747aefb) : « `infra` ne
+  déclare que le sous-domaine de l'annuaire des parties (lot 7, service sur le VPS) ». La recopie de
+  ce contexte dans le jeu reste à faire.
 - **Hors du dépôt, à faire par Phil** (liste donnée en T7.4) : pare-feu du VPS (7779/TCP ouvert en
   entrée, UDP sortant libre pour la sonde), Docker installé, enregistrement DNS.
 
 ## Repli
 
-Si l'annuaire est injoignable (DNS, TCP, délai de 3 s, version autre, réponse invalide), le jeu :
+Si l'annuaire est injoignable (DNS, TCP, délais ci-dessus, version autre, réponse invalide), le jeu :
 affiche en texte « Annuaire indisponible » dans la liste ; garde les salons du réseau local et le
 champ d'IP saisie, inchangés ; crée le salon normalement (l'annonce échouée ne bloque jamais
 « Créer une partie ») ; retente à la période suivante. L'adresse de l'annuaire est un réglage
@@ -224,30 +293,30 @@ Un **seul module** code et décode les messages : `reseau/annuaire_protocole.gd
 (`AnnuaireProtocole`). T7.1 le crée ; le service et le client du jeu (T7.3) l'appellent tous deux,
 aucun ne code d'octets à la main. Chaque nouveau `.gd` s'accompagne de son `.uid` (étape CI).
 
-| Fichier                                                                                                                                                                                                                 | Rôle                                                                                                                                                                                                                                                                    | Tâche                |
-| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- |
-| `reseau/annuaire_protocole.gd`                                                                                                                                                                                          | Codec unique : constantes, cadre, 5 messages, bornes                                                                                                                                                                                                                    | T7.1 crée            |
-| `reseau/annuaire_service.gd`                                                                                                                                                                                            | Logique pure (`RefCounted`) : entrées, expiration, seaux à jetons, quotas, filtre d'adresses ; horloge et vérificateur injectés                                                                                                                                         | T7.1 crée            |
-| `reseau/annuaire_sonde.gd`                                                                                                                                                                                              | Sonde ENet asynchrone (`ENetConnection`), sans thread                                                                                                                                                                                                                   | T7.1 crée            |
-| `reseau/annuaire_serveur.gd`                                                                                                                                                                                            | Nœud : `TCPServer`, connexions, délais, compteurs de journal                                                                                                                                                                                                            | T7.1 crée            |
-| `reseau/annuaire_dedie.gd`, `scenes/annuaire.tscn`                                                                                                                                                                      | Lancement `--annuaire [--port N] [--autoriser-prive]`, comme `serveur_dedie.gd` ; codes de sortie 0, 3 (port)                                                                                                                                                           | T7.1 crée            |
-| `app/principal.gd`, `app/arguments.gd`                                                                                                                                                                                  | Aiguillage de `--annuaire` vers la scène                                                                                                                                                                                                                                | T7.1 modifie         |
-| `service-annuaire/Dockerfile`, `.dockerignore`                                                                                                                                                                          | Image (voir Déploiement)                                                                                                                                                                                                                                                | T7.1 crée            |
-| `tests/unitaires/test_annuaire_protocole.gd`, `test_annuaire_service.gd`, `test_annuaire_serveur.gd`, `test_annuaire_dockerfile.gd`                                                                                     | Aller-retour de chaque message ; fuzz à graine fixe (tailles, tronqués, UTF-8 invalide, contrôles, champs hors bornes) ; expiration ; débit ; IP vue et non déclarée ; sonde simulée puis réelle en boucle locale ; version différente ; cohérence Dockerfile et script | T7.1 crée            |
-| `reseau/protocole.gd`, `reseau/salon.gd`, `reseau/serveur.gd`, `reseau/client.gd`, `app/session_reseau.gd` (tirage et remise du jeton), tests de bonjour et de salon                                                    | Jeton d'hôte, `Protocole.VERSION` = 3                                                                                                                                                                                                                                   | T7.2b modifie        |
-| `reseau/upnp_hote.gd`                                                                                                                                                                                                   | Découverte UPnP, ouverture et fermeture du port, `port_externe` ; double de `UPNP`                                                                                                                                                                                      | T7.2 crée            |
-| `app/session_reseau.gd`, `ui/salon_ui.gd` ou l'écran de création, `i18n/textes_salon.csv`                                                                                                                               | Appel d'`UpnpHote`, message d'échec                                                                                                                                                                                                                                     | T7.2 modifie         |
-| `tests/unitaires/test_upnp_hote.gd`                                                                                                                                                                                     | Succès, échec, fermeture au départ                                                                                                                                                                                                                                      | T7.2 crée            |
-| `reseau/annuaire_client.gd`                                                                                                                                                                                             | Nœud TCP : annoncer, retirer, lister ; période de 10 s ; repli                                                                                                                                                                                                          | T7.3 crée            |
-| `app/session_reseau.gd` (signal `hote_enregistre`, annonceur), `app/principal.gd`, `app/reglages.gd` (`annuaire_adresse`, `salon_public`), `ui/connexion_ui.gd` (liste fusionnée, case, notice), `i18n/textes_menu.csv` | Intégration dans le jeu                                                                                                                                                                                                                                                 | T7.3 modifie         |
-| `tests/unitaires/test_annuaire_client.gd` (et ceux de réglages, de la liste)                                                                                                                                            | Annonce, retrait, liste, doublons, repli                                                                                                                                                                                                                                | T7.3 crée            |
-| `service-annuaire/compose.yaml`, `README.md`, `docs/jouer.md`                                                                                                                                                           | Déploiement et notice ; retrait de « À venir »                                                                                                                                                                                                                          | T7.4 crée ou modifie |
-| PR vers `infra` (`projects.json`)                                                                                                                                                                                       | Sous-domaine                                                                                                                                                                                                                                                            | T7.4                 |
+| Fichier                                                                                                                                                                                                                                                                                  | Rôle                                                                                                                                                                                                                                                                    | Tâche                         |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- |
+| `reseau/annuaire_protocole.gd`                                                                                                                                                                                                                                                           | Codec unique : constantes, cadre, 5 messages, bornes                                                                                                                                                                                                                    | T7.1 crée                     |
+| `reseau/annuaire_service.gd`                                                                                                                                                                                                                                                             | Logique pure (`RefCounted`) : entrées, expiration, seaux à jetons, quotas, filtre d'adresses ; horloge et vérificateur injectés                                                                                                                                         | T7.1 crée                     |
+| `reseau/annuaire_sonde.gd`                                                                                                                                                                                                                                                               | Sonde ENet asynchrone (`ENetConnection`), sans thread                                                                                                                                                                                                                   | T7.1 crée                     |
+| `reseau/annuaire_serveur.gd`                                                                                                                                                                                                                                                             | Nœud : `TCPServer`, connexions, délais, compteurs de journal                                                                                                                                                                                                            | T7.1 crée                     |
+| `reseau/annuaire_dedie.gd`, `scenes/annuaire.tscn`                                                                                                                                                                                                                                       | Lancement `--annuaire [--port N] [--autoriser-prive]`, comme `serveur_dedie.gd` ; codes de sortie 0, 3 (port)                                                                                                                                                           | T7.1 crée                     |
+| `app/principal.gd`, `app/arguments.gd`                                                                                                                                                                                                                                                   | Aiguillage de `--annuaire` vers la scène                                                                                                                                                                                                                                | T7.1 modifie                  |
+| `service-annuaire/Dockerfile`, `.dockerignore`                                                                                                                                                                                                                                           | Image (voir Déploiement)                                                                                                                                                                                                                                                | T7.1 crée                     |
+| `tests/unitaires/test_annuaire_protocole.gd`, `test_annuaire_service.gd`, `test_annuaire_serveur.gd`, `test_annuaire_dockerfile.gd`                                                                                                                                                      | Aller-retour de chaque message ; fuzz à graine fixe (tailles, tronqués, UTF-8 invalide, contrôles, champs hors bornes) ; expiration ; débit ; IP vue et non déclarée ; sonde simulée puis réelle en boucle locale ; version différente ; cohérence Dockerfile et script | T7.1 crée                     |
+| `reseau/protocole.gd`, `reseau/salon.gd`, `reseau/serveur.gd`, `reseau/client.gd`, `app/session_reseau.gd` (tirage et remise du jeton), `tests/unitaires/test_protocole.gd`, `test_salon.gd`, `test_serveur.gd`, `test_client.gd`, `test_serveur_dedie.gd` (inchangé : doit rester vert) | Jeton d'hôte optionnel, `Protocole.VERSION` = 3 ; **serveur dédié inchangé** (sans jeton, règle du premier pair)                                                                                                                                                        | T7.2b modifie (si décision 5) |
+| `reseau/upnp_hote.gd`                                                                                                                                                                                                                                                                    | `UpnpHote` : fil dédié, découverte, bail, ouverture et fermeture du port, `port_externe` ; double de `UPNP`                                                                                                                                                             | T7.2 crée                     |
+| `app/session_reseau.gd`, `ui/salon_ui.gd` ou l'écran de création, `i18n/textes_salon.csv`                                                                                                                                                                                                | Appel d'`UpnpHote`, message d'échec                                                                                                                                                                                                                                     | T7.2 modifie                  |
+| `tests/unitaires/test_upnp_hote.gd`                                                                                                                                                                                                                                                      | Succès, refus de bail, conflit de port, aucune passerelle, fermeture au départ                                                                                                                                                                                          | T7.2 crée                     |
+| `reseau/annuaire_client.gd`                                                                                                                                                                                                                                                              | Nœud TCP : annoncer, retirer, lister ; période de 10 s ; repli                                                                                                                                                                                                          | T7.3 crée                     |
+| `app/session_reseau.gd` (signal `hote_enregistre`, annonceur), `app/principal.gd`, `app/reglages.gd` (`annuaire_adresse`, `salon_public`), `ui/connexion_ui.gd` (liste fusionnée, case, notice), `i18n/textes_menu.csv`                                                                  | Intégration dans le jeu                                                                                                                                                                                                                                                 | T7.3 modifie                  |
+| `tests/unitaires/test_annuaire_client.gd` (et ceux de réglages, de la liste)                                                                                                                                                                                                             | Annonce, retrait, liste, doublons, repli                                                                                                                                                                                                                                | T7.3 crée                     |
+| `service-annuaire/compose.yaml`, `README.md`, `docs/jouer.md`                                                                                                                                                                                                                            | Déploiement et notice ; retrait de « À venir »                                                                                                                                                                                                                          | T7.4 crée ou modifie          |
+| PR vers `infra` (`projects.json`)                                                                                                                                                                                                                                                        | Sous-domaine                                                                                                                                                                                                                                                            | T7.4                          |
 
 **Ordre** : T7.0 validée, puis **{T7.1, T7.2b}** (fichiers disjoints), puis **T7.2** (après T7.2b : les
 deux touchent `app/session_reseau.gd`), puis T7.3, puis T7.4. Le plan prévoyait {T7.1, T7.2} en
-parallèle ; T7.2b est ajoutée (décision 5). Le suivi « rôle d'hôte » de la fin du plan est couvert par
-T7.2b.
+parallèle ; T7.2b est **proposée** (décision 5). Si Phil la refuse, le jeton passe dans T7.3 ou le
+suivi « rôle d'hôte » de la fin du plan reste ouvert. Si elle est acceptée, elle couvre ce suivi.
 
 **Doublons liste locale et annuaire** (T7.3) : une entrée d'annuaire est masquée si un salon du
 réseau local a le même nom et le même port ; l'entrée locale l'emporte. Origine affichée en texte :
@@ -258,8 +327,8 @@ réseau local a le même nom et le même port ; l'entrée locale l'emporte. Ori
 - Un seul processus Godot, un seul lanceur de tests ; un service de plus à héberger et à surveiller
   sur le VPS.
 - Le jeu en ligne dépend du VPS pour **trouver** un salon, jamais pour y **jouer**.
-- `Protocole.VERSION` passe à 3 : les clients et serveurs de version 2 ne se parlent plus (déjà géré
-  par `motif_version`).
+- Si la décision 5 est validée, `Protocole.VERSION` passe à 3 : les clients et serveurs de version 2 ne
+  se parlent plus (déjà géré par `motif_version`).
 - La sonde fait du VPS un émetteur de paquets ENet : d'où TCP, les rejets d'adresses non publiques et
   les plafonds.
 - L'IP des hôtes publics est visible de tous les consultants : assumé, signalé dans la notice.
@@ -284,18 +353,21 @@ réseau local a le même nom et le même port ; l'entrée locale l'emporte. Ori
 ## Décisions à valider par Phil
 
 1. **Transport** : TCP binaire maison, une requête par connexion. Raison : adresse source non
-   falsifiable. Écartés : UDP, HTTP, WebSocket.
+   falsifiable. **Écart au principe : l'IP est vue, le port est déclaré** (TCP ne donne pas le port
+   UDP de jeu ; la sonde ne vise que l'IP de l'émetteur). Écartés : UDP, HTTP, WebSocket.
 2. **Port du service** : 7779/TCP (7777 jeu UDP, 7778 découverte locale). Écarté : 443 (inutile sans
    proxy).
 3. **Sous-domaine** : `annuaire-lts.phamelin.fr`, enregistrement A seul, sans proxy. Faisabilité dans
    `infra` à vérifier en T7.4.
 4. **Joignabilité** : sonde ENet depuis le VPS, avant de lister, puis toutes les 120 s ; échec = pas
    listé ou retiré. Écartés : ping UDP propre, aucune vérification.
-5. **Rôle d'hôte** : jeton d'hôte (bonjour en version 3) **et** annonce après enregistrement de l'hôte ;
-   nouvelle tâche T7.2b avant T7.2 et T7.3. Écarté : ordre seul (laisse le créneau d'usurpation).
+5. **Rôle d'hôte** : jeton d'hôte optionnel (bonjour en version 3, **suppression du repli « premier
+   pair restant » pour le salon hébergé**, serveur dédié inchangé) **et** annonce après enregistrement
+   de l'hôte ; nouvelle tâche T7.2b avant T7.2 et T7.3. Écarté : ordre seul (laisse le créneau
+   d'usurpation).
 6. **Limites de débit** : annonce et retrait 3 en rafale puis 1 par 5 s, liste 5 puis 1 par 2 s, 5
-   messages invalides par minute avant 5 min d'exclusion, 3 s par requête. Raison : un hôte légitime
-   émet 1 annonce par 10 s.
+   messages invalides par minute avant 5 min d'exclusion, ordre des contrôles du tableau. Raison : un
+   hôte légitime émet 1 annonce par 10 s.
 7. **Cycle** : annonce toutes les 10 s, expiration 30 s (fixée par Phil), RETRAIT explicite à la
    fermeture.
 8. **Plafonds** : 100 entrées, 3 par IP, 64 connexions dont 4 par IP, 4 sondes simultanées, nom de 24
@@ -311,10 +383,14 @@ réseau local a le même nom et le même port ; l'entrée locale l'emporte. Ori
     avec le script), dépôt entier copié sauf tests et docs, utilisateur non root. Écarté : exécuter
     `install-godot.sh` tel quel (il tolère une liste de sommes injoignable).
 13. **Doublons** : une entrée d'annuaire de même nom et de même port qu'un salon local est masquée.
-14. **Écart au § 20** : corriger « ni `infra` » pour last-tower-standing dans `claude-context` par une
-    PR (après validation), puis réinstaller le contexte dans le jeu.
-15. **Pas de TLS ni d'authentification** : aucun secret ne transite. Écarté : certificats.
-16. **Nom du salon** : texte libre sans filtrage de contenu. Écarté : liste de mots interdits (coût,
+14. **Pas de TLS ni d'authentification** : aucun secret ne transite. Écarté : certificats.
+15. **Nom du salon** : texte libre sans filtrage de contenu. Écarté : liste de mots interdits (coût,
     contournable).
-17. **Valeur par défaut du réglage** : `annuaire_adresse = annuaire-lts.phamelin.fr:7779`, modifiable
+16. **Valeur par défaut du réglage** : `annuaire_adresse = annuaire-lts.phamelin.fr:7779`, modifiable
     et vidable dans les réglages.
+17. **UPnP** : UDP, bail de 3 600 s renouvelé toutes les 1 800 s (repli bail 0 si la box refuse), fil
+    dédié, découverte 2 s, un seul nouvel essai sur un port aléatoire 49 152 à 65 535 en cas de
+    conflit. Écarté : bail permanent d'emblée (redirection orpheline après plantage).
+18. **Délais et sondes saturées** : service 3 s pour recevoir le cadre puis 4 s de sonde ; jeu 8 s pour
+    la réponse à une annonce, 3 s pour une liste ; 5ᵉ sonde simultanée refusée par la réponse 7, sans
+    file. Écarté : file d'attente (connexions retenues, plafonds saturés).
