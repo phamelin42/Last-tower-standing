@@ -137,6 +137,20 @@ func preparer(donnees: Donnees, acces: int = 1) -> void:
 	_fin_signalee = false
 
 
+## Rouvre le salon après une partie sans fermer les connexions : chaque pair doit redire bonjour
+## pour entrer dans le nouveau salon, et l'ancienne partie n'est plus servie.
+func rouvrir_salon() -> void:
+	partie = null
+	salon = Salon.new()
+	_fin_signalee = false
+	_vues_du_pas = {}
+	_tampons = {}
+	_acc_global = 0.0
+	_taille_globale = 0
+	for pair: int in _pairs:
+		(_pairs[pair] as _Pair).enregistre = false
+
+
 func arreter() -> void:
 	for l: Array in _liaisons:
 		var s: Signal = l[0]
