@@ -39,6 +39,14 @@ func executer(chemins: PackedStringArray, filtre: String, arbre: SceneTree) -> D
 	return bilan
 
 
+## Supprime les dossiers temporaires du processus. Appelé une fois par le lanceur, pas par
+## `executer` : un moteur lancé depuis un test ne doit pas effacer ceux du test.
+static func nettoyer_dossiers_temporaires() -> void:
+	CasDeTest.supprimer_recursivement(CasDeTest.racine_temporaire())
+	# Échoue sans effet tant que d'autres processus y écrivent encore.
+	DirAccess.remove_absolute("user://tests_tmp")
+
+
 ## 0 si tout est bon ; en mode contrôle, 0 seulement si CHAQUE test a échoué
 ## (et qu'il y en avait au moins un) : c'est la preuve que les échecs sont détectés.
 func code_de_sortie(bilan: Dictionary, controle: bool) -> int:
@@ -133,6 +141,8 @@ func _executer_methode(
 	# Une instance neuve par méthode : aucun état ne fuit d'un test à l'autre.
 	var cas: CasDeTest = script.new()
 	cas.arbre = arbre
+	cas.nom_fichier = chemin.get_file()
+	cas.nom_methode = nom
 	cas.noter_noeuds_initiaux()
 	var suivi := SuiviMethode.new()
 	_derouler(cas, nom, suivi)
@@ -147,6 +157,7 @@ func _executer_methode(
 	if suivi.fini:
 		await cas.apres_chaque()
 	cas.liberer_ajouts()
+	cas.supprimer_dossier_temporaire()
 	await arbre.process_frame
 	_rapprocher_erreurs(cas, _journal.prendre(), messages)
 	if cas.nb_assertions == 0:

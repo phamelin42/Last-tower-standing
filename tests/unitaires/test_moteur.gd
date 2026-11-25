@@ -1,43 +1,30 @@
 extends CasDeTest
 ## Le moteur doit trouver les bons fichiers, exécuter chaque test isolément et
 ## signaler tout ce qui cloche, sans jamais planter lui-même.
-## Les scripts de démonstration sont écrits sous user:// puis effacés.
+## Les scripts de démonstration sont écrits dans le dossier temporaire du test.
 
-const RACINE := "user://moteur_test"
-const TRACE := "user://moteur_test/trace.txt"
 const ENTETE := "extends CasDeTest\n"
 const NOTER := (
 	"\n\nfunc _noter(s: String) -> void:\n"
-	+ '\tvar f := FileAccess.open("user://moteur_test/trace.txt", FileAccess.%s)\n'
+	+ '\tvar f := FileAccess.open("%s/trace.txt", FileAccess.%s)\n'
 	+ "\tf.seek_end()\n"
 	+ "\tf.store_line(s)\n"
 )
 
 var moteur: MoteurDeTests
+var racine: String
+var fichier_trace: String
 
 
 func avant_chaque() -> void:
 	moteur = MoteurDeTests.new()
-	_nettoyer(RACINE)
-	DirAccess.make_dir_recursive_absolute(RACINE)
-
-
-func apres_chaque() -> void:
-	_nettoyer(RACINE)
-
-
-func _nettoyer(dossier: String) -> void:
-	if not DirAccess.dir_exists_absolute(dossier):
-		return
-	for sous: String in DirAccess.get_directories_at(dossier):
-		_nettoyer(dossier.path_join(sous))
-	for fichier: String in DirAccess.get_files_at(dossier):
-		DirAccess.remove_absolute(dossier.path_join(fichier))
-	DirAccess.remove_absolute(dossier)
+	racine = dossier_temporaire().path_join("scripts")
+	fichier_trace = racine.path_join("trace.txt")
+	DirAccess.make_dir_recursive_absolute(racine)
 
 
 func _ecrire(relatif: String, contenu: String) -> String:
-	var chemin := RACINE.path_join(relatif)
+	var chemin := racine.path_join(relatif)
 	DirAccess.make_dir_recursive_absolute(chemin.get_base_dir())
 	var f := FileAccess.open(chemin, FileAccess.WRITE)
 	f.store_string(contenu)
@@ -50,7 +37,7 @@ func _lignes(bilan: Dictionary) -> PackedStringArray:
 
 
 func _trace() -> PackedStringArray:
-	var texte := FileAccess.get_file_as_string(TRACE).strip_edges()
+	var texte := FileAccess.get_file_as_string(fichier_trace).strip_edges()
 	if texte.is_empty():
 		return PackedStringArray()
 	return texte.split("\n")
@@ -60,7 +47,10 @@ func _noter_source() -> String:
 	# Ouvre en écriture au premier appel, en lecture/écriture ensuite.
 	return (
 		NOTER
-		% 'READ_WRITE if FileAccess.file_exists("user://moteur_test/trace.txt") else FileAccess.WRITE'
+		% [
+			racine,
+			'READ_WRITE if FileAccess.file_exists("%s") else FileAccess.WRITE' % fichier_trace,
+		]
 	)
 
 
@@ -73,7 +63,7 @@ func test_decouvrir_trie_par_chemin_et_ignore_ce_qui_n_est_pas_un_test() -> void
 	var d := _ecrire("sous/test_d.gd", ENTETE)
 	_ecrire("assistant.gd", ENTETE)
 	_ecrire("test_note.txt", "x")
-	var trouves := moteur.decouvrir(RACINE, "", false)
+	var trouves := moteur.decouvrir(racine, "", false)
 	verifier_egal(Array(trouves), [d, a, b], "tri par chemin complet")
 
 
@@ -81,30 +71,30 @@ func test_decouvrir_exclut_le_dossier_controle() -> void:
 	var a := _ecrire("test_a.gd", ENTETE)
 	_ecrire("controle/test_c.gd", ENTETE)
 	_ecrire("sous/controle/test_e.gd", ENTETE)
-	verifier_egal(Array(moteur.decouvrir(RACINE, "", false)), [a])
+	verifier_egal(Array(moteur.decouvrir(racine, "", false)), [a])
 
 
 func test_decouvrir_en_mode_controle_ne_garde_que_le_dossier_controle() -> void:
 	_ecrire("test_a.gd", ENTETE)
 	var c := _ecrire("controle/test_c.gd", ENTETE)
-	verifier_egal(Array(moteur.decouvrir(RACINE, "", true)), [c])
+	verifier_egal(Array(moteur.decouvrir(racine, "", true)), [c])
 
 
 func test_decouvrir_filtre_sur_le_nom_du_fichier() -> void:
 	_ecrire("test_alpha.gd", ENTETE)
 	var b := _ecrire("test_beta.gd", ENTETE)
-	verifier_egal(Array(moteur.decouvrir(RACINE, "beta", false)), [b])
+	verifier_egal(Array(moteur.decouvrir(racine, "beta", false)), [b])
 
 
 func test_decouvrir_filtre_sur_le_nom_d_une_methode() -> void:
 	_ecrire("test_alpha.gd", ENTETE + "\n\nfunc test_rare_cas() -> void:\n\tpass\n")
 	var b := _ecrire("test_beta.gd", ENTETE + "\n\nfunc test_cas_unique() -> void:\n\tpass\n")
-	verifier_egal(Array(moteur.decouvrir(RACINE, "cas_unique", false)), [b])
-	verifier_egal(moteur.decouvrir(RACINE, "inexistant", false).size(), 0)
+	verifier_egal(Array(moteur.decouvrir(racine, "cas_unique", false)), [b])
+	verifier_egal(moteur.decouvrir(racine, "inexistant", false).size(), 0)
 
 
 func test_decouvrir_dossier_absent_donne_une_liste_vide() -> void:
-	verifier_egal(moteur.decouvrir(RACINE.path_join("rien"), "", false).size(), 0)
+	verifier_egal(moteur.decouvrir(racine.path_join("rien"), "", false).size(), 0)
 
 
 # --- executer --------------------------------------------------------------
@@ -176,7 +166,7 @@ func test_executer_un_fichier_illisible_est_un_echec_et_les_autres_tournent() ->
 func test_executer_un_fichier_absent_est_un_echec() -> void:
 	var bon := _ecrire("test_b_bon.gd", ENTETE + "\n\nfunc test_ok() -> void:\n\tverifier(true)\n")
 	var res := await moteur.executer(
-		PackedStringArray([RACINE.path_join("fantome.gd"), bon]), "", arbre
+		PackedStringArray([racine.path_join("fantome.gd"), bon]), "", arbre
 	)
 	verifier_egal(res["echecs"], 1)
 	verifier_egal(res["assertions"], 1)

@@ -40,6 +40,7 @@ func _lancer(args: PackedStringArray) -> int:
 	var moteur := MoteurDeTests.new()
 	var chemins := moteur.decouvrir(dossier, filtre, controle)
 	var bilan := await moteur.executer(chemins, filtre, self)
+	MoteurDeTests.nettoyer_dossiers_temporaires()
 	var lignes: PackedStringArray = bilan["lignes"]
 	for ligne in lignes:
 		print(ligne)

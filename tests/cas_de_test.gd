@@ -19,6 +19,9 @@ var echecs: Array[String] = []
 var nb_assertions: int = 0
 ## Motifs des erreurs voulues, pas encore survenues (voir `attendre_erreur`).
 var erreurs_attendues: Array[String] = []
+## Renseignés par le moteur : nommer le dossier temporaire de la méthode en cours.
+var nom_fichier: String = "sans_fichier"
+var nom_methode: String = "sans_methode"
 var _noeuds_initiaux: Array[Node] = []
 
 
@@ -28,6 +31,41 @@ func avant_chaque() -> void:
 
 func apres_chaque() -> void:
 	pass
+
+
+## Racine des dossiers temporaires de CE processus. Tous les worktrees partagent le même
+## `user://` : deux suites lancées ensemble ne doivent jamais écrire au même endroit.
+static func racine_temporaire() -> String:
+	return "user://tests_tmp/%d" % OS.get_process_id()
+
+
+## Dossier propre au processus ET à la méthode en cours, créé à la demande. Le moteur le
+## supprime après la méthode, qu'elle réussisse ou non. Tout test qui écrit sous `user://`
+## passe par lui (un test de garde interdit le chemin en dur).
+func dossier_temporaire() -> String:
+	var dossier := racine_temporaire().path_join(
+		"%s_%s" % [nom_fichier.get_basename(), nom_methode]
+	)
+	DirAccess.make_dir_recursive_absolute(dossier)
+	return dossier
+
+
+## Supprime le dossier temporaire de la méthode (appelé par le moteur).
+func supprimer_dossier_temporaire() -> void:
+	var dossier := racine_temporaire().path_join(
+		"%s_%s" % [nom_fichier.get_basename(), nom_methode]
+	)
+	supprimer_recursivement(dossier)
+
+
+static func supprimer_recursivement(dossier: String) -> void:
+	if not DirAccess.dir_exists_absolute(dossier):
+		return
+	for sous: String in DirAccess.get_directories_at(dossier):
+		supprimer_recursivement(dossier.path_join(sous))
+	for fichier: String in DirAccess.get_files_at(dossier):
+		DirAccess.remove_absolute(dossier.path_join(fichier))
+	DirAccess.remove_absolute(dossier)
 
 
 ## Attend `n` images : à `await`er (`await attendre_images(3)`).
