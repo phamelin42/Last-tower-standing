@@ -8,7 +8,8 @@ const TAILLE_MAX_FICHIER := 65536
 const NOM_MAX := 24
 const ADRESSE_MAX := 255
 const SCENE := "res://scenes/reglages.tscn"
-const TAILLE_MIN_TEXTE := 16
+## 16 px au cran 100 %, 12 px au cran 75 % (D9 : la taille de l'interface descend à 75 %).
+const TAILLE_MIN_TEXTE := 12
 const HAUTEUR_MIN_CONTROLE := 48.0
 
 
@@ -168,17 +169,21 @@ func test_fichier_de_64_kio_pile_est_lu() -> void:
 
 func test_l_echelle_hors_bornes_est_ramenee_au_niveau_valide_le_plus_proche() -> void:
 	var cas: Array[Array] = [
-		[0.0, 1.0],
-		[-3.0, 1.0],
-		[0.9, 1.0],
+		[0.0, 0.75],
+		[-3.0, 0.75],
+		[0.7, 0.75],
+		[0.8, 0.75],
+		[0.82, 0.875],
+		[0.9, 0.875],
+		[0.95, 1.0],
 		[1.0, 1.0],
+		[1.05, 1.0],
+		[1.1, 1.125],
 		[1.2, 1.25],
-		[1.3, 1.25],
 		[1.25, 1.25],
-		[1.4, 1.5],
-		[1.5, 1.5],
-		[99.0, 1.5],
-		[1.5000001, 1.5],
+		[1.4, 1.25],
+		[1.5, 1.25],
+		[99.0, 1.25],
 	]  # fmt: skip
 	for c: Array in cas:
 		var r := _reglages(1.0, c[0], false, 1.0, "", "")
@@ -191,7 +196,7 @@ func test_chaque_niveau_d_echelle_est_conserve() -> void:
 		var r := _reglages(1.0, niveau, false, 1.0, "", "")
 		r.normaliser()
 		verifier_proche(r.echelle_ui, niveau, 0.0001)
-	verifier_egal(Reglages.ECHELLES.size(), 3, "trois niveaux au moins")
+	verifier_egal(Reglages.ECHELLES.size(), 5, "cinq crans")
 
 
 func test_le_volume_est_borne_entre_zero_et_un() -> void:
@@ -245,7 +250,7 @@ func test_sauver_ecrit_des_valeurs_bornees() -> void:
 	verifier(r.sauver(_chemin()))
 	var relu := Reglages.charger(_chemin())
 	verifier_proche(relu.volume_general, 1.0, 0.0001)
-	verifier_proche(relu.echelle_ui, 1.0, 0.0001)
+	verifier_proche(relu.echelle_ui, 0.75, 0.0001)
 	verifier_proche(relu.sensibilite_zoom, 2.0, 0.0001)
 	verifier_egal(relu.nom_joueur.length(), NOM_MAX)
 
@@ -309,7 +314,7 @@ func test_l_interface_respecte_les_minimums_a_chaque_niveau() -> void:
 	var ui := _ui_dans_arbre()
 	for niveau: float in Reglages.ECHELLES:
 		ui.appliquer_echelle(niveau)
-		verifier(ui.taille_texte() >= TAILLE_MIN_TEXTE, "texte < 16 px au niveau %s" % niveau)
+		verifier(ui.taille_texte() >= TAILLE_MIN_TEXTE, "texte < 12 px au niveau %s" % niveau)
 		for controle: Control in ui.controles():
 			verifier(
 				controle.custom_minimum_size.y >= HAUTEUR_MIN_CONTROLE,
@@ -317,16 +322,17 @@ func test_l_interface_respecte_les_minimums_a_chaque_niveau() -> void:
 			)
 			verifier(
 				controle.get_theme_font_size("font_size") >= TAILLE_MIN_TEXTE,
-				"police < 16 px au niveau %s" % niveau
+				"police < 12 px au niveau %s" % niveau
 			)
 	arbre.root.remove_child(ui)
 	ui.free()
 
 
-func test_le_texte_grandit_avec_l_echelle_sans_jamais_passer_sous_16() -> void:
+func test_le_texte_suit_l_echelle_de_75_a_125_pour_cent() -> void:
+	verifier_egal(Reglages.taille_texte_pour(0.75), 12)
 	verifier_egal(Reglages.taille_texte_pour(1.0), 16)
 	verifier_egal(Reglages.taille_texte_pour(1.25), 20)
-	verifier_egal(Reglages.taille_texte_pour(1.5), 24)
+	verifier_egal(Reglages.taille_texte_pour(1.5), 20, "plafonné au dernier cran")
 
 
 func test_chaque_modification_est_sauvee_et_annoncee() -> void:
@@ -335,8 +341,8 @@ func test_chaque_modification_est_sauvee_et_annoncee() -> void:
 	ui.modifies.connect(func(r: Reglages) -> void: annonces.append(r))
 	ui.volume.value_changed.emit(0.3)
 	verifier_proche(Reglages.charger(_chemin()).volume_general, 0.3, 0.0001, "volume sauvé")
-	ui.taille.item_selected.emit(2)
-	verifier_proche(Reglages.charger(_chemin()).echelle_ui, 1.5, 0.0001, "échelle sauvée")
+	ui.taille.item_selected.emit(4)
+	verifier_proche(Reglages.charger(_chemin()).echelle_ui, 1.25, 0.0001, "échelle sauvée")
 	ui.plein_ecran.toggled.emit(true)
 	verifier(Reglages.charger(_chemin()).plein_ecran, "plein écran sauvé")
 	ui.zoom.value_changed.emit(1.5)
@@ -357,10 +363,42 @@ func test_l_interface_affiche_les_reglages_relus() -> void:
 	var ui := _ui_dans_arbre()
 	ui.configurer(voulu)
 	verifier_proche(ui.volume.value, 0.4, 0.0001)
-	verifier_egal(ui.taille.selected, 1)
+	verifier_egal(ui.taille.selected, 4)
 	verifier(ui.plein_ecran.button_pressed, "plein écran coché")
 	verifier_proche(ui.zoom.value, 0.75, 0.0001)
 	verifier_egal(ui.nom.text, "Anne")
 	verifier_egal(ui.adresse.text, "hote:7777")
 	arbre.root.remove_child(ui)
 	ui.free()
+
+
+func test_les_cinq_crans_d_echelle_sont_acceptes_et_les_autres_ramenes_au_plus_proche() -> void:
+	var attendus: Array[float] = [0.75, 0.875, 1.0, 1.125, 1.25]
+	verifier_egal(Reglages.ECHELLES.size(), attendus.size())
+	for i: int in attendus.size():
+		verifier_proche(Reglages.echelle_valide(attendus[i]), attendus[i], 0.0001)
+		# Un peu au-dessus et au-dessous du cran : on retombe dessus.
+		verifier_proche(Reglages.echelle_valide(attendus[i] + 0.01), attendus[i], 0.0001)
+		verifier_proche(Reglages.echelle_valide(attendus[i] - 0.01), attendus[i], 0.0001)
+
+
+## Review Focus 4 : une échelle de l'ancienne liste (1,0 / 1,25 / 1,5) reste valable.
+func test_un_ancien_fichier_de_reglages_garde_une_echelle_valide() -> void:
+	var cas: Array[Array] = [[1.0, 1.0], [1.25, 1.25], [1.5, 1.25]]
+	for c: Array in cas:
+		var texte := "[reglages]\n\necho=1\nechelle_ui=%s\n" % c[0]
+		var chemin := _chemin()
+		var f := FileAccess.open(chemin, FileAccess.WRITE)
+		f.store_string(texte.replace("echo=1\n", "") + Reglages.FIN)
+		f.close()
+		verifier_proche(Reglages.charger(chemin).echelle_ui, c[1], 0.0001, "ancienne %s" % c[0])
+
+
+func test_la_vitesse_de_camera_est_bornee_et_persistante() -> void:
+	verifier_proche(Reglages.new().vitesse_camera, 1.0, 0.0001, "défaut")
+	var cas: Array[Array] = [[0.0, 0.5], [0.5, 0.5], [1.3, 1.3], [2.0, 2.0], [9.0, 2.0]]
+	for c: Array in cas:
+		var r := Reglages.new()
+		r.vitesse_camera = c[0]
+		verifier(r.sauver(_chemin()))
+		verifier_proche(Reglages.charger(_chemin()).vitesse_camera, c[1], 0.0001, "vitesse %s" % c[0])

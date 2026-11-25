@@ -8,7 +8,6 @@ extends Control
 const ACTION_SUIVANT := "observation_suivant"
 const ACTION_PRECEDENT := "observation_precedent"
 const HAUTEUR_CONTROLE := 48.0
-const TAILLE_TEXTE := 16
 const LARGEUR := 360.0
 
 ## Renvoie le contrôle qui a le focus. Remplaçable : le lanceur de tests tourne hors de l'arbre,
@@ -201,7 +200,6 @@ func _consommer() -> void:
 func _etiquette(nom: String, cle: String = "") -> Label:
 	var libelle := Label.new()
 	libelle.name = nom
-	libelle.add_theme_font_size_override("font_size", TAILLE_TEXTE)
 	libelle.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	if not cle.is_empty():
 		libelle.text = tr(cle)
@@ -213,7 +211,6 @@ func _bouton(action: Callable, nom: String, cle: String = "") -> Button:
 	bouton.name = nom
 	bouton.custom_minimum_size = Vector2(0.0, HAUTEUR_CONTROLE)
 	bouton.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	bouton.add_theme_font_size_override("font_size", TAILLE_TEXTE)
 	bouton.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	bouton.pressed.connect(action)
 	if not cle.is_empty():

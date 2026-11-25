@@ -6,7 +6,6 @@ extends Control
 ## son nom : la couleur ne la porte jamais seule.
 
 const HAUTEUR_LIGNE := 48.0
-const TAILLE_TEXTE := 16
 const MARGE_BARRE := 6
 const LARGEUR_JAUGE := 160.0
 const SEUIL_PV_BAS := 0.3
@@ -21,7 +20,7 @@ const LIGNE_ARMES := 6
 const NB_LIGNES := 7
 
 ## Largeur minimale de la valeur de chaque ligne (0 : celle du texte).
-const LARGEURS_VALEUR: Array[float] = [0.0, 72.0, 52.0, 28.0, 52.0, 120.0, 52.0]
+const LARGEURS_VALEUR: Array[float] = [0.0, 72.0, 48.0, 28.0, 48.0, 190.0, 48.0]
 
 var _cles: Array[Label] = []
 var _valeurs: Array[Label] = []
@@ -31,7 +30,6 @@ var _barre: PanelContainer = null
 
 
 func _init() -> void:
-	add_theme_font_size_override("font_size", TAILLE_TEXTE)
 	_barre = PanelContainer.new()
 	_barre.name = "Barre"
 	_barre.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -207,9 +205,10 @@ func _style_barre() -> StyleBoxFlat:
 
 func _etiquette() -> Label:
 	var libelle := Label.new()
+	# Metamorphous est plus large que l'ancienne police : la barre ne tient sinon pas à 1 152 px.
+	libelle.theme_type_variation = "Petit"
 	libelle.custom_minimum_size = Vector2(0.0, HAUTEUR_LIGNE)
 	libelle.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	libelle.add_theme_font_size_override("font_size", TAILLE_TEXTE)
 	libelle.clip_text = true
 	libelle.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	return libelle

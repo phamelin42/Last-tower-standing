@@ -1,15 +1,15 @@
 class_name ThemeJeu
 extends RefCounted
 ## Thème commun de l'interface, aux couleurs de Tiny Swords (CC0) : boutons, panneaux et rubans du
-## pack en tranches de neuf, police pixel Tiny5 (OFL), pointeurs et icônes du pack. Il est construit
-## en code et posé sur la racine de chaque écran par `appliquer`.
+## pack en tranches de neuf, police Metamorphous (OFL), pointeurs et icônes du pack. Il est
+## construit en code et posé sur la racine de chaque écran par `appliquer`.
 ## Les panneaux sont les textures sculptées du pack, assombries : le texte clair y garde son
 ## contraste. Les boutons gardent les couleurs du pack, avec un texte d'encre foncée. Toutes les
 ## couleurs de texte et leurs fonds sont ici : `test_contraste.gd` et `test_theme_pack.gd` les
 ## mesurent, sur la couleur moyenne des textures.
 
-const TAILLE_TEXTE := 16
-const TAILLE_TITRE := 28
+## Tailles de base par rôle ; `taille` est le seul endroit où une taille de texte se décide.
+const TAILLES: Dictionary = {"texte": 16, "petit": 14, "titre": 28}
 const HAUTEUR_CONTROLE := 48.0
 const RAYON := 6
 const FILET := 2
@@ -68,8 +68,9 @@ const TEXTURES: Array[String] = [
 	DOSSIER_UI + "Icons/Regular_02.png",
 	DOSSIER_UI + "Icons/Regular_03.png",
 ]
-const POLICE := "res://assets/polices/tiny5/tiny5-latin-400-normal.woff2"
-## Repli pour tout caractère absent de Tiny5 : symboles de rareté et d'armure, ∅, espace fine.
+const POLICE := "res://assets/polices/metamorphous/metamorphous-latin-400-normal.woff2"
+## Repli pour tout caractère absent de Metamorphous : symboles de rareté et d'armure, ∅, espace
+## fine.
 const POLICE_REPLI := "res://assets/polices/dejavu-sans/dejavu-sans-latin-400-normal.woff2"
 ## Zone des icônes (64 px, glyphe centré) : on rogne les marges vides.
 const ZONE_ICONE := Rect2(16.0, 9.0, 32.0, 32.0)
@@ -225,6 +226,13 @@ static func icone(nom: String) -> Texture2D:
 
 
 ## La police pixel du jeu ; tout signe qu'elle n'a pas vient de DejaVu Sans, puis du moteur.
+## Taille de texte d'un rôle (« texte », « petit », « titre »), multipliée par `echelle` (la
+## « Taille de l'interface » de `Reglages`). Un rôle inconnu prend la taille du texte.
+static func taille(role: String, echelle: float = 1.0) -> int:
+	var base: int = TAILLES.get(role, TAILLES["texte"])
+	return maxi(1, roundi(base * echelle))
+
+
 static func police() -> Font:
 	if _police == null:
 		var v := FontVariation.new()
@@ -252,12 +260,12 @@ static func _lineaire(v: float) -> float:
 static func _construire() -> Theme:
 	var t := Theme.new()
 	t.default_font = police()
-	t.default_font_size = TAILLE_TEXTE
-	t.set_font_size("font_size", "Label", TAILLE_TEXTE)
+	t.default_font_size = taille("texte")
+	t.set_font_size("font_size", "Label", taille("texte"))
 	t.set_color("font_color", "Label", PARCHEMIN)
-	t.set_font_size("font_size", "Button", TAILLE_TEXTE)
-	t.set_font_size("font_size", "LineEdit", TAILLE_TEXTE)
-	t.set_font_size("font_size", "CheckBox", TAILLE_TEXTE)
+	t.set_font_size("font_size", "Button", taille("texte"))
+	t.set_font_size("font_size", "LineEdit", taille("texte"))
+	t.set_font_size("font_size", "CheckBox", taille("texte"))
 	t.set_stylebox("panel", "PanelContainer", boite_panneau())
 	t.set_stylebox("panel", "Panel", boite_panneau())
 	_boutons(t)
@@ -267,10 +275,15 @@ static func _construire() -> Theme:
 	t.set_constant("h_separation", "GridContainer", 16)
 	t.set_constant("v_separation", "GridContainer", 0)
 	t.set_type_variation("Titre", "Label")
-	t.set_font_size("font_size", "Titre", TAILLE_TITRE)
+	t.set_font_size("font_size", "Titre", taille("titre"))
 	t.set_color("font_color", "Titre", LAITON_CLAIR)
+	t.set_type_variation("Petit", "Label")
+	t.set_font_size("font_size", "Petit", taille("petit"))
+	t.set_type_variation("TitrePetit", "Label")
+	t.set_font_size("font_size", "TitrePetit", taille("texte"))
+	t.set_color("font_color", "TitrePetit", LAITON_CLAIR)
 	t.set_type_variation(TYPE_RUBAN, "Label")
-	t.set_font_size("font_size", TYPE_RUBAN, TAILLE_TITRE)
+	t.set_font_size("font_size", TYPE_RUBAN, taille("titre"))
 	t.set_color("font_color", TYPE_RUBAN, ENCRE_TEXTE_BOUTON)
 	var ruban := _tranches(TEX_RUBAN, 56, 12, 56, 20, 0, Color.WHITE)
 	ruban.content_margin_left = 64.0

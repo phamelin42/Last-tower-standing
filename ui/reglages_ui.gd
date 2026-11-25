@@ -12,7 +12,11 @@ const ESPACEMENT := 8
 
 const CLE_TITRE := "REGLAGES_TITRE"
 const CLES_TAILLE: Array[String] = [
-	"REGLAGES_TAILLE_NORMALE", "REGLAGES_TAILLE_GRANDE", "REGLAGES_TAILLE_TRES_GRANDE"
+	"REGLAGES_TAILLE_75",
+	"REGLAGES_TAILLE_88",
+	"REGLAGES_TAILLE_100",
+	"REGLAGES_TAILLE_113",
+	"REGLAGES_TAILLE_125"
 ]
 const CLE_ECHEC := "REGLAGES_ECHEC_SAUVEGARDE"
 
@@ -28,7 +32,7 @@ var annuaire: LineEdit
 var afficher_ips: CheckButton
 
 var _r: Reglages = Reglages.new()
-var _taille_texte: int = Reglages.TAILLE_TEXTE_BASE
+var _taille_texte: int = Reglages.taille_texte_pour(1.0)
 var _etat: Label
 var _colonne: VBoxContainer
 
@@ -95,7 +99,7 @@ func _init() -> void:
 
 	_etat = Label.new()
 	colonne.add_child(_etat)
-	appliquer_echelle(Reglages.ECHELLES[0])
+	appliquer_echelle(1.0)
 
 
 ## Un `Control` ne tient pas compte de ses enfants : sans cette taille, la page du menu lui donne
@@ -119,10 +123,9 @@ func configurer(r: Reglages) -> void:
 	appliquer_echelle(echelle)
 
 
-## Taille de texte de tout l'écran, héritée par les commandes : 16 px au niveau 1,0.
+## Taille de texte à ce cran : 16 px au cran 1,0 ; la fenêtre applique déjà l'échelle (`Jeu`).
 func appliquer_echelle(echelle: float) -> void:
 	_taille_texte = Reglages.taille_texte_pour(echelle)
-	add_theme_font_size_override("font_size", _taille_texte)
 
 
 func taille_texte() -> int:

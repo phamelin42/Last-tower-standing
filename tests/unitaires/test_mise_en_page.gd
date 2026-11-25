@@ -14,6 +14,13 @@ const OR_ABONDANT := 1000000
 ## Part minimale de la hauteur qui reste à l'arène entre la barre et le bandeau.
 const PART_ARENE_MIN := 0.4
 const OPACITE_MIN := 0.9
+## Crans extrêmes de « Taille de l'interface » (T8.17) : la fenêtre logique mesure la résolution
+## divisée par l'échelle, comme avec `content_scale_factor`.
+const ECHELLES_EXTREMES: Array[float] = [0.75, 1.25]
+## À 125 %, la barre du HUD et le bandeau de la boutique actuels (largeur minimale d'environ
+## 1 000 px) ne tiennent que dans la plus grande résolution. T8.18 (barre à icônes) et T8.19
+## (boutique compacte) les refont : elles doivent ajouter ici toutes les résolutions.
+const RESOLUTIONS_A_125: Array[Vector2] = [Vector2(1920.0, 1080.0)]
 
 var _donnees: Donnees
 var _locale_avant: String = ""
@@ -316,3 +323,54 @@ func test_les_armes_et_le_marche_noir_restent_entre_le_hud_et_la_boutique() -> v
 			"armes au-dessus de la boutique à %s : %s" % [zone, rect]
 		)
 		_liberer(jeu)
+
+
+## Review Focus 4 : aux crans extrêmes de la taille de l'interface et aux résolutions testées,
+## aucun libellé du HUD ni de la boutique n'est plus large que sa case (pas de texte coupé), et
+## les plus longs noms réels tiennent sur deux lignes d'une carte.
+func test_aucun_texte_ne_deborde_ni_ne_se_coupe_a_75_et_125_pour_cent() -> void:
+	# Or de départ réel : la valeur d'essai du fichier (un million) n'est pas un cas d'usage.
+	_donnees = AidesPartie.donnees()
+	var police := ThemeJeu.police()
+	for echelle: float in ECHELLES_EXTREMES:
+		# La fenêtre applique l'échelle (`content_scale_factor`) : le texte garde sa taille de base
+		# dans une fenêtre logique plus petite ou plus grande.
+		var taille := ThemeJeu.taille("texte")
+		for resolution: Vector2 in RESOLUTIONS:
+			if echelle > 1.0 and not RESOLUTIONS_A_125.has(resolution):
+				continue
+			var zone := resolution / echelle
+			var jeu := await _jeu_a(zone)
+			var ecran := Rect2(Vector2.ZERO, zone)
+			verifier(ecran.encloses(jeu.hud.rect_barre()), "barre dans la fenêtre")
+			verifier(ecran.encloses(jeu.boutique.rect_bandeau()), "bandeau dans la fenêtre")
+			for panneau: Control in [jeu.hud, jeu.boutique]:
+				for noeud: Node in panneau.find_children("*", "Label", true, false):
+					var libelle := noeud as Label
+					if not libelle.is_visible_in_tree() or libelle.autowrap_mode != TextServer.AUTOWRAP_OFF:
+						continue
+					var largeur := police.get_string_size(
+						libelle.text, 0, -1, libelle.get_theme_font_size("font_size")
+					).x
+					verifier(
+						largeur <= libelle.size.x + 1.0,
+						"« %s » coupé à %s, échelle %s" % [libelle.text, resolution, echelle]
+					)
+			_liberer(jeu)
+		for nom: String in _noms_les_plus_longs():
+			var largeur := police.get_string_size(nom, 0, -1, taille).x
+			verifier(
+				largeur <= 2.0 * (BoutiqueUi.LARGEUR_CARTE - 32.0),
+				"« %s » ne tient pas sur deux lignes à l'échelle %s" % [nom, echelle]
+			)
+
+
+func _noms_les_plus_longs() -> Array[String]:
+	var noms: Array[String] = []
+	for id: Variant in _donnees.armes:
+		noms.append(String((_donnees.armes[id] as Dictionary)["nom"]))
+	for id: Variant in _donnees.ameliorations:
+		noms.append(String((_donnees.ameliorations[id] as Dictionary)["nom"]))
+	for famille: Dictionary in _donnees.familles:
+		noms.append(String(famille["nom"]))
+	return noms

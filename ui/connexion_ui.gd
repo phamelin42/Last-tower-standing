@@ -17,8 +17,6 @@ const ORIGINE_ANNUAIRE := "annuaire"
 
 const HAUTEUR_CONTROLE := 48.0
 const LARGEUR_COLONNE := 460.0
-const TAILLE_TEXTE := 16
-const TAILLE_TITRE := 28
 const ESPACEMENT := 12
 const PORT_DEFAUT := 7777
 const PORT_MAX := 65535
@@ -48,7 +46,6 @@ var _salons: Array[Dictionary] = []
 func _init() -> void:
 	ThemeJeu.appliquer(self)
 	set_anchors_preset(PRESET_FULL_RECT)
-	add_theme_font_size_override("font_size", TAILLE_TEXTE)
 	var fond := ColorRect.new()
 	fond.name = "Fond"
 	fond.color = ThemeJeu.JAUGE_FOND
@@ -380,7 +377,6 @@ func _titre(cle: String) -> Label:
 	titre.text = tr(cle)
 	titre.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	titre.theme_type_variation = ThemeJeu.TYPE_RUBAN
-	titre.add_theme_font_size_override("font_size", TAILLE_TITRE)
 	return titre
 
 

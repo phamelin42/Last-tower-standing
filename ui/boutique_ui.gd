@@ -13,7 +13,6 @@ const ACTIONS_OFFRES: Array[String] = [
 const ACTION_RELANCER := "boutique_relancer"
 const NB_OFFRES := 4
 const HAUTEUR_CONTROLE := 48.0
-const TAILLE_TEXTE := 16
 const LARGEUR_CARTE := 200.0
 const LARGEUR_TEXTE := 150.0
 ## Largeur de la colonne d'actions (relance, message) et du panneau des armes.
@@ -134,8 +133,7 @@ func _construire_bandeau() -> void:
 	actions.custom_minimum_size = Vector2(LARGEUR_ACTIONS, 0.0)
 	rangee.add_child(actions)
 	var titre := _etiquette("Titre", "BOUTIQUE_TITRE")
-	titre.theme_type_variation = "Titre"
-	titre.add_theme_font_size_override("font_size", TAILLE_TEXTE)
+	titre.theme_type_variation = "TitrePetit"
 	actions.add_child(titre)
 	_relance = _bouton(Callable(self, "relancer"))
 	# « Relancer » puis le prix : deux lignes de 23 px et les marges du bouton (36 px), sinon la
@@ -332,6 +330,10 @@ func _construire_carte(i: int) -> PanelContainer:
 	for libelle: Label in [rarete, nom, type_degats, effet, description, prix, note]:
 		libelle.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		libelle.custom_minimum_size = Vector2(LARGEUR_TEXTE, 0.0)
+	# Les détails de la carte sont au rôle « petit » : Metamorphous est plus large que l'ancienne
+	# police et le bandeau doit rester bas (D13).
+	for libelle: Label in [rarete, prix, type_degats, effet, description, note]:
+		libelle.theme_type_variation = "Petit"
 	# Rangées : rareté et prix ; nom (à la ligne s'il est très long) ; type de dégâts et notes ;
 	# effet (toujours entier) puis ambiance (atténuée).
 	# En tête : l'image, puis rareté et prix, nom, type et notes en colonne à sa droite.
@@ -346,10 +348,15 @@ func _construire_carte(i: int) -> PanelContainer:
 	entete.add_child(textes)
 	var haut := HBoxContainer.new()
 	haut.add_theme_constant_override("separation", 3)
-	textes.add_child(haut)
-	for libelle: Label in [rarete, prix]:
-		libelle.autowrap_mode = TextServer.AUTOWRAP_OFF
-		libelle.custom_minimum_size.x = 0.0
+	colonne.add_child(haut)
+	colonne.move_child(haut, 0)
+	# Rareté et prix sur la largeur de la carte : Metamorphous est plus large que l'ancienne
+	# police, et dans la colonne à droite de l'image la rareté passait sur cinq lignes.
+	prix.autowrap_mode = TextServer.AUTOWRAP_OFF
+	prix.custom_minimum_size.x = 0.0
+	rarete.custom_minimum_size = Vector2(0.0, _hauteur_ligne())
+	rarete.clip_text = true
+	rarete.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	rarete.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	prix.add_theme_color_override("font_color", ThemeJeu.LAITON_CLAIR)
 	haut.add_child(rarete)
@@ -620,7 +627,6 @@ func _prix_vente(entree: Dictionary) -> int:
 func _etiquette(nom: String, cle: String = "") -> Label:
 	var libelle := Label.new()
 	libelle.name = nom
-	libelle.add_theme_font_size_override("font_size", TAILLE_TEXTE)
 	libelle.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	if not cle.is_empty():
 		libelle.text = tr(cle)
@@ -630,7 +636,6 @@ func _etiquette(nom: String, cle: String = "") -> Label:
 func _bouton(action: Callable) -> Button:
 	var bouton := Button.new()
 	bouton.custom_minimum_size = Vector2(0.0, HAUTEUR_CONTROLE)
-	bouton.add_theme_font_size_override("font_size", TAILLE_TEXTE)
 	bouton.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	bouton.pressed.connect(action)
 	return bouton
