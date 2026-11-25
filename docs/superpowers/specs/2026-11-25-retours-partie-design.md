@@ -23,24 +23,25 @@ graphismes originaux.
 
 Ces décisions ne se remettent pas en cause ; une objection se dit dans la PR.
 
-| #   | Sujet              | Décision                                                                                                                                                                         |
-| --- | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| D1  | Icônes             | La barre du haut montre une icône par information (temps, or…).                                                                                                                  |
-| D2  | Armes              | **Aucun plafond** au nombre d'armes portées (fin des 8 emplacements de la spec §5.3).                                                                                            |
-| D3  | Zoom               | On peut dézoomer plus loin qu'aujourd'hui.                                                                                                                                       |
-| D4  | Mini-carte         | Une mini-carte permet de se repérer et de **déplacer la vue en cliquant**. Elle **montre aussi les arènes des autres joueurs**.                                                  |
-| D5  | Effets d'armes     | Chaque arme a un effet visuel **différent et facilement reconnaissable**, « comme sur Warcraft ».                                                                                |
-| D6  | Portée et vitesse  | Les portées des armes augmentent, et **la vitesse des ennemis** aussi (la tour reste immobile).                                                                                  |
-| D7  | Ennemis            | La guêpe maison est retirée : **seulement les ennemis du pack**, **tous présents** dans le jeu, **plusieurs sortes par vague**.                                                  |
-| D8  | Portées d'ennemis  | Trois classes : corps à corps, moyenne portée, longue portée.                                                                                                                    |
-| D9  | Police             | Texte net et lisible : « Inquisition » (Woodcutter) n'est pas redistribuable (usage personnel seulement), Phil retient **Metamorphous** (OFL).                                   |
-| D10 | Tableau des scores | Pour chaque joueur, le **revenu** et les **dégâts par seconde**.                                                                                                                 |
-| D11 | PV de la tour      | Une **barre de PV au-dessus de la tour**, plus dans la barre du haut.                                                                                                            |
-| D12 | Mécaniques         | Reprendre celles de la map. La **mana** est un **bouclier** : elle absorbe les coups à la place des PV. **Certaines armes font des dégâts en fonction de la mana maximale.**     |
-| D13 | ATH                | Trop grand : **c'est la boutique qui prend trop de place**.                                                                                                                      |
-| D14 | Catégories         | Dans la boutique, on distingue d'un coup d'œil **les armes, les améliorations et le revenu** (demandé après la première version de cette conception).                            |
-| D15 | Sons des armes     | « Pas assez de diversité dans les sons des armes » : chaque arme a son propre son de tir (demandé après la validation de cette conception).                                      |
-| D16 | Difficulté         | « Jeu beaucoup trop simple : je n'ai rien acheté pendant 10 manches et je ne suis toujours pas mort. » **Sans aucun achat, la tour tombe au plus tard à la fin de la manche 3.** |
+| #   | Sujet               | Décision                                                                                                                                                                               |
+| --- | ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| D1  | Icônes              | La barre du haut montre une icône par information (temps, or…).                                                                                                                        |
+| D2  | Armes               | **Aucun plafond** au nombre d'armes portées (fin des 8 emplacements de la spec §5.3).                                                                                                  |
+| D3  | Zoom                | On peut dézoomer plus loin qu'aujourd'hui.                                                                                                                                             |
+| D4  | Mini-carte          | Une mini-carte permet de se repérer et de **déplacer la vue en cliquant**. Elle **montre aussi les arènes des autres joueurs**.                                                        |
+| D5  | Effets d'armes      | Chaque arme a un effet visuel **différent et facilement reconnaissable**, « comme sur Warcraft ».                                                                                      |
+| D6  | Portée et vitesse   | Les portées des armes augmentent, et **la vitesse des ennemis** aussi (la tour reste immobile).                                                                                        |
+| D7  | Ennemis             | La guêpe maison est retirée : **seulement les ennemis du pack**, **tous présents** dans le jeu, **plusieurs sortes par vague**.                                                        |
+| D8  | Portées d'ennemis   | Trois classes : corps à corps, moyenne portée, longue portée.                                                                                                                          |
+| D9  | Police              | Texte net et lisible : « Inquisition » (Woodcutter) n'est pas redistribuable (usage personnel seulement), Phil retient **Metamorphous** (OFL).                                         |
+| D10 | Tableau des scores  | Pour chaque joueur, le **revenu** et les **dégâts par seconde**.                                                                                                                       |
+| D11 | PV de la tour       | Une **barre de PV au-dessus de la tour**, plus dans la barre du haut.                                                                                                                  |
+| D12 | Mécaniques          | Reprendre celles de la map. La **mana** est un **bouclier** : elle absorbe les coups à la place des PV. **Certaines armes font des dégâts en fonction de la mana maximale.**           |
+| D13 | ATH                 | Trop grand : **c'est la boutique qui prend trop de place**.                                                                                                                            |
+| D14 | Catégories          | Dans la boutique, on distingue d'un coup d'œil **les armes, les améliorations et le revenu** (demandé après la première version de cette conception).                                  |
+| D15 | Sons des armes      | « Pas assez de diversité dans les sons des armes » : chaque arme a son propre son de tir (demandé après la validation de cette conception).                                            |
+| D16 | Difficulté          | « Jeu beaucoup trop simple : je n'ai rien acheté pendant 10 manches et je ne suis toujours pas mort. » **Sans aucun achat, la tour tombe au plus tard à la fin de la manche 3.**       |
+| D17 | Montée en puissance | « Les ennemis doivent faire de plus en plus de dégâts et être de plus en plus résistants avec les manches. » Leurs **dégâts et leurs PV augmentent à chaque manche**, dès la manche 1. |
 
 Les propositions de la session de pilotage acceptées par Phil le même soir :
 
@@ -299,6 +300,7 @@ sont revus avec ces nouvelles valeurs.
 
 - **Critère** _(proposition)_ : les cibles du robot consignées dans `docs/equilibrage.md` restent atteintes, et le robot de référence n'est pas éliminé avant la manche 20.
 - **Seuil bas** _(Phil, D16)_ : un robot qui n'achète rien perd sa tour au plus tard à la fin de la manche 3, pour toute graine testée. Aujourd'hui, les ennemis ne font que 3 % de leurs dégâts des manches 1 à 4 et 100 % à la manche 10 (`data/difficulte.json`) : cette rampe est relevée. Le test vit avec la simulation (vague 1), pas seulement dans la passe finale.
+- **Montée continue** _(Phil, D17)_ : les multiplicateurs de PV et de dégâts de `data/difficulte.json` croissent strictement d'une manche à la suivante, de la manche 1 à la 30, puis en mode sans fin. Aujourd'hui, les PV restent à ×1 des manches 1 à 10. Les paliers de couleur (6.1) s'y ajoutent sans la remplacer. Test en boucle sur toutes les manches : `pv(n + 1) > pv(n)` et `degats(n + 1) > degats(n)`. La pente est réglée par la passe, entre le seuil bas (D16) et le critère du robot qui achète.
 - **Leviers autorisés sans revenir à Phil** : manches d'entrée des paliers et de l'Archer, PV, dégâts et primes par palier, poids des familles, chiffres de la mana et des armes de mana, poids de rareté de la boutique, rampe de dégâts et de PV de `data/difficulte.json`.
 - **Non modifiables sans Phil** : les paliers de portée des armes (500 / 750 / 1 000 / 1 250), la vitesse ×1,5, les portées d'ennemis 350 et 650.
 
