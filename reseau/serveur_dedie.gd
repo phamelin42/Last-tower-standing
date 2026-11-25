@@ -73,6 +73,7 @@ func lancer(args: Dictionary, donnees: Donnees) -> int:
 	if donnees == null:
 		_journal("Données du jeu absentes ou invalides : arrêt.")
 		return CODE_DONNEES
+	_isoler_multijoueur()
 	var port: int = int(args.get("port", 0))
 	var acceleration: int = int(args.get("acceleration", 1))
 	var code := serveur.demarrer(donnees, port, acceleration)
@@ -90,6 +91,16 @@ func lancer(args: Dictionary, donnees: Donnees) -> int:
 		)
 	)
 	return CODE_OK
+
+
+## Les RPC se résolvent par un chemin relatif à la racine du multijoueur. Un client (`SessionReseau`)
+## a son `Canal` à la racine de sa propre `SceneMultiplayer` : le serveur doit en faire autant, sinon
+## il cherche « Canal » sous `/root` au lieu de `ServeurDedie/Canal` et rejette tous les paquets.
+## Sans effet si l'appelant (un test) a déjà posé la sienne.
+func _isoler_multijoueur() -> void:
+	if not is_inside_tree() or multiplayer != get_tree().get_multiplayer():
+		return
+	get_tree().set_multiplayer(SceneMultiplayer.new(), get_path())
 
 
 func est_actif() -> bool:
