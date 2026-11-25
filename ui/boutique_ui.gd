@@ -380,9 +380,6 @@ func _construire_carte(i: int) -> PanelContainer:
 	bas.add_child(note)
 	# L'effet prend la hauteur qu'il lui faut et pousse le bouton vers le bas de la carte.
 	effet.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	# Trois lignes au plus : le texte entier reste dans l'infobulle (D13, boutique trop grande).
-	effet.max_lines_visible = 3
-	effet.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	effet.add_theme_constant_override("line_spacing", 0)
 	description.add_theme_constant_override("line_spacing", 0)
 	colonne.add_child(effet)
@@ -494,7 +491,6 @@ func _afficher_carte(i: int, offre: Dictionary, vue: VueArene) -> void:
 	_types[i].text = _libelle_type(entree, genre)
 	_types[i].tooltip_text = DescriptionOffre.efficacite(entree, _donnees)
 	_effets[i].text = DescriptionOffre.ligne_effet(entree, genre, _donnees, false)
-	_effets[i].tooltip_text = _effets[i].text
 	_descriptions[i].text = str(entree.get("description", ""))
 	_cartes[i].tooltip_text = _infobulle(entree, genre)
 	_prix[i].text = tr("BOUTIQUE_PRIX") % Nombres.groupe(prix)
