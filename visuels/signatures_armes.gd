@@ -46,6 +46,15 @@ const STATUTS: Dictionary = {
 	"vol_de_vie": "soin",
 }
 
+## Libellé affiché d'un statut (la planche, plus tard l'interface) : avec ses accents.
+const LIBELLES_STATUTS: Dictionary = {
+	"givre": "givre",
+	"poison": "poison",
+	"etourdissement": "étourdissement",
+	"brulure": "brûlure",
+	"vol_de_vie": "vol de vie",
+}
+
 ## Deux couleurs par type de dégâts, toutes vives (valeur ≥ 0,6) pour se lire au dézoom.
 const PALETTE: Dictionary = {
 	"acier": Color(0.7, 0.8, 1.0),
@@ -93,6 +102,11 @@ const TABLE: Dictionary = {
 	"vortex_de_verre": ["spirale", "violet", "double", "explosion", "vol_de_vie"],
 	"horloge_folle": ["croissant", "magenta", "pointille", "croix", "brulure"],
 }
+
+
+## Libellé d'un statut, ou `""` pour un statut inconnu.
+static func libelle_statut(statut: String) -> String:
+	return String(LIBELLES_STATUTS.get(statut, ""))
 
 
 static func ids() -> PackedStringArray:

@@ -106,10 +106,9 @@ func _carte(planche: Image, origine: Vector2i, id: String, nom: String) -> void:
 	var impact: Image = FormesSignatures.image(s["impact"])
 	_poser(planche, impact, Vector2i(origine.x + 12 + 64 + 14 + 40 + 14, milieu), couleur, 1.0, 1.0)
 	var statut: String = s["statut"]
-	var legende: String = (
-		"statut : aucun" if statut.is_empty() else "statut : %s" % statut.replace("_", " ")
-	)
+	var legende: String = "statut\u00a0: aucun"
 	if not statut.is_empty():
+		legende = "statut\u00a0: %s" % SignaturesArmes.libelle_statut(statut)
 		var forme: Image = FormesSignatures.image(String(SignaturesArmes.STATUTS[statut]))
 		_poser(
 			planche,

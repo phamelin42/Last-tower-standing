@@ -151,3 +151,19 @@ func test_la_grammaire_laisse_de_la_place_pour_soixante_quinze_armes() -> void:
 	var paires: int = SignaturesArmes.PROJECTILES.size() * SignaturesArmes.PALETTE.size()
 	verifier(paires >= 75, "%d paires forme × couleur" % paires)
 	verifier(SignaturesArmes.PALETTE.size() >= 10, "dix couleurs au moins")
+
+
+func test_le_libelle_affiche_de_chaque_statut_a_ses_accents() -> void:
+	var attendus: Dictionary = {
+		"givre": "givre",
+		"poison": "poison",
+		"etourdissement": "étourdissement",
+		"brulure": "brûlure",
+		"vol_de_vie": "vol de vie",
+	}
+	for statut: Variant in SignaturesArmes.STATUTS:
+		verifier(attendus.has(statut), "libellé attendu manquant pour %s" % statut)
+		var libelle: String = SignaturesArmes.libelle_statut(String(statut))
+		verifier_egal(libelle, attendus.get(statut, ""))
+		verifier(not libelle.contains("_"), "%s : identifiant affiché" % statut)
+	verifier_egal(SignaturesArmes.libelle_statut("inconnu"), "")
