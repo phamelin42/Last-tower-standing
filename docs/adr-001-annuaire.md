@@ -1,9 +1,10 @@
 # ADR 001 : annuaire des parties en ligne
 
-**Statut : Accepté** : validé par Phil le 25/11/2026, avec ses 20 décisions telles que proposées.
+**Statut : Accepté** : validé par Phil le 25/11/2026, avec ses 20 décisions telles que proposées,
+complétées le 26/11/2026 par les décisions 21 et 22.
 
-**Les 20 décisions validées par Phil sont à la fin du document** (section « Décisions validées par
-Phil (25/11/2026) »).
+**Les décisions validées par Phil sont à la fin du document** (sections « Décisions validées par
+Phil (25/11/2026) » et « Décisions de Phil du 26/11/2026 »).
 
 ## Contexte
 
@@ -226,7 +227,8 @@ La redirection UPnP et le jeton sont liés à la **session** (`SessionReseau`), 
 - **Séquence d'annonce** : la première annonce part quand le client local est enregistré comme hôte
   (`hote_enregistre`) **et** que la tentative UPnP est terminée, réussie ou non (au plus quelques
   secondes : découverte 2 s, ajout, éventuel second essai). Elle ne dépend pas de la réussite
-  d'UPnP.
+  d'UPnP. La tentative est attendue **10 s au plus** (décision 21) : passé ce délai, l'annonce part
+  avec le port de jeu local et l'hôte voit un message.
 - **Port déclaré** : `port_externe` si UPnP a réussi, sinon le port de jeu local (l'hôte l'a
   peut-être ouvert à la main, comme le décrit le README). La sonde tranche : réponse 2 si le port
   n'est pas joignable, et l'hôte le voit. Un port de jeu inférieur à 1 024 n'est jamais annoncé (borne
@@ -240,6 +242,8 @@ La redirection UPnP et le jeton sont liés à la **session** (`SessionReseau`), 
   annonce immédiate. T7.2 attend la fermeture du fil (jusqu'à 2 s) avant d'ouvrir à nouveau.
 - **Serveur dédié** : il n'est ni annoncé à l'annuaire, ni redirigé par UPnP (pas de client local,
   pas de `SessionReseau`). C'est une limite du lot 7, validée par Phil (décision 19).
+- **Mode sans fenêtre** (`--headless`, tests et serveur dédié compris) : UPnP et annuaire restent
+  désactivés (décision 22) ; aucun test ne touche une vraie box ni le vrai annuaire.
 
 ## UPnP chez l'hôte (T7.2)
 
@@ -466,3 +470,13 @@ réseau local a le même nom et le même port ; l'entrée locale l'emporte. Ori
     tentative UPnP (réussie ou non) ; port déclaré = `port_externe`, sinon port local ; redirection
     renouvelée pendant la partie, refaite par « Retour au salon » (nouvelle session). Écarté :
     annonce conditionnée à la réussite d'UPnP (exclurait les hôtes qui ouvrent leur port à la main).
+
+## Décisions de Phil du 26/11/2026
+
+Réponses « défaut partout » aux deux questions laissées par la fin du lot 7 (suivi S12).
+
+21. **Délai maximal de la tentative UPnP** : 10 s. Passé ce délai, la première annonce part avec le
+    port de jeu local et l'hôte voit un message ; une box qui répond à la découverte puis se fige ne
+    retarde plus l'annonce sans rien dire. À faire : T7.5.
+22. **Mode sans fenêtre** : UPnP et annuaire restent désactivés en `--headless`, serveur dédié
+    compris (choix de T7.2 et T7.3, confirmé).
