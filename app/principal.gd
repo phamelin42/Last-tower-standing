@@ -20,6 +20,7 @@ var arguments: Dictionary = {}
 var donnees: Donnees = null
 var dossier_donnees: String = Donnees.DOSSIER_REEL
 var chemin_reglages: String = Reglages.CHEMIN_DEFAUT
+var chemin_progression: String = Sauvegarde.CHEMIN_DEFAUT
 ## Sortie du processus : `get_tree().quit(code)` par défaut, remplaçable par les tests.
 var sortie: Callable = Callable()
 ## Découverte des salons : seuls les tests changent le port et les cibles (127.0.0.1).
@@ -87,6 +88,7 @@ func _ready() -> void:
 		_lancer_serveur_dedie(scene)
 		return
 	_menu = $Menu as MenuPrincipal
+	_menu.chemin_progression = chemin_progression
 	_menu.configurer(chemin_reglages)
 	_menu.solo_demande.connect(_lancer_solo)
 	_menu.quitter_demande.connect(_quitter)
@@ -225,6 +227,7 @@ func _lancer_solo(nom: String) -> void:
 	_enregistrer_nom(nom)
 	var jeu_neuf := (load(SCENE_JEU) as PackedScene).instantiate() as Jeu
 	jeu_neuf.chemin_reglages = chemin_reglages
+	jeu_neuf.chemin_progression = chemin_progression
 	jeu_neuf.nom_joueur = nom
 	add_child(jeu_neuf)
 	if not jeu_neuf.demarrer_solo(d, graine, facteur):
@@ -291,6 +294,7 @@ func _construire_multijoueur() -> void:
 	_connexion.retour_demande.connect(_retour_depuis_connexion)
 	_connexion.actualiser_demande.connect(_interroger_annuaire)
 	_salon.pret_change.connect(_sur_pret)
+	_salon.skin_choisi.connect(_sur_skin)
 	_salon.options_changees.connect(_sur_options)
 	_salon.lancer_demande.connect(_sur_lancer)
 	_salon.quitter.connect(_quitter_salon)
@@ -496,7 +500,21 @@ func _avertir(origine: String, texte: String) -> void:
 
 func _sur_salon(s: Salon) -> void:
 	if _session != null and _session.client != null and _jeu == null:
-		_salon.afficher(s, _session.client.id_local())
+		var id_local := _session.client.id_local()
+		var d := _donnees_du_jeu()
+		if d != null and not _salon.skins_prets():
+			_salon.configurer_skins(d, chemin_progression)
+		# Le serveur ne connaît que le skin qu'on lui a dit : le choix gardé au profil lui part une
+		# fois, dès que le salon montre qu'il ne l'a pas.
+		var chez_serveur: int = int((s.joueurs.get(id_local, {}) as Dictionary).get("skin", 0))
+		if _salon.skins_prets() and chez_serveur != _salon.index_skin():
+			_session.client.definir_skin(_salon.index_skin())
+		_salon.afficher(s, id_local)
+
+
+func _sur_skin(index: int) -> void:
+	if _session != null and _session.client != null:
+		_session.client.definir_skin(index)
 
 
 func _sur_pret(pret: bool) -> void:
@@ -539,6 +557,7 @@ func _sur_partie_demarree() -> void:
 		return
 	var jeu_neuf := (load(SCENE_JEU) as PackedScene).instantiate() as Jeu
 	jeu_neuf.chemin_reglages = chemin_reglages
+	jeu_neuf.chemin_progression = chemin_progression
 	jeu_neuf.nom_joueur = _nom_joueur
 	add_child(jeu_neuf)
 	if not jeu_neuf.demarrer_reseau(_session.client.donnees, _session.client):

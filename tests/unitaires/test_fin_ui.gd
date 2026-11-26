@@ -409,3 +409,58 @@ func test_noms_au_moins_16_px() -> void:
 		verifier(
 			libelle.get_theme_font_size("font_size") >= TAILLE_MIN, "le nom est lu à 16 px au moins"
 		)
+
+
+# --- Défis réussis et skins débloqués (T11.8) --------------------------------------------------
+
+
+func test_la_fin_de_partie_liste_les_defis_reussis_et_les_skins_debloques() -> void:
+	var donnees := Donnees.charger()
+	for en_victoire: bool in [false, true]:
+		for id: String in donnees.defis:
+			var defi: Dictionary = donnees.defis[id]
+			var nouveaux: Array[String] = [id]
+			if en_victoire:
+				_fin.afficher_victoire(_vue(8, 3, 900.0), _globale(_joueurs(2)), 1)
+			else:
+				_fin.afficher_defaite(_vue(8, 3, 900.0), _globale(_joueurs(2)), 1)
+			_fin.afficher_progression(nouveaux, donnees)
+			_affiche(_t("FIN_DEFIS_TITRE"), "titre des défis (%s)" % id)
+			var textes := " | ".join(_textes())
+			verifier(textes.contains(String(defi["nom"])), "%s : le nom du défi" % id)
+			var skin := _t(ProgressionUi.cle_skin(String(defi["skin"])))
+			verifier(textes.contains(skin), "%s : le skin débloqué (%s)" % [id, skin])
+			verifier(textes.contains(_t("FIN_SKINS_LIGNE") % skin), "%s : la ligne des skins" % id)
+			verifier_faux(textes.contains("SKIN_"), "%s : clé de texte brute affichée" % id)
+
+
+func test_tous_les_defis_d_un_coup_n_agrandissent_pas_le_panneau_de_plus_de_60_px() -> void:
+	var donnees := Donnees.charger()
+	var tous: Array[String] = []
+	for id: String in donnees.defis:
+		tous.append(id)
+	_fin.afficher_victoire(_vue(8, 3, 900.0), _globale(_joueurs(8)), 1)
+	await attendre_images(1)
+	var avant := _fin.panneau.get_combined_minimum_size().y
+	_fin.afficher_progression(tous, donnees)
+	await attendre_images(1)
+	var apres := _fin.panneau.get_combined_minimum_size().y
+	verifier(apres - avant <= 60.0, "le bloc défile au lieu de grandir : +%s px" % (apres - avant))
+
+
+func test_une_fin_sans_defi_ne_montre_aucun_bloc_vide() -> void:
+	var donnees := Donnees.charger()
+	_fin.afficher_victoire(_vue(8, 3, 900.0), _globale(_joueurs(2)), 1)
+	var aucun: Array[String] = []
+	_fin.afficher_progression(aucun, donnees)
+	var textes := _textes()
+	verifier_faux(textes.has(_t("FIN_DEFIS_TITRE")), "pas de titre de défis vide")
+	verifier_faux(
+		" | ".join(textes).contains(_t("FIN_SKINS_LIGNE") % ""), "pas de ligne de skins vide"
+	)
+	# Après un bloc rempli, une partie suivante sans défi efface le précédent.
+	var un: Array[String] = [String(donnees.defis.keys()[0])]
+	_fin.afficher_progression(un, donnees)
+	verifier(_textes().has(_t("FIN_DEFIS_TITRE")))
+	_fin.afficher_progression(aucun, donnees)
+	verifier_faux(_textes().has(_t("FIN_DEFIS_TITRE")), "le bloc disparaît")

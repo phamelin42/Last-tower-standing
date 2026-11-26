@@ -1,7 +1,6 @@
 extends CasDeTest
 ## Trente armes ont un élément visuel (D22) ; les autres gardent le rendu d'aujourd'hui.
 
-const ArmesLot8 := preload("res://tests/unitaires/armes_lot_8.gd")
 const ATTENDU: Dictionary = {
 	"canon_de_cloche": "feu",
 	"orbe_de_brume": "glace",
@@ -57,11 +56,17 @@ func test_les_trente_elements_sont_distincts_et_tous_employes() -> void:
 		verifier(vus.has(element), "élément sans arme : %s" % element)
 
 
-func test_les_trente_armes_du_lot_8_ont_toutes_leur_element() -> void:
-	verifier_egal(ArmesLot8.IDS.size(), 30, "les trente armes du lot 8")
-	for id: String in ArmesLot8.IDS:
-		verifier(ElementsArmes.de(id) != "", "%s n'a pas d'élément" % id)
-		verifier(AttaquesElementaires.connait(ElementsArmes.de(id)), "%s : élément sans rendu" % id)
+## Les armes en jeu (signatures validées) et les armes à élément sont exactement les mêmes.
+func test_toute_arme_en_jeu_a_un_element_et_toute_arme_a_element_est_en_jeu() -> void:
+	var donnees: Donnees = Donnees.charger()
+	var en_jeu: int = 0
+	for id: Variant in donnees.armes:
+		var element: String = ElementsArmes.de(String(id))
+		verifier_egal(SignaturesArmes.en_jeu(String(id)), element != "", "%s : en jeu" % id)
+		if element != "":
+			en_jeu += 1
+			verifier(AttaquesElementaires.connait(element), "%s : élément sans rendu" % id)
+	verifier(en_jeu > 0, "aucune arme en jeu")
 
 
 func test_toute_autre_arme_garde_son_rendu() -> void:

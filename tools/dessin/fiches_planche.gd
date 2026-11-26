@@ -76,6 +76,28 @@ const FICHES: Dictionary = {
 	"vasque_d_arcanes": {"projectile": "vasque", "impact": "eclat_siphon"},
 	"nuee_d_etincelles": {"projectile": "etincelle", "impact": "eclat_rune"},
 	"nova_celeste": {"projectile": "vague_celeste", "impact": "eclat_astral"},
+	# Lot 9, siège.
+	"baril_a_retardement": {"projectile": "baril", "impact": "explosion_feu"},
+	"maillet_de_rempart": {"projectile": "maillet", "impact": "onde_choc"},
+	"catapulte_a_contrepoids": {"projectile": "pierre_lestee", "impact": "cratere"},
+	"obusier_de_breche": {"projectile": "obus", "impact": "pop_petard"},
+	"braise_de_siege":
+	{"projectile": "brasero", "impact": "explosion_feu", "disque": "disque_braise"},
+	"ecrasement_de_tour": {"projectile": "creneau", "impact": "onde_choc"},
+	"champ_de_ruines": {"projectile": "gravats", "impact": "cratere", "disque": "disque_ruines"},
+	"salve_du_rempart":
+	{"projectile": "bombe", "impact": "pop_petard", "teinte": Color(1.0, 0.8, 0.65)},
+	"colosse_de_pierre": {"projectile": "bloc_colosse", "impact": "cratere"},
+	# Lot 9, chaos.
+	"urne_des_ombres": {"projectile": "urne", "impact": "eclat_siphon"},
+	"pacte_de_sang": {"projectile": "goutte_sang", "impact": "eclat_astral"},
+	"engrenage_jumeau": {"projectile": "engrenage_double", "impact": "eclat_engrenage"},
+	"serment_brise": {"projectile": "serment", "impact": "eclat_prisme"},
+	"archere_fantome": {"projectile": "fleche_spectre", "impact": "eclat_rune"},
+	"miroir_de_discorde": {"projectile": "eclat_discorde", "impact": "gerbe_verre"},
+	"coupe_d_oubli": {"projectile": "coupe", "impact": "eclat_des"},
+	"legion_de_cendre": {"projectile": "cendre", "impact": "tourbillon_sable"},
+	"tempete_de_malefices": {"projectile": "malefice", "impact": "eclat_astral"},
 }
 
 ## Part de la durée d'un impact où l'on prend ses trois images : début, milieu, dissipation.

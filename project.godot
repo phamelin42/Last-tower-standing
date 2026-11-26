@@ -118,7 +118,7 @@ menu_jeu={
 
 [internationalization]
 
-locale/translations=PackedStringArray("res://i18n/textes_boutique.fr.translation", "res://i18n/textes_communs.fr.translation", "res://i18n/textes_fin.fr.translation", "res://i18n/textes_hud.fr.translation", "res://i18n/textes_menu.fr.translation", "res://i18n/textes_minicarte.fr.translation", "res://i18n/textes_observation.fr.translation", "res://i18n/textes_reglages.fr.translation", "res://i18n/textes_salon.fr.translation")
+locale/translations=PackedStringArray("res://i18n/textes_boutique.fr.translation", "res://i18n/textes_communs.fr.translation", "res://i18n/textes_fin.fr.translation", "res://i18n/textes_hud.fr.translation", "res://i18n/textes_menu.fr.translation", "res://i18n/textes_minicarte.fr.translation", "res://i18n/textes_observation.fr.translation", "res://i18n/textes_progression.fr.translation", "res://i18n/textes_reglages.fr.translation", "res://i18n/textes_salon.fr.translation")
 locale/fallback="fr"
 
 [rendering]

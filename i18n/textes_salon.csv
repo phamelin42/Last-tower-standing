@@ -50,3 +50,7 @@ CONNEXION_ANNUAIRE_HOTE_INJOIGNABLE,L’annuaire ne joint pas votre partie : le
 CONNEXION_ANNUAIRE_HOTE_INCOMPATIBLE,"Annuaire incompatible : mettez le jeu à jour, votre partie n’est pas listée."
 CONNEXION_ANNUAIRE_HOTE_PLEIN,L’annuaire est plein ou a atteint sa limite pour votre adresse : votre partie n’est pas listée pour l’instant.
 CONNEXION_ANNUAIRE_PORT_BAS,Le port de jeu est inférieur à 1 024 : l’annuaire ne listera pas votre partie. Choisissez 1 024 ou plus pour être listé.
+SALON_SKIN_TITRE,Skin de la tour
+SALON_SKIN_VERROUILLE,verrouillé
+SALON_SKIN_CHOISI,Skin choisi : %s
+SALON_SKIN_DEFI_VERROUILLE,"Pour le débloquer, réussir : « %s »"

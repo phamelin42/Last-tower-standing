@@ -17,3 +17,5 @@ FIN_REJOUER,Rejouer
 FIN_MENU_PRINCIPAL,Menu principal
 FIN_CONTINUER_SANS_FIN,Continuer sans fin
 FIN_OBSERVER,Observer les autres arènes
+FIN_DEFIS_TITRE,Défis réussis
+FIN_SKINS_LIGNE,Skins débloqués : %s

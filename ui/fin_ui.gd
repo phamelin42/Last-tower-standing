@@ -16,6 +16,10 @@ const LARGEURS_COLONNES: Array[float] = [72.0, 220.0, 112.0, 152.0, 112.0]
 const VOILE := Color(0.05, 0.08, 0.09, 0.62)
 ## Hauteur au-delà de laquelle le classement défile (plus de joueurs que la fenêtre n'en porte).
 const HAUTEUR_CLASSEMENT_MAX := 240.0
+## Hauteur du bloc des défis réussis et des skins avant qu'il ne défile.
+const HAUTEUR_PROGRES_MAX := 144.0
+## Hauteur minimale que garde le classement quand le bloc des défis lui prend de la place.
+const HAUTEUR_CLASSEMENT_MIN := 96.0
 ## Les dégâts sont des flottants : on les plafonne avant de les arrondir, pour qu'une valeur
 ## démesurée ne fasse pas déborder l'entier 64 bits.
 const ENTIER_MAX := 9.0e18
@@ -33,6 +37,8 @@ var _defilement: ScrollContainer
 var _tableau: GridContainer
 var _actions_courantes: Array[String] = []
 var _mention: Label
+var _progres: VBoxContainer
+var _hauteur_progres: float = 0.0
 var _actions: HBoxContainer
 var _noms: Array[Label] = []
 var _globale: VueGlobale = null
@@ -79,6 +85,10 @@ func _init() -> void:
 	_defilement.add_child(_tableau)
 	_mention = _etiquette("", false)
 	contenu.add_child(_mention)
+	_progres = VBoxContainer.new()
+	_progres.name = "Progression"
+	_progres.visible = false
+	contenu.add_child(_progres)
 	_actions = HBoxContainer.new()
 	contenu.add_child(_actions)
 
@@ -138,6 +148,47 @@ func presser(action: String) -> void:
 		if bouton.get_meta("action") == action:
 			(bouton as Button).pressed.emit()
 			return
+
+
+## Les défis que cette partie vient de faire réussir et les skins qu'ils débloquent. Rien du tout
+## (aucun titre, aucun bloc vide) quand `defis` est vide ; un appel remplace le bloc précédent.
+func afficher_progression(defis: Array[String], donnees: Donnees) -> void:
+	_vider(_progres)
+	_progres.visible = false
+	_hauteur_progres = 0.0
+	var reussis := PackedStringArray()
+	var skins := PackedStringArray()
+	if donnees != null:
+		for id: String in defis:
+			if not donnees.defis.has(id):
+				continue
+			var defi: Dictionary = donnees.defis[id]
+			reussis.append("%s — %s" % [String(defi["nom"]), String(defi["texte"])])
+			skins.append(ProgressionUi.nom_skin(String(defi["skin"])))
+	if not reussis.is_empty():
+		_progres.visible = true
+		var defilement := ScrollContainer.new()
+		defilement.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+		var colonne := VBoxContainer.new()
+		colonne.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		defilement.add_child(colonne)
+		colonne.add_child(_ligne_progres(tr("FIN_DEFIS_TITRE")))
+		for ligne: String in reussis:
+			colonne.add_child(_ligne_progres(ligne))
+		colonne.add_child(_ligne_progres(tr("FIN_SKINS_LIGNE") % ", ".join(skins)))
+		_progres.add_child(defilement)
+		_hauteur_progres = minf(colonne.get_combined_minimum_size().y, HAUTEUR_PROGRES_MAX)
+		defilement.custom_minimum_size.y = _hauteur_progres
+	# Le classement rend la place que prend le bloc : le panneau ne grandit pas d'autant.
+	if _globale != null:
+		_rafraichir_classement()
+
+
+func _ligne_progres(texte: String) -> Label:
+	var libelle := _etiquette(texte, false)
+	libelle.custom_minimum_size.y = 0.0
+	libelle.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	return libelle
 
 
 ## Textes actuellement lisibles à l'écran.
@@ -207,7 +258,8 @@ func _rafraichir_classement() -> void:
 		_ajouter_ligne(rang, joueur)
 	_afficher_mention(joueurs)
 	_defilement.custom_minimum_size.y = minf(
-		_tableau.get_combined_minimum_size().y, HAUTEUR_CLASSEMENT_MAX
+		_tableau.get_combined_minimum_size().y,
+		maxf(HAUTEUR_CLASSEMENT_MIN, HAUTEUR_CLASSEMENT_MAX - _hauteur_progres)
 	)
 
 
