@@ -94,9 +94,9 @@ BOUTIQUE_EFFET_TOURNANT,%s dégâts toutes les %s s
 BOUTIQUE_EFFET_TOURNANT_DETAIL,"%s faisceaux qui tournent de %s° à chaque tir (%s), largeur %s"
 BOUTIQUE_EFFET_SENS_HORAIRE,sens horaire
 BOUTIQUE_EFFET_SENS_ANTIHORAIRE,sens antihoraire
-BOUTIQUE_EFFET_ZONE_POSEE,pose toutes les %s s une zone de %s qui dure %s s et inflige %s des dégâts de l’arme toutes les %s s (%s au plus)
-BOUTIQUE_EFFET_BOMBE,pose toutes les %s s une bombe qui explose après %s s : %s des dégâts de l’arme dans un rayon de %s (%s au plus)
-BOUTIQUE_EFFET_INVOCATION,"invoque toutes les %s s un allié, %s, pendant %s s : il inflige %s des dégâts de l’arme (%s au plus)"
+BOUTIQUE_EFFET_ZONE_POSEE,pose toutes les %s s une zone de %s qui dure %s s : %s de %s dégâts de base toutes les %s s (%s au plus)
+BOUTIQUE_EFFET_BOMBE,pose toutes les %s s une bombe qui explose après %s s : %s de %s dégâts de base dans un rayon de %s (%s au plus)
+BOUTIQUE_EFFET_INVOCATION,"invoque toutes les %s s un allié, %s, pendant %s s : il inflige %s de %s dégâts de base (%s au plus)"
 BOUTIQUE_EFFET_ALLIE,allié
 BOUTIQUE_EFFET_VULNERABILITE,"vulnérabilité : +%s de dégâts %s subis pendant %s s, cumulable jusqu’à +%s"
 BOUTIQUE_EFFET_MALEDICTION_DEGATS,"malédiction : −%s des dégâts de l’ennemi pendant %s s, jusqu’à −%s au total"

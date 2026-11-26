@@ -14,6 +14,7 @@ var _partie: Partie = null
 var _cible: int = ID_LOCAL
 var _attente_arene: float = 0.0
 var _attente_globale: float = 0.0
+var _dernier_bilan: Dictionary = {}
 
 
 func _init() -> void:
@@ -29,6 +30,7 @@ func demarrer(donnees: Donnees, config: Partie.Config, nom_joueur: String) -> bo
 	if not partie.ajouter_joueur(ID_LOCAL, nom_joueur) or not partie.demarrer():
 		return false
 	_partie = partie
+	_dernier_bilan = {}
 	_cible = ID_LOCAL
 	_attente_arene = 0.0
 	_attente_globale = 0.0
@@ -51,7 +53,14 @@ func _process(delta: float) -> void:
 		_attente_globale = fmod(_attente_globale, 1.0 / HZ_GLOBAL)
 		_emettre_globale()
 	if fini:
+		_dernier_bilan = _partie.bilan_joueur(ID_LOCAL)
 		_arreter()
+		if not _dernier_bilan.is_empty():
+			bilan_recu.emit(_dernier_bilan.duplicate())
+
+
+func bilan() -> Dictionary:
+	return _dernier_bilan.duplicate()
 
 
 func id_local() -> int:

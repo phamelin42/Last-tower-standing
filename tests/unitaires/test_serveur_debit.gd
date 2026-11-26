@@ -197,6 +197,83 @@ func test_le_budget_de_50000_octets_par_seconde_tient_a_8_clients_et_1000_ennemi
 	verifier_egal(s.etats_trop_gros, 0, "aucun état refusé par le protocole")
 
 
+## Remplit chaque arène jusqu'aux plafonds d'alliés, de zones et de bombes : une manche qui
+## change vide ces listes, donc la charge est rétablie avant chaque tour de boucle.
+func _surcharger() -> void:
+	for pair: int in ids:
+		var arene: Arene = s.partie._joueur(pair).arene
+		while arene.allies.taille < Protocole.MAX_ALLIES:
+			arene.allies.invoquer(arene.allies.taille % 2, Vector2.ZERO, 900.0, 1.0, 0, 0)
+		var k := 0
+		while arene.poses.zones.size() < Protocole.MAX_ZONES:
+			var zone: Dictionary = {
+				"pos": Vector2(100.0 + float(k), 50.0),
+				"rayon": 80.0,
+				"duree": 900.0,
+				"periode": 5.0,
+				"degats": 1.0,
+				"type_degats": 0,
+				"statuts": [],
+				"statut": 0,
+				"arme": 0,
+				"proprietaire": k
+			}
+			arene.poses.ajouter_zone(zone, 1)
+			k += 1
+		while arene.poses.bombes.size() < Protocole.MAX_BOMBES:
+			var bombe: Dictionary = {
+				"pos": Vector2(-100.0 - float(k), 50.0),
+				"rayon": 80.0,
+				"delai": 900.0,
+				"degats": 1.0,
+				"type_degats": 0,
+				"statuts": [],
+				"statut": 0,
+				"arme": 0,
+				"proprietaire": 1000 + k
+			}
+			arene.poses.ajouter_bombe(bombe, 1)
+			k += 1
+
+
+func test_le_debit_de_l_arene_la_plus_chargee_reste_sous_50_000_octets_par_seconde() -> void:
+	_monter(8)
+	var n := _enrichir(FOULE_GRANDE)
+	for i: int in ids.size():
+		s.traiter_intention(
+			ids[i],
+			Protocole.encoder_intention(Protocole.Intention.REGARDER, ids[(i + 1) % ids.size()])
+		)
+	for i: int in 120:
+		_surcharger()
+		s.tick(1.0 / 60.0)
+	_vider()
+	for i: int in 600:
+		_surcharger()
+		s.tick(1.0 / 60.0)
+	var pire := 0
+	for pair: int in ids:
+		pire = maxi(pire, int(octets_par_pair[pair]) / 10)
+	print(
+		(
+			(
+				"DEBIT T9.9 : %d ennemis, 64 alliés, 32 zones, 32 bombes, 8 clients qui regardent : "
+				+ "%d o/s au plus par client (budget %d), plus gros état %d o"
+			)
+			% [n, pire, _budget(), plus_gros]
+		)
+	)
+	for pair: int in ids:
+		var total: int = octets_par_pair[pair]
+		verifier(
+			total <= _budget() * 10 + plus_gros,
+			"client %d : %d o en 10 s pour un budget de %d" % [pair, total, _budget() * 10]
+		)
+	var arene: Arene = s.partie._joueur(ids[0]).arene
+	verifier_egal(arene.allies.taille, Protocole.MAX_ALLIES, "les alliés étaient bien là")
+	verifier_egal(s.etats_trop_gros, 0, "aucun état refusé par le protocole")
+
+
 func test_cout_de_la_boucle_avec_8_clients_en_fin_de_partie() -> void:
 	_monter(8)
 	var n := _enrichir(FOULE_GRANDE)

@@ -130,7 +130,17 @@ const EFFETS_QUI_VISENT: Array[String] = [
 ## Genres d'effet dont la portée de `data/` compte : celle du tir, ou celle qui déclenche l'onde ou
 ## la pose. L'aura ne la lit jamais.
 const EFFETS_A_PORTEE: Array[String] = [
-	"cible_unique", "zone", "rebond", "barrage", "onde", "mine", "piege", "tournant"
+	"cible_unique",
+	"zone",
+	"rebond",
+	"barrage",
+	"onde",
+	"mine",
+	"piege",
+	"tournant",
+	"zone_posee",
+	"bombe",
+	"invocation",
 ]
 
 
@@ -312,6 +322,7 @@ static func _morceaux_effet(
 				_nombre(float(effet["rayon"]), 0),
 				_nombre(float(effet["duree"])),
 				_pourcent(float(effet["ratio"])),
+				degats,
 				_nombre(float(effet["periode"])),
 				_nombre(float(effet["max_actives"]), 0),
 			]
@@ -320,6 +331,7 @@ static func _morceaux_effet(
 			var bombe := [
 				_nombre(float(effet["delai"])),
 				_pourcent(float(effet["ratio"])),
+				degats,
 				_nombre(float(effet["rayon"]), 0),
 				_nombre(float(effet["max_actives"]), 0),
 			]
@@ -331,6 +343,7 @@ static func _morceaux_effet(
 				nom_unite,
 				_nombre(float(effet["duree"])),
 				_pourcent(float(effet["ratio_degats"])),
+				degats,
 				_nombre(float(effet["max_actives"]), 0),
 			]
 			morceaux.append(_t("BOUTIQUE_EFFET_INVOCATION", [recharge] + allie))

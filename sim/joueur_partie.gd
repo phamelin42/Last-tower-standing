@@ -10,6 +10,8 @@ var nom: String
 var arene: Arene = null
 var elimine: bool = false
 var victorieux: bool = false
+## A vaincu le boss, même s'il a repris la partie en mode sans fin (`victorieux` retombe alors).
+var a_vaincu: bool = false
 var parti: bool = false
 ## Plus rien à simuler : tour détruite, boss vaincu ou joueur parti.
 var fige: bool = false

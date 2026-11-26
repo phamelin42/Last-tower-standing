@@ -432,13 +432,22 @@ revue du lot 10.
   refusée)_ : les mêmes **mécaniques** que les défis de la map (tenir un temps avec une contrainte,
   contraintes de revenu et de défense, boss final), **« gagner uniquement avec des armes de… »** (un défi par type
   de dégâts, par statut et par genre d'effet que les données comptent vraiment), des défis de **revenu**,
-  **« être la dernière tour debout »** en multijoueur et des **défis cumulés**. Un skin par défi (B5) : 42 défis,
-  42 skins dans `docs/defis.md`. Noms, textes et seuils restent les nôtres (garde-fou T9.1).
+  **« être la dernière tour debout »** en multijoueur et des **défis cumulés**. Un skin par défi (B5) : 46 défis,
+  46 skins dans `docs/defis.md`. Noms, textes et seuils restent les nôtres (garde-fou T9.1).
+- **B11, la liste est validée** _(Phil, 26/11/2026)_ avec trois ajouts : des défis « uniquement… » pour
+  les **pièges** et les **mines** (l'aura n'en a pas, point ouvert), des défis **« une seule arme »** (un
+  générique, « vaincre le boss avec les exemplaires d'une seule arme », et une variante à la vingtième manche ;
+  pas un défi par arme) et **un sprite par skin, pour tous** (B6 confirmé). Total : **46 défis, 46 skins**.
+- **B12, un défi par nouveau genre d'arme, aucun par statut** _(Phil, 26/11/2026)_ : chaque genre du lot 9 qui compte
+  au moins trois armes a son défi « uniquement… » et son skin (§6.15, un skin par défi) : aura et tir tournant (T9.13),
+  puis zone posée, bombe et invocation (T9.15 à T9.17). Les statuts du lot 9 (`vulnerabilite`, `malediction_toucher`,
+  `repoussement`, `siphon`, `mana_au_coup`) n'en ont pas, ce que `docs/defis.md` liste. Total à la fin du lot :
+  **51 défis, 51 skins**.
 
-**Règles de dépendance du lot 11** (celles de `CLAUDE.md`, aucune exception) :
+**Règles de dépendance du lot 11** (celles de `CLAUDE.md`, aucune exception) :
 
 - La **sauvegarde et l'évaluation des défis** vivent dans un nouveau dossier **`progression/`**,
-  **hors de `sim/`** : `sim/` ne connaît ni `progression/`, ni les skins, ni `user://`.
+  **hors de `sim/`** : `sim/` ne connaît ni `progression/`, ni les skins, ni `user://`.
   `progression/` lit l'état d'arène et le bilan de partie par l'API publique (`sim/partie.gd`) ;
   il n'écrit jamais dans `sim/`.
 - Le **bilan de partie** (compteurs que les défis lisent) est produit par `sim/` comme donnée pure
