@@ -46,7 +46,7 @@ func test_chaque_element_a_sa_planche_et_une_silhouette_unique() -> void:
 		verifier_egal(planche, String(PROJECTILES[element]), "planche de %s" % element)
 		var texture: Texture2D = load("res://assets/maison/effets_attaques/%s.png" % planche)
 		verifier_non_nul(texture, "la planche %s existe" % planche)
-		var taille: Vector2i = AttaquesElementaires.PLANCHES[planche]
+		var taille: Vector2i = AttaquesElementaires.planches()[planche]
 		var image: Image = texture.get_image().get_region(Rect2i(0, 0, taille.x, taille.y))
 		var masque: String = ""
 		for y: int in taille.y:

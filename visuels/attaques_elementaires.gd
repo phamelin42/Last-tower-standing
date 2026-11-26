@@ -42,45 +42,17 @@ const EPSILON: float = 0.000001
 ## Un coup à cible unique reste petit.
 const DIAMETRE_PETIT: float = 40.0
 
-## Taille d'une image de chaque planche, en pixels.
-const PLANCHES: Dictionary = {
-	"boule_feu": Vector2i(16, 16),
-	"braise": Vector2i(4, 4),
-	"explosion_feu": Vector2i(32, 32),
+## Les planches partagées par plusieurs éléments ; celles d'un élément sont dans son fichier.
+const PLANCHES_COMMUNES: Dictionary = {
 	"depart": Vector2i(12, 12),
-	"eclat_glace": Vector2i(20, 8),
-	"brisure_glace": Vector2i(32, 32),
-	"givre_sol": Vector2i(32, 16),
-	"bombe": Vector2i(12, 12),
 	"ombre": Vector2i(12, 6),
-	"fiole": Vector2i(10, 14),
-	"eclaboussure_poison": Vector2i(32, 32),
-	"nuage_poison": Vector2i(16, 16),
-	"rune": Vector2i(12, 12),
-	"eclat_rune": Vector2i(24, 24),
 	"etincelle": Vector2i(8, 8),
 }
-## Diamètre visible, en pixels de planche, de l'image la plus grande d'un impact.
-const VISIBLE: Dictionary = {
-	"explosion_feu": 28.0,
-	"brisure_glace": 30.0,
-	"givre_sol": 31.0,
-	"eclaboussure_poison": 32.0,
-	"eclat_rune": 24.0,
-	"etincelle": 8.0,
-}
+const VISIBLES_COMMUNES: Dictionary = {"etincelle": 8.0}
 
 ## Image de planche à chaque image à 60 i/s : le pic est dans le premier quart de l'impact.
 const SEQ_EXPLOSION: Array[int] = [0, 1, 2, 2, 3, 3, 4, 4, 4, 5, 5, 5]
-const SEQ_RUNE: Array[int] = [0, 1, 3, 3, 3, 4, 4, 4, 4]
-const SEQ_ETINCELLE: Array[int] = [0, 0, 1, 1, 2, 2, 3, 3]
 const SEQ_ANTICIPATION: Array[int] = [0, 1, 2]
-
-## Des éclats qui suivent le premier, décalés de 2 images chacun, plus petits.
-const SUITES_GLACE: int = 2
-const DECALAGE_SUITE: float = 2.0 * IMAGE
-const ECHELLE_SUITE: float = 0.5
-const IMAGES_GIVRE: int = 24
 
 const FEU: String = ElementsArmes.FEU
 const GLACE: String = ElementsArmes.GLACE
@@ -88,11 +60,9 @@ const BOMBE: String = ElementsArmes.BOMBE
 const POISON: String = ElementsArmes.POISON
 const FOUDRE: String = ElementsArmes.FOUDRE
 const ARCANE: String = ElementsArmes.ARCANE
-## Deux points tournent autour de la rune.
-const POINTS_ARCANE: int = 2
+## Les points d'une orbite (rune) tournent à ce rayon, de ce nombre de tours sur le vol.
 const RAYON_ORBITE: float = 10.0
 const TOURS_ORBITE: float = 3.0
-const DIAMETRE_RUNE: float = 36.0
 const IMAGE_POINT_RUNE: int = 2
 ## L'éclair : 6 à 8 segments, cœur blanc de 3 px dans un bord de 6 px, tracé de nouveau toutes les
 ## 2 images, visible 6 images puis 3 images d'effacement.
@@ -107,60 +77,13 @@ const ECART_ECLAIR_MIN: float = 6.0
 const ECART_ECLAIR_MAX: float = 16.0
 ## La bouffée grise de départ de la bombe et de la fiole.
 const COULEUR_BOUFFEE := Color(0.7, 0.7, 0.72)
-const NUAGES_POISON: int = 3
 const IMAGES_NUAGE: int = 36
 const ALPHA_NUAGE: float = 0.6
 const MONTEE_NUAGE: float = 24.0
 
-const CONF: Dictionary = {
-	FEU:
-	{
-		"couleur": Color(1.0, 0.62, 0.2),
-		"projectile": "boule_feu",
-		"cloche": 0.0,
-		"fps": 15.0,
-	},
-	GLACE:
-	{
-		"couleur": Color(0.75, 0.95, 1.0),
-		"projectile": "eclat_glace",
-		"cloche": 0.0,
-		"fps": 0.0,
-	},
-	BOMBE:
-	{
-		"couleur": Color(0.72, 0.72, 0.75),
-		"anticipation": COULEUR_BOUFFEE,
-		"projectile": "bombe",
-		"cloche": 0.35,
-		"fps": 8.0,
-		"tour": PI,
-		"bosse": 0.15,
-	},
-	POISON:
-	{
-		"couleur": Color(0.45, 0.85, 0.35),
-		"anticipation": COULEUR_BOUFFEE,
-		"projectile": "fiole",
-		"cloche": 0.25,
-		"fps": 0.0,
-		"tour": 3.0 * PI,
-	},
-	FOUDRE:
-	{
-		"couleur": Color(0.78, 0.7, 1.0),
-		"projectile": "",
-		"cloche": 0.0,
-		"fps": 0.0,
-	},
-	ARCANE:
-	{
-		"couleur": Color(0.5, 0.75, 1.0),
-		"projectile": "rune",
-		"cloche": 0.0,
-		"fps": 12.0,
-	},
-}
+static var _registre: Dictionary = {}
+static var _planches: Dictionary = {}
+static var _visibles: Dictionary = {}
 
 ## Chaque nœud est un `Sprite2D` du pool ; `vivants` : `{n, kind, age, duree, ...}`.
 var mouvement_reduit: bool = false
@@ -180,14 +103,39 @@ var _carre: Texture2D = null
 var _degrade: Gradient = null
 
 
+## Un élément par fichier sous `visuels/attaques/` : une ligne ici suffit à en ajouter un.
+static func _scripts() -> Array[GDScript]:
+	return [AttaqueFeu, AttaqueGlace, AttaqueBombe, AttaquePoison, AttaqueFoudre, AttaqueArcane]
+
+
+## Les éléments, par identifiant (créés une fois).
+static func registre() -> Dictionary:
+	if _registre.is_empty():
+		_planches = PLANCHES_COMMUNES.duplicate()
+		_visibles = VISIBLES_COMMUNES.duplicate()
+		for script: GDScript in _scripts():
+			var element: AttaqueElement = script.new()
+			_registre[element.id()] = element
+			_planches.merge(element.planches())
+			_visibles.merge(element.visibles())
+	return _registre
+
+
+## Taille d'une image de chaque planche, en pixels (communes et de chaque élément).
+static func planches() -> Dictionary:
+	registre()
+	return _planches
+
+
 ## Vrai si `element` a des attaques dessinées ici.
 static func connait(element: String) -> bool:
-	return CONF.has(element)
+	return registre().has(element)
 
 
 ## Nom de la planche du projectile de `element`, `""` sans projectile.
 static func planche_projectile(element: String) -> String:
-	return String((CONF.get(element, {}) as Dictionary).get("projectile", ""))
+	var e: AttaqueElement = registre().get(element)
+	return "" if e == null else String(e.conf()["projectile"])
 
 
 func nombre_vivants() -> int:
@@ -265,15 +213,16 @@ func vider() -> void:
 ## monde). `retard` : attente avant l'anticipation (les boules d'un barrage). Rend le temps
 ## jusqu'à l'arrivée, anticipation et retard compris, ou -1 si rien n'a pu être créé.
 func tirer(element: String, depart: Vector2, arrivee: Vector2, retard: float = 0.0) -> float:
-	if not CONF.has(element):
+	var el: AttaqueElement = registre().get(element)
+	if el == null:
 		return -1.0
-	var conf: Dictionary = CONF[element]
+	var conf: Dictionary = el.conf()
 	var cloche: bool = float(conf["cloche"]) > 0.0
 	var images_vol: int = IMAGES_VOL_CLOCHE if cloche else IMAGES_VOL_DIRECT
 	var attente: float = retard + IMAGES_ANTICIPATION * IMAGE
 	var vol: float = images_vol * IMAGE
 	var sens: Vector2 = (arrivee - depart).normalized()
-	var anticipation: Dictionary = _nouveau("anticipation", "depart", IMAGES_ANTICIPATION * IMAGE)
+	var anticipation: Dictionary = nouveau("anticipation", "depart", IMAGES_ANTICIPATION * IMAGE)
 	if anticipation.is_empty():
 		return -1.0
 	anticipation["age"] = -retard
@@ -283,7 +232,7 @@ func tirer(element: String, depart: Vector2, arrivee: Vector2, retard: float = 0
 	anticipation["seq"] = _sequence(SEQ_ANTICIPATION, _eclat_permis())
 	var planche: String = String(conf["projectile"])
 	if planche != "":
-		var projectile: Dictionary = _nouveau("vol", planche, vol)
+		var projectile: Dictionary = nouveau("vol", planche, vol)
 		if not projectile.is_empty():
 			projectile["age"] = -attente
 			projectile["depart"] = depart
@@ -294,12 +243,11 @@ func tirer(element: String, depart: Vector2, arrivee: Vector2, retard: float = 0
 			projectile["tour"] = float(conf.get("tour", 0.0))
 			projectile["bosse"] = float(conf.get("bosse", 0.0))
 			projectile["vol"] = vol
-			_poser(projectile)
-			_suivre_vol(element, projectile)
-			_suites(element, projectile, attente, vol)
+			poser(projectile)
+			el.suivre_vol(self, projectile, attente, vol)
 			if cloche:
 				_ombre(projectile, attente, vol)
-	_poser(anticipation)
+	poser(anticipation)
 	# Un éclair n'a pas de vol : il est tracé d'un coup, à la fin de l'anticipation.
 	return attente + (vol if planche != "" else 0.0)
 
@@ -315,23 +263,10 @@ func impacter(
 	de: Vector2 = Vector2.ZERO,
 	age: float = 0.0
 ) -> bool:
-	if not CONF.has(element):
+	var el: AttaqueElement = registre().get(element)
+	if el == null:
 		return false
-	var cree: bool = false
-	match element:
-		FEU:
-			cree = _impact_feu(ou, rayon_px, fort, age)
-		GLACE:
-			cree = _impact_glace(ou, rayon_px, age)
-		BOMBE:
-			cree = _impact_bombe(ou)
-		POISON:
-			cree = _impact_poison(ou, rayon_px, age)
-		FOUDRE:
-			cree = _impact_foudre(de, ou, age)
-		ARCANE:
-			cree = _impact_arcane(ou, age)
-	return cree
+	return el.impacter(self, ou, rayon_px, fort, de, age)
 
 
 func avancer(delta: float) -> void:
@@ -345,94 +280,13 @@ func avancer(delta: float) -> void:
 		if float(effet["age"]) >= float(effet["duree"]):
 			_liberer(i)
 		else:
-			_poser(effet)
+			poser(effet)
 	for e: Dictionary in _emetteurs:
 		_avancer_emetteur(e, delta)
 
 
-# --- Éléments ----------------------------------------------------------------------------------
-
-
-## Un cœur de feu à la moitié du rayon, l'anneau au rayon exact, six braises.
-func _impact_feu(ou: Vector2, rayon_px: float, fort: bool, age: float) -> bool:
-	var zone: bool = rayon_px > 0.0
-	var diametre: float = rayon_px if zone else DIAMETRE_PETIT
-	var coeur: Dictionary = _image_impact("explosion_feu", ou, diametre, SEQ_EXPLOSION, age)
-	var cree: bool = not coeur.is_empty()
-	if cree and fort:
-		_geler(coeur, age, IMAGES_MONTEE_IMPACT * IMAGE)
-	if zone:
-		cree = _anneau_impact(ou, rayon_px * 2.0, 18, age, CONF[FEU]["couleur"]) or cree
-	_salve(ou, 6, CONF[FEU]["couleur"], 15.0 * IMAGE, 40.0, 110.0, Vector2(0.0, -80.0), 1.5)
-	return cree
-
-
-## Une brisure d'éclats au rayon, puis le givre au sol, au rayon exact, qui s'efface en 24 images.
-func _impact_glace(ou: Vector2, rayon_px: float, age: float) -> bool:
-	var zone: bool = rayon_px > 0.0
-	var diametre: float = rayon_px * 2.0 if zone else DIAMETRE_PETIT
-	var couleur: Color = CONF[GLACE]["couleur"]
-	var cree: bool = not _image_impact("brisure_glace", ou, diametre, SEQ_EXPLOSION, age).is_empty()
-	if zone:
-		var sol: Dictionary = _nouveau("sol", "givre_sol", IMAGES_GIVRE * IMAGE)
-		if not sol.is_empty():
-			sol["age"] = age
-			sol["depart"] = ou
-			sol["diametre"] = diametre
-			sol["echelle"] = diametre / float(VISIBLE["givre_sol"])
-			_poser(sol)
-			cree = true
-		cree = _anneau_impact(ou, diametre, IMAGES_GIVRE, age, couleur) or cree
-	_salve(ou, 6, couleur, 20.0 * IMAGE, 50.0, 140.0, Vector2.ZERO, 1.5)
-	return cree
-
-
-## Les débris de la bombe : son explosion est celle du pack, dessinée par `Effets`.
-func _impact_bombe(ou: Vector2) -> bool:
-	return _salve(ou, 10, Color(0.5, 0.45, 0.42), 0.4, 80.0, 200.0, Vector2(0.0, 300.0), 2.0)
-
-
-## L'éclaboussure au rayon, puis trois nuages qui montent et s'effacent en 36 images.
-func _impact_poison(ou: Vector2, rayon_px: float, age: float) -> bool:
-	var zone: bool = rayon_px > 0.0
-	var diametre: float = rayon_px * 2.0 if zone else DIAMETRE_PETIT
-	var couleur: Color = CONF[POISON]["couleur"]
-	var cree: bool = not (
-		_image_impact("eclaboussure_poison", ou, diametre, SEQ_EXPLOSION, age).is_empty()
-	)
-	for k: int in NUAGES_POISON:
-		var nuage: Dictionary = _nouveau("nuage", "nuage_poison", IMAGES_NUAGE * IMAGE)
-		if nuage.is_empty():
-			break
-		var angle: float = TAU * k / NUAGES_POISON
-		nuage["age"] = age
-		nuage["depart"] = ou + Vector2.from_angle(angle) * diametre * 0.2
-		nuage["couleur"] = couleur
-		_poser(nuage)
-		cree = true
-	_salve(ou, 6, couleur, 25.0 * IMAGE, 40.0, 120.0, Vector2(0.0, 200.0), 1.5)
-	return cree
-
-
-## Un éclat de rune, petit : une cible unique n'a plus de disque de 70 px.
-func _impact_arcane(ou: Vector2, age: float) -> bool:
-	var couleur: Color = CONF[ARCANE]["couleur"]
-	var cree: bool = not _image_impact("eclat_rune", ou, DIAMETRE_RUNE, SEQ_RUNE, age).is_empty()
-	_salve(ou, 4, couleur, 15.0 * IMAGE, 50.0, 130.0, Vector2.ZERO, 1.5)
-	return cree
-
-
-## Un éclair de `de` à `ou`, une étincelle sur la cible.
-func _impact_foudre(de: Vector2, ou: Vector2, age: float) -> bool:
-	var couleur: Color = CONF[FOUDRE]["couleur"]
-	var cree: bool = _eclair(de, ou, age, couleur)
-	var etincelle: Dictionary = _image_impact("etincelle", ou, 8.0 * ECHELLE, SEQ_ETINCELLE, age)
-	cree = cree or not etincelle.is_empty()
-	_salve(ou, 4, couleur, 12.0 * IMAGE, 60.0, 150.0, Vector2.ZERO, 1.5)
-	return cree
-
-
-func _eclair(de: Vector2, ou: Vector2, age: float, couleur: Color) -> bool:
+## Un éclair brisé de `de` à `ou`, visible 6 images puis effacé en 3 ; vrai s'il a été créé.
+func eclair(de: Vector2, ou: Vector2, age: float, couleur: Color) -> bool:
 	var duree: float = (IMAGES_ECLAIR_VISIBLE + IMAGES_ECLAIR_EFFACEMENT) * IMAGE
 	if _vivants.size() >= place or age >= duree:
 		return false
@@ -442,7 +296,7 @@ func _eclair(de: Vector2, ou: Vector2, age: float, couleur: Color) -> bool:
 	effet["depart"] = de
 	effet["arrivee"] = ou
 	_vivants.append(effet)
-	_poser(effet)
+	poser(effet)
 	return true
 
 
@@ -477,11 +331,11 @@ func eclairs() -> Array[PackedVector2Array]:
 
 
 ## Un effet du pool ; `{}` si `place` est atteint.
-func _nouveau(kind: String, planche: String, duree: float) -> Dictionary:
+func nouveau(kind: String, planche: String, duree: float) -> Dictionary:
 	if _vivants.size() >= place:
 		return {}
 	var n: Sprite2D = _prendre()
-	var taille: Vector2i = PLANCHES.get(planche, Vector2i(COTE_ANNEAU, COTE_ANNEAU))
+	var taille: Vector2i = planches().get(planche, Vector2i(COTE_ANNEAU, COTE_ANNEAU))
 	n.texture = _texture(planche)
 	n.region_enabled = true
 	n.region_rect = Rect2(0.0, 0.0, taille.x, taille.y)
@@ -524,10 +378,10 @@ func _fiche(n: Node2D, kind: String, planche: String, duree: float) -> Dictionar
 
 
 ## Une planche jouée image par image : `seq` donne l'image de planche à chaque image à 60 i/s.
-func _image_impact(
+func image_impact(
 	planche: String, ou: Vector2, diametre: float, seq: Array[int], age: float
 ) -> Dictionary:
-	var effet: Dictionary = _nouveau("image", planche, seq.size() * IMAGE)
+	var effet: Dictionary = nouveau("image", planche, seq.size() * IMAGE)
 	if effet.is_empty() or age >= float(effet["duree"]):
 		if not effet.is_empty():
 			_liberer(_vivants.size() - 1)
@@ -535,14 +389,14 @@ func _image_impact(
 	effet["age"] = age
 	effet["depart"] = ou
 	effet["diametre"] = diametre
-	effet["echelle"] = diametre / float(VISIBLE[planche])
+	effet["echelle"] = diametre / float(_visibles[planche])
 	effet["seq"] = _sequence(seq, _eclat_permis())
-	_poser(effet)
+	poser(effet)
 	return effet
 
 
-func _anneau_impact(ou: Vector2, diametre: float, images: int, age: float, couleur: Color) -> bool:
-	var effet: Dictionary = _nouveau("anneau", "", images * IMAGE)
+func anneau_impact(ou: Vector2, diametre: float, images: int, age: float, couleur: Color) -> bool:
+	var effet: Dictionary = nouveau("anneau", "", images * IMAGE)
 	if effet.is_empty():
 		return false
 	effet["age"] = age
@@ -553,12 +407,12 @@ func _anneau_impact(ou: Vector2, diametre: float, images: int, age: float, coule
 	(effet["n"] as Sprite2D).texture = _texture_anneau()
 	(effet["n"] as Sprite2D).region_rect = Rect2(0.0, 0.0, COTE_ANNEAU, COTE_ANNEAU)
 	(effet["n"] as Sprite2D).texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
-	_poser(effet)
+	poser(effet)
 	return true
 
 
 ## Fige l'effet sur son pic pour le reste de `GelImpact.DUREE_GEL` (rien en mouvement réduit).
-func _geler(effet: Dictionary, age: float, age_pic: float) -> void:
+func geler(effet: Dictionary, age: float, age_pic: float) -> void:
 	var reste: float = GelImpact.DUREE_GEL - age
 	if mouvement_reduit or reste <= EPSILON:
 		return
@@ -581,67 +435,22 @@ func _eclat_permis() -> bool:
 	return true
 
 
-func _suivre_vol(element: String, vol: Dictionary) -> void:
-	match element:
-		ARCANE:
-			_trainee(vol, 3, 10.0 * IMAGE, CONF[ARCANE]["couleur"], Vector2.ZERO)
-		FEU:
-			_trainee(vol, 4, 15.0 * IMAGE, CONF[FEU]["couleur"], Vector2(0.0, -80.0))
-		GLACE:
-			_trainee(vol, 3, 10.0 * IMAGE, Color.WHITE, Vector2.ZERO)
-
-
-## Les points qui tournent autour de la rune.
-func _orbites(projectile: Dictionary, attente: float, vol: float) -> void:
-	for k: int in POINTS_ARCANE:
-		var point: Dictionary = _nouveau("orbite", "etincelle", vol)
-		if point.is_empty():
-			return
-		point["age"] = -attente
-		point["depart"] = projectile["depart"]
-		point["arrivee"] = projectile["arrivee"]
-		point["vol"] = vol
-		point["tour"] = PI * k
-		point["couleur"] = CONF[ARCANE]["couleur"]
-		_poser(point)
-
-
 ## L'ombre d'un projectile en cloche : elle reste sur la ligne droite et rétrécit au sommet.
 func _ombre(projectile: Dictionary, attente: float, vol: float) -> void:
-	var ombre: Dictionary = _nouveau("ombre", "ombre", vol)
+	var ombre: Dictionary = nouveau("ombre", "ombre", vol)
 	if ombre.is_empty():
 		return
 	ombre["age"] = -attente
 	ombre["depart"] = projectile["depart"]
 	ombre["arrivee"] = projectile["arrivee"]
 	ombre["couleur"] = Color.WHITE
-	_poser(ombre)
-
-
-## Les éclats qui suivent le projectile : même trajet, décalés dans le temps.
-func _suites(element: String, projectile: Dictionary, attente: float, vol: float) -> void:
-	if element == ARCANE:
-		_orbites(projectile, attente, vol)
-	if element != GLACE:
-		return
-	for k: int in range(1, SUITES_GLACE + 1):
-		var suite: float = k * DECALAGE_SUITE
-		var eclat: Dictionary = _nouveau("vol", String(projectile["planche"]), vol + suite)
-		if eclat.is_empty():
-			return
-		eclat["age"] = -attente
-		eclat["depart"] = projectile["depart"]
-		eclat["arrivee"] = projectile["arrivee"]
-		eclat["vol"] = vol
-		eclat["suite"] = suite
-		eclat["echelle"] = ECHELLE * ECHELLE_SUITE
-		_poser(eclat)
+	poser(ombre)
 
 
 # --- Mouvement ---------------------------------------------------------------------------------
 
 
-func _poser(effet: Dictionary) -> void:
+func poser(effet: Dictionary) -> void:
 	var n: Node2D = effet["n"]
 	var age: float = effet["age"]
 	if age < 0.0:
@@ -724,7 +533,9 @@ func _poser_vol(effet: Dictionary, n: Sprite2D, t: float, age: float) -> void:
 		n.rotation = 0.0 if mouvement_reduit else t * float(effet["tour"])
 	var fps: float = float(effet["fps"])
 	if fps > 0.0:
-		var images: int = int(n.texture.get_width() / float(PLANCHES[effet["planche"]].x))
+		var images: int = int(
+			n.texture.get_width() / float((planches()[effet["planche"]] as Vector2i).x)
+		)
 		_image(effet, int(age * fps) % images)
 
 
@@ -733,7 +544,7 @@ func _image(effet: Dictionary, i: int) -> void:
 		return
 	effet["image"] = i
 	var n: Sprite2D = effet["n"]
-	var taille: Vector2i = PLANCHES.get(
+	var taille: Vector2i = planches().get(
 		String(effet["planche"]), Vector2i(COTE_ANNEAU, COTE_ANNEAU)
 	)
 	n.region_rect = Rect2(i * taille.x, 0.0, taille.x, taille.y)
@@ -743,7 +554,7 @@ func _image(effet: Dictionary, i: int) -> void:
 
 
 ## Une salve unique de `nombre` carrés, qui part de `ou` ; rien en mouvement réduit.
-func _salve(
+func salve(
 	ou: Vector2,
 	nombre: int,
 	couleur: Color,
@@ -764,7 +575,7 @@ func _salve(
 
 
 ## Une traînée : des carrés lâchés derrière le vol `vol` tant qu'il dure.
-func _trainee(vol: Dictionary, nombre: int, vie: float, couleur: Color, gravite: Vector2) -> void:
+func trainee(vol: Dictionary, nombre: int, vie: float, couleur: Color, gravite: Vector2) -> void:
 	if mouvement_reduit:
 		return
 	var e: Dictionary = _emetteur_libre()
