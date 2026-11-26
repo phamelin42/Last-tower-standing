@@ -1,6 +1,16 @@
 {
   "defaut": {
     "sprite": "res://assets/tiny_swords/Factions/Knights/Buildings/Tower/Tower_Blue.png",
+    "defi": "",
+    "marque": {
+      "genre": "origine",
+      "x": 10,
+      "y": 54,
+      "largeur": 108,
+      "hauteur": 169
+    },
+    "licence": "CC0 1.0",
+    "source": "Tiny Swords (Pixel Frog), assets/tiny_swords/LICENCE.md",
     "ancrages": {
       "epines": {
         "x": 64,
@@ -25,6 +35,402 @@
       "vol_de_vie": {
         "x": 64,
         "y": 150
+      }
+    }
+  },
+  "tour_de_guet": {
+    "sprite": "res://assets/tiny_swords/Factions/Goblins/Buildings/Wood_Tower/Wood_Tower_Blue.png",
+    "cadre": {
+      "x": 0,
+      "y": 0,
+      "largeur": 256,
+      "hauteur": 192
+    },
+    "defi": "premier_rempart",
+    "marque": {
+      "genre": "origine",
+      "x": 65,
+      "y": 31,
+      "largeur": 126,
+      "hauteur": 89
+    },
+    "licence": "CC0 1.0",
+    "source": "Tiny Swords (Pixel Frog), assets/tiny_swords/LICENCE.md",
+    "ancrages": {
+      "epines": {
+        "x": 128,
+        "y": 102
+      },
+      "mana": {
+        "x": 128,
+        "y": 93
+      },
+      "armure": {
+        "x": 128,
+        "y": 120
+      },
+      "esquive": {
+        "x": 128,
+        "y": 83
+      },
+      "regen": {
+        "x": 128,
+        "y": 102
+      },
+      "vol_de_vie": {
+        "x": 128,
+        "y": 102
+      }
+    }
+  },
+  "tour_embuscade": {
+    "sprite": "res://assets/tiny_swords/Factions/Goblins/Buildings/Wood_House/Goblin_House.png",
+    "defi": "seul_piege",
+    "marque": {
+      "genre": "fanion",
+      "x": 100,
+      "y": 26,
+      "largeur": 16,
+      "hauteur": 24
+    },
+    "licence": "CC0 1.0",
+    "source": "Tiny Swords (Pixel Frog), assets/tiny_swords/LICENCE.md",
+    "ancrages": {
+      "epines": {
+        "x": 64,
+        "y": 103
+      },
+      "mana": {
+        "x": 64,
+        "y": 96
+      },
+      "armure": {
+        "x": 64,
+        "y": 119
+      },
+      "esquive": {
+        "x": 64,
+        "y": 86
+      },
+      "regen": {
+        "x": 64,
+        "y": 103
+      },
+      "vol_de_vie": {
+        "x": 64,
+        "y": 103
+      }
+    }
+  },
+  "tour_comptoir": {
+    "sprite": "res://assets/tiny_swords/Factions/Goblins/Buildings/Wood_House/Goblin_House.png",
+    "defi": "banquier",
+    "marque": {
+      "genre": "fanion",
+      "x": 100,
+      "y": 26,
+      "largeur": 16,
+      "hauteur": 24
+    },
+    "licence": "CC0 1.0",
+    "source": "Tiny Swords (Pixel Frog), assets/tiny_swords/LICENCE.md",
+    "ancrages": {
+      "epines": {
+        "x": 64,
+        "y": 103
+      },
+      "mana": {
+        "x": 64,
+        "y": 96
+      },
+      "armure": {
+        "x": 64,
+        "y": 119
+      },
+      "esquive": {
+        "x": 64,
+        "y": 86
+      },
+      "regen": {
+        "x": 64,
+        "y": 103
+      },
+      "vol_de_vie": {
+        "x": 64,
+        "y": 103
+      }
+    }
+  },
+  "tour_du_puits": {
+    "sprite": "res://assets/tiny_swords/Factions/Knights/Buildings/Tower/Tower_Construction.png",
+    "defi": "source_unique",
+    "marque": {
+      "genre": "fanion",
+      "x": 87,
+      "y": 148,
+      "largeur": 16,
+      "hauteur": 24
+    },
+    "licence": "CC0 1.0",
+    "source": "Tiny Swords (Pixel Frog), assets/tiny_swords/LICENCE.md",
+    "ancrages": {
+      "epines": {
+        "x": 64,
+        "y": 191
+      },
+      "mana": {
+        "x": 64,
+        "y": 187
+      },
+      "armure": {
+        "x": 64,
+        "y": 200
+      },
+      "esquive": {
+        "x": 64,
+        "y": 182
+      },
+      "regen": {
+        "x": 64,
+        "y": 191
+      },
+      "vol_de_vie": {
+        "x": 64,
+        "y": 191
+      }
+    }
+  },
+  "tour_de_la_table_ronde": {
+    "sprite": "res://assets/tiny_swords/Factions/Knights/Buildings/Tower/Tower_Construction.png",
+    "defi": "compagnon_de_table",
+    "marque": {
+      "genre": "fanion",
+      "x": 87,
+      "y": 148,
+      "largeur": 16,
+      "hauteur": 24
+    },
+    "licence": "CC0 1.0",
+    "source": "Tiny Swords (Pixel Frog), assets/tiny_swords/LICENCE.md",
+    "ancrages": {
+      "epines": {
+        "x": 64,
+        "y": 191
+      },
+      "mana": {
+        "x": 64,
+        "y": 187
+      },
+      "armure": {
+        "x": 64,
+        "y": 200
+      },
+      "esquive": {
+        "x": 64,
+        "y": 182
+      },
+      "regen": {
+        "x": 64,
+        "y": 191
+      },
+      "vol_de_vie": {
+        "x": 64,
+        "y": 191
+      }
+    }
+  },
+  "tour_rafistolee": {
+    "sprite": "res://assets/tiny_swords/Factions/Goblins/Buildings/Wood_Tower/Wood_Tower_InConstruction.png",
+    "defi": "a_un_cheveu",
+    "marque": {
+      "genre": "fanion",
+      "x": 151,
+      "y": 28,
+      "largeur": 16,
+      "hauteur": 24
+    },
+    "licence": "CC0 1.0",
+    "source": "Tiny Swords (Pixel Frog), assets/tiny_swords/LICENCE.md",
+    "ancrages": {
+      "epines": {
+        "x": 118,
+        "y": 112
+      },
+      "mana": {
+        "x": 118,
+        "y": 104
+      },
+      "armure": {
+        "x": 118,
+        "y": 130
+      },
+      "esquive": {
+        "x": 118,
+        "y": 93
+      },
+      "regen": {
+        "x": 118,
+        "y": 112
+      },
+      "vol_de_vie": {
+        "x": 118,
+        "y": 112
+      }
+    }
+  },
+  "tour_survivante": {
+    "sprite": "res://assets/tiny_swords/Factions/Knights/Buildings/Tower/Tower_Destroyed.png",
+    "defi": "dernier_debout",
+    "marque": {
+      "genre": "fanion",
+      "x": 106,
+      "y": 144,
+      "largeur": 16,
+      "hauteur": 24
+    },
+    "licence": "CC0 1.0",
+    "source": "Tiny Swords (Pixel Frog), assets/tiny_swords/LICENCE.md",
+    "ancrages": {
+      "epines": {
+        "x": 64,
+        "y": 188
+      },
+      "mana": {
+        "x": 64,
+        "y": 184
+      },
+      "armure": {
+        "x": 64,
+        "y": 198
+      },
+      "esquive": {
+        "x": 64,
+        "y": 178
+      },
+      "regen": {
+        "x": 64,
+        "y": 188
+      },
+      "vol_de_vie": {
+        "x": 64,
+        "y": 188
+      }
+    }
+  },
+  "tour_familiere": {
+    "sprite": "res://assets/tiny_swords/Factions/Knights/Buildings/House/House_Blue.png",
+    "defi": "habitue",
+    "marque": {
+      "genre": "origine",
+      "x": 30,
+      "y": 127,
+      "largeur": 68,
+      "hauteur": 25
+    },
+    "licence": "CC0 1.0",
+    "source": "Tiny Swords (Pixel Frog), assets/tiny_swords/LICENCE.md",
+    "ancrages": {
+      "epines": {
+        "x": 64,
+        "y": 105
+      },
+      "mana": {
+        "x": 64,
+        "y": 97
+      },
+      "armure": {
+        "x": 64,
+        "y": 121
+      },
+      "esquive": {
+        "x": 64,
+        "y": 87
+      },
+      "regen": {
+        "x": 64,
+        "y": 105
+      },
+      "vol_de_vie": {
+        "x": 64,
+        "y": 105
+      }
+    }
+  },
+  "tour_du_dragon_avare": {
+    "sprite": "res://assets/tours/mine_d_or.png",
+    "defi": "thesauriseur",
+    "marque": {
+      "genre": "origine",
+      "x": 23,
+      "y": 7,
+      "largeur": 146,
+      "hauteur": 94
+    },
+    "licence": "CC0 1.0",
+    "source": "Tiny Swords (Pixel Frog), assets/tiny_swords/LICENCE.md",
+    "ancrages": {
+      "epines": {
+        "x": 96,
+        "y": 62
+      },
+      "mana": {
+        "x": 96,
+        "y": 56
+      },
+      "armure": {
+        "x": 96,
+        "y": 74
+      },
+      "esquive": {
+        "x": 96,
+        "y": 49
+      },
+      "regen": {
+        "x": 96,
+        "y": 62
+      },
+      "vol_de_vie": {
+        "x": 96,
+        "y": 62
+      }
+    }
+  },
+  "tour_du_banquier": {
+    "sprite": "res://assets/tours/mine_d_or.png",
+    "defi": "grande_fortune",
+    "marque": {
+      "genre": "origine",
+      "x": 23,
+      "y": 7,
+      "largeur": 146,
+      "hauteur": 94
+    },
+    "licence": "CC0 1.0",
+    "source": "Tiny Swords (Pixel Frog), assets/tiny_swords/LICENCE.md",
+    "ancrages": {
+      "epines": {
+        "x": 96,
+        "y": 62
+      },
+      "mana": {
+        "x": 96,
+        "y": 56
+      },
+      "armure": {
+        "x": 96,
+        "y": 74
+      },
+      "esquive": {
+        "x": 96,
+        "y": 49
+      },
+      "regen": {
+        "x": 96,
+        "y": 62
+      },
+      "vol_de_vie": {
+        "x": 96,
+        "y": 62
       }
     }
   }
