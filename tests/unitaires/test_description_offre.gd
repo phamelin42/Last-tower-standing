@@ -1,7 +1,7 @@
 extends CasDeTest
 ## Ce que la joueuse lit sur une offre : une ligne d'effet générée depuis `data/`, avec les chiffres
 ## exacts et la vraie règle de la simulation, puis une phrase d'ambiance sans chiffre. Chaque test
-## parcourt les 30 armes et les 40 améliorations en boucle.
+## parcourt toutes les armes et toutes les améliorations des données en boucle.
 
 const CSV_BOUTIQUE := "res://i18n/textes_boutique.csv"
 const CSV_COMMUNS := "res://i18n/textes_communs.csv"
@@ -11,6 +11,11 @@ const FINE := "\u202F"
 ## Mots vagues qui ne disent rien du chiffre : l'effet exact est dans la ligne d'effet.
 const MOTS_VAGUES: Array[String] = ["décuple", "gros bonus", "énorme", "bien plus", "colossal"]
 const ARMURES: Array[String] = ["légère", "moyenne", "lourde", "fortifiée"]
+const LONGUEUR_LIGNE_MAX := 260
+const PARAMETRES_SANS_CHIFFRE: Array[String] = ["kind", "unite", "sens", "ressource", "type_degats"]
+## Stats d'avant le lot 9 dont le chiffre se calcule (esquive) ou ne se lit pas (marché noir) :
+## leurs tests propres existent déjà.
+const STATS_AU_CHIFFRE_CALCULE: Array[String] = ["esquive", "marche_noir"]
 
 var _donnees: Donnees
 var _traduction: Translation
@@ -432,3 +437,283 @@ func test_la_phrase_d_ambiance_ne_contredit_pas_la_ligne_d_effet() -> void:
 		)
 		if parle_de_soin:
 			verifier(soigne, "%s : « %s » parle de soin, pas la ligne « %s »" % [id, phrase, ligne])
+
+
+# --- Mécaniques du lot 9 (T9.21) ---------------------------------------------------------------
+
+
+## Valeur valide d'un paramètre numérique selon sa contrainte (`Donnees._spec`).
+func _valeur_de(spec: Dictionary) -> float:
+	var mini := float(spec["min"])
+	if bool(spec["entier"]):
+		return maxf(mini, 1.0) + 1.0
+	return 0.5 if bool(spec["exclu"]) or mini <= 0.0 else mini + 0.5
+
+
+func _sous_effet_factice(kind: String, specs: Array) -> Dictionary:
+	var effet: Dictionary = {"kind": kind}
+	for brut: Variant in specs:
+		var spec: Dictionary = brut
+		effet[String(spec["nom"])] = _valeur_de(spec)
+	match kind:
+		"tournant":
+			effet["sens"] = "horaire"
+		"siphon":
+			effet["ressource"] = "mana"
+		"invocation":
+			effet["unite"] = "inconnue"
+		"vulnerabilite":
+			effet["type_degats"] = -1
+	return effet
+
+
+func _arme_factice(effets: Array, statuts: Array = []) -> Dictionary:
+	var arme: Dictionary = (_donnees.armes["lame_de_fil"] as Dictionary).duplicate(true)
+	arme["effets"] = effets
+	arme["statuts"] = statuts
+	return arme
+
+
+## Une fiche valide par stat (et par valeur de sa clé), avec les paramètres que le schéma exige.
+func _stats_factices() -> Array[Dictionary]:
+	var sortie: Array[Dictionary] = []
+	for stat: String in Donnees.STATS_AMELIORATION:
+		var base: Dictionary = {"stat": stat, "valeur": 0.5}
+		if stat in Donnees.STATS_SANS_VALEUR:
+			base.erase("valeur")
+			for brut: Variant in DonneesLot9.specs_sans_valeur(stat):
+				var spec: Dictionary = brut
+				base[String(spec["nom"])] = _valeur_de(spec)
+			if stat == "copie_prochaine_offre":
+				base["raretes_max"] = Types.Rarete.RARE
+		if stat in Donnees.STATS_ENTIERES:
+			base["valeur"] = 1
+		if stat in Donnees.STATS_CROISSANTES:
+			base["max"] = 3.0
+		if stat == "degats_type":
+			base["type_degats"] = Types.TypeDegats.TRANCHANT
+		if stat == "degats_type" or stat == "degats_global":
+			base["categorie"] = "A"
+		if Donnees.STATS_A_CLE.has(stat):
+			var def: Array = Donnees.STATS_A_CLE[stat]
+			for nom: String in def[1]:
+				var variante := base.duplicate()
+				variante[String(def[0])] = nom
+				sortie.append(variante)
+			continue
+		sortie.append(base)
+	return sortie
+
+
+func _fiche_amelio(effet: Dictionary) -> Dictionary:
+	return {"id": "factice", "effets": [effet]}
+
+
+## Toutes les lignes que les mécaniques du lot 9 peuvent produire, avec leur fiche.
+func _lignes_lot9() -> Array[String]:
+	var lignes: Array[String] = []
+	var kinds: Dictionary = Donnees._kinds_effets()
+	for kind: String in kinds:
+		var fiche := _arme_factice([_sous_effet_factice(kind, kinds[kind])])
+		lignes.append(DescriptionOffre.ligne_effet(fiche, Types.Genre.ARME, _donnees))
+	var kinds_statuts: Dictionary = Donnees._kinds_statuts()
+	for kind: String in kinds_statuts:
+		var statut := _sous_effet_factice(kind, kinds_statuts[kind])
+		var fiche := _arme_factice(_arme_factice([])["effets"] as Array, [statut])
+		fiche["effets"] = [{"kind": "cible_unique"}]
+		lignes.append(DescriptionOffre.ligne_effet(fiche, Types.Genre.ARME, _donnees))
+	for effet: Dictionary in _stats_factices():
+		var ligne := DescriptionOffre.ligne_effet(
+			_fiche_amelio(effet), Types.Genre.AMELIORATION, _donnees
+		)
+		lignes.append(ligne)
+	return lignes
+
+
+func test_chaque_nouveau_genre_statut_champ_et_stat_a_son_modele() -> void:
+	var kinds_effets: Array = Donnees._kinds_effets().keys()
+	var kinds_statuts: Array = Donnees._kinds_statuts().keys()
+	kinds_effets.sort()
+	kinds_statuts.sort()
+	var effets_modeles: Array = DescriptionOffre.EFFETS.duplicate()
+	var statuts_modeles: Array = DescriptionOffre.STATUTS.duplicate()
+	var stats_modeles: Array = DescriptionOffre.STATISTIQUES.duplicate()
+	var stats_schema: Array = Donnees.STATS_AMELIORATION.duplicate()
+	effets_modeles.sort()
+	statuts_modeles.sort()
+	stats_modeles.sort()
+	stats_schema.sort()
+	verifier_egal(
+		effets_modeles, kinds_effets, "un modèle par genre d'effet du schéma, pas un de plus"
+	)
+	verifier_egal(statuts_modeles, kinds_statuts, "un modèle par statut du schéma, pas un de plus")
+	verifier_egal(
+		stats_modeles, stats_schema, "un modèle par statistique du schéma, pas un de plus"
+	)
+	for kind: String in kinds_effets:
+		var specs: Array = Donnees._kinds_effets()[kind]
+		var effet := _sous_effet_factice(kind, specs)
+		var ligne := DescriptionOffre.ligne_effet(
+			_arme_factice([effet]), Types.Genre.ARME, _donnees
+		)
+		_verifier_ligne_pleine(ligne, "effet « %s »" % kind, effet)
+	for kind: String in kinds_statuts:
+		var statut := _sous_effet_factice(kind, Donnees._kinds_statuts()[kind])
+		var fiche := _arme_factice([{"kind": "cible_unique"}], [statut])
+		var ligne := DescriptionOffre.ligne_effet(fiche, Types.Genre.ARME, _donnees)
+		_verifier_ligne_pleine(ligne, "statut « %s »" % kind, statut)
+	for effet: Dictionary in _stats_factices():
+		var ligne := DescriptionOffre.ligne_effet(
+			_fiche_amelio(effet), Types.Genre.AMELIORATION, _donnees
+		)
+		var sans_chiffre: Dictionary = {} if effet["stat"] in STATS_AU_CHIFFRE_CALCULE else effet
+		_verifier_ligne_pleine(ligne, "stat « %s » %s" % [effet["stat"], effet], sans_chiffre)
+
+
+## Une ligne non vide, sans clé de traduction restée telle quelle, avec les chiffres de la fiche.
+func _verifier_ligne_pleine(ligne: String, nom: String, fiche: Dictionary) -> void:
+	verifier_faux(ligne.is_empty(), "%s : ligne vide" % nom)
+	verifier_faux(
+		ligne.contains("BOUTIQUE_"), "%s : clé de texte sans valeur dans « %s »" % [nom, ligne]
+	)
+	verifier_faux(ligne.contains("%" + "s"), "%s : modèle non rempli dans « %s »" % [nom, ligne])
+	for cle: String in fiche:
+		if cle in PARAMETRES_SANS_CHIFFRE or not (fiche[cle] is float or fiche[cle] is int):
+			continue
+		if cle == "raretes_max" or cle == "categorie":
+			continue
+		var valeur := float(fiche[cle])
+		var lu := _sans_milliers(ligne)
+		var direct := _fr(valeur)
+		var en_pourcent := _fr(valeur * 100.0)
+		verifier(
+			lu.contains(direct) or lu.contains(en_pourcent),
+			"%s : le chiffre de « %s » (%s) manque dans « %s »" % [nom, cle, direct, ligne]
+		)
+
+
+func test_les_champs_d_arme_du_lot_9_ont_leur_ligne() -> void:
+	var base := _arme_factice([{"kind": "cible_unique"}])
+	var cas: Array[Dictionary] = [
+		{"degats_par_pv_max": 0.02},
+		{"degats_par_exemplaire": 0.25},
+		{"degats_par_amelioration": {"stat": "epines", "ratio": 0.1}},
+		{"type_secondaire": "epines"},
+	]
+	verifier_egal(cas.size(), DescriptionOffre.CHAMPS_ARME.size(), "un cas par champ d'arme")
+	var sans := DescriptionOffre.ligne_effet(base, Types.Genre.ARME, _donnees)
+	for champs: Dictionary in cas:
+		var arme := base.duplicate(true)
+		arme.merge(champs, true)
+		var ligne := DescriptionOffre.ligne_effet(arme, Types.Genre.ARME, _donnees)
+		verifier(ligne.length() > sans.length(), "le champ %s ajoute une ligne" % champs.keys())
+		verifier_faux(ligne.contains("BOUTIQUE_"), "clé de texte sans valeur : %s" % ligne)
+	var par_amelio := base.duplicate(true)
+	par_amelio["degats_par_amelioration"] = {"stat": "epines", "ratio": 0.1}
+	var ligne_amelio := DescriptionOffre.ligne_effet(par_amelio, Types.Genre.ARME, _donnees)
+	verifier(ligne_amelio.contains("10" + NBSP + "%"), "le ratio se lit : %s" % ligne_amelio)
+	verifier(ligne_amelio.contains("épines"), "la stat citée se lit : %s" % ligne_amelio)
+
+
+func test_un_champ_d_arme_inconnu_ne_passe_pas_en_silence() -> void:
+	var arme := _arme_factice([{"kind": "cible_unique"}])
+	arme["type_secondaire"] = "foudre"
+	verifier_faux(DescriptionOffre.est_complete(arme, Types.Genre.ARME), "type secondaire inconnu")
+	arme["type_secondaire"] = ""
+	arme["degats_par_amelioration"] = {"stat": "magie_noire", "ratio": 0.1}
+	verifier_faux(DescriptionOffre.est_complete(arme, Types.Genre.ARME), "stat citée inconnue")
+	verifier_egal(DescriptionOffre.ligne_effet(arme, Types.Genre.ARME, _donnees), "", "ligne vide")
+
+
+func test_la_ligne_de_chaque_mecanique_dit_son_plafond_ou_sa_borne_quand_elle_en_a_une() -> void:
+	var partie := _donnees.partie
+	var vulnerabilite: Dictionary = partie["vulnerabilite"]
+	var statut := {"kind": "vulnerabilite", "ratio": 0.1, "duree": 4.0, "type_degats": -1}
+	var arme := _arme_factice([{"kind": "cible_unique"}], [statut])
+	var ligne := DescriptionOffre.ligne_effet(arme, Types.Genre.ARME, _donnees)
+	var plafond := _fr(float(vulnerabilite["plafond"]) * 100.0) + NBSP + "%"
+	verifier(
+		ligne.contains("jusqu’à +" + plafond),
+		"vulnérabilité : plafond %s dans « %s »" % [plafond, ligne]
+	)
+	var malediction: Dictionary = partie["malediction"]
+	var limite := _fr(float(malediction["plafond"]) * 100.0) + NBSP + "%"
+	for kind: String in ["malediction_degats", "malediction_toucher"]:
+		var maudit := {"kind": kind, "ratio": 0.3, "duree": 5.0}
+		var fiche := _arme_factice([{"kind": "cible_unique"}], [maudit])
+		var ligne_m := DescriptionOffre.ligne_effet(fiche, Types.Genre.ARME, _donnees)
+		verifier(ligne_m.contains(limite), "%s : plafond %s dans « %s »" % [kind, limite, ligne_m])
+	var borne := _fr(float((partie["armes"] as Dictionary)["bonus_selon_stat_max"]))
+	for champ: String in ["degats_par_pv_max", "degats_par_exemplaire"]:
+		var fiche_m5 := _arme_factice([{"kind": "cible_unique"}])
+		fiche_m5[champ] = 0.1
+		var ligne_5 := DescriptionOffre.ligne_effet(fiche_m5, Types.Genre.ARME, _donnees)
+		verifier(
+			ligne_5.contains("au plus %s fois" % borne),
+			"%s : borne M5 dans « %s »" % [champ, ligne_5]
+		)
+	var croissance := {
+		"stat": "degats_global",
+		"valeur": 0.1,
+		"categorie": "A",
+		"croissance": 0.02,
+		"croissance_max": 0.3
+	}
+	var ligne_c := DescriptionOffre.ligne_effet(
+		_fiche_amelio(croissance), Types.Genre.AMELIORATION, _donnees
+	)
+	var reglage: Dictionary = partie["ameliorations"]
+	verifier(ligne_c.contains("+30" + NBSP + "%"), "croissance : sa borne dans « %s »" % ligne_c)
+	verifier(
+		ligne_c.contains(_fr(float(reglage["croissance_pas_s"])) + " s"),
+		"croissance : le pas dans « %s »" % ligne_c
+	)
+	verifier(
+		ligne_c.contains("×" + _fr(float(reglage["facteur_degats_max"]))),
+		"dégâts : plafond du produit dans « %s »" % ligne_c
+	)
+	for stat: String in ["epines_croissantes", "regen_croissante", "armure_croissante"]:
+		var croissante := {"stat": stat, "valeur": 0.5, "max": 3.0}
+		var ligne_s := DescriptionOffre.ligne_effet(
+			_fiche_amelio(croissante), Types.Genre.AMELIORATION, _donnees
+		)
+		verifier(ligne_s.contains("jusqu’à"), "%s : sa borne dans « %s »" % [stat, ligne_s])
+
+
+func test_typographie_francaise_des_nouvelles_lignes() -> void:
+	var avant_ponctuation := RegEx.create_from_string("(?<!\\x{00A0})[:;?!%]")
+	var decimale_pointee := RegEx.create_from_string("[0-9]\\.[0-9]")
+	var guillemet_colle := RegEx.create_from_string("«(?!\\x{00A0})|(?<!\\x{00A0})»")
+	for ligne: String in _lignes_lot9():
+		verifier(
+			avant_ponctuation.search(ligne) == null,
+			"espace insécable manquante dans « %s »" % ligne
+		)
+		verifier(decimale_pointee.search(ligne) == null, "point décimal dans « %s »" % ligne)
+		verifier(
+			guillemet_colle.search(ligne) == null, "guillemets sans insécable dans « %s »" % ligne
+		)
+		verifier_faux("'" in ligne, "apostrophe droite dans « %s »" % ligne)
+		verifier_faux(ligne.contains("  "), "espaces doublées dans « %s »" % ligne)
+
+
+func test_les_nouvelles_infobulles_restent_courtes() -> void:
+	# L'infobulle n'a pas la largeur d'une carte : elle se replie, mais une ligne démesurée reste
+	# illisible aux trois échelles d'interface. On borne donc la longueur de la plus longue.
+	var plus_longue := ""
+	for ligne: String in _lignes_lot9():
+		if ligne.length() > plus_longue.length():
+			plus_longue = ligne
+	verifier(
+		plus_longue.length() <= LONGUEUR_LIGNE_MAX,
+		"ligne trop longue (%d) : %s" % [plus_longue.length(), plus_longue]
+	)
+
+
+func test_les_cles_de_textes_boutique_ont_toutes_une_valeur_francaise() -> void:
+	var textes := CsvTextes.lire(CSV_BOUTIQUE)
+	verifier(textes.size() > 100, "le fichier est lu")
+	for cle: String in textes:
+		verifier_faux(String(textes[cle]).strip_edges().is_empty(), "%s : valeur vide" % cle)
+	for stat: String in Donnees.STATS_AMELIORATION:
+		verifier(textes.has("BOUTIQUE_STAT_" + stat.to_upper()), "nom court de la stat %s" % stat)

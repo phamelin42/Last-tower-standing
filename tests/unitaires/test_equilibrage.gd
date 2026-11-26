@@ -70,3 +70,51 @@ func test_prix_de_un_ou_moins_reste_fini() -> void:
 func test_arme_sans_effet_compte_une_cible() -> void:
 	var arme := {"degats": 10.0, "recharge": 1.0, "prix": 10, "effets": []}
 	verifier_proche(Equilibrage.cibles_estimees(arme), 1.0)
+
+
+func test_l_estimation_de_rendement_lit_les_champs_avec_les_valeurs_de_reference() -> void:
+	var base := _arme({"kind": "cible_unique"}, 1.0, 100)
+	base["degats"] = 10.0
+	var pv := base.duplicate(true)
+	pv["degats_par_pv_max"] = 0.01
+	verifier_proche(
+		Equilibrage.dps_estime(pv), 10.0 + 0.01 * Equilibrage.REFERENCE_PV_MAX_TOUR, 0.0001
+	)
+	var copies := base.duplicate(true)
+	copies["degats_par_exemplaire"] = 0.1
+	verifier_proche(
+		Equilibrage.dps_estime(copies),
+		10.0 + 0.1 * float(Equilibrage.REFERENCE_EXEMPLAIRES - 1) * 10.0,
+		0.0001
+	)
+	var ameliorations := base.duplicate(true)
+	ameliorations["degats_par_amelioration"] = {"stat": "cadence", "ratio": 0.1}
+	verifier_proche(
+		Equilibrage.dps_estime(ameliorations),
+		10.0 + 0.1 * float(Equilibrage.REFERENCE_AMELIORATIONS) * 10.0,
+		0.0001
+	)
+	var enorme := base.duplicate(true)
+	enorme["degats_par_pv_max"] = 100.0
+	verifier_proche(
+		Equilibrage.dps_estime(enorme), 10.0 * (1.0 + Equilibrage.BONUS_SELON_STAT_MAX), 0.0001
+	)
+
+
+func test_une_arme_sans_champ_garde_son_rendement() -> void:
+	var donnees := AidesPartie.donnees()
+	for id: String in donnees.armes:
+		var arme: Dictionary = donnees.armes[id]
+		if (
+			float(arme["degats_par_pv_max"]) != 0.0
+			or float(arme["degats_par_exemplaire"]) != 0.0
+			or float((arme["degats_par_amelioration"] as Dictionary)["ratio"]) != 0.0
+		):
+			continue
+		var attendu := (
+			(float(arme["degats"]) + float(arme["degats_par_mana_max"]) * 40.0)
+			* Equilibrage.tirs_par_seconde(arme)
+			* Equilibrage.cibles_estimees(arme)
+			/ float(arme["prix"])
+		)
+		verifier_proche(Equilibrage.rendement(arme, 40.0), attendu, 0.0001, id)

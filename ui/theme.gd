@@ -116,6 +116,14 @@ const TEINTE_DANGER_APPUI := Color(1.25, 1.25, 1.25)
 
 const TYPE_DANGER := "BoutonDanger"
 ## Case d'une grille d'icônes : un bouton (choisir une arme) ou un cadre fixe (amélioration).
+## Bouton d'une seule ligne dans un espace compté (« Acheter » des cartes de la boutique).
+const TYPE_ACHAT := "BoutonAchat"
+## Ses marges verticales, dans la proportion 14 : 22 de la plaque du pack (le texte tombe au milieu
+## du corps, l'ombre est en dessous) : 59 px de haut avec celles du bouton ordinaire, 47 avec ces
+## marges, que la hauteur minimale des contrôles porte à 48 px.
+const MARGE_HAUT_ACHAT := 8.0
+const MARGE_BAS_ACHAT := 16.0
+const MARGE_VERTICALE_CARTE := 4.0
 const TYPE_CELLULE := "CelluleIcone"
 const TYPE_CELLULE_FIXE := "CelluleFixe"
 const TYPE_RUBAN := "TitreRuban"
@@ -355,7 +363,12 @@ static func _construire() -> Theme:
 		t.set_type_variation(TYPES_RUBAN_CATEGORIE[c], "PanelContainer")
 		t.set_stylebox("panel", TYPES_RUBAN_CATEGORIE[c], _bande_ruban(TEXTURES_RUBAN_CATEGORIE[c]))
 	t.set_type_variation("Carte", "PanelContainer")
-	t.set_stylebox("panel", "Carte", _tranches(TEX_PANNEAU, 16, 16, 16, 16, 8, TEINTE_CARTE))
+	var carte := _tranches(TEX_PANNEAU, 16, 16, 16, 16, 8, TEINTE_CARTE)
+	# Haut et bas plus serrés que les côtés : la boutique doit tenir dans 45 % de la hauteur, même
+	# avec les noms les plus longs et la note « Or insuffisant » sur chaque carte (S15).
+	carte.content_margin_top = MARGE_VERTICALE_CARTE
+	carte.content_margin_bottom = MARGE_VERTICALE_CARTE
+	t.set_stylebox("panel", "Carte", carte)
 	return t
 
 
@@ -431,6 +444,13 @@ static func _boutons(t: Theme) -> void:
 		t.set_stylebox("pressed", type, _style_bouton(str(l[2]), l[4] as Color))
 		t.set_stylebox("disabled", type, _style_bouton(str(l[3])))
 		t.set_stylebox("focus", type, focus)
+		if type == "Button":
+			t.set_type_variation(TYPE_ACHAT, "Button")
+			for etat: String in ["normal", "hover", "pressed", "disabled"]:
+				var serre := t.get_stylebox(etat, type).duplicate() as StyleBoxTexture
+				serre.content_margin_top = MARGE_HAUT_ACHAT
+				serre.content_margin_bottom = MARGE_BAS_ACHAT
+				t.set_stylebox(etat, TYPE_ACHAT, serre)
 		for cle: String in [
 			"font_color", "font_hover_color", "font_pressed_color", "font_focus_color"
 		]:

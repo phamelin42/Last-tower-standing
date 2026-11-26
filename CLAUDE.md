@@ -53,7 +53,9 @@ Spécification : `docs/superpowers/specs/2026-11-24-jeu-tour-design.md`. Plan :
   Toute source de hasard dans un test reçoit une graine fixe.
 - Écrire le test, le voir échouer pour la bonne raison, puis implémenter.
 - Ne toucher qu'aux fichiers de sa tâche. Une interface fausse chez un voisin se signale, elle ne se corrige pas.
-- Avant de rendre une tâche : `tools/verifier.sh` vert, `gdlint` et `gdformat --check` verts sur ce qui a changé.
+- Avant de pousser : `origin/main` fusionnée, puis les tests ciblés de ses fichiers (`--filtre`), `gdlint` et
+  `gdformat --check` verts sur ce qui a changé. `tools/verifier.sh` complet en local seulement si la tâche touche
+  une interface partagée (`sim/partie.gd`, `reseau/protocole.gd`, schéma de `data/`) : sinon, la CI de la PR le passe.
 - Outils de dessin, d'animation et bibliothèques : gratuits et open source seulement (licence OSI) ;
   Aseprite et les générateurs d'images par IA sont exclus (Phil, 26/11/2026).
 - Sons et ressources sonores : l'agent choisit lui-même un pack sous licence CC0, sans attendre Phil, une fois la licence vérifiée à sa source et citée dans `assets/sons/SOURCES.md` (Phil, 26/11/2026).
@@ -68,7 +70,7 @@ génériques et en anglais : ce fichier et les règles de dépendance l'emporten
   chiffrés, capture avant et après par `tools/capturer.sh`, outils libres).
 - Hit-stop, ralenti, gel d'impact : purement visuels, en suspendant l'animation et l'interpolation dans
   `visuels/` ; la simulation à 20 Hz et le réseau gardent le temps réel. `game-feel` passe par
-  `Engine.time_scale` : remplacer ce passage par le gel visuel.
+  `Engine.time_scale` : remplacer ce passage par le gel visuel. **Aucune secousse de caméra, quel que soit le réglage** (D21, Phil, 26/11/2026) : le « screen shake » de `game-feel` est écarté ; la case « mouvement réduit » des réglages coupe le gel d'impact, le recul et le rebond d'échelle (T8.22, T8.23).
 - `godot-multiplayer`, `godot-signals-groups` et `game-ai` servent pour l'API et les pièges (ENet,
   `@rpc`, A\*) ; l'architecture reste `sim/` pure et `reseau/` qui n'appelle que `sim/partie.gd`.
 - `godot-gdscript-headless-testing` : ses pièges de code de sortie et d'`await` valent pour
@@ -101,6 +103,13 @@ privé, lu en direct). Ses lignes vivent dans sa base, pas dans la page :
 - Tests par le lanceur maison `tests/lanceur.gd`, sans GUT ni gdUnit (interdits : dépendance téléchargée depuis GitHub).
 - Prettier ne sert qu'au Markdown : `npx -y prettier@3.9.10 --check <fichiers .md>` avant de pousser.
 - Les contrôles d'accessibilité et de bundle du contexte commun ne s'appliquent pas.
+- Efficacité (Phil, 26/11/2026), à la place du § 4 et du suivi de PR du § 3 du commun :
+  - suite complète en local seulement pour une interface partagée (voir « Règles pour les agents ») ;
+  - la PR s'ouvre avec la fusion automatique (`enable_pr_auto_merge`, commit de fusion), puis la session
+    passe à la suite sans attendre la CI ; une CI rouge se corrige dès son événement ;
+  - une PR de Markdown seul ne passe que Prettier en CI (`.github/workflows/ci.yml`) ;
+  - jusqu'à trois tâches qui s'enchaînent sur les mêmes fichiers partent dans une seule PR ;
+  - la CI de `main` après fusion est vérifiée par la pilote, pas par la session.
 
 ## Pièges déjà rencontrés
 

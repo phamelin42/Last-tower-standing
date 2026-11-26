@@ -304,3 +304,25 @@ func test_les_ameliorations_de_mana_s_additionnent_dans_les_stats() -> void:
 	var vide := Inventaire.new(d).stats()
 	verifier_proche(vide.mana_max_bonus, 0.0, 0.0)
 	verifier_proche(vide.mana_regen, 0.0, 0.0)
+
+
+func test_exemplaires_et_comptes_d_ameliorations() -> void:
+	var armes: Array = [_arme("a", 10), _arme("b", 10)]
+	var amelios: Array = [
+		_amelio("x", [_degats("tranchant", 0.1, "A")]),
+		_amelio("y", [{"stat": "cadence", "valeur": 0.1}]),
+	]
+	var d := _donnees_avec(armes, amelios)
+	var inv := Inventaire.new(d)
+	verifier_egal(inv.exemplaires("a"), 0)
+	for id: String in ["a", "a", "b", "x", "x", "x", "y"]:
+		inv.ajouter(id)
+	verifier_egal(inv.exemplaires("a"), 2)
+	verifier_egal(inv.exemplaires("b"), 1)
+	verifier_egal(inv.exemplaires("inconnue"), 0)
+	verifier_egal(inv.comptes_armes(), {"a": 2, "b": 1})
+	verifier_egal(
+		inv.compter_stat("degats_type"), 3, "une amélioration achetée trois fois compte trois fois"
+	)
+	verifier_egal(inv.compter_stat("cadence"), 1)
+	verifier_egal(inv.compter_stat("esquive"), 0)

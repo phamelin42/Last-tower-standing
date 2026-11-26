@@ -37,6 +37,45 @@ func ajouter(id: String) -> int:
 	return Types.Resultat.OFFRE_INVALIDE
 
 
+## Nombre d'exemplaires équipés de l'arme `id_arme`.
+func exemplaires(id_arme: String) -> int:
+	var n := 0
+	for id: String in armes:
+		if id == id_arme:
+			n += 1
+	return n
+
+
+## id d'arme → exemplaires équipés, en un seul balayage.
+func comptes_armes() -> Dictionary:
+	var comptes: Dictionary = {}
+	for id: String in armes:
+		comptes[id] = int(comptes.get(id, 0)) + 1
+	return comptes
+
+
+## stat → nombre d'améliorations possédées qui la portent ; une amélioration achetée n fois compte
+## n fois, et une qui porte la stat par plusieurs effets ne compte qu'une fois par exemplaire.
+func comptes_stats() -> Dictionary:
+	var comptes: Dictionary = {}
+	for id: String in ameliorations:
+		var n: int = ameliorations[id]
+		var amelio: Dictionary = _donnees.ameliorations[id]
+		var vues: Dictionary = {}
+		for e_brut: Variant in amelio["effets"] as Array:
+			var e: Dictionary = e_brut
+			var stat: String = e["stat"]
+			if not vues.has(stat):
+				vues[stat] = true
+				comptes[stat] = int(comptes.get(stat, 0)) + n
+	return comptes
+
+
+## Combien d'améliorations possédées portent `stat` (chaque exemplaire acheté compte).
+func compter_stat(stat: String) -> int:
+	return int(comptes_stats().get(stat, 0))
+
+
 func retirer_arme(index: int) -> String:
 	if index < 0 or index >= armes.size():
 		return ""
