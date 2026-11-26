@@ -154,8 +154,8 @@ func test_chaque_skin_a_une_licence_et_une_source_connues() -> void:
 func test_aucun_sprite_de_tiny_swords_n_a_ete_modifie_ni_dans_sa_copie() -> void:
 	for id: String in d.skins_tour:
 		var sprite := String((d.skins_tour[id] as Dictionary)["sprite"])
-		if sprite.begins_with("res://assets/tours/") and not EMPREINTES.has(sprite):
-			continue  # sprite d'un autre pack (Spire) : sa copie est vérifiée à son entrée
+		if sprite.begins_with("res://assets/tours/"):
+			continue  # remplacer un fichier de assets/tours/ est permis : c'est ainsi qu'on change un skin
 		verifier(EMPREINTES.has(sprite), "%s : empreinte connue de %s" % [id, sprite])
 		verifier_egal(
 			FileAccess.get_sha256(sprite),

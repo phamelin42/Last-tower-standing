@@ -4,7 +4,8 @@ Usage (depuis la racine) : python3 -I tools/composer_skins_tour.py
 Pillow (licence HPND, libre) seulement. Le skin `defaut` garde ses ancrages de T9.24 ; les autres
 reprennent les mêmes proportions dans la boîte opaque de leur sprite, ce qui reste à ajuster à l'œil
 (T11.7). Les tailles viennent des fichiers : rien n'est écrit à la main. La liste ci-dessous grandit
-quand les archives Spire de Foozle entrent dans assets/tours/.
+quand les archives Spire de Foozle entrent dans assets/tours/. Aucune taille ni aucun ancrage n'est
+écrit à la main : remplacer un fichier d'image, puis relancer ce script, suffit à changer un skin.
 """
 
 import colorsys
@@ -17,21 +18,30 @@ STATS = ["epines", "mana", "armure", "esquive", "regen", "vol_de_vie"]
 TS = "res://assets/tiny_swords/"
 TINY = {"licence": "CC0 1.0", "source": "Tiny Swords (Pixel Frog), assets/tiny_swords/LICENCE.md"}
 # Le château des Chevaliers (320 × 256) dépasse les 256 px de large permis : il n'est pas un skin.
-# skin -> (sprite, cadre (x, y, largeur, hauteur) ou None pour l'image entière)
+# skin -> (sprite, nombre d'images côte à côte dans le fichier : 1, ou 4 pour une feuille de fanions).
+# Le cadre d'une feuille est la première image, déduite de la taille du fichier.
 SKINS = {
-    "tour_de_guet": (TS + "Factions/Goblins/Buildings/Wood_Tower/Wood_Tower_Blue.png", (0, 0, 256, 192)),
-    "tour_embuscade": (TS + "Factions/Goblins/Buildings/Wood_House/Goblin_House.png", None),
-    "tour_comptoir": (TS + "Factions/Goblins/Buildings/Wood_House/Goblin_House.png", None),
-    "tour_du_puits": (TS + "Factions/Knights/Buildings/Tower/Tower_Construction.png", None),
-    "tour_de_la_table_ronde": (TS + "Factions/Knights/Buildings/Tower/Tower_Construction.png", None),
-    "tour_rafistolee": (TS + "Factions/Goblins/Buildings/Wood_Tower/Wood_Tower_InConstruction.png", None),
-    "tour_survivante": (TS + "Factions/Knights/Buildings/Tower/Tower_Destroyed.png", None),
-    "tour_familiere": (TS + "Factions/Knights/Buildings/House/House_Blue.png", None),
-    "tour_du_dragon_avare": ("res://assets/tours/mine_d_or.png", None),
-    "tour_du_banquier": ("res://assets/tours/mine_d_or.png", None),
+    "tour_de_guet": (TS + "Factions/Goblins/Buildings/Wood_Tower/Wood_Tower_Blue.png", 4),
+    "tour_embuscade": (TS + "Factions/Goblins/Buildings/Wood_House/Goblin_House.png", 1),
+    "tour_comptoir": (TS + "Factions/Goblins/Buildings/Wood_House/Goblin_House.png", 1),
+    "tour_du_puits": (TS + "Factions/Knights/Buildings/Tower/Tower_Construction.png", 1),
+    "tour_de_la_table_ronde": (TS + "Factions/Knights/Buildings/Tower/Tower_Construction.png", 1),
+    "tour_rafistolee": (TS + "Factions/Goblins/Buildings/Wood_Tower/Wood_Tower_InConstruction.png", 1),
+    "tour_survivante": (TS + "Factions/Knights/Buildings/Tower/Tower_Destroyed.png", 1),
+    "tour_familiere": (TS + "Factions/Knights/Buildings/House/House_Blue.png", 1),
+    "tour_du_dragon_avare": ("res://assets/tours/mine_d_or.png", 1),
+    "tour_du_banquier": ("res://assets/tours/mine_d_or.png", 1),
 }
 LICENCES = {"assets/tiny_swords/": TINY}
 PIXELS_TEINTABLES_MIN = 500  # en dessous, le sprite n'a pas de marque d'origine : le jeu pose un fanion
+
+
+def cadre_de(sprite: str, images: int):
+    """Cadre (x, y, largeur, hauteur) de la première image du fichier, ou None s'il n'y en a qu'une."""
+    if images == 1:
+        return None
+    largeur, hauteur = Image.open(RACINE / sprite.removeprefix("res://")).size
+    return (0, 0, largeur // images, hauteur)
 
 
 def image(sprite: str, cadre) -> Image.Image:
@@ -74,7 +84,8 @@ def main() -> None:
     }
     defis = {d["skin"]: d["id"] for d in json.loads((RACINE / "data/defis.json").read_text(encoding="utf-8"))}
     sortie = {}
-    for skin, (sprite, cadre) in [("defaut", (defaut["sprite"], None))] + list(SKINS.items()):
+    for skin, (sprite, images) in [("defaut", (defaut["sprite"], 1))] + list(SKINS.items()):
+        cadre = cadre_de(sprite, images)
         im = image(sprite, cadre)
         g, h, d, b = boite_opaque(im)
         zone, nb = zone_teintable(im)
