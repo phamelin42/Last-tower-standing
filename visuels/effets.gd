@@ -485,6 +485,8 @@ func _tir(
 ) -> bool:
 	var rendu_arme: Dictionary = rendu(type_degats, genre)
 	var element: String = _element(arme)
+	if element != "" and genre == "piege":
+		return _el().piege(element, Apparence.vers_pixels(de), Apparence.vers_pixels(vers))
 	if element != "" and rendu_arme["sol"] == "":
 		return _tir_element(element, type_degats, genre, de, vers, arme)
 	var couleur: Color = COULEURS[type_degats]
@@ -682,6 +684,7 @@ func _impact_maintenant(
 	var cree: bool = false
 	_coup_fort = false
 	_retirer_objet_sol(arrivee)
+	_elementaires.retirer_pieges(arrivee)
 	var anneau: bool = (
 		genre == "aura" or genre == "onde" or (genre == "" and rayon > 0.0 and de == vers)
 	)
