@@ -1,10 +1,11 @@
 class_name SignaturesArmes
 extends RefCounted
 ## Signature visuelle de chaque arme : forme et couleur du projectile, traînée, impact, statut.
-## Table seule : rien ici n'est encore branché sur le jeu (l'intégration attend la validation de
-## Phil sur `docs/planche_signatures.png`). La table se lit par identifiant d'arme et ne fige
-## aucun effectif : une arme ajoutée à `data/armes.json` reçoit sa ligne ici (celles de siège et de
-## chaos du lot 9 la reçoivent avec leur planche ; d'ici là `de()` rend `{}`).
+## Seules les signatures de `TABLE` (lot 8, validées) servent en jeu (`en_jeu`) ; celles de
+## `TABLE_LOT_9` attendent la validation de Phil sur `docs/planche_signatures.png`.
+## La table se lit par identifiant d'arme et ne fige aucun effectif : une arme ajoutée à
+## `data/armes.json` reçoit sa ligne ici (celles de siège et de chaos du lot 9 la reçoivent avec
+## leur planche ; d'ici là `de()` rend `{}`).
 ##
 ## Grammaire : 12 formes × 10 couleurs × 6 traînées × 8 impacts. Chaque type de dégâts garde ses
 ## deux couleurs (on reconnaît le type de loin) ; la forme du projectile départage les armes d'une
@@ -90,7 +91,8 @@ const PALETTE: Dictionary = {
 	"magenta": Color(1.0, 0.35, 0.78),
 }
 
-## id → [projectile, couleur, trainee, impact, statut].
+## id → [projectile, couleur, trainee, impact, statut]. Les signatures validées par Phil (lot 8),
+## celles que le jeu utilise.
 const TABLE: Dictionary = {
 	"lame_de_fil": ["trait", "acier", "filet", "entaille", ""],
 	"faucille_a_ressort": ["croissant", "acier", "ondule", "entaille", ""],
@@ -122,7 +124,11 @@ const TABLE: Dictionary = {
 	"miroir_brise": ["losange", "magenta", "etincelles", "etoile", ""],
 	"vortex_de_verre": ["spirale", "violet", "double", "explosion", "vol_de_vie"],
 	"horloge_folle": ["croissant", "magenta", "pointille", "croix", "brulure"],
-	# Lot 9 : tranchantes, perçantes et magiques (T9.18).
+}
+
+## Les signatures proposées du lot 9 (T9.18), tranchantes, perçantes et magiques : même forme de
+## ligne que `TABLE`. Elles s'affichent sur la planche mais pas en jeu (voir `en_jeu`).
+const TABLE_LOT_9: Dictionary = {
 	"serpe_de_vigne": ["croissant", "turquoise", "zigzag", "entaille", "vulnerabilite"],
 	"rasoir_tournoyant": ["shuriken", "turquoise", "etincelles", "croix", ""],
 	"couperet_a_epines": ["carre", "acier", "zigzag", "croix", ""],
@@ -177,18 +183,28 @@ static func libelle_statut(statut: String) -> String:
 	return String(LIBELLES_STATUTS.get(statut, ""))
 
 
+## Toutes les armes signées, validées ou proposées.
 static func ids() -> PackedStringArray:
 	var liste: PackedStringArray = []
 	for id: Variant in TABLE:
 		liste.append(String(id))
+	for id: Variant in TABLE_LOT_9:
+		liste.append(String(id))
 	return liste
+
+
+## Vrai pour les seules signatures validées par Phil (`TABLE`) : `Effets` n'utilise que celles-là,
+## une arme dont la signature est seulement proposée garde le rendu par type de dégâts. T9.19
+## lèvera cette garde (ou fera passer les 45 armes aux éléments D22) une fois la planche validée.
+static func en_jeu(id_arme: String) -> bool:
+	return TABLE.has(id_arme)
 
 
 ## `{}` pour une arme inconnue.
 static func de(id_arme: String) -> Dictionary:
-	if not TABLE.has(id_arme):
+	var ligne: Array = TABLE.get(id_arme, TABLE_LOT_9.get(id_arme, []))
+	if ligne.is_empty():
 		return {}
-	var ligne: Array = TABLE[id_arme]
 	return {
 		"projectile": ligne[0],
 		"couleur": PALETTE[ligne[1]],

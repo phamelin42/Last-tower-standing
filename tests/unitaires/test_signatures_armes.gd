@@ -253,3 +253,15 @@ func test_les_nouveaux_statuts_ont_chacun_leur_forme_et_leur_libelle() -> void:
 	for forme: Variant in SignaturesArmes.STATUTS.values():
 		verifier(not formes.has(forme), "forme de statut en double : %s" % forme)
 		formes[forme] = true
+
+
+func test_seules_les_signatures_validees_sont_en_jeu() -> void:
+	for id: Variant in SignaturesLot8.LIGNES:
+		verifier(SignaturesArmes.en_jeu(String(id)), "%s : validée" % id)
+	var proposees: int = 0
+	for id: String in SignaturesArmes.ids():
+		if not SignaturesLot8.LIGNES.has(id):
+			verifier(not SignaturesArmes.en_jeu(id), "%s : seulement proposée" % id)
+			proposees += 1
+	verifier(proposees >= 27, "%d signatures proposées" % proposees)
+	verifier(not SignaturesArmes.en_jeu("arme_qui_n_existe_pas"))
