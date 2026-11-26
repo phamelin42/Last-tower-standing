@@ -11,7 +11,10 @@ entaille, faucille, balayage, disque de scie, lames de cuivre et tournantes, arc
 d'acier, carreaux, chausse-trape, pique de herse, aiguille, carreau planté, gerbe d'éclats, pointes
 du sol, vague d'ambre, étoile et éclat astraux, pétard et son pop, rocher, cratère de poussière
 et mine de forge, dé, éclat de points, sablier, tourbillon de sable, éclat de miroir, gerbe et vague de
-verre, rouage et éclat de rouages), dessinés par
+verre, rouage et éclat de rouages, puis, pour le lot 9, couperet, rasoir, serpe de vigne, hache, javeline,
+flèche marquante, lance épineuse, orbe de siphon, prisme, lueur, vasque, vague céleste, éclats du siphon
+et du prisme, rayons d'un tir tournant, disques au sol de la rune et de la cage d'orage, marqueur de
+vulnérabilité), dessinés par
 `tools/dessiner_effets_attaques.gd` dans le style et la palette de Tiny Swords : aplats, gros
 pixels, contour sombre. Aucun fichier de Tiny Swords n'est copié : seules quelques teintes de
 `Effects/Fire/Fire.png` et `Effects/Explosion/Explosions.png` ont été relevées. Le script fait foi :
