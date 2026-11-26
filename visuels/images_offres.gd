@@ -105,9 +105,9 @@ const OFFRES: Dictionary = {
 	"poussiere_d_entropie": ["ludicarts/fiole_violette", "pourpre"],
 	"coeur_du_desordre": ["heart", "pourpre"],
 	# Paliers épiques par type : un bonus qui grandit avec les armes communes du type.
-	"meule_des_lames": ["upg_dagger", "brique"],
-	"carquois_des_siecles": ["upg_spear", "vert"],
-	"chaire_des_arcanes": ["ludicarts/fiole_violette", "violet"],
+	"meule_des_lames": ["tools", "brique"],
+	"carquois_des_siecles": ["scroll", "vert"],
+	"chaire_des_arcanes": ["upg_dagger", "violet"],
 	"arsenal_des_remparts": ["upg_shield", "brun"],
 	"fracas_du_desordre": ["upg_axe", "pourpre"],
 	# Bonus général de dégâts.
@@ -163,6 +163,26 @@ const OFFRES: Dictionary = {
 	"fiole_d_azur": ["potionBlue", "sarcelle"],
 	"cristal_de_reserve": ["ludicarts/cristal_violet", "sarcelle"],
 	"source_vive": ["potionBlue", "violet"],
+	# Épines, PV maximum, régénération et armure (T9.11).
+	"piquants_affutes": ["dagger", "acier"],
+	"ronce_vorace": ["upg_spear", "acier"],
+	"piege_d_accueil": ["upg_axe", "acier"],
+	"rosee_des_ronces": ["gemRed", "acier"],
+	"gambison_hirsute": ["ludicarts/bouclier_bois", "acier"],
+	"epines_venimeuses": ["gemGreen", "acier"],
+	"piquants_incandescents": ["ludicarts/lame_feu", "acier"],
+	"givre_des_ronces": ["ludicarts/fleches_givre", "acier"],
+	"pointes_assommantes": ["hammer", "acier"],
+	"armature_massive": ["backpack", "acier"],
+	"rempart_colossal": ["tools", "acier"],
+	"onguent_de_manche": ["ludicarts/fiole_jaune", "acier"],
+	"puissance_de_la_pierre": ["upg_hammer", "acier"],
+	"braise_de_phenix": ["ludicarts/fiole_rouge", "acier"],
+	"racines_patientes": ["ludicarts/cristal_vert", "acier"],
+	"pouls_du_rempart": ["ludicarts/anneau_vert", "acier"],
+	"patine_du_temps": ["upg_shield", "acier"],
+	"cuirasse_de_givre": ["gemBlue", "acier"],
+	"cotte_de_venin": ["upg_wand", "acier"],
 }
 
 ## Offres dont l'icône n'est qu'un rapprochement faible, à faire valider par Phil.

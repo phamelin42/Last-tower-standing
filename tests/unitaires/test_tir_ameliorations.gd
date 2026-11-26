@@ -308,14 +308,22 @@ func test_les_armes_communes_du_type_possedees_viennent_de_la_lecture() -> void:
 	)
 	var def := _arme_de_classe("aucune")
 	var lecture := Tir.Lecture.new()
-	lecture.exemplaires = {"de_pipe": 2, "etincelle_runique": 1, "lame_de_fil": 3, "disque_scie": 4}
+	lecture.exemplaires = {
+		"de_pipe": 2, "etincelle_runique": 1, "faucille_a_ressort": 3, "disque_scie": 4
+	}
 	# Chaos communes : de_pipe ×2 ; les armes d'un autre type ou peu communes ne comptent pas.
 	_p(_degats_du_tir(def, lecture), 12.0, "deux communes du chaos : ×1,2")
 	lecture.exemplaires = {}
 	_p(_degats_du_tir(def, lecture), 10.0, "aucune commune")
-	var comptes := Tir.communes_par_type({"de_pipe": 2, "lame_de_fil": 3, "disque_scie": 4}, d)
+	var comptes := Tir.communes_par_type(
+		{"de_pipe": 2, "faucille_a_ressort": 3, "disque_scie": 4}, d
+	)
 	verifier_egal(comptes[Types.TypeDegats.CHAOS], 2)
-	verifier_egal(comptes[Types.TypeDegats.TRANCHANT], 3, "disque_scie est peu commune")
+	verifier_egal(
+		comptes[Types.TypeDegats.TRANCHANT],
+		3,
+		"disque_scie est peu commune, faucille_a_ressort commune"
+	)
 
 
 # --- Le plafond du produit ---------------------------------------------------------------------

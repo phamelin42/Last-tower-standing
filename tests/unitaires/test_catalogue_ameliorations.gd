@@ -4,7 +4,16 @@ extends CasDeTest
 ## lit toujours dans les données, « au moins ». T9.10 écrit les dégâts, les états et les classes.
 
 ## Familles dont la tâche de contenu est faite : leur effectif doit atteindre la cible.
-const FAMILLES_TERMINEES: Array[String] = ["degats_type", "degats_global", "degats_classe", "etats"]
+const FAMILLES_TERMINEES: Array[String] = [
+	"degats_type",
+	"degats_global",
+	"degats_classe",
+	"etats",
+	"epines",
+	"pv_max",
+	"regeneration",
+	"armure",
+]
 
 ## Effectif cible de chaque famille (la map d'origine, plus nos trois améliorations sans homologue).
 const CIBLES: Dictionary = {

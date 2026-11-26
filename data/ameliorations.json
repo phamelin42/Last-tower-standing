@@ -966,5 +966,300 @@
     "valeur": 0.25
    }
   ]
+ },
+ {
+  "id": "piquants_affutes",
+  "nom": "Piquants affûtés",
+  "description": "Chaque pointe est limée : les épines renvoient davantage.",
+  "rarete": "rare",
+  "prix": 440,
+  "categorie": "amelioration",
+  "famille": "epines",
+  "effets": [
+   {
+    "stat": "epines_degats",
+    "valeur": 0.5
+   }
+  ]
+ },
+ {
+  "id": "ronce_vorace",
+  "nom": "Ronce vorace",
+  "description": "La ronce grandit à mesure que le siège s’éternise.",
+  "rarete": "rare",
+  "prix": 450,
+  "categorie": "amelioration",
+  "famille": "epines",
+  "effets": [
+   {
+    "stat": "epines_croissantes",
+    "valeur": 0.1,
+    "max": 1.0
+   }
+  ]
+ },
+ {
+  "id": "piege_d_accueil",
+  "nom": "Piège d’accueil",
+  "description": "Le premier assaillant à toucher le mur en garde un souvenir cuisant.",
+  "rarete": "rare",
+  "prix": 440,
+  "categorie": "amelioration",
+  "famille": "epines",
+  "effets": [
+   {
+    "stat": "epines_premier_coup",
+    "valeur": 1.5
+   }
+  ]
+ },
+ {
+  "id": "rosee_des_ronces",
+  "nom": "Rosée des ronces",
+  "description": "Le sang versé sur les épines nourrit la tour.",
+  "rarete": "rare",
+  "prix": 450,
+  "categorie": "amelioration",
+  "famille": "epines",
+  "effets": [
+   {
+    "stat": "epines_soin",
+    "valeur": 0.25
+   }
+  ]
+ },
+ {
+  "id": "gambison_hirsute",
+  "nom": "Gambison hirsute",
+  "description": "Un rembourrage hérissé amortit les coups au corps à corps.",
+  "rarete": "rare",
+  "prix": 460,
+  "categorie": "amelioration",
+  "famille": "epines",
+  "effets": [
+   {
+    "stat": "epines_reduction",
+    "valeur": 0.2
+   }
+  ]
+ },
+ {
+  "id": "epines_venimeuses",
+  "nom": "Épines venimeuses",
+  "description": "Les pointes sont enduites : qui frappe s’empoisonne.",
+  "rarete": "rare",
+  "prix": 440,
+  "categorie": "amelioration",
+  "famille": "epines",
+  "effets": [
+   {
+    "stat": "epines_statut",
+    "statut": "poison",
+    "valeur": 4.0
+   }
+  ]
+ },
+ {
+  "id": "piquants_incandescents",
+  "nom": "Piquants incandescents",
+  "description": "Des pointes chauffées à blanc embrasent l’assaillant.",
+  "rarete": "rare",
+  "prix": 450,
+  "categorie": "amelioration",
+  "famille": "epines",
+  "effets": [
+   {
+    "stat": "epines_statut",
+    "statut": "brulure",
+    "valeur": 4.0
+   }
+  ]
+ },
+ {
+  "id": "givre_des_ronces",
+  "nom": "Givre des ronces",
+  "description": "Un givre mordant gagne l’assaillant à chaque contact.",
+  "rarete": "rare",
+  "prix": 440,
+  "categorie": "amelioration",
+  "famille": "epines",
+  "effets": [
+   {
+    "stat": "epines_statut",
+    "statut": "givre",
+    "valeur": 3.0
+   }
+  ]
+ },
+ {
+  "id": "pointes_assommantes",
+  "nom": "Pointes assommantes",
+  "description": "Un contact avec le mur laisse l’assaillant hébété.",
+  "rarete": "rare",
+  "prix": 470,
+  "categorie": "amelioration",
+  "famille": "epines",
+  "effets": [
+   {
+    "stat": "epines_statut",
+    "statut": "etourdissement",
+    "valeur": 1.5
+   }
+  ]
+ },
+ {
+  "id": "armature_massive",
+  "nom": "Armature massive",
+  "description": "Des poutres plus épaisses portent la tour plus haut.",
+  "rarete": "rare",
+  "prix": 460,
+  "categorie": "amelioration",
+  "famille": "pv_max",
+  "effets": [
+   {
+    "stat": "pv_max_mult",
+    "valeur": 0.3
+   }
+  ]
+ },
+ {
+  "id": "rempart_colossal",
+  "nom": "Rempart colossal",
+  "description": "Un rempart doublé de pierre, presque une seconde tour.",
+  "rarete": "epique",
+  "prix": 920,
+  "categorie": "amelioration",
+  "famille": "pv_max",
+  "effets": [
+   {
+    "stat": "pv_max_mult",
+    "valeur": 0.8
+   }
+  ]
+ },
+ {
+  "id": "onguent_de_manche",
+  "nom": "Onguent de manche",
+  "description": "Entre deux manches, la tour referme une partie de ses plaies.",
+  "rarete": "rare",
+  "prix": 450,
+  "categorie": "amelioration",
+  "famille": "pv_max",
+  "effets": [
+   {
+    "stat": "soin_pv_manquants",
+    "valeur": 0.3
+   }
+  ]
+ },
+ {
+  "id": "puissance_de_la_pierre",
+  "nom": "Puissance de la pierre",
+  "description": "Plus la tour est massive, plus ses armes frappent fort.",
+  "rarete": "rare",
+  "prix": 480,
+  "categorie": "amelioration",
+  "famille": "pv_max",
+  "effets": [
+   {
+    "stat": "degats_par_pv_max",
+    "valeur": 0.1
+   }
+  ]
+ },
+ {
+  "id": "braise_de_phenix",
+  "nom": "Braise de phénix",
+  "description": "Une fois par partie, la tour se relève de ses cendres.",
+  "rarete": "epique",
+  "prix": 950,
+  "categorie": "amelioration",
+  "famille": "pv_max",
+  "effets": [
+   {
+    "stat": "resurrection",
+    "valeur": 50
+   }
+  ]
+ },
+ {
+  "id": "racines_patientes",
+  "nom": "Racines patientes",
+  "description": "Les racines s’enfoncent : la guérison s’accélère avec le temps.",
+  "rarete": "rare",
+  "prix": 470,
+  "categorie": "amelioration",
+  "famille": "regeneration",
+  "effets": [
+   {
+    "stat": "regen_croissante",
+    "valeur": 0.2,
+    "max": 6.0
+   }
+  ]
+ },
+ {
+  "id": "pouls_du_rempart",
+  "nom": "Pouls du rempart",
+  "description": "À intervalles réguliers, la tour reprend son souffle.",
+  "rarete": "rare",
+  "prix": 460,
+  "categorie": "amelioration",
+  "famille": "regeneration",
+  "effets": [
+   {
+    "stat": "soin_periodique",
+    "ratio": 0.03,
+    "tous_les": 5.0
+   }
+  ]
+ },
+ {
+  "id": "patine_du_temps",
+  "nom": "Patine du temps",
+  "description": "Le métal se durcit au fil du siège.",
+  "rarete": "rare",
+  "prix": 450,
+  "categorie": "amelioration",
+  "famille": "armure",
+  "effets": [
+   {
+    "stat": "armure_croissante",
+    "valeur": 1.0,
+    "max": 12.0
+   }
+  ]
+ },
+ {
+  "id": "cuirasse_de_givre",
+  "nom": "Cuirasse de givre",
+  "description": "Chaque coup reçu glace un peu plus l’agresseur.",
+  "rarete": "rare",
+  "prix": 460,
+  "categorie": "amelioration",
+  "famille": "armure",
+  "effets": [
+   {
+    "stat": "riposte_statut",
+    "statut": "givre",
+    "valeur": 2.0
+   }
+  ]
+ },
+ {
+  "id": "cotte_de_venin",
+  "nom": "Cotte de venin",
+  "description": "Une cotte enduite de poison : toucher la tour coûte cher.",
+  "rarete": "rare",
+  "prix": 460,
+  "categorie": "amelioration",
+  "famille": "armure",
+  "effets": [
+   {
+    "stat": "riposte_statut",
+    "statut": "poison",
+    "valeur": 4.0
+   }
+  ]
  }
 ]

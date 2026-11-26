@@ -124,6 +124,22 @@ func _chiffres_attendus(entree: Dictionary, genre: int) -> Array[String]:
 			"degats_classe", "etat_degats", "etat_duree", "degats_contre_etat":
 				# Des pourcentages : +25 % de dégâts, +30 % de durée, +30 % contre un état.
 				attendus.append(_fr(float(effet["valeur"]) * 100.0))
+			"epines_degats", "epines_premier_coup", "epines_soin", "epines_reduction":
+				attendus.append(_fr(float(effet["valeur"]) * 100.0))
+			"pv_max_mult", "soin_pv_manquants", "degats_par_pv_max":
+				attendus.append(_fr(float(effet["valeur"]) * 100.0))
+			"epines_croissantes":
+				attendus.append(_fr(float(effet["valeur"]) * 100.0))
+				attendus.append(_fr(float(effet["max"]) * 100.0))
+			"regen_croissante", "armure_croissante":
+				attendus.append(_fr(float(effet["valeur"])))
+				attendus.append(_fr(float(effet["max"])))
+			"soin_periodique":
+				attendus.append(_fr(float(effet["ratio"]) * 100.0))
+				attendus.append(_fr(float(effet["tous_les"])))
+			"resurrection":
+				# Un pourcentage entier : 50 s'écrit « 50 % », pas « 5 000 % ».
+				attendus.append(_fr(float(effet["valeur"])) + "\u00a0%")
 			"esquive":
 				var v := float(effet["valeur"])
 				var k := float(_donnees.partie["esquive_k"])

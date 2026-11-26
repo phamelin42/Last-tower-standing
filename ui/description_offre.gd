@@ -608,7 +608,9 @@ static func _morceaux_statistique_lot9(
 				_t("BOUTIQUE_EFFET_DEGATS_PAR_PV_MAX", [_pourcent(v), _nombre(1000, 0)])
 			)
 		"resurrection":
-			morceaux.append(_t("BOUTIQUE_EFFET_RESURRECTION", [_pourcent(v, 0)]))
+			# Un pourcentage entier de PV max (50 = relevée à 50 %), pas un ratio.
+			var releve := _nombre(minf(v, 100.0), 0) + ESPACE_INSECABLE + "%"
+			morceaux.append(_t("BOUTIQUE_EFFET_RESURRECTION", [releve]))
 		"regen_croissante":
 			var regen := [_nombre(v, 2), pas, _nombre(float(effet["max"]), 2)]
 			morceaux.append(_t("BOUTIQUE_EFFET_REGEN_CROISSANTE", regen))

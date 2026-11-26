@@ -39,6 +39,21 @@ const STATS: Array[String] = [
 	"etat_degats",
 	"etat_duree",
 	"degats_contre_etat",
+	# Lot 9 : épines, PV maximum, régénération et armure.
+	"epines_degats",
+	"epines_croissantes",
+	"epines_premier_coup",
+	"epines_soin",
+	"epines_reduction",
+	"epines_statut",
+	"pv_max_mult",
+	"soin_pv_manquants",
+	"degats_par_pv_max",
+	"resurrection",
+	"regen_croissante",
+	"soin_periodique",
+	"armure_croissante",
+	"riposte_statut",
 ]
 ## Mana maximale de référence pour comparer le rendement des armes de mana aux autres (D12).
 const MANA_MAX_REFERENCE := 100.0
