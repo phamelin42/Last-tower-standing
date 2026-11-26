@@ -9,6 +9,7 @@ const CIBLE := Vector2(360.0, 300.0)
 const ARMES: Dictionary = {
 	"arbalete_de_bureau": ["arbalete", "cible_unique"],
 	"chausse_trape": ["chausse_trape", "piege"],
+	"carreau_ricochet": ["ricochet", "rebond"],
 }
 
 var _a: AttaquesElementaires = null
@@ -163,5 +164,23 @@ func test_mouvement_reduit_les_chausse_trapes_ne_tournent_pas_et_sans_particule(
 		verifier_proche(c["rotation"], c["rotation"], 0.0)
 	_a.impacter("chausse_trape", CIBLE, 45.0)
 	verifier_egal(_a.particules_actives(), 0)
+
+
+# --- Carreau ricochet : rebond -----------------------------------------------------------------
+
+
+func test_un_saut_du_carreau_est_un_vol_de_sept_images_sans_anticipation() -> void:
+	var fin: float = _a.saut("ricochet", CIBLE, CIBLE + Vector2(90.0, 20.0), 4.0 * IMAGE)
+	verifier_proche(fin / IMAGE, 4.0 + AttaquesElementaires.IMAGES_VOL_DIRECT, 0.01)
+	verifier_egal(_a.etats("depart").size(), 0, "pas d'anticipation à chaque saut")
+	verifier_egal(_a.etats("carreau").size(), 1, "un carreau par saut")
+
+
+func test_chaque_rebond_du_carreau_jette_des_etincelles_sans_planter() -> void:
+	_a.impacter("ricochet", CIBLE, 0.0)
+	verifier_egal(_a.etats("gerbe").size(), 1, "une gerbe à chaque rebond")
+	verifier_egal(_a.etats("plante").size(), 0, "il ne se plante pas : il repart")
+	verifier(_a.diametre_max() <= 60.0)
+	verifier(_a.particules_actives() >= 1, "des étincelles")
 
 
