@@ -119,7 +119,7 @@ func test_emplacements_armes_n_est_plus_lu_nulle_part() -> void:
 		)
 
 
-func test_le_robot_de_reference_atteint_la_manche_20_en_mediane_et_ne_tombe_pas_avant_la_12() -> void:
+func test_le_robot_de_reference_atteint_la_manche_20_en_mediane_sans_tomber_avant_12() -> void:
 	var d := AidesPartie.donnees()
 	var manches: Array[int] = []
 	for graine: int in GRAINES_SEUIL_BAS:
