@@ -10,6 +10,7 @@ const CIBLE := Vector2(400.0, 300.0)
 const ARMES: Dictionary = {
 	"petard_de_rempart": ["petard", "mine"],
 	"mine_de_forge": ["mine_forge", "mine"],
+	"trebuchet_de_chambre": ["trebuchet", "zone"],
 }
 
 var _a: AttaquesElementaires = null
@@ -199,4 +200,63 @@ func test_l_explosion_de_la_mine_de_forge_est_celle_du_pack_au_rayon_exact() -> 
 	verifier_egal(effets.elementaires().etats("").size(), 1, "un anneau au rayon")
 	verifier(effets.elementaires().particules_actives() <= 12, "au plus douze débris")
 	verifier(effets.gel_restant() > 0.0, "gel d'un coup de siège")
+	effets.free()
+
+
+# --- Trébuchet de chambre : zone ---------------------------------------------------------------
+
+
+func test_le_rocher_du_trebuchet_dure_quatorze_images_en_haute_cloche_avec_son_ombre() -> void:
+	verifier_proche(_a.tirer("trebuchet", TOUR, CIBLE) / IMAGE, 14.0, 0.01)
+	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + AttaquesElementaires.IMAGES_VOL_CLOCHE / 2)
+	var distance: float = TOUR.distance_to(CIBLE)
+	var rocher: Dictionary = _a.etats("rocher")[0]
+	var monte: float = TOUR.y - float(rocher["position"].y)
+	verifier(monte >= 0.45 * distance, "haute cloche : %f px pour %f" % [monte, distance])
+	var ombre: Dictionary = _a.etats("ombre")[0]
+	verifier_proche(ombre["position"].y, TOUR.y, 0.01, "l'ombre reste sur la ligne droite")
+
+
+func test_le_rocher_tourne_sur_le_vol_sauf_en_mouvement_reduit() -> void:
+	_a.tirer("trebuchet", TOUR, CIBLE)
+	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 4)
+	verifier(absf(float(_a.etats("rocher")[0]["rotation"])) > 0.1, "il tourne")
+	_a.vider()
+	_a.mouvement_reduit = true
+	_a.tirer("trebuchet", TOUR, CIBLE)
+	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 4)
+	verifier_proche(float(_a.etats("rocher")[0]["rotation"]), 0.0, 0.0001, "sans rotation")
+
+
+func test_le_cratere_de_poussiere_est_au_rayon_reel_avec_un_gel_d_impact() -> void:
+	var rayon: float = _rayon_px("trebuchet_de_chambre")
+	verifier(_a.impacter("trebuchet", CIBLE, rayon, true))
+	verifier_egal(_a.etats("cratere").size(), 1, "le cratère")
+	verifier_proche(_a.etats("cratere")[0]["diametre"], rayon * 2.0, rayon * 0.2, "au rayon")
+	verifier_egal(_a.etats("").size(), 1, "un anneau")
+	verifier(_a.gel_restant() > 0.0, "coup de siège : le gel visuel")
+	verifier(_a.particules_actives() <= 12, "au plus douze débris")
+	verifier(_a.opacite_max() <= AttaquesElementaires.ALPHA_MAX + 0.0001, "jamais opaque")
+	_avancer(60)
+	verifier_egal(_a.nombre_vivants(), 0)
+
+
+func test_mouvement_reduit_le_cratere_ne_gele_pas_et_sans_debris() -> void:
+	_a.mouvement_reduit = true
+	_a.impacter("trebuchet", CIBLE, _rayon_px("trebuchet_de_chambre"), true)
+	verifier_egal(_a.particules_actives(), 0)
+	verifier_egal(_a.gel_restant(), 0.0)
+	verifier_egal(_a.etats("cratere").size(), 1, "le cratère reste")
+
+
+func test_le_trebuchet_dans_effets_lance_le_rocher_et_l_impact_attend_son_arrivee() -> void:
+	var effets: Effets = _effets()
+	var evenements: Array[Dictionary] = _evenements("trebuchet_de_chambre")
+	for evenement: Dictionary in evenements:
+		effets.ajouter(evenement)
+	verifier_egal(effets.elementaires().etats("rocher").size(), 1, "le rocher part")
+	verifier_egal(effets.elementaires().etats("cratere").size(), 0, "pas de cratère en vol")
+	for _i: int in 14:
+		effets.avancer(IMAGE)
+	verifier_egal(effets.elementaires().etats("cratere").size(), 1, "il tombe à l'arrivée")
 	effets.free()
