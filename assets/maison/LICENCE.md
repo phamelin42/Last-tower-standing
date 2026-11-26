@@ -14,7 +14,10 @@ et mine de forge, dé, éclat de points, sablier, tourbillon de sable, éclat de
 verre, rouage et éclat de rouages, puis, pour le lot 9, couperet, rasoir, serpe de vigne, hache, javeline,
 flèche marquante, lance épineuse, orbe de siphon, prisme, lueur, vasque, vague céleste, éclats du siphon
 et du prisme, rayons d'un tir tournant, disques au sol de la rune et de la cage d'orage, marqueur de
-vulnérabilité), dessinés par
+vulnérabilité ; puis, pour les armes de siège et de chaos, baril, maillet, pierre lestée, obus, brasero,
+créneau, gravats, bloc du colosse, disques au sol des braises et des ruines, onde de choc, bombe à mèche,
+urne, goutte de sang, engrenages jumeaux, sceau brisé, flèche spectrale, éclat de discorde, coupe, cendre,
+maléfice et allié invoqué), dessinés par
 `tools/dessiner_effets_attaques.gd` dans le style et la palette de Tiny Swords : aplats, gros
 pixels, contour sombre. Aucun fichier de Tiny Swords n'est copié : seules quelques teintes de
 `Effects/Fire/Fire.png` et `Effects/Explosion/Explosions.png` ont été relevées. Le script fait foi :

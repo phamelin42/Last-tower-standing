@@ -4,8 +4,7 @@ extends RefCounted
 ## Seules les signatures de `TABLE` (lot 8, validées) servent en jeu (`en_jeu`) ; celles de
 ## `TABLE_LOT_9` attendent la validation de Phil sur `docs/planche_signatures.png`.
 ## La table se lit par identifiant d'arme et ne fige aucun effectif : une arme ajoutée à
-## `data/armes.json` reçoit sa ligne ici (celles de siège et de chaos du lot 9 la reçoivent avec
-## leur planche ; d'ici là `de()` rend `{}`).
+## `data/armes.json` reçoit sa ligne ici, sinon `de()` rend `{}` et `test_signatures_armes` échoue.
 ##
 ## Grammaire : 12 formes × 10 couleurs × 6 traînées × 8 impacts. Chaque type de dégâts garde ses
 ## deux couleurs (on reconnaît le type de loin) ; la forme du projectile départage les armes d'une
@@ -48,6 +47,7 @@ const STATUTS: Dictionary = {
 	"vol_de_vie": "soin",
 	"vulnerabilite": "cible_brisee",
 	"malediction_toucher": "voile",
+	"malediction_degats": "voile_fendu",
 	"repoussement": "recul",
 	"siphon": "siphon",
 	"mana_au_coup": "cristal",
@@ -72,6 +72,7 @@ const LIBELLES_STATUTS: Dictionary = {
 	"vol_de_vie": "vol de vie",
 	"vulnerabilite": "vulnérabilité",
 	"malediction_toucher": "malédiction",
+	"malediction_degats": "affaiblissement",
 	"repoussement": "repoussement",
 	"siphon": "siphon",
 	"mana_au_coup": "mana au coup",
@@ -126,7 +127,7 @@ const TABLE: Dictionary = {
 	"horloge_folle": ["croissant", "magenta", "pointille", "croix", "brulure"],
 }
 
-## Les signatures proposées du lot 9 (T9.18), tranchantes, perçantes et magiques : même forme de
+## Les signatures proposées du lot 9 (T9.18), des 75 armes moins les 30 du lot 8 : même forme de
 ## ligne que `TABLE`. Elles s'affichent sur la planche mais pas en jeu (voir `en_jeu`).
 const TABLE_LOT_9: Dictionary = {
 	"serpe_de_vigne": ["croissant", "turquoise", "zigzag", "entaille", "vulnerabilite"],
@@ -156,6 +157,27 @@ const TABLE_LOT_9: Dictionary = {
 	"vasque_d_arcanes": ["croissant", "bleu", "filet", "anneau", "siphon"],
 	"nuee_d_etincelles": ["trait", "bleu", "pointille", "pointes", "mana_au_coup"],
 	"nova_celeste": ["spirale", "bleu", "zigzag", "halo", "vulnerabilite"],
+	# Siège.
+	"baril_a_retardement": ["carre", "orange", "ondule", "explosion", ""],
+	"maillet_de_rempart": ["triangle", "rouge", "pointille", "pointes", ""],
+	"catapulte_a_contrepoids": ["goutte", "orange", "zigzag", "croix", ""],
+	"obusier_de_breche": ["triangle", "orange", "double", "etoile", "vulnerabilite"],
+	"braise_de_siege": ["spirale", "orange", "double", "halo", "brulure"],
+	"ecrasement_de_tour": ["hexagone", "rouge", "etincelles", "pointes", "etourdissement"],
+	"champ_de_ruines": ["losange", "orange", "pointille", "anneau", "vulnerabilite"],
+	"salve_du_rempart": ["losange", "rouge", "double", "explosion", "brulure"],
+	"colosse_de_pierre": ["disque", "orange", "etincelles", "croix", "vulnerabilite"],
+	# Chaos.
+	"urne_des_ombres": ["hexagone", "violet", "pointille", "anneau", ""],
+	"pacte_de_sang": ["goutte", "magenta", "filet", "croix", "siphon"],
+	"engrenage_jumeau": ["shuriken", "violet", "etincelles", "etoile", ""],
+	"serment_brise": ["losange", "violet", "zigzag", "croix", "malediction_degats"],
+	"archere_fantome": ["fleche", "violet", "ondule", "eclaboussure", ""],
+	"miroir_de_discorde": ["triangle", "violet", "ondule", "pointes", "vulnerabilite"],
+	"coupe_d_oubli": ["croissant", "violet", "etincelles", "halo", "siphon"],
+	"legion_de_cendre": ["disque", "violet", "zigzag", "anneau", ""],
+	"tempete_de_malefices":
+	["shuriken", "magenta", "pointille", "eclaboussure", "malediction_degats"],
 }
 
 ## id → marque de la mécanique propre de l'arme (voir `MARQUES`) ; une arme absente n'en a pas.
@@ -175,6 +197,16 @@ const MARQUES_ARMES: Dictionary = {
 	"orage_en_cage": "disque_au_sol",
 	"couronne_d_etoiles": "rayon_tournant",
 	"nova_celeste": "vulnerabilite",
+	"baril_a_retardement": "bombe",
+	"obusier_de_breche": "bombe",
+	"salve_du_rempart": "bombe",
+	"braise_de_siege": "disque_au_sol",
+	"champ_de_ruines": "disque_au_sol",
+	"colosse_de_pierre": "vulnerabilite",
+	"urne_des_ombres": "allie",
+	"archere_fantome": "allie",
+	"miroir_de_discorde": "vulnerabilite",
+	"tempete_de_malefices": "vulnerabilite",
 }
 
 

@@ -130,6 +130,11 @@ static func _couverture(nom: String, p: Vector2, c: Vector2, t: Vector2i) -> flo
 		"voile":
 			var cercle: float = minf(r - d.length(), d.length() - (r - 3.5))
 			return maxf(cercle, minf(2.2 - absf(d.x - d.y) * 0.7, r - d.length()))
+		"voile_fendu":
+			var bague: float = minf(r - d.length(), d.length() - (r - 3.0))
+			var hampe: float = minf(2.2 - absf(d.x), minf(d.y + r * 0.55, r * 0.1 - d.y))
+			var pointe: float = minf((r * 0.62 - d.y) * 0.9 - absf(d.x), d.y + r * 0.05)
+			return maxf(bague, maxf(hampe, pointe))
 		"recul":
 			var chevrons: float = -1.0
 			for decalage: float in [-7.0, 5.0]:
