@@ -97,27 +97,48 @@ func test_chaque_couple_type_de_degats_genre_d_effet_des_armes_produit_un_effet(
 		verifier(not rendu.is_empty(), "pas de rendu décrit pour %s" % cle)
 
 
-func test_chaque_statut_des_armes_laisse_sa_marque_a_l_impact() -> void:
+## Les formes vivantes d'un impact de zone, avec le statut `statut` ("" pour aucun).
+func _formes_de_l_impact(type_degats: int, statut: String) -> PackedStringArray:
+	_laisser_finir()
+	var e := _evenement("impact", type_degats, Vector2.ZERO, Vector2(200, 100), 90.0)
+	if statut != "":
+		var index: int = VueArene.STATUTS_ARME.find(statut)
+		e["statut"] = index if index > 0 else statut
+	verifier(_effets.ajouter(e), "effet pour %s" % statut)
+	var formes: PackedStringArray = _effets.formes_vivantes()
+	formes.sort()
+	return formes
+
+
+func test_chaque_statut_laisse_sa_marque_ou_retombe_sur_le_rendu_par_type() -> void:
+	# Tous les statuts que la simulation transporte et ceux des données : un statut du lot 9 sans
+	# marque (avant T9.19) donne exactement l'impact du type de dégâts, sans erreur.
 	var statuts: Dictionary = {}
+	for statut: String in VueArene.STATUTS_ARME:
+		if statut != "":
+			statuts[statut] = true
 	for id: String in _donnees.armes:
-		var arme: Dictionary = _donnees.armes[id]
-		for s: Dictionary in arme["statuts"]:
+		for s: Dictionary in (_donnees.armes[id] as Dictionary)["statuts"]:
 			statuts[String(s["kind"])] = true
-	verifier(statuts.size() >= 4, "poison, brûlure, givre, étourdissement au moins")
+	verifier(statuts.size() >= 11, "les statuts du lot 9 sont dans la boucle")
 	var formes_vues: Dictionary = {}
+	var marques: int = 0
 	for statut: String in statuts:
 		if statut == "vol_de_vie":
-			continue
+			continue  # remonte vers la tour : test_le_vol_de_vie_remonte_vers_la_tour_en_vert
+		if Effets.FORMES_STATUT.has(statut):
+			marques += 1
 		for type_degats: int in TYPES:
-			_laisser_finir()
-			var e := _evenement("impact", type_degats, Vector2.ZERO, Vector2(200, 100), 90.0)
-			e["statut"] = statut
-			verifier(_effets.ajouter(e), "effet pour %s" % statut)
-			var formes: PackedStringArray = _effets.formes_vivantes()
+			var sans_statut: PackedStringArray = _formes_de_l_impact(type_degats, "")
+			var formes: PackedStringArray = _formes_de_l_impact(type_degats, statut)
+			if not Effets.FORMES_STATUT.has(statut):
+				verifier_egal(formes, sans_statut, "%s retombe sur le type %d" % [statut, type_degats])
+				continue
 			var attendue: String = String(Effets.FORMES_STATUT[statut])
 			verifier(formes.has(attendue), "%s dessine %s" % [statut, attendue])
 			formes_vues[attendue] = true
-	verifier_egal(formes_vues.size(), 4, "quatre marques différentes")
+	verifier(marques >= 4, "poison, brûlure, givre, étourdissement au moins")
+	verifier_egal(formes_vues.size(), marques, "une marque différente par statut")
 
 
 func test_chaque_type_de_degats_a_sa_propre_forme_de_projectile_et_pas_seulement_sa_couleur(
@@ -455,6 +476,37 @@ func test_un_evenement_sans_arme_garde_le_rendu_par_type_de_degats() -> void:
 	inconnu["arme"] = 99999
 	verifier(_effets.ajouter(inconnu))
 	verifier_egal(_effets.formes_vivantes(), PackedStringArray([Effets.rendu(1, "")["projectile"]]))
+
+
+func test_une_arme_du_catalogue_sans_signature_retombe_sur_le_rendu_par_type() -> void:
+	# Avant T9.18, les armes du lot 9 sont dans les données sans signature.
+	var catalogue: PackedStringArray = _donnees.ids_catalogue.duplicate()
+	catalogue.append("arme_sans_signature")
+	_effets.catalogue = catalogue
+	var cas: Array[Array] = []
+	for type_degats: int in TYPES:
+		cas.append(["arme_sans_signature", type_degats])
+	for id: String in _donnees.armes:
+		if SignaturesArmes.de(id).is_empty():
+			cas.append([id, int((_donnees.armes[id] as Dictionary)["type_degats"])])
+	for c: Array in cas:
+		var id: String = c[0]
+		var type_degats: int = c[1]
+		_effets.vider()
+		var tir: Dictionary = _evenement("tir", type_degats, Vector2.ZERO, Vector2(300, -200), 0.0)
+		tir["arme"] = catalogue.find(id)
+		verifier(_effets.ajouter(tir), "tir de %s" % id)
+		var attendu: Dictionary = Effets.rendu(type_degats, "")
+		verifier_egal(_effets.formes_vivantes(), PackedStringArray([attendu["projectile"]]), id)
+		verifier_egal(_sans_alpha(_effets.couleur_du_premier()), Effets.COULEURS[type_degats], id)
+		var impact: Dictionary = _evenement("impact", type_degats, Vector2.ZERO, Vector2.ZERO, 0.0)
+		_effets.vider()
+		verifier(_effets.ajouter(impact.duplicate()))
+		var par_type: PackedStringArray = _effets.formes_vivantes()
+		_effets.vider()
+		impact["arme"] = catalogue.find(id)
+		verifier(_effets.ajouter(impact), "impact de %s" % id)
+		verifier_egal(_effets.formes_vivantes(), par_type, "impact de %s par type" % id)
 
 
 func test_chaque_statut_a_un_visuel_distinct() -> void:
