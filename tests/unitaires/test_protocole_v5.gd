@@ -5,8 +5,9 @@ extends CasDeTest
 
 const GRAINE := 20261125
 const OCTETS_EVENEMENT := 14
-## Octets qui suivent le dernier événement : éliminations (u16), dégâts (f32), manche max (u16).
-const OCTETS_QUEUE := 8
+## Octets après la dernière liste d'événements : les trois compteurs d'alliés, de zones et de bombes
+## (version 6), puis éliminations, dégâts et manche maximale.
+const OCTETS_QUEUE := 11
 
 var _catalogue: PackedStringArray
 
@@ -114,8 +115,9 @@ func test_mana_et_prochaines_familles_traversent_le_protocole() -> void:
 
 
 func test_un_etat_vide_a_exactement_la_taille_fixe() -> void:
-	verifier_egal(Protocole.encoder_etat_arene(VueArene.new(), _catalogue).size(), 60)
-	verifier_egal(Protocole.TAILLE_FIXE, 60)
+	verifier_egal(
+		Protocole.encoder_etat_arene(VueArene.new(), _catalogue).size(), Protocole.TAILLE_FIXE
+	)
 
 
 func test_une_famille_unique_de_l_ancien_champ_est_annoncee() -> void:
