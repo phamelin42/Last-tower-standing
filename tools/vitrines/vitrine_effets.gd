@@ -14,6 +14,7 @@ extends Node2D
 ## Chaque cycle (`PERIODE`) envoie le tir et l'impact de chaque cellule dans la même image, comme la
 ## simulation : c'est `Effets` qui fait attendre l'impact jusqu'à l'arrivée du projectile. Les
 ## cibles réagissent aux coups comme les ennemis de l'arène (`ReactionsCoups`).
+## `-- --mouvement-reduit` montre le mode réduit : ni gel, ni recul, ni rebond, ni étincelles.
 ## Le temps ne vient que de `_process(delta)` : à cadence fixe, deux captures sont identiques.
 
 const FOND := Color(0.24, 0.38, 0.27)
@@ -60,6 +61,8 @@ var cycles: int = 0
 ## Plus grand nombre d'effets vivants vu depuis le début.
 var pic_vivants: int = 0
 var effets: Effets = null
+## Montre le mode réduit ; posé avant l'entrée dans l'arbre, ou par `-- --mouvement-reduit`.
+var mouvement_reduit: bool = false
 
 var _temps: float = 0.0
 var _premier: bool = true
@@ -92,7 +95,11 @@ static func en_unites(pixels: Vector2) -> Vector2:
 
 func _ready() -> void:
 	seed(GRAINE)
+	if OS.get_cmdline_user_args().has("--mouvement-reduit"):
+		mouvement_reduit = true
+	reactions.mouvement_reduit = mouvement_reduit
 	effets = Effets.new()
+	effets.mouvement_reduit = mouvement_reduit
 	effets.name = "Effets"
 	add_child(effets)
 	effets.impact_visible.connect(_sur_impact_visible)
@@ -237,7 +244,7 @@ func _animer_cibles() -> void:
 	for i: int in _cibles.size():
 		var id: int = _ids_cibles[i]
 		var base: Vector2 = _positions_cibles[i] * Apparence.PX_PAR_UNITE
-		_cibles[i].position = base + reactions.recul(id)
+		_cibles[i].position = reactions.position_affichee(id, base)
 		var eclat: float = reactions.eclat(id)
 		_cibles[i].modulate = Color(eclat, eclat, eclat)
 

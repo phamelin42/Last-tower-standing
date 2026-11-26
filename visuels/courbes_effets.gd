@@ -19,6 +19,8 @@ const ECHELLE_DEPART_IMPACT: float = 0.5
 const ECHELLE_PIC_IMPACT: float = 1.2
 const ECHELLE_FIN_IMPACT: float = 1.15
 const MELANGE_BLANC_IMPACT: float = 0.6
+## Mouvement réduit : pas de rebond de taille, mais le blanc du pic reste ces deux images.
+const IMAGES_ECLAT_REDUIT: float = 2.0
 ## Anneau : il atteint sa portée sur les 30 premiers % de sa vie, la tient jusqu'à 60 %, puis fond.
 const ECHELLE_DEPART_ANNEAU: float = 0.1
 const FIN_EXPANSION_ANNEAU: float = 0.3
@@ -37,7 +39,9 @@ static func echelle_apparition_tir(age: float) -> float:
 
 
 ## Un statut naît petit, dépasse un instant sa taille, puis la reprend (3 images en tout).
-static func echelle_apparition_statut(age: float) -> float:
+static func echelle_apparition_statut(age: float, reduit: bool = false) -> float:
+	if reduit:
+		return 1.0
 	var pic: float = IMAGES_PIC_STATUT * Effets.IMAGE
 	if age < pic:
 		return lerpf(ECHELLE_DEPART_STATUT, ECHELLE_PIC_STATUT, sortie(age / pic))
@@ -48,7 +52,9 @@ static func echelle_apparition_statut(age: float) -> float:
 
 
 ## Facteur de taille d'un impact : pic en 3 images, retour en 3, puis il gonfle en s'éteignant.
-static func echelle_impact(age: float) -> float:
+static func echelle_impact(age: float, reduit: bool = false) -> float:
+	if reduit:
+		return 1.0
 	var montee: float = IMAGES_MONTEE_IMPACT * Effets.IMAGE
 	var retour: float = IMAGES_RETOUR_IMPACT * Effets.IMAGE
 	if age < montee:
@@ -60,7 +66,11 @@ static func echelle_impact(age: float) -> float:
 
 
 ## Part de blanc mêlée à la couleur de l'arme : 60 % à l'image 0, plus rien à la 3.
-static func blanc_impact(age: float) -> float:
+static func blanc_impact(age: float, reduit: bool = false, gele: bool = false) -> float:
+	if gele:
+		return MELANGE_BLANC_IMPACT
+	if reduit:
+		return MELANGE_BLANC_IMPACT if age < IMAGES_ECLAT_REDUIT * Effets.IMAGE else 0.0
 	return lerpf(
 		MELANGE_BLANC_IMPACT, 0.0, clampf(age / (IMAGES_MONTEE_IMPACT * Effets.IMAGE), 0.0, 1.0)
 	)
@@ -76,7 +86,9 @@ static func alpha_impact(age: float) -> float:
 
 
 ## L'anneau atteint sa portée exacte sur le début de sa vie et la garde ensuite.
-static func echelle_anneau(t: float) -> float:
+static func echelle_anneau(t: float, reduit: bool = false) -> float:
+	if reduit:
+		return 1.0
 	return lerpf(ECHELLE_DEPART_ANNEAU, 1.0, sortie(t / FIN_EXPANSION_ANNEAU))
 
 

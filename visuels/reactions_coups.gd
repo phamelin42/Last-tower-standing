@@ -21,8 +21,12 @@ const RECUL_PX: float = 4.0
 const DUREE_RECUL_ALLER: float = 2.0 * IMAGE
 const DUREE_RECUL_RETOUR: float = 6.0 * IMAGE
 
+## Mouvement réduit (D21) : ni gel d'impact ni recul, le flash de la cible reste.
+var mouvement_reduit: bool = false
+
 ## Par identifiant d'ennemi : `{age: float, sens: Vector2}`, `sens` unitaire à l'opposé de la tour.
 var _suivis: Dictionary = {}
+var _gel: GelImpact = GelImpact.new()
 
 
 ## Fait réagir les ennemis touchés par un impact en `ou` (rayon `rayon`, 0 pour un coup simple).
@@ -58,6 +62,10 @@ func toucher(
 		var sens: Vector2 = (positions[i] - tour).normalized()
 		if sens == Vector2.ZERO:
 			sens = Vector2.RIGHT
+		if mouvement_reduit:
+			sens = Vector2.ZERO
+		elif zone:
+			_gel.geler(id)
 		_suivis[id] = {"age": 0.0, "sens": sens}
 		reagi += 1
 	return reagi
@@ -71,12 +79,13 @@ func avancer(delta: float) -> void:
 	var finis: Array[int] = []
 	for id: int in _suivis:
 		var etat: Dictionary = _suivis[id]
-		var age: float = float(etat["age"]) + delta
+		var age: float = float(etat["age"]) + _gel.consommer(id, delta)
 		etat["age"] = age
 		if age >= INTERVALLE_FLASH:
 			finis.append(id)
 	for id: int in finis:
 		_suivis.erase(id)
+		_gel.retirer(id)
 
 
 ## Facteur de couleur de l'ennemi `id` : 1 au repos, `FACTEUR_FLASH` pendant le flash.
@@ -101,12 +110,23 @@ func recul(id: int) -> Vector2:
 	return (etat["sens"] as Vector2) * RECUL_PX * force
 
 
+## Position d'affichage de l'ennemi `id` (pixels), recul compris, gel d'impact respecté.
+func position_affichee(id: int, pos_px: Vector2) -> Vector2:
+	return _gel.position_affichee(id, pos_px) + recul(id)
+
+
+## Image d'animation de l'ennemi `id` : figée pendant le gel, `image` sinon.
+func image_animation(id: int, image: int) -> int:
+	return _gel.image_animation(id, image)
+
+
 func nombre_suivis() -> int:
 	return _suivis.size()
 
 
 func reinitialiser() -> void:
 	_suivis.clear()
+	_gel.vider()
 
 
 static func _sortie_amortie(t: float) -> float:

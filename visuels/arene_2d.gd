@@ -45,6 +45,14 @@ const NOMS_ANIMATIONS: Array[String] = ["repos", "course", "attaque", "attaque_b
 
 ## Injectable avant l'entrée dans l'arbre (tests) ; sinon chargé depuis `data/`.
 var donnees: Donnees = null
+## Mouvement réduit (D21) : ni gel d'impact, ni recul, ni rebond d'échelle, ni étincelles ; l'éclat
+## bref et le flash de la cible restent. Peut changer en cours de partie.
+var mouvement_reduit: bool = false:
+	set(valeur):
+		mouvement_reduit = valeur
+		_reactions.mouvement_reduit = valeur
+		if _effets != null:
+			_effets.mouvement_reduit = valeur
 
 var _interpolation := Interpolation.new()
 var _horloge: float = 0.0
@@ -136,6 +144,7 @@ func _assurer_construite() -> void:
 	_effets = Effets.new()
 	_effets.name = "Effets"
 	_effets.parent_sol = _ennemis
+	_effets.mouvement_reduit = mouvement_reduit
 	if donnees != null:
 		_effets.catalogue = donnees.ids_catalogue
 	_effets.impact_visible.connect(_sur_impact_visible)
@@ -500,10 +509,11 @@ func _afficher_echantillon() -> void:
 		var sprite: Sprite2D = pool[decompte[f]]
 		decompte[f] += 1
 		var p: Vector2 = positions[i]
-		sprite.position = Apparence.vers_pixels(p) + _reactions.recul(ids[i])
+		sprite.position = _reactions.position_affichee(ids[i], Apparence.vers_pixels(p))
 		var miroir: bool = p.x > 0.0
 		var cle: int = f * NB_ANIMATIONS + _animation(f, p)
-		var image: int = _lignes[cle] * _colonnes[f] + (image_courante + ids[i]) % _images[cle]
+		var phase: int = _reactions.image_animation(ids[i], image_courante) + ids[i]
+		var image: int = _lignes[cle] * _colonnes[f] + phase % _images[cle]
 		var lutin: Lutin = sprite as Lutin
 		if lutin.image != image or lutin.miroir != miroir:
 			lutin.image = image
