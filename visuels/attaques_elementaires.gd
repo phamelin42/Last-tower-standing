@@ -47,8 +47,6 @@ const DIAMETRE_PETIT: float = 40.0
 const DUREE_PIEGE: float = 3600.0
 ## Écart (px) en deçà duquel un déclenchement « est » l'endroit d'un piège.
 const TOLERANCE_PIEGE: float = 2.0
-const IMAGES_POSE_PIEGE: float = 3.0
-const ECHELLE_POSE_PIEGE: float = 1.3
 
 ## Les planches partagées par plusieurs éléments ; celles d'un élément sont dans son fichier.
 const PLANCHES_COMMUNES: Dictionary = {
@@ -88,8 +86,6 @@ const COULEUR_BOUFFEE := Color(0.7, 0.7, 0.72)
 ## Une couronne d'aura : elle s'ouvre en 7 images, tourne de 1,5 tour par seconde et dure 14 images.
 const IMAGES_COURONNE: int = 14
 const IMAGES_COURONNE_OUVERTURE: int = 7
-const TOURS_COURONNE: float = 1.5
-const ECHELLE_COURONNE_DEPART: float = 0.25
 const IMAGES_NUAGE: int = 36
 const ALPHA_NUAGE: float = 0.6
 const MONTEE_NUAGE: float = 24.0
@@ -306,25 +302,7 @@ func tirer(element: String, depart: Vector2, arrivee: Vector2, retard: float = 0
 ## ou -1 si l'élément n'a pas de projectile par saut (son impact garde alors son décalage).
 func saut(element: String, depart: Vector2, arrivee: Vector2, retard: float) -> float:
 	var el: AttaqueElement = registre().get(element)
-	if el == null or not bool(el.conf().get("saut", false)):
-		return -1.0
-	var conf: Dictionary = el.conf()
-	var vol: float = IMAGES_VOL_DIRECT * IMAGE
-	var projectile: Dictionary = nouveau("vol", String(conf["projectile"]), vol)
-	if projectile.is_empty():
-		return -1.0
-	projectile["age"] = -retard
-	projectile["depart"] = depart
-	projectile["arrivee"] = arrivee
-	projectile["couleur"] = Color.WHITE
-	projectile["echelle"] = ECHELLE * float(conf.get("echelle", 1.0))
-	projectile["fps"] = float(conf["fps"])
-	projectile["vrille"] = float(conf.get("vrille", 0.0))
-	projectile["fige_reduit"] = bool(conf.get("fige_reduit", false))
-	projectile["vol"] = vol
-	poser(projectile)
-	el.suivre_vol(self, projectile, retard, vol)
-	return retard + vol
+	return -1.0 if el == null else MecaniquesGenres.saut(self, el, depart, arrivee, retard)
 
 
 ## Un piège d'`element` lancé de `depart` vers `arrivee`, qui reste ensuite au sol (pixels).
@@ -362,19 +340,7 @@ func onde(element: String, centre: Vector2, age: float = 0.0) -> bool:
 func couronne(
 	planche: String, centre: Vector2, rayon_px: float, nombre: int, age: float, couleur: Color
 ) -> bool:
-	var cree: bool = false
-	for k: int in nombre:
-		var lame: Dictionary = nouveau("couronne", planche, IMAGES_COURONNE * IMAGE)
-		if lame.is_empty():
-			break
-		lame["age"] = age
-		lame["depart"] = centre
-		lame["rayon_px"] = rayon_px
-		lame["tour"] = TAU * k / nombre
-		lame["couleur"] = couleur
-		poser(lame)
-		cree = true
-	return cree
+	return MecaniquesGenres.couronne(self, planche, centre, rayon_px, nombre, age, couleur)
 
 
 ## Un front de `nombre` sprites de `planche`, en cercle autour de `centre`, qui avance de
@@ -388,20 +354,7 @@ func front(
 	age: float,
 	couleur: Color
 ) -> bool:
-	var cree: bool = false
-	for k: int in nombre:
-		var lame: Dictionary = nouveau("front", planche, rayon_px / vitesse_px)
-		if lame.is_empty():
-			break
-		lame["age"] = age
-		lame["depart"] = centre
-		lame["rayon_px"] = rayon_px
-		lame["vitesse"] = vitesse_px
-		lame["tour"] = TAU * k / nombre
-		lame["couleur"] = couleur
-		poser(lame)
-		cree = true
-	return cree
+	return MecaniquesGenres.front(self, planche, centre, rayon_px, vitesse_px, nombre, age, couleur)
 
 
 ## Dessine l'impact de `element` en `ou` (pixels du monde). `rayon_px` : 0 pour une cible unique.
@@ -665,23 +618,9 @@ func poser(effet: Dictionary) -> void:
 			var fin: float = IMAGES_ECLAIR_VISIBLE * IMAGE
 			alpha = ALPHA_MAX * (1.0 - maxf(age - fin, 0.0) / (IMAGES_ECLAIR_EFFACEMENT * IMAGE))
 		"couronne":
-			var ouverture: float = clampf(age / (IMAGES_COURONNE_OUVERTURE * IMAGE), 0.0, 1.0)
-			var rayon: float = float(effet["rayon_px"])
-			var rayon_courant: float = (
-				rayon * lerpf(ECHELLE_COURONNE_DEPART, 1.0, CourbesEffets.sortie(ouverture))
-			)
-			var phase: float = float(effet["tour"]) + age * TAU * TOURS_COURONNE
-			if mouvement_reduit:
-				phase = float(effet["tour"])
-			n.position = (effet["depart"] as Vector2) + Vector2.from_angle(phase) * rayon_courant
-			n.rotation = phase + PI / 2.0
-			alpha = ALPHA_MAX * (1.0 - maxf(t - 0.5, 0.0) / 0.5)
+			alpha = MecaniquesGenres.poser_couronne(effet, n, age, t, mouvement_reduit)
 		"front":
-			var avance: float = minf(age * float(effet["vitesse"]), float(effet["rayon_px"]))
-			var cap: float = float(effet["tour"])
-			n.position = (effet["depart"] as Vector2) + Vector2.from_angle(cap) * avance
-			n.rotation = cap
-			alpha = ALPHA_MAX * (1.0 - maxf(t - 0.75, 0.0) / 0.25)
+			alpha = MecaniquesGenres.poser_front(effet, n, age, t)
 		"ombre":
 			n.position = (effet["depart"] as Vector2).lerp(effet["arrivee"], t)
 			echelle = ECHELLE * lerpf(1.0, ECHELLE_OMBRE_SOMMET, sin(t * PI))
@@ -695,11 +634,7 @@ func poser(effet: Dictionary) -> void:
 			n.position = effet["depart"]
 			alpha = ALPHA_MAX * (1.0 - t)
 		"piege":
-			# Posé, il retombe de 1,3 à 1 en trois images, puis ne bouge plus.
-			n.position = effet["depart"]
-			n.rotation = float(effet["tour"])
-			var pose: float = clampf(age / (IMAGES_POSE_PIEGE * IMAGE), 0.0, 1.0)
-			echelle *= lerpf(ECHELLE_POSE_PIEGE, 1.0, pose)
+			echelle *= MecaniquesGenres.poser_piege(effet, n, age)
 		"image":
 			n.position = effet["depart"]
 			var seq: Array[int] = effet["seq"]
