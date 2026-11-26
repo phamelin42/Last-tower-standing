@@ -1452,7 +1452,7 @@ func id_regarde() -> int                # -1 si aucune
 
 ### Task 8.20 : Mini-carte et câblage de la partie — `sonnet`
 
-- [ ] **Objectif :** mini-carte en bas à droite : sa propre arène (tour, ennemis en points de la couleur de leur palier, cercle d'apparition, cadre de la vue), un clic y déplace la vue ; les arènes des autres joueurs en vignettes (nom, barre de PV, densité), un clic sur une vignette affiche cette arène dans la vue principale, **Espace** revient à la sienne (le HUD et la boutique restent ceux du joueur) ; pas de vignette en solo. Câble dans `app/jeu.gd` tout ce que le lot ajoute : caméra, mini-carte, taille de l'interface, vitesse de caméra, barre du haut, boutique repliable, `regarder`.
+- [x] **Objectif :** mini-carte en bas à droite : sa propre arène (tour, ennemis en points de la couleur de leur palier, cercle d'apparition, cadre de la vue), un clic y déplace la vue ; les arènes des autres joueurs en vignettes (nom, barre de PV, densité), un clic sur une vignette affiche cette arène dans la vue principale, **Espace** revient à la sienne (le HUD et la boutique restent ceux du joueur) ; pas de vignette en solo. Câble dans `app/jeu.gd` tout ce que le lot ajoute : caméra, mini-carte, taille de l'interface, vitesse de caméra, barre du haut, boutique repliable, `regarder`.
 - **Conception :** §6.9, §6.10, D4.
 - **Fichiers :** `ui/minicarte.gd` (nouveau), `app/jeu.gd`, `i18n/textes_minicarte.csv` (nouveau) ; tests nouveau `test_minicarte.gd`, `test_observation_ui.gd`, `tests/integration/test_solo.gd`, `test_mise_en_page.gd`.
 - **Lire :** `app/jeu.gd` (`_monter`, `_sur_arene`, `_sur_globale`, `_unhandled_input`, `placer_dans`), `ui/observation_ui.gd`, `visuels/camera_arene.gd`.
