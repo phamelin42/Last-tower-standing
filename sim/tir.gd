@@ -101,9 +101,12 @@ static func _creer(
 	ctx.resistance = resistance
 	ctx.bilan = bilan
 	ctx.type_degats = int(arme.def["type_degats"])
-	ctx.degats_base = (
-		float(arme.def["degats"]) * stats.degats_type[ctx.type_degats] * stats.degats_global
+	# Une arme de mana ajoute `ratio × mana maximale` aux dégâts de base, avant les multiplicateurs.
+	var mana_max := float(donnees.partie["tour"]["mana_max"]) + stats.mana_max_bonus
+	var brut := (
+		float(arme.def["degats"]) + float(arme.def.get("degats_par_mana_max", 0.0)) * mana_max
 	)
+	ctx.degats_base = brut * stats.degats_type[ctx.type_degats] * stats.degats_global
 	ctx.statuts = arme.def.get("statuts", [])
 	ctx.statut = _statut_principal(ctx.statuts)
 	ctx.index_arme = donnees.ids_catalogue.find(arme.id)

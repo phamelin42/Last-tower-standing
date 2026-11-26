@@ -36,6 +36,8 @@ const STATISTIQUES: Array[String] = [
 	"bonus_elim",
 	"relance_gratuite",
 	"marche_noir",
+	"mana_max",
+	"mana_regen",
 ]
 
 const CLES_TYPE: Dictionary = {
@@ -302,6 +304,10 @@ static func _morceaux_statistique(effet: Dictionary, donnees: Donnees) -> Array[
 			morceaux.append(_t("BOUTIQUE_EFFET_PV_MAX", [_nombre(v)]))
 		"regen":
 			morceaux.append(_t("BOUTIQUE_EFFET_REGEN", [_nombre(v)]))
+		"mana_max":
+			morceaux.append(_t("BOUTIQUE_EFFET_MANA_MAX", [_nombre(v)]))
+		"mana_regen":
+			morceaux.append(_t("BOUTIQUE_EFFET_MANA_REGEN", [_nombre(v)]))
 		"armure":
 			# Réduction d'une armure seule, comme `Arene` : 0,05·a / (1 + 0,05·a).
 			var reduction := Combat.reduction_armure(v)

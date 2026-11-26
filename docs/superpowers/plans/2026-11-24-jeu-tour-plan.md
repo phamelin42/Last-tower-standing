@@ -1202,7 +1202,7 @@ func id_regarde() -> int                # -1 si aucune
 
 ### Task 8.7 : Mana, bouclier de la tour — `sonnet`
 
-- [ ] **Objectif :** la mana absorbe les coups à la place des PV (ordre : esquive, armure, mana, PV ; 1 point absorbe 1 point) et se régénère chaque seconde ; la tour démarre à 0 de mana maximale ; nouvelles améliorations de mana ; 4 armes magiques font des dégâts selon la mana maximale.
+- [x] **Objectif :** la mana absorbe les coups à la place des PV (ordre : esquive, armure, mana, PV ; 1 point absorbe 1 point) et se régénère chaque seconde ; la tour démarre à 0 de mana maximale ; nouvelles améliorations de mana ; 4 armes magiques font des dégâts selon la mana maximale.
 - **Conception :** §6.4.
 - **Fichiers :** `sim/arene.gd`, `sim/inventaire.gd`, `sim/tir.gd`, `data/ameliorations.json` (au moins 2 `mana_max`, 1 `mana_regen`, catégorie `amelioration`), `data/armes.json` (`degats_par_mana_max` sur 4 armes magiques existantes), `data/partie.json` (`tour.mana_regen`) ; tests `test_arene_tour.gd`, `test_inventaire.gd`, `test_tir.gd`, `test_contenu.gd`.
 - **Lire :** `sim/arene.gd` `_pas_tour_et_ennemis`, `synchroniser`, `vue` ; le test de rendement par rareté de `test_contenu.gd` (`grep -n 'rendement'`).
@@ -1403,11 +1403,11 @@ func id_regarde() -> int                # -1 si aucune
 
 ### Task 8.18 : Barre du haut à icônes et tableau des scores — `sonnet`
 
-- [ ] **Objectif :** la barre du haut montre une icône par information (or, revenu, manche, temps avec un sablier, armures de la prochaine manche, nombre d'armes), sans PV, d'environ 40 px de haut ; l'annonce de la manche suivante montre les armures de ses 2 ou 3 familles (texte en infobulle) ; le tableau des scores ajoute « Revenu / 10 s », « Dégâts par seconde » et dégâts totaux. Sablier sous licence libre (CC0 ou CC BY) à trouver dans les packs déjà utilisés ou sur OpenGameArt ; **à défaut, le demander à Phil** (le rapport le dit, la tâche attend).
+- [x] **Objectif :** la barre du haut montre une icône par information (or, revenu, manche, temps avec un sablier, armures de la prochaine manche, nombre d'armes), sans PV, d'environ 40 px de haut ; l'annonce de la manche suivante montre les armures de ses 2 ou 3 familles (texte en infobulle) ; le tableau des scores ajoute « Revenu / 10 s », « Dégâts par seconde » et dégâts totaux. Sablier sous licence libre (CC0 ou CC BY) à trouver dans les packs déjà utilisés ou sur OpenGameArt ; **à défaut, le demander à Phil** (le rapport le dit, la tâche attend).
 - **Conception :** §6.7 (barre du haut), §6.8, D1, D10, D11.
 - **Fichiers :** `ui/hud.gd`, `ui/scores.gd`, `ui/theme.gd` (icônes citées ici : `ICONES`, `TEXTURES`), `assets/icones/…` (sablier et sa `LICENCE.md`), `i18n/textes_hud.csv`, `i18n/textes_communs.csv` si besoin ; tests `test_hud.gd`, `test_fin_ui.gd`, `test_garde_ressources.gd`, `test_contraste.gd`. `emplacements_armes` n'est plus lu (le nombre d'armes est un compte, sans capacité). `CREDITS.md` : voir T8.21.
 - **Lire :** `ui/hud.gd` (215 lignes), `ui/scores.gd`, `ui/theme.gd` `ICONES`.
-- **Interfaces :** consomme `VueArene.prochaines_familles`, `prochaines_armures`, `armes` (jusqu'à 255), `VueGlobale.joueurs[i].dps`, `.revenu`, `.degats`. Produit `Hud.hauteur_barre() -> float` (≈ 40) et `Scores.COLONNES` à 8.
+- **Interfaces :** consomme `VueArene.prochaines_familles`, `prochaines_armures`, `armes` (jusqu'à 255), `VueGlobale.joueurs[i].dps`, `.revenu`, `.degats`. Produit `Hud.hauteur_barre() -> float` (≈ 40) et `TableauScores.COLONNES` à 7 (joueur, manche, éliminations, revenu, DPS, dégâts totaux, état). _Écart au plan, décision de pilotage du 26/11/2026 : D10 n'ajoute qu'une colonne, le DPS ; « Revenu » et « Dégâts » existaient et sont précisés en « Revenu / 10 s » et « Dégâts totaux » (§6.8). Le « 8 » du plan était une erreur._
 - **Tests :**
   - `test_la_barre_n_affiche_plus_les_pv_et_montre_six_informations_avec_icone`.
   - `test_chaque_icone_a_un_nom_accessible_et_une_infobulle` : l'information ne repose jamais sur l'icône ou la couleur seule.

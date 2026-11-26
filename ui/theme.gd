@@ -53,6 +53,16 @@ const ICONES := {
 	"reglages": DOSSIER_UI + "Icons/Regular_02.png",
 	"son": DOSSIER_UI + "Icons/Regular_03.png",
 }
+## Icônes de la barre du haut (une par information) : Ravenmore (CC BY 3.0) et le sablier de
+## sonild (CC0). Chaque icône porte aussi un nom et une infobulle dans le HUD.
+const ICONES_HUD := {
+	"or": "res://assets/icones/ravenmore/coin.png",
+	"revenu": "res://assets/icones/ravenmore/gemGreen.png",
+	"manche": "res://assets/icones/ravenmore/map.png",
+	"temps": "res://assets/icones/sablier/sablier.png",
+	"armure": "res://assets/icones/ravenmore/shield.png",
+	"armes": "res://assets/icones/ravenmore/sword.png",
+}
 ## Toutes les textures citées par le thème (le test vérifie qu'elles existent).
 const TEXTURES: Array[String] = [
 	TEX_BOUTON,
@@ -217,6 +227,11 @@ static func appliquer(racine: Control) -> void:
 		Input.set_custom_mouse_cursor(pointeur, Input.CURSOR_ARROW, POINTEUR_POINTE)
 
 
+## Icône de la barre du haut (`ICONES_HUD`), entière.
+static func icone_hud(nom: String) -> Texture2D:
+	return load(str(ICONES_HUD[nom])) as Texture2D
+
+
 ## Icône du pack pour une action (`ICONES`), rognée à son glyphe.
 static func icone(nom: String) -> Texture2D:
 	var atlas := AtlasTexture.new()
@@ -225,7 +240,6 @@ static func icone(nom: String) -> Texture2D:
 	return atlas
 
 
-## La police pixel du jeu ; tout signe qu'elle n'a pas vient de DejaVu Sans, puis du moteur.
 ## Taille de texte d'un rôle (« texte », « petit », « titre »), multipliée par `echelle` (la
 ## « Taille de l'interface » de `Reglages`). Un rôle inconnu prend la taille du texte.
 static func taille(role: String, echelle: float = 1.0) -> int:
@@ -233,6 +247,7 @@ static func taille(role: String, echelle: float = 1.0) -> int:
 	return maxi(1, roundi(base * echelle))
 
 
+## La police du jeu ; tout signe qu'elle n'a pas vient de DejaVu Sans, puis du moteur.
 static func police() -> Font:
 	if _police == null:
 		var v := FontVariation.new()

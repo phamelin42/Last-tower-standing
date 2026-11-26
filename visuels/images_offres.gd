@@ -111,6 +111,10 @@ const OFFRES: Dictionary = {
 	"lentille_fixe": ["ludicarts/cristal_vert", "sarcelle"],
 	"bourse_de_rebut": ["backpack", "sarcelle"],
 	"jeton_de_l_arriere_boutique": ["map", "sarcelle"],
+	# Mana : maximale et régénération.
+	"fiole_d_azur": ["potionBlue", "sarcelle"],
+	"cristal_de_reserve": ["ludicarts/cristal_violet", "sarcelle"],
+	"source_vive": ["potionBlue", "violet"],
 }
 
 ## Offres dont l'icône n'est qu'un rapprochement faible, à faire valider par Phil.
