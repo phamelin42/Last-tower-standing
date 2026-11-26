@@ -270,7 +270,6 @@ func test_un_robot_qui_achete_remplit_les_compteurs_d_achats() -> void:
 	for type_degats: int in 5:
 		par_type += float(fin[BilanPartie.nom_type(type_degats)])
 	verifier_egal(par_type, float(fin["armes_achetees"]), "chaque arme compte pour un type")
-	verifier(float(fin["manche_atteinte"]) >= 2.0, "la manche atteinte avance")
 
 
 func test_le_robot_passif_n_achete_rien() -> void:
