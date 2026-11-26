@@ -40,6 +40,8 @@ var ennemis: Ennemis
 var poses: Poses
 ## Alliés invoqués : ils disparaissent avec la manche et la tour.
 var allies: Allies
+## Compteurs de la partie (défis) : lus par `Partie.bilan_joueur`, jamais par la simulation.
+var bilan_partie: BilanPartie = BilanPartie.new()
 var economie: Economie
 var inventaire: Inventaire
 var boutique: Boutique
@@ -120,8 +122,12 @@ func _init(donnees: Donnees, graine: int) -> void:
 func demarrer_manche(numero: int, composition: Composition, mult: Dictionary) -> void:
 	if _detruite:
 		return
+	if _manche >= 1:
+		bilan_partie.fin_de_manche()
 	_manche = maxi(numero, 0)
 	_manche_max = maxi(_manche_max, _manche)
+	if _manche == 1:
+		bilan_partie.debut_de_la_premiere_manche(mana_max())
 	_composition = composition
 	poses.vider()
 	allies.vider()
@@ -140,6 +146,8 @@ func demarrer_manche(numero: int, composition: Composition, mult: Dictionary) ->
 func demarrer_boss(mult: Dictionary) -> void:
 	if _detruite:
 		return
+	if _manche >= 1:
+		bilan_partie.fin_de_manche()
 	_manche = maxi(_manche, int(_donnees.partie["manche_boss"]))
 	_manche_max = maxi(_manche_max, _manche)
 	poses.vider()
@@ -187,6 +195,7 @@ func avancer(dt: float) -> void:
 	_tick += 1
 	_temps += dt
 	var degats_avant := _degats_infliges
+	var eliminations_avant := _eliminations
 	economie.avancer(dt, _manche, _stats, _temps)
 	_faire_apparaitre(dt)
 	_pas_tour_et_ennemis(dt)
@@ -196,6 +205,9 @@ func avancer(dt: float) -> void:
 	_noter_degats(_degats_infliges - degats_avant)
 	_purger()
 	_pv_borne()
+	bilan_partie.pas(
+		maxf(pv, 0.0), _pv_max(), economie.argent, armes.size(), _eliminations - eliminations_avant
+	)
 	if pv <= 0.0:
 		pv = 0.0
 		_detruite = true
@@ -308,11 +320,11 @@ func _point_d_apparition() -> Vector2:
 
 func _pas_tour_et_ennemis(dt: float) -> void:
 	if _stats.regen > 0.0:
-		pv = minf(pv + _stats.regen * dt, _pv_max())
+		_soigner(_stats.regen * dt)
 	mana = minf(mana + _mana_regen() * dt, mana_max())
 	var resultat := ennemis.avancer(dt, Vector2.ZERO, _rayon_tour, 1.0, 1.0)
 	mana_gagnee(float(resultat["siphon_mana"]))
-	pv = minf(pv + float(resultat["siphon_vie"]), _pv_max())
+	_soigner(float(resultat["siphon_vie"]))
 	var total: float = resultat["degats_tour"]
 	if not total > 0.0:
 		return
@@ -330,7 +342,9 @@ func _pas_tour_et_ennemis(dt: float) -> void:
 			continue
 		subis += coup
 		if _stats.epines > 0.0:
-			_degats_infliges += ennemis.infliger(i, _stats.epines * coup, Types.TypeDegats.CHAOS)
+			var renvoyes := ennemis.infliger(i, _stats.epines * coup, Types.TypeDegats.CHAOS)
+			_degats_infliges += renvoyes
+			bilan_partie.epines(renvoyes)
 	var a_distance := total - total_cac
 	if a_distance > EPSILON_DEGATS and not _esquive(chance):
 		subis += a_distance
@@ -338,6 +352,8 @@ func _pas_tour_et_ennemis(dt: float) -> void:
 	# Ordre : esquive, armure, mana, PV. Un point de mana absorbe un point de dégât.
 	var absorbe := minf(mana, apres_armure)
 	if absorbe > 0.0:
+		if mana - absorbe <= 0.0:
+			bilan_partie.chute_bouclier()
 		mana -= absorbe
 		_ajouter_evenement(
 			{
@@ -349,6 +365,8 @@ func _pas_tour_et_ennemis(dt: float) -> void:
 				"rayon": 0.0
 			}
 		)
+	if apres_armure - absorbe > 0.0:
+		bilan_partie.perte_pv()
 	pv -= apres_armure - absorbe
 
 
@@ -356,6 +374,14 @@ func _pas_tour_et_ennemis(dt: float) -> void:
 ## change pas.
 func _esquive(chance: float) -> bool:
 	return chance > 0.0 and _rng.randf() < chance
+
+
+## Rend des points de vie à la tour (régénération, soins, vol de vie, siphon) jusqu'au maximum ;
+## ce qu'elle gagne vraiment compte dans le bilan.
+func _soigner(montant: float) -> void:
+	var avant := pv
+	pv = minf(pv + montant, _pv_max())
+	bilan_partie.soin(pv - avant)
 
 
 func _pas_armes(dt: float) -> void:
@@ -374,7 +400,7 @@ func _pas_armes(dt: float) -> void:
 			arme, dt, _stats, ennemis, Vector2.ZERO, _donnees, _rng, _resistance, bilan, lecture
 		)
 	_degats_infliges += bilan.degats
-	pv = minf(pv + bilan.soin, _pv_max())
+	_soigner(bilan.soin)
 	mana_gagnee(bilan.mana)
 	for e: Dictionary in bilan.evenements:
 		e["t"] = _tick
@@ -387,7 +413,7 @@ func _pas_poses(dt: float) -> void:
 		return
 	var bilan := poses.avancer(dt, ennemis, _stats, Vector2.ZERO, _donnees, _resistance)
 	_degats_infliges += bilan.degats
-	pv = minf(pv + bilan.soin, _pv_max())
+	_soigner(bilan.soin)
 	mana_gagnee(bilan.mana)
 	for e: Dictionary in bilan.evenements:
 		e["t"] = _tick
@@ -415,8 +441,8 @@ func _purger() -> void:
 		# l'événement qui fait disparaître l'ennemi à l'écran.
 		if not bool(r["sans_prime"]):
 			_eliminations += 1
-			economie.gagner(economie.prime(int(r["prime"]), _manche, _stats))
-			economie.gagner(economie.enregistrer_elimination(_stats))
+			economie.gagner_prime(economie.prime(int(r["prime"]), _manche, _stats))
+			economie.gagner_prime(economie.enregistrer_elimination(_stats))
 			if int(r["id"]) == _boss_id:
 				_boss_mort = true
 		_ajouter_evenement(
@@ -446,10 +472,33 @@ func _pv_borne() -> void:
 func acheter(index: int) -> int:
 	if _detruite:
 		return Types.Resultat.ARENE_MORTE
+	var id_offre := ""
+	if index >= 0 and index < boutique.offres.size():
+		id_offre = str(boutique.offres[index]["id"])
 	var resultat := boutique.acheter(index, economie, inventaire)
 	if resultat == Types.Resultat.OK:
+		_compter_achat(id_offre)
 		synchroniser()
 	return resultat
+
+
+## Une arme ou une amélioration obtenue (achat ou marché noir) : le bilan la compte.
+func _compter_achat(id: String) -> void:
+	if _donnees.armes.has(id):
+		bilan_partie.achat_arme(_donnees.armes[id])
+	elif _donnees.ameliorations.has(id):
+		bilan_partie.achat_amelioration(_donnees.ameliorations[id])
+
+
+## Les compteurs de la partie de cette arène, or compris (l'économie les tient).
+func bilan() -> Dictionary:
+	var d := bilan_partie.a_dict()
+	d["or_gagne_total"] = float(economie.or_gagne_total)
+	d["or_gagne_primes"] = float(economie.or_gagne_primes)
+	d["or_depense"] = float(economie.or_depense)
+	d["eliminations"] = float(_eliminations)
+	d["manche_atteinte"] = float(_manche_max)
+	return d
 
 
 func relancer() -> int:
@@ -476,6 +525,7 @@ func choisir_marche_noir(id: String) -> int:
 		return Types.Resultat.ARENE_MORTE
 	var resultat := boutique.acheter_marche_noir(id, economie, inventaire)
 	if resultat == Types.Resultat.OK:
+		_compter_achat(id)
 		synchroniser()
 	return resultat
 

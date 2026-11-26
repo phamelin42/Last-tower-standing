@@ -200,6 +200,7 @@ func _eliminer(j: JoueurPartie, cause: int) -> void:
 func _vaincre(j: JoueurPartie) -> void:
 	_figer(j)
 	j.victorieux = true
+	j.a_vaincu = true
 	joueur_victorieux.emit(j.id)
 
 
@@ -444,6 +445,19 @@ func _composition_annoncee(j: JoueurPartie) -> Composition:
 
 
 ## Met à jour les statistiques d'un joueur depuis une vue qu'on vient de lire.
+## Le bilan du joueur `id` : les compteurs de son arène, plus ce que seule la partie sait (victoire,
+## dernière tour debout). Vide pour un identifiant inconnu ou un joueur parti (son arène a disparu).
+func bilan_joueur(id: int) -> Dictionary:
+	var j := _joueur(id)
+	if j == null or j.arene == null:
+		return {}
+	var d := j.arene.bilan()
+	d["manche_atteinte"] = float(maxi(j.manche, int(d["manche_atteinte"])))
+	d["victoire"] = 1.0 if j.a_vaincu else 0.0
+	d["dernier_rempart"] = 1.0 if _terminee and _dernier_rempart == id else 0.0
+	return d
+
+
 func _enregistrer(j: JoueurPartie, v: VueArene) -> void:
 	j.manche = v.manche_max
 	j.eliminations = v.eliminations
