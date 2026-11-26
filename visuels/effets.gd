@@ -145,6 +145,9 @@ var parent_sol: Node2D = null
 var catalogue: PackedStringArray = PackedStringArray()
 ## Mouvement réduit (D21) : ni gel, ni rebond d'échelle, ni étincelles ; un éclat bref reste.
 var mouvement_reduit: bool = false
+## Faux : les armes à élément sont rendues par leur signature, comme avant D22 (le repli que les
+## tests gardent vivant maintenant que les 30 armes du lot 8 ont leur élément).
+var rendu_par_element: bool = true
 
 var _libres: Array = [[], []]
 var _vivants: Array[Dictionary] = []
@@ -558,7 +561,7 @@ func _tir_element(
 
 ## L'élément de l'arme d'index `arme` du catalogue, `""` si elle garde son rendu.
 func _element(arme: int) -> String:
-	if arme < 0 or arme >= catalogue.size():
+	if not rendu_par_element or arme < 0 or arme >= catalogue.size():
 		return ""
 	return ElementsArmes.de(catalogue[arme])
 

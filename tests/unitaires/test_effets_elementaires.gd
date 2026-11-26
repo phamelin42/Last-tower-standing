@@ -1,7 +1,7 @@
 extends CasDeTest
 ## Les six armes à élément (D22) dans `Effets` : l'impact n'arrive jamais avant son projectile
 ## (anticipation et vol compris), un barrage lance ses boules l'une après l'autre, la zone dessinée
-## est la zone touchée, et les 24 autres armes gardent leur rendu.
+## est la zone touchée, et le repli par signature reste possible pour les 30 armes.
 
 const IMAGE: float = 1.0 / 60.0
 ## Images entre le tir et l'impact : anticipation + vol (direct 3 + 7, cloche 3 + 11, foudre 3).
@@ -129,13 +129,13 @@ func test_mouvement_reduit_aucune_particule_aucune_rotation() -> void:
 		verifier_egal(_effets.gel_restant(), 0.0, "pas de gel de %s" % id)
 
 
-func test_une_arme_sans_element_garde_son_rendu() -> void:
-	var autres: int = 0
-	for id: String in SignaturesArmes.ids():
-		if ElementsArmes.de(id) != "":
-			continue
-		autres += 1
+func test_les_trente_armes_du_lot_8_ont_un_element_et_gardent_un_repli_par_signature() -> void:
+	var ids: PackedStringArray = SignaturesArmes.ids()
+	verifier_egal(ids.size(), 30, "les trente armes du catalogue")
+	for id: String in ids:
+		verifier(ElementsArmes.de(id) != "", "%s : un élément" % id)
 		avant_chaque_pour_boucle()
+		_effets.rendu_par_element = false
 		for evenement: Dictionary in _vitrine.evenements_du_cycle(id):
 			_effets.ajouter(evenement)
 		verifier(_effets.nombre_vivants() + _effets.impacts_en_attente() > 0, "%s : un rendu" % id)
@@ -143,7 +143,6 @@ func test_une_arme_sans_element_garde_son_rendu() -> void:
 		_effets.avancer(0.5)
 		verifier_egal(_effets.elementaires().nombre_vivants(), 0)
 		verifier_egal(_effets.elementaires().particules_actives(), 0)
-	verifier_egal(autres, 30 - ElementsArmes.ids().size(), "toutes les autres armes du catalogue")
 
 
 func test_un_barrage_n_a_qu_un_anneau_au_rayon_reel_centre_sur_les_impacts() -> void:
