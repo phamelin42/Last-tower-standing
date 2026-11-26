@@ -11,11 +11,7 @@ var _sessions: Array[SessionReseau] = []
 
 
 func avant_chaque() -> void:
-	var brut := AidesPartie.brut()
-	var skins: Dictionary = brut["skins_tour.json"]
-	skins["essai_1"] = (skins["defaut"] as Dictionary).duplicate(true)
-	skins["essai_2"] = (skins["defaut"] as Dictionary).duplicate(true)
-	_donnees = Donnees.depuis_brut(brut)
+	_donnees = AidesPartie.donnees()
 	_sessions = []
 
 

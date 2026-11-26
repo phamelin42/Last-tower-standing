@@ -3,18 +3,12 @@ extends CasDeTest
 ## catalogue, rangé avec le joueur dès le lancement, jamais accepté en partie. Sans socket : on
 ## présente des pairs et des octets, les envois sont captés.
 
-const NB_SKINS := 4
-
 var d: Donnees
 var crees: Array[Serveur] = []
 
 
 func avant_chaque() -> void:
-	var brut := AidesPartie.brut()
-	var skins: Dictionary = brut["skins_tour.json"]
-	for i: int in range(1, NB_SKINS):
-		skins["essai_%d" % i] = (skins["defaut"] as Dictionary).duplicate(true)
-	d = Donnees.depuis_brut(brut)
+	d = AidesPartie.donnees()
 	crees = []
 
 

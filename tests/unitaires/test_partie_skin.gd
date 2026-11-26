@@ -4,15 +4,11 @@ extends CasDeTest
 ## index 0), ne le laisse changer qu'au salon, et il ne change rien à la partie.
 
 const GRAINE := 20261126
-const NB_SKINS := 5
 
 
-func _donnees_skins(n: int = NB_SKINS) -> Donnees:
-	var brut := AidesPartie.brut()
-	var skins: Dictionary = brut["skins_tour.json"]
-	for i: int in range(1, n):
-		skins["essai_%d" % i] = (skins["defaut"] as Dictionary).duplicate(true)
-	return Donnees.depuis_brut(brut)
+## Les données réelles : le catalogue de skins vient de `data/skins_tour.json`, sans nombre en dur.
+func _donnees_skins() -> Donnees:
+	return AidesPartie.donnees()
 
 
 func _skin_de(p: Partie, id: int) -> int:
@@ -25,12 +21,11 @@ func _skin_de(p: Partie, id: int) -> int:
 func test_les_identifiants_de_skin_suivent_l_ordre_du_fichier() -> void:
 	var d := _donnees_skins()
 	var ids := d.ids_skins()
-	verifier_egal(ids.size(), NB_SKINS)
+	verifier(ids.size() >= 2, "le catalogue a plusieurs skins (%d)" % ids.size())
 	verifier_egal(ids[0], "defaut", "le skin par défaut est l'index 0")
 	var cles: Array = d.skins_tour.keys()
 	for i: int in ids.size():
 		verifier_egal(ids[i], String(cles[i]), "index %d" % i)
-	verifier_egal(Donnees.charger().ids_skins(), ["defaut"] as Array[String])
 
 
 func test_un_index_de_skin_hors_catalogue_vaut_le_skin_par_defaut() -> void:
