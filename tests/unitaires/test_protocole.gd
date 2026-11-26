@@ -395,7 +395,7 @@ func test_type_de_reconnait_chaque_message_et_refuse_le_reste() -> void:
 	verifier_egal(Protocole.type_de(arene), Protocole.Msg.ETAT_ARENE)
 	verifier_egal(Protocole.type_de(PackedByteArray()), -1)
 	verifier_egal(Protocole.type_de(PackedByteArray([0])), -1)
-	verifier_egal(Protocole.type_de(PackedByteArray([Protocole.Msg.ETAT_ARENE_REGARDEE + 1])), -1)
+	verifier_egal(Protocole.type_de(PackedByteArray([Protocole.Msg.BILAN + 1])), -1)
 	verifier_egal(Protocole.type_de(Protocole.encoder_resultat(1, 0)), Protocole.Msg.RESULTAT)
 	var gros := PackedByteArray()
 	gros.resize(Protocole.MAX_TAILLE + 1)

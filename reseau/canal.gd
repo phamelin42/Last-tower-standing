@@ -13,6 +13,7 @@ signal etat_global_recu(octets: PackedByteArray)
 signal salon_recu(octets: PackedByteArray)
 signal refus_recu(octets: PackedByteArray)
 signal resultat_recu(octets: PackedByteArray)
+signal bilan_recu(octets: PackedByteArray)
 
 @rpc("any_peer", "reliable")
 func rpc_bonjour(octets: PackedByteArray) -> void:
@@ -53,3 +54,9 @@ func rpc_refus(octets: PackedByteArray) -> void:
 @rpc("authority", "reliable")
 func rpc_resultat(octets: PackedByteArray) -> void:
 	resultat_recu.emit(octets)
+
+
+## Le bilan de fin de partie de ce joueur (lot 11) : fiable, une seule fois.
+@rpc("authority", "reliable")
+func rpc_bilan(octets: PackedByteArray) -> void:
+	bilan_recu.emit(octets)

@@ -44,6 +44,7 @@ var _regarde_demande: int = -1
 var _dernier_tick_regarde: int = -1
 var _densites: Dictionary = {}
 var _dernier_tick: int = -1
+var _dernier_bilan: Dictionary = {}
 var _silence: float = 0.0
 var _attente_connexion: float = 0.0
 
@@ -94,6 +95,7 @@ func connecter(
 	canal.etat_global_recu.connect(_a_la_reception_global)
 	canal.refus_recu.connect(_a_la_reception_refus)
 	canal.resultat_recu.connect(_a_la_reception_resultat)
+	canal.bilan_recu.connect(_a_la_reception_bilan)
 	_lie = true
 	set_process(true)
 	return OK
@@ -114,12 +116,18 @@ func deconnecter() -> void:
 			_delier(canal.etat_global_recu, _a_la_reception_global)
 			_delier(canal.refus_recu, _a_la_reception_refus)
 			_delier(canal.resultat_recu, _a_la_reception_resultat)
+			_delier(canal.bilan_recu, _a_la_reception_bilan)
 		_lie = false
 	if _peer != null:
 		_peer.close()
 		if multiplayer.multiplayer_peer == _peer:
 			multiplayer.multiplayer_peer = null
 	_peer = null
+
+
+## Le bilan de la partie qui vient de finir, `{}` tant qu'il n'est pas arrivé.
+func bilan() -> Dictionary:
+	return _dernier_bilan.duplicate()
 
 
 func est_connecte() -> bool:
@@ -145,6 +153,7 @@ func _reinitialiser() -> void:
 	_dernier_tick_regarde = -1
 	_densites = {}
 	_dernier_tick = -1
+	_dernier_bilan = {}
 	_silence = 0.0
 	_attente_connexion = 0.0
 
@@ -297,6 +306,19 @@ func _a_la_reception_refus(octets: PackedByteArray) -> void:
 		return
 	var motif := Protocole.decoder_refus(octets)
 	_perdre(motif if not motif.is_empty() else "Connexion refusée.")
+
+
+## Le bilan de fin de partie : le dernier reçu est gardé (`bilan()`), le signal le porte une fois.
+func _a_la_reception_bilan(octets: PackedByteArray) -> void:
+	if not _valide(octets, Protocole.Msg.BILAN):
+		return
+	var recu := Protocole.decoder_bilan(octets)
+	if recu.is_empty():
+		paquets_ignores += 1
+		return
+	_silence = 0.0
+	_dernier_bilan = recu
+	bilan_recu.emit(recu)
 
 
 func _a_la_reception_resultat(octets: PackedByteArray) -> void:

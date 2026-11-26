@@ -12,6 +12,11 @@ const EPSILON_TEMPS := 1e-9
 const PERIODES_MAX_PAR_APPEL := 100000
 
 var argent: int = 0
+## Pour le bilan de partie : or gagné (revenu, primes, bonus ; pas les ventes), dont les primes, et
+## or dépensé (achats et relances).
+var or_gagne_total: int = 0
+var or_gagne_primes: int = 0
+var or_depense: int = 0
 
 var _donnees: Donnees
 var _periode: float
@@ -50,6 +55,7 @@ func avancer(dt: float, manche: int, stats: StatsTour, temps_ecoule: float) -> i
 	var par_periode := revenu_par_periode(manche, stats, temps_ecoule)
 	var avant := argent
 	gagner(roundi(minf(float(par_periode) * periodes, float(OR_MAX))))
+	or_gagne_total += argent - avant
 	return argent - avant
 
 
@@ -84,7 +90,16 @@ func payer(montant: int) -> bool:
 	if not peut_payer(montant):
 		return false
 	argent -= montant
+	or_depense += montant
 	return true
+
+
+## Or d'une prime ou d'un bonus d'élimination : comme `gagner`, et compté dans le bilan.
+func gagner_prime(montant: int) -> void:
+	var avant := argent
+	gagner(montant)
+	or_gagne_primes += argent - avant
+	or_gagne_total += argent - avant
 
 
 ## Ignore les montants nuls ou négatifs ; le total est plafonné à `OR_MAX`.

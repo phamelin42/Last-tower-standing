@@ -618,3 +618,29 @@ func test_un_client_au_mauvais_jeton_n_est_pas_hote() -> void:
 	await _jusqua(func() -> bool: return serveur.salon.joueurs.size() == 1)
 	verifier_egal(serveur.salon.hote, -1)
 	verifier_faux(c.est_hote())
+
+
+func test_un_bilan_valide_est_relaye_et_garde_et_un_bilan_malforme_est_ignore() -> void:
+	var c := _nouveau_client("Nu")
+	var recus: Array[Dictionary] = []
+	c.bilan_recu.connect(func(b: Dictionary) -> void: recus.append(b))
+	verifier_egal(c.bilan(), {}, "pas de bilan avant la fin")
+	var bilan := BilanPartie.new()
+	bilan.soin(42.0)
+	c._a_la_reception_bilan(Protocole.encoder_bilan(bilan.a_dict()))
+	verifier_egal(recus.size(), 1)
+	verifier_egal(recus[0]["pv_soignes"], 42.0)
+	verifier_egal(c.bilan(), recus[0], "le dernier bilan est gardé")
+	var avant := c.paquets_ignores
+	var bruit := PackedByteArray([Protocole.Msg.BILAN, 0, 0])
+	for mauvais: PackedByteArray in [
+		PackedByteArray(), bruit, Protocole.encoder_etat_global(_globale_vide())
+	]:
+		c._a_la_reception_bilan(mauvais)
+	verifier_egal(recus.size(), 1, "aucun bilan de plus")
+	verifier_egal(c.paquets_ignores, avant + 3)
+	verifier_egal(c.bilan()["pv_soignes"], 42.0, "le bilan gardé n'est pas écrasé")
+
+
+func _globale_vide() -> VueGlobale:
+	return AidesPartie.partie(d, 7, 1).vue_globale()

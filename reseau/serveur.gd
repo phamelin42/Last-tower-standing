@@ -735,7 +735,19 @@ func _verifier_fin() -> void:
 	_fin_signalee = true
 	if not _pairs.is_empty():
 		_diffuser_global()
+		_envoyer_les_bilans()
 	partie_terminee_serveur.emit()
+
+
+## Chaque joueur encore présent reçoit son propre bilan, et seulement le sien. Un joueur parti
+## n'a plus d'arène : `bilan_joueur` rend `{}` et rien ne lui part.
+func _envoyer_les_bilans() -> void:
+	for pair: int in _pairs:
+		if not (_pairs[pair] as _Pair).enregistre:
+			continue
+		var octets := Protocole.encoder_bilan(partie.bilan_joueur(pair))
+		if not octets.is_empty():
+			_envoyer(pair, "rpc_bilan", octets)
 
 
 func _envoyer(pair: int, rpc: String, octets: PackedByteArray) -> void:
