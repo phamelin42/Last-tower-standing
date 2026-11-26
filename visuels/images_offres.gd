@@ -38,6 +38,15 @@ const OFFRES: Dictionary = {
 	"moulinet_de_cuivre": ["ludicarts/lame_feu", "brique"],
 	"guillotine_a_vapeur": ["upg_axe", "brique"],
 	"tourbillon_d_acier": ["upg_axeDouble", "brique"],
+	"serpe_de_vigne": ["axe2", "brique"],
+	"rasoir_tournoyant": ["axeDouble", "brique"],
+	"couperet_a_epines": ["upg_hammer", "brique"],
+	"lame_de_brume": ["sword", "brique"],
+	"faucheuse_double": ["axeDouble2", "brique"],
+	"fleau_de_rasoirs": ["upg_dagger", "brique"],
+	"hache_de_garde": ["upg_sword", "brique"],
+	"scie_a_ruban": ["upg_spear", "brique"],
+	"moissonneuse_d_acier": ["swordWood", "brique"],
 	# Armes perçantes.
 	"arbalete_de_bureau": ["bow", "vert"],
 	"chausse_trape": ["swordWood", "vert"],
@@ -120,6 +129,9 @@ const OFFRES: Dictionary = {
 ## Offres dont l'icône n'est qu'un rapprochement faible, à faire valider par Phil.
 const RAPPROCHEMENTS_FAIBLES: PackedStringArray = [
 	"chausse_trape",
+	"couperet_a_epines",
+	"scie_a_ruban",
+	"moissonneuse_d_acier",
 	"trebuchet_de_chambre",
 	"mine_de_forge",
 	"canon_de_cloche",
