@@ -10,6 +10,8 @@ extends SceneTree
 const SORTIE := "res://visuels/recadrages.gd"
 const COULEURS: Array[String] = ["Blue", "Red", "Yellow", "Purple"]
 
+var _erreur: bool = false
+
 
 func _init() -> void:
 	var lignes: Array[String] = [
@@ -30,7 +32,7 @@ func _init() -> void:
 		var fichiers: Array[String] = []
 		if chemin.contains("%s"):
 			for couleur: String in COULEURS:
-				fichiers.append(Apparence.RACINE + chemin % [couleur, couleur])
+				fichiers.append(Apparence.chemin_feuille(cle, couleur))
 		else:
 			fichiers.append(chemin if chemin.begins_with("res://") else Apparence.RACINE + chemin)
 		lignes.append(_entree(cle, fichiers, modele))
@@ -53,6 +55,9 @@ func _init() -> void:
 	lignes.append('\t\tvar v: PackedFloat64Array = texte.split_floats(",")')
 	lignes.append("\t\t_cache[texte] = Rect2i(int(v[0]), int(v[1]), int(v[2]), int(v[3]))")
 	lignes.append("\treturn _cache[texte]")
+	if _erreur:
+		quit(1)
+		return
 	var f := FileAccess.open(SORTIE, FileAccess.WRITE)
 	f.store_string("\n".join(lignes) + "\n")
 	f.close()
@@ -66,10 +71,12 @@ func _entree(cle: String, fichiers: Array[String], modele: Dictionary) -> String
 	var nb: int = colonnes * int(modele["lignes"])
 	var images: Array[Image] = []
 	for fichier: String in fichiers:
-		# Une couleur peut manquer ou porter le nom fautif du pack (`Archer_Purlple.png`) : on la
-		# saute, la silhouette est la même dans les autres.
-		if FileAccess.file_exists(fichier):
-			images.append(Image.load_from_file(ProjectSettings.globalize_path(fichier)))
+		# Une feuille manquante est une erreur : sans elle, la boîte ne couvrirait pas sa couleur.
+		if not FileAccess.file_exists(fichier):
+			push_error("feuille introuvable : %s" % fichier)
+			_erreur = true
+			return ""
+		images.append(Image.load_from_file(ProjectSettings.globalize_path(fichier)))
 	var valeurs: PackedStringArray = PackedStringArray()
 	for image: int in nb:
 		var cellule := Rect2i(

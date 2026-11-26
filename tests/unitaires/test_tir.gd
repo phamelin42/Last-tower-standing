@@ -67,10 +67,8 @@ func _def_reelle(kind: String) -> Dictionary:
 	return {}
 
 
-func _placer(
-	pos: Vector2, pv: float = PV, volant: bool = false, armure: int = Types.Armure.AUCUNE
-) -> int:
-	return e.ajouter(0, pos, pv, 0.0, 0.0, 40.0, 1.0, 1, volant, armure)
+func _placer(pos: Vector2, pv: float = PV, armure: int = Types.Armure.AUCUNE) -> int:
+	return e.ajouter(0, pos, pv, 0.0, 0.0, 40.0, 1.0, 1, armure)
 
 
 func _pv(id: int) -> float:
@@ -395,7 +393,7 @@ func test_efficacite_x2_aux_quatre_couples_x1_ailleurs_jamais_x4() -> void:
 		for a: int in range(6):
 			avant_chaque()
 			var arme := ArmeEquipee.new(_def({"kind": "cible_unique"}, [], 10.0, 1.0, 600, t))
-			var id := _placer(Vector2(100, 0), PV, false, a)
+			var id := _placer(Vector2(100, 0), PV, a)
 			var bilan := _pas(arme)
 			var attendu := 20.0 if doubles.get(t, -1) == a else 10.0
 			_p(bilan.degats, attendu, "type %d armure %d" % [t, a])
@@ -406,7 +404,7 @@ func test_bonus_de_degats_par_type_et_global_se_multiplient() -> void:
 	stats.degats_type[Types.TypeDegats.MAGIQUE] = 1.5
 	stats.degats_global = 2.0
 	var arme := ArmeEquipee.new(_def({"kind": "cible_unique"}, [], 10.0, 1.0, 600, 2))
-	var id := _placer(Vector2(100, 0), PV, false, Types.Armure.AUCUNE)
+	var id := _placer(Vector2(100, 0), PV, Types.Armure.AUCUNE)
 	_pas(arme)
 	_p(PV - _pv(id), 30.0)
 
@@ -498,14 +496,14 @@ func test_vol_de_vie_a_la_mort_par_les_ameliorations_et_par_l_arme() -> void:
 # --- Zone, rebond, barrage ---------------------------------------------------------------------
 
 
-func test_zone_touche_les_volants_et_les_ennemis_dans_le_rayon_seulement() -> void:
+func test_zone_touche_tous_les_ennemis_dans_le_rayon_seulement() -> void:
 	var arme := ArmeEquipee.new(_def({"kind": "zone", "rayon": 110.0}))
-	var sol := _placer(Vector2(200, 0))
-	var air := _placer(Vector2(280, 0), PV, true)
+	var proche := _placer(Vector2(200, 0))
+	var autre := _placer(Vector2(280, 0))
 	var loin := _placer(Vector2(200, 130))
 	_pas(arme)
-	_p(_pv(sol), PV - 10.0)
-	_p(_pv(air), PV - 10.0, "volant touché")
+	_p(_pv(proche), PV - 10.0)
+	_p(_pv(autre), PV - 10.0, "tout ennemi du rayon est touché")
 	_p(_pv(loin), PV, "hors du rayon")
 
 

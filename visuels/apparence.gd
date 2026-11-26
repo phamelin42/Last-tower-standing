@@ -61,6 +61,8 @@ const MODELES: Dictionary = {
 		"attaque_bas": Vector2i(6, 8),
 		"attaque_haut": Vector2i(2, 8),
 		"pieds": 128.0,
+		# Le pack écrit « Purlple » dans le nom de la feuille violette de l'archer.
+		"noms_irreguliers": {"Purple": "Purlple"},
 	},
 	"warrior":
 	{
@@ -101,21 +103,6 @@ const MODELES: Dictionary = {
 		"attaque_haut": Vector2i(2, 7),
 		"pieds": 130.0,
 	},
-	# Feuille maison (`tools/dessiner_guepe.gd`, CC0) : ligne 0 vol, ligne 1 coup ; l'ombre, détachée
-	# du corps, est dessinée sur la feuille.
-	"guepe":
-	{
-		"chemin": "res://assets/maison/guepe_de_laiton.png",
-		"case": Vector2i(192, 192),
-		"colonnes": 6,
-		"lignes": 2,
-		"repos": Vector2i(0, 6),
-		"course": Vector2i(0, 6),
-		"attaque": Vector2i(1, 4),
-		"attaque_bas": Vector2i(1, 4),
-		"attaque_haut": Vector2i(1, 4),
-		"pieds": 152.0,
-	},
 	"mouton":
 	{
 		"chemin": "Resources/Sheep/HappySheep_All.png",
@@ -131,24 +118,34 @@ const MODELES: Dictionary = {
 	},
 }
 
-## Une entrée par entité (famille, convoi, boss). `couleur` est la couleur du pack ; `echelle`
-## agrandit le sprite ; `flottement` (pixels de feuille) fait monter et descendre un volant.
+## Une entrée par entité (24 familles, convoi, boss) : le modèle du pack suit le modèle de jeu et
+## la couleur du pack suit le palier (jaune, rouge, violet, bleu). `couleur_pack` est la couleur du
+## pack ; `echelle` agrandit le sprite.
 const ENTITES: Dictionary = {
-	"guepe_de_laiton":
-	{
-		"modele": "guepe",
-		"couleur_pack": "",
-		"echelle": 1.0,
-		"volant": true,
-		"flottement": 8.0,
-	},
-	"rodeur_de_suie": {"modele": "torch", "couleur_pack": "Yellow", "echelle": 1.0},
-	"pillard_de_brume": {"modele": "pawn", "couleur_pack": "Red", "echelle": 1.0},
-	"archer_de_cendre": {"modele": "archer", "couleur_pack": "Yellow", "echelle": 1.0},
-	"heaume_d_argile": {"modele": "warrior", "couleur_pack": "Red", "echelle": 1.0},
-	"brute_de_forge": {"modele": "warrior", "couleur_pack": "Purple", "echelle": 1.25},
-	"tonneau_de_poudre": {"modele": "barrel", "couleur_pack": "Red", "echelle": 1.5},
-	"artificier_de_fumee": {"modele": "tnt", "couleur_pack": "Red", "echelle": 1.0},
+	"torche_jaune": {"modele": "torch", "couleur_pack": "Yellow", "echelle": 1.0},
+	"torche_rouge": {"modele": "torch", "couleur_pack": "Red", "echelle": 1.0},
+	"torche_violet": {"modele": "torch", "couleur_pack": "Purple", "echelle": 1.0},
+	"torche_bleu": {"modele": "torch", "couleur_pack": "Blue", "echelle": 1.0},
+	"paysan_jaune": {"modele": "pawn", "couleur_pack": "Yellow", "echelle": 1.0},
+	"paysan_rouge": {"modele": "pawn", "couleur_pack": "Red", "echelle": 1.0},
+	"paysan_violet": {"modele": "pawn", "couleur_pack": "Purple", "echelle": 1.0},
+	"paysan_bleu": {"modele": "pawn", "couleur_pack": "Blue", "echelle": 1.0},
+	"guerrier_jaune": {"modele": "warrior", "couleur_pack": "Yellow", "echelle": 1.0},
+	"guerrier_rouge": {"modele": "warrior", "couleur_pack": "Red", "echelle": 1.0},
+	"guerrier_violet": {"modele": "warrior", "couleur_pack": "Purple", "echelle": 1.0},
+	"guerrier_bleu": {"modele": "warrior", "couleur_pack": "Blue", "echelle": 1.0},
+	"tonneau_jaune": {"modele": "barrel", "couleur_pack": "Yellow", "echelle": 1.5},
+	"tonneau_rouge": {"modele": "barrel", "couleur_pack": "Red", "echelle": 1.5},
+	"tonneau_violet": {"modele": "barrel", "couleur_pack": "Purple", "echelle": 1.5},
+	"tonneau_bleu": {"modele": "barrel", "couleur_pack": "Blue", "echelle": 1.5},
+	"dynamite_jaune": {"modele": "tnt", "couleur_pack": "Yellow", "echelle": 1.0},
+	"dynamite_rouge": {"modele": "tnt", "couleur_pack": "Red", "echelle": 1.0},
+	"dynamite_violet": {"modele": "tnt", "couleur_pack": "Purple", "echelle": 1.0},
+	"dynamite_bleu": {"modele": "tnt", "couleur_pack": "Blue", "echelle": 1.0},
+	"archer_jaune": {"modele": "archer", "couleur_pack": "Yellow", "echelle": 1.0},
+	"archer_rouge": {"modele": "archer", "couleur_pack": "Red", "echelle": 1.0},
+	"archer_violet": {"modele": "archer", "couleur_pack": "Purple", "echelle": 1.0},
+	"archer_bleu": {"modele": "archer", "couleur_pack": "Blue", "echelle": 1.0},
 	"troupeau_du_colporteur":
 	{
 		"modele": "mouton",
@@ -225,15 +222,11 @@ static func entree(id: String) -> Dictionary:
 	var source: Dictionary = ENTITES[id]
 	var modele: Dictionary = (MODELES[source["modele"]] as Dictionary).duplicate()
 	var couleur_pack: String = source["couleur_pack"]
-	var chemin: String = modele["chemin"]
-	if chemin.contains("%s"):
-		chemin = chemin % [couleur_pack, couleur_pack]
-	modele["feuille"] = chemin if chemin.begins_with("res://") else RACINE + chemin
+	modele["feuille"] = chemin_feuille(String(source["modele"]), couleur_pack)
 	modele.erase("chemin")
+	modele.erase("noms_irreguliers")
 	modele["echelle"] = source["echelle"]
 	modele["couleur"] = Color.WHITE
-	modele["volant"] = source.get("volant", false)
-	modele["flottement"] = source.get("flottement", 0.0)
 	modele["cle_boites"] = source["modele"]
 	if source.has("accessoire"):
 		var accessoire: Dictionary = (source["accessoire"] as Dictionary).duplicate()
@@ -241,6 +234,20 @@ static func entree(id: String) -> Dictionary:
 		modele["accessoire"] = accessoire
 	_entrees[id] = modele
 	return modele
+
+
+## Chemin `res://` de la feuille du modèle `cle` dans la couleur du pack `couleur` (vide si le
+## modèle est inconnu) ; une feuille sans couleur (le mouton) ignore `couleur`.
+static func chemin_feuille(cle: String, couleur: String) -> String:
+	if not MODELES.has(cle):
+		return ""
+	var modele: Dictionary = MODELES[cle]
+	var chemin: String = modele["chemin"]
+	if chemin.contains("%s"):
+		var irreguliers: Dictionary = modele.get("noms_irreguliers", {})
+		var nom: String = String(irreguliers.get(couleur, couleur))
+		chemin = chemin % [couleur, nom]
+	return chemin if chemin.begins_with("res://") else RACINE + chemin
 
 
 ## Pixels du monde pour une position de la vue (unités de jeu).

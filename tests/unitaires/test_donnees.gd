@@ -37,7 +37,7 @@ func _armes_valides() -> Array:
 			"type_degats": "perçant",
 			"degats": 12.0,
 			"recharge": 0.8,
-			"portee": 900,
+			"portee": 1000,
 			"ciblage": "plus_faible",
 			"effets": [{"kind": "cible_unique"}],
 		},
@@ -50,7 +50,7 @@ func _armes_valides() -> Array:
 			"type_degats": "siège",
 			"degats": 42.0,
 			"recharge": 1.2,
-			"portee": 600,
+			"portee": 750,
 			"ciblage": "plus_proche",
 			"effets": [{"kind": "rebond", "cibles": 5, "portee_saut": 250, "decroissance": 0.9}],
 			"statuts": [{"kind": "givre"}, {"kind": "vol_de_vie", "ratio": 0.05}],
@@ -84,32 +84,43 @@ func _ameliorations_valides() -> Array:
 
 func _ennemis_valides() -> Dictionary:
 	return {
-		"familles":
+		"modeles":
 		[
 			{
 				"id": "rampant",
-				"nom": "Rampant des cendres légères",
+				"noms": ["Rampant des cendres légères", "Rampant des braises"],
 				"armure": "légère",
-				"volant": false,
+				"classe_portee": "corps_a_corps",
 				"pv": 40,
 				"vitesse": 60,
 				"degats": 4,
 				"portee_attaque": 40,
 				"cadence_attaque": 1.0,
 				"prime": 2,
+				"manche_min": 1,
+				"explose": false,
+				"raison_lenteur": "",
 			},
 			{
 				"id": "belier",
-				"nom": "Bélier fortifié",
+				"noms": ["Bélier fortifié", "Bélier cuirassé"],
 				"armure": "fortifiée",
-				"volant": true,
+				"classe_portee": "corps_a_corps",
 				"pv": 120,
 				"vitesse": 50,
 				"degats": 9,
-				"portee_attaque": 200,
+				"portee_attaque": 50,
 				"cadence_attaque": 2.0,
 				"prime": 5,
+				"manche_min": 1,
+				"explose": true,
+				"raison_lenteur": "",
 			},
+		],
+		"paliers":
+		[
+			{"id": "jaune", "manche_entree": 1, "pv": 1.0, "degats": 1.0, "prime": 1.0},
+			{"id": "rouge", "manche_entree": 8, "pv": 2.5, "degats": 1.5, "prime": 1.6},
 		],
 		"convoi":
 		{"id": "convoi_dore", "nom": "Convoi doré", "pv": 400, "vitesse": 45, "prime": 120},
@@ -143,7 +154,7 @@ func _brut_listes_vides() -> Dictionary:
 		brut[nom] = _lire_reel(nom)
 	brut["armes.json"] = []
 	brut["ameliorations.json"] = []
-	brut["ennemis.json"] = {"familles": [], "convoi": {}, "boss": {}}
+	brut["ennemis.json"] = {"modeles": [], "paliers": [], "convoi": {}, "boss": {}}
 	return brut
 
 
@@ -342,7 +353,7 @@ func test_charger_lit_aussi_les_trois_fichiers_de_contenu_quand_ils_existent() -
 		return
 	verifier_egal(d.armes.size(), 2)
 	verifier_egal(d.ameliorations.size(), 2)
-	verifier_egal(d.familles.size(), 2)
+	verifier_egal(d.familles.size(), 4)
 	verifier_egal(d.convoi["id"], "convoi_dore")
 	verifier_egal(d.boss["id"], "seigneur_des_cendres")
 
@@ -356,14 +367,14 @@ func test_les_noms_francais_sont_convertis_en_enums_dans_les_donnees_normalisees
 	verifier_egal(arme["type_degats"], Types.TypeDegats.SIEGE)
 	verifier_egal(arme["rarete"], Types.Rarete.RARE)
 	verifier_egal(arme["ciblage"], Types.Ciblage.PLUS_PROCHE)
-	verifier_egal(arme["portee"], 600)
+	verifier_egal(arme["portee"], 750)
 	verifier_egal(arme["prix"], 900)
 	var percante: Dictionary = d.armes["arbalete_percante"]
 	verifier_egal(percante["type_degats"], Types.TypeDegats.PERCANT)
 	verifier_egal(percante["ciblage"], Types.Ciblage.PLUS_FAIBLE)
 	verifier_egal(d.familles[0]["armure"], Types.Armure.LEGERE)
-	verifier_egal(d.familles[1]["armure"], Types.Armure.FORTIFIEE)
-	verifier_egal(d.familles[1]["volant"], true)
+	verifier_egal(d.familles[2]["armure"], Types.Armure.FORTIFIEE)
+	verifier_egal(d.familles[2]["explose"], true)
 	var amelio: Dictionary = d.ameliorations["lame_aiguisee"]
 	verifier_egal(amelio["rarete"], Types.Rarete.COMMUNE)
 	var effets: Array = amelio["effets"]
@@ -616,7 +627,7 @@ func _mutations_armes() -> Array[Array]:
 		["armes : kind de statut inconnu", f, [1, "statuts", 0, "kind"], "malediction", "kind"],
 		["armes : id dupliqué", f, [1, "id"], "arbalete_percante", "id"],
 		["armes : id vide", f, [0, "id"], "", "id"],
-		["armes : portée hors paliers", f, [0, "portee"], 500, "portee"],
+		["armes : portée hors paliers", f, [0, "portee"], 550, "portee"],
 		["armes : portée en chaîne", f, [0, "portee"], "600", "portee"],
 		["armes : rebond < 4", f, [1, "effets", 0, "cibles"], 3, "cibles"],
 		["armes : rebond > 8", f, [1, "effets", 0, "cibles"], 9, "cibles"],
@@ -669,15 +680,15 @@ func _mutations_ameliorations() -> Array[Array]:
 func _mutations_ennemis() -> Array[Array]:
 	var f := "ennemis.json"
 	return [
-		["ennemis : armure en majuscule", f, ["familles", 0, "armure"], "Légère", "armure"],
-		["ennemis : armure sans accent", f, ["familles", 1, "armure"], "fortifiee", "armure"],
-		["ennemis : id dupliqué", f, ["familles", 1, "id"], "rampant", "id"],
+		["ennemis : armure en majuscule", f, ["modeles", 0, "armure"], "Légère", "armure"],
+		["ennemis : armure sans accent", f, ["modeles", 1, "armure"], "fortifiee", "armure"],
+		["ennemis : id dupliqué", f, ["modeles", 1, "id"], "rampant", "id"],
 		["ennemis : id du convoi pris", f, ["convoi", "id"], "rampant", "convoi.id"],
 		["ennemis : boss sans id", f, ["boss", "id"], SUP, "boss.id"],
-		["ennemis : PV nuls", f, ["familles", 0, "pv"], 0, "pv"],
-		["ennemis : volant en chaîne", f, ["familles", 0, "volant"], "non", "volant"],
-		["ennemis : prime négative", f, ["familles", 0, "prime"], -2, "prime"],
-		["ennemis : portée manquante", f, ["familles", 0, "portee_attaque"], SUP, "portee_attaque"],
+		["ennemis : PV nuls", f, ["modeles", 0, "pv"], 0, "pv"],
+		["ennemis : explose en chaîne", f, ["modeles", 0, "explose"], "non", "explose"],
+		["ennemis : prime négative", f, ["modeles", 0, "prime"], -2, "prime"],
+		["ennemis : portée manquante", f, ["modeles", 0, "portee_attaque"], SUP, "portee_attaque"],
 		["ennemis : vitesse infinie", f, ["convoi", "vitesse"], INF, "convoi.vitesse"],
 	]
 

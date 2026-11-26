@@ -1,107 +1,161 @@
 {
- "familles": [
+ "modeles": [
   {
-   "id": "guepe_de_laiton",
-   "nom": "Guêpes de laiton",
+   "id": "torche",
+   "noms": [
+    "Rôdeurs de suie",
+    "Rôdeurs de braise",
+    "Rôdeurs de brasier",
+    "Rôdeurs d’incendie"
+   ],
    "armure": "légère",
-   "volant": true,
-   "pv": 30,
-   "vitesse": 90,
-   "degats": 3,
-   "portee_attaque": 30,
-   "cadence_attaque": 0.8,
-   "prime": 2
-  },
-  {
-   "id": "rodeur_de_suie",
-   "nom": "Rôdeurs de suie",
-   "armure": "légère",
-   "volant": false,
+   "classe_portee": "corps_a_corps",
    "pv": 45,
-   "vitesse": 75,
+   "vitesse": 112.5,
    "degats": 4,
    "portee_attaque": 40,
    "cadence_attaque": 1.0,
-   "prime": 2
+   "prime": 2,
+   "manche_min": 1,
+   "explose": false,
+   "raison_lenteur": ""
   },
   {
-   "id": "pillard_de_brume",
-   "nom": "Pillards de brume",
+   "id": "paysan",
+   "noms": [
+    "Pillards de brume",
+    "Pillards de givre",
+    "Pillards d’orage",
+    "Pillards de tempête"
+   ],
    "armure": "moyenne",
-   "volant": false,
+   "classe_portee": "corps_a_corps",
    "pv": 90,
-   "vitesse": 60,
+   "vitesse": 90.0,
    "degats": 7,
    "portee_attaque": 45,
    "cadence_attaque": 1.1,
-   "prime": 3
+   "prime": 3,
+   "manche_min": 1,
+   "explose": false,
+   "raison_lenteur": ""
   },
   {
-   "id": "archer_de_cendre",
-   "nom": "Archers de cendre",
-   "armure": "moyenne",
-   "volant": false,
-   "pv": 70,
-   "vitesse": 50,
-   "degats": 6,
-   "portee_attaque": 450,
-   "cadence_attaque": 1.5,
-   "prime": 4
-  },
-  {
-   "id": "heaume_d_argile",
-   "nom": "Heaumes d’argile",
+   "id": "guerrier",
+   "noms": [
+    "Heaumes d’argile",
+    "Heaumes de bronze",
+    "Heaumes d’acier",
+    "Heaumes d’obsidienne"
+   ],
    "armure": "lourde",
-   "volant": false,
+   "classe_portee": "corps_a_corps",
    "pv": 260,
-   "vitesse": 35,
+   "vitesse": 52.5,
    "degats": 14,
    "portee_attaque": 55,
    "cadence_attaque": 1.6,
-   "prime": 6
+   "prime": 6,
+   "manche_min": 1,
+   "explose": false,
+   "raison_lenteur": "La lourde armure ralentit chaque pas."
   },
   {
-   "id": "brute_de_forge",
-   "nom": "Brutes de forge",
-   "armure": "lourde",
-   "volant": false,
-   "pv": 380,
-   "vitesse": 30,
-   "degats": 20,
-   "portee_attaque": 60,
-   "cadence_attaque": 2.0,
-   "prime": 8
-  },
-  {
-   "id": "tonneau_de_poudre",
-   "nom": "Tonneaux de poudre",
+   "id": "tonneau",
+   "noms": [
+    "Tonneaux de poudre",
+    "Tonneaux de salpêtre",
+    "Tonneaux de soufre",
+    "Tonneaux de foudre"
+   ],
    "armure": "fortifiée",
-   "volant": false,
+   "classe_portee": "corps_a_corps",
    "pv": 520,
-   "vitesse": 25,
+   "vitesse": 60.0,
    "degats": 24,
    "portee_attaque": 50,
    "cadence_attaque": 2.2,
-   "prime": 12
+   "prime": 12,
+   "manche_min": 1,
+   "explose": true,
+   "raison_lenteur": ""
   },
   {
-   "id": "artificier_de_fumee",
-   "nom": "Artificiers de fumée",
+   "id": "dynamite",
+   "noms": [
+    "Artificiers de fumée",
+    "Artificiers de mèche",
+    "Artificiers de fusée",
+    "Artificiers de tonnerre"
+   ],
    "armure": "aucune",
-   "volant": false,
+   "classe_portee": "moyenne",
    "pv": 60,
-   "vitesse": 65,
+   "vitesse": 97.5,
    "degats": 5,
-   "portee_attaque": 250,
+   "portee_attaque": 350,
    "cadence_attaque": 1.2,
-   "prime": 4
+   "prime": 4,
+   "manche_min": 1,
+   "explose": false,
+   "raison_lenteur": ""
+  },
+  {
+   "id": "archer",
+   "noms": [
+    "Archers de cendre",
+    "Archers de ronce",
+    "Archers de mistral",
+    "Archers de zénith"
+   ],
+   "armure": "moyenne",
+   "classe_portee": "longue",
+   "pv": 70,
+   "vitesse": 75.0,
+   "degats": 6,
+   "portee_attaque": 650,
+   "cadence_attaque": 1.5,
+   "prime": 4,
+   "manche_min": 5,
+   "explose": false,
+   "raison_lenteur": ""
+  }
+ ],
+ "paliers": [
+  {
+   "id": "jaune",
+   "manche_entree": 1,
+   "pv": 1.0,
+   "degats": 1.0,
+   "prime": 1.0
+  },
+  {
+   "id": "rouge",
+   "manche_entree": 8,
+   "pv": 2.5,
+   "degats": 1.5,
+   "prime": 1.6
+  },
+  {
+   "id": "violet",
+   "manche_entree": 16,
+   "pv": 6.0,
+   "degats": 2.2,
+   "prime": 2.5
+  },
+  {
+   "id": "bleu",
+   "manche_entree": 24,
+   "pv": 15.0,
+   "degats": 3.0,
+   "prime": 4.0
   }
  ],
  "convoi": {
   "id": "troupeau_du_colporteur",
   "nom": "Troupeau du colporteur",
   "pv": 400,
-  "vitesse": 45,
+  "vitesse": 67.5,
   "prime": 120
  },
  "boss": {
@@ -109,7 +163,7 @@
   "nom": "Aïeul de fer",
   "armure": "boss",
   "pv": 20000,
-  "vitesse": 35,
+  "vitesse": 52.5,
   "degats": 60,
   "portee_attaque": 80,
   "cadence_attaque": 1.5

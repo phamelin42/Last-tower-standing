@@ -9,7 +9,7 @@ const KINDS_EFFET: Array[String] = [
 	"cible_unique", "zone", "rebond", "onde", "barrage", "mine", "piege", "aura"
 ]
 const KINDS_STATUT: Array[String] = ["poison", "brulure", "givre", "etourdissement", "vol_de_vie"]
-const PORTEES: Array[int] = [300, 600, 900, 1200]
+const PORTEES: Array[int] = [500, 750, 1000, 1250]
 const STATS: Array[String] = [
 	"degats_type",
 	"degats_global",
@@ -251,7 +251,7 @@ func test_typographie_francaise_des_textes_visibles() -> void:
 	for objet: Dictionary in armes + ameliorations:
 		textes.append(objet["nom"])
 		textes.append(objet["description"])
-	for famille: Dictionary in ennemis["familles"]:
+	for famille: Dictionary in _familles():
 		textes.append(famille["nom"])
 	textes.append(ennemis["convoi"]["nom"])
 	textes.append(ennemis["boss"]["nom"])
@@ -275,7 +275,7 @@ func test_aucun_nom_de_la_map_d_origine() -> void:
 	var textes: Array[String] = []
 	for objet: Dictionary in armes + ameliorations:
 		textes.append(String(objet["id"]) + " " + objet["nom"] + " " + objet["description"])
-	for famille: Dictionary in ennemis["familles"]:
+	for famille: Dictionary in _familles():
 		textes.append(String(famille["id"]) + " " + famille["nom"])
 	textes.append(String(ennemis["convoi"]["id"]) + " " + ennemis["convoi"]["nom"])
 	textes.append(String(ennemis["boss"]["id"]) + " " + ennemis["boss"]["nom"])
@@ -288,57 +288,91 @@ func test_aucun_nom_de_la_map_d_origine() -> void:
 # --- Ennemis -----------------------------------------------------------------------------
 
 
-func test_huit_familles_dont_une_par_armure_une_volante_une_a_distance() -> void:
-	var familles: Array = ennemis["familles"]
-	verifier_egal(familles.size(), 8)
-	for armure: String in ["légère", "moyenne", "lourde", "fortifiée"]:
+## Les familles telles que le jeu les dérive : un modèle et un palier de couleur (l'ordre est celui
+## de `Donnees.familles`). Lues dans le JSON brut, sans passer par `Donnees`.
+func _familles() -> Array[Dictionary]:
+	var familles: Array[Dictionary] = []
+	var paliers: Array = ennemis["paliers"]
+	for m: Dictionary in ennemis["modeles"]:
+		var noms: Array = m["noms"]
+		for k: int in paliers.size():
+			var p: Dictionary = paliers[k]
+			(
+				familles
+				. append(
+					{
+						"id": "%s_%s" % [m["id"], p["id"]],
+						"nom": noms[k],
+						"armure": m["armure"],
+						"portee_attaque": m["portee_attaque"],
+						"vitesse": m["vitesse"],
+						"pv": float(m["pv"]) * float(p["pv"]),
+						"prime": float(m["prime"]) * float(p["prime"]),
+					}
+				)
+			)
+	return familles
+
+
+func test_les_familles_couvrent_chaque_armure_et_comptent_des_modeles_a_distance() -> void:
+	var modeles: Array = ennemis["modeles"]
+	var paliers: Array = ennemis["paliers"]
+	verifier_egal(_familles().size(), modeles.size() * paliers.size())
+	for armure: String in ["légère", "moyenne", "lourde", "fortifiée", "aucune"]:
 		var trouvee := false
-		for famille: Dictionary in familles:
-			trouvee = trouvee or famille["armure"] == armure
-		verifier(trouvee, "aucune famille d’armure %s" % armure)
-	for famille: Dictionary in familles:
+		for modele: Dictionary in modeles:
+			trouvee = trouvee or modele["armure"] == armure
+		verifier(trouvee, "aucun modèle d’armure %s" % armure)
+	for modele: Dictionary in modeles:
 		verifier(
-			String(famille["armure"]) in ARMURES,
-			"%s : armure %s" % [famille["id"], famille["armure"]]
+			String(modele["armure"]) in ARMURES, "%s : armure %s" % [modele["id"], modele["armure"]]
 		)
-	var volantes := familles.filter(func(f: Dictionary) -> bool: return f["volant"])
-	verifier(volantes.size() >= 1, "aucune famille volante")
-	var a_distance := familles.filter(func(f: Dictionary) -> bool: return f["portee_attaque"] > 60)
-	verifier(a_distance.size() >= 1, "aucune famille à distance")
+	var a_distance := modeles.filter(func(m: Dictionary) -> bool: return m["portee_attaque"] > 60)
+	verifier(a_distance.size() >= 1, "aucun modèle à distance")
 
 
-func test_pv_vitesse_et_portee_different_d_une_famille_a_l_autre() -> void:
+func test_pv_vitesse_et_portee_different_d_un_modele_a_l_autre() -> void:
 	for cle: String in ["pv", "vitesse", "portee_attaque"]:
 		var vus := {}
-		for famille: Dictionary in ennemis["familles"]:
-			var valeur: float = famille[cle]
+		for modele: Dictionary in ennemis["modeles"]:
+			var valeur: float = modele[cle]
 			verifier_faux(vus.has(valeur), "%s en double : %s" % [cle, valeur])
 			vus[valeur] = true
 
 
+func test_les_pv_different_d_une_famille_a_l_autre() -> void:
+	var vus := {}
+	for famille: Dictionary in _familles():
+		var pv: float = famille["pv"]
+		verifier_faux(vus.has(pv), "%s : pv en double (%s)" % [famille["id"], pv])
+		vus[pv] = true
+
+
 func test_ids_d_ennemis_uniques_et_primes_positives() -> void:
 	var vus := {}
-	var tous: Array = ennemis["familles"] + [ennemis["convoi"], ennemis["boss"]]
+	var tous: Array = _familles() + [ennemis["convoi"], ennemis["boss"]]
 	for e: Dictionary in tous:
 		verifier_faux(vus.has(e["id"]), "id d’ennemi en double : %s" % e["id"])
 		vus[e["id"]] = true
 		verifier(e["pv"] > 0 and e["vitesse"] > 0, "%s : pv ou vitesse nuls" % e["id"])
-	for famille: Dictionary in ennemis["familles"]:
+	for famille: Dictionary in _familles():
 		verifier(famille["prime"] > 0, "%s sans prime" % famille["id"])
 
 
 func test_le_convoi_ne_frappe_pas_et_rapporte_beaucoup() -> void:
+	# Comparé aux primes de base des modèles : les paliers de couleur relèvent la prime d'une
+	# famille, pas la valeur du convoi.
 	var convoi: Dictionary = ennemis["convoi"]
 	verifier_faux(convoi.has("degats"), "le convoi ne doit pas avoir de dégâts")
-	for famille: Dictionary in ennemis["familles"]:
-		verifier(convoi["prime"] >= 10 * famille["prime"], "prime du convoi trop faible")
+	for modele: Dictionary in ennemis["modeles"]:
+		verifier(convoi["prime"] >= 10 * modele["prime"], "prime du convoi trop faible")
 
 
 func test_le_boss_a_l_armure_boss_et_domine_les_familles() -> void:
 	var boss: Dictionary = ennemis["boss"]
 	verifier_egal(boss["armure"], "boss")
-	for famille: Dictionary in ennemis["familles"]:
-		verifier(boss["pv"] > 10 * famille["pv"], "boss trop fragile face à %s" % famille["id"])
+	for modele: Dictionary in ennemis["modeles"]:
+		verifier(boss["pv"] > 10 * modele["pv"], "boss trop fragile face à %s" % modele["id"])
 
 
 # --- Équilibrage -------------------------------------------------------------------------

@@ -20,8 +20,9 @@ const DUREE_FEU: float = 0.5
 const DUREE_MAX: float = 0.5
 ## Une mine ou un piège qui n'a jamais servi finit par s'effacer.
 const DUREE_SOL_MAX: float = 60.0
-## Les familles dont la mort est l'explosion du pack (identifiants de `data/ennemis.json`).
-const FAMILLES_EXPLOSIVES: Array[String] = ["tonneau_de_poudre", "artificier_de_fumee"]
+## Les modèles de sprite dont la mort est l'explosion du pack : une famille explose si son modèle
+## de sprite (`Apparence.ENTITES`) en fait partie.
+const MODELES_EXPLOSIFS: Array[String] = ["barrel", "tnt"]
 const COUCHE_DESSUS: int = 0
 const COUCHE_SOL: int = 1
 
@@ -223,6 +224,12 @@ static func _nom_champ(valeur: Variant, noms: Array[String]) -> String:
 		if index >= 0 and index < noms.size():
 			return noms[index]
 	return ""
+
+
+## Vrai si la mort de l'entité `id` (famille, convoi ou boss) est l'explosion du pack.
+static func famille_explosive(id: String) -> bool:
+	var entite: Dictionary = Apparence.ENTITES.get(id, {})
+	return MODELES_EXPLOSIFS.has(String(entite.get("modele", "")))
 
 
 ## Une explosion du pack à `ou` (unités de jeu) : la mort d'un tonneau ou d'un artificier.

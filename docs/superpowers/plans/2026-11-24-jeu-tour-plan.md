@@ -1108,7 +1108,7 @@ func id_regarde() -> int                # -1 si aucune
 
 ### Task 8.2 : Protocole version 5 — `sonnet`
 
-- [ ] **Objectif :** une seule montée de version pour toutes les nouveautés réseau du lot : 255 armes, mana, familles suivantes, événements `absorption` et `arme`, `dps` et densités dans l'état global, état d'arène regardée, intention `REGARDER`. Décodage défensif et fuzz comme les versions précédentes.
+- [x] **Objectif :** une seule montée de version pour toutes les nouveautés réseau du lot : 255 armes, mana, familles suivantes, événements `absorption` et `arme`, `dps` et densités dans l'état global, état d'arène regardée, intention `REGARDER`. Décodage défensif et fuzz comme les versions précédentes.
 - **Conception :** §6.3, §6.4, §6.8, §6.10, §6.11.
 - **Fichiers :** `reseau/protocole.gd` ; tests `test_protocole.gd`, `test_protocole_resultat.gd`, `test_protocole_jeton.gd` (version).
 - **Lire :** `reseau/protocole.gd` : `grep -n 'static func\|^const'`, puis `encoder_etat_arene` et `decoder_etat_arene` par plage.
@@ -1126,7 +1126,7 @@ func id_regarde() -> int                # -1 si aucune
 
 ### Task 8.3 : Armes illimitées et arme dans les événements — `sonnet`
 
-- [ ] **Objectif :** plus de plafond de huit armes (D2) : `Inventaire.ajouter` n'échoue plus pour cette raison, la boutique non plus ; au-delà de 255 armes l'achat est refusé proprement sans débit (`ARMES_AU_MAXIMUM`). Les événements de tir et d'impact portent l'arme. Le pas reste sous 5 ms avec 40 armes face à 1 000 ennemis. Les tests qui figeaient « la 9e arme refusée » sont inversés, pas supprimés.
+- [x] **Objectif :** plus de plafond de huit armes (D2) : `Inventaire.ajouter` n'échoue plus pour cette raison, la boutique non plus ; au-delà de 255 armes l'achat est refusé proprement sans débit (`ARMES_AU_MAXIMUM`). Les événements de tir et d'impact portent l'arme. Le pas reste sous 5 ms avec 40 armes face à 1 000 ennemis. Les tests qui figeaient « la 9e arme refusée » sont inversés, pas supprimés.
 - **Conception :** §6.3, §6.5 (l'arme dans l'événement), §6.5 bis.
 - **Fichiers :** `sim/inventaire.gd`, `sim/boutique.gd`, `sim/tir.gd`, `sim/arene.gd`, `tests/outils/strategies_joueur.gd` si un robot suppose huit armes ; tests `test_inventaire.gd`, `test_boutique.gd`, `test_arene_boutique.gd`, `test_arene_charge.gd`, `test_tir.gd`, `test_evenements_genre.gd`.
 - **Lire :** `sim/inventaire.gd` (134 lignes), `sim/boutique.gd` `acheter`, `sim/tir.gd` `_evenement` et `_choisir` ; les trois tests cités par `grep -n 'EMPLACEMENTS_PLEINS\|huit'`.
@@ -1143,7 +1143,7 @@ func id_regarde() -> int                # -1 si aucune
 
 ### Task 8.4 : Les 24 ennemis du pack, classes de portée, explosion du Tonneau, retrait du vol — `sonnet`
 
-- [ ] **Objectif :** `data/ennemis.json` passe à 6 modèles × 4 paliers de couleur (24 familles) ; la classe de portée suit le modèle (corps à corps ≤ 60 ; Dynamite 350 ; Archer 650) ; le Tonneau explose au contact (dégâts sur la tour puis disparaît, sans prime) ; le vol (`volant`, mines et pièges qui l'ignorent) disparaît des données et de `sim/`. Vitesses : **les valeurs d'aujourd'hui** (Torche 75, Paysan 60, Guerrier 35, Tonneau 25, Dynamite 65, Archer 50 ; convoi 45, boss 35), T8.5 les multiplie. Valeurs de départ des autres champs : reprendre celles des familles actuelles (Torche ← rôdeur de suie, Paysan ← pillard de brume, Guerrier ← heaume d'argile, Tonneau, Dynamite ← artificier, Archer) ; paliers de départ pv ×1 / 2,5 / 6 / 15, dégâts ×1 / 1,5 / 2,2 / 3, prime ×1 / 1,6 / 2,5 / 4, entrées aux manches 1 / 8 / 16 / 24, Archer `manche_min` 5, les autres 1 : T8.8 et T8.21 les règlent. La brute de forge disparaît (second guerrier).
+- [x] **Objectif :** `data/ennemis.json` passe à 6 modèles × 4 paliers de couleur (24 familles) ; la classe de portée suit le modèle (corps à corps ≤ 60 ; Dynamite 350 ; Archer 650) ; le Tonneau explose au contact (dégâts sur la tour puis disparaît, sans prime) ; le vol (`volant`, mines et pièges qui l'ignorent) disparaît des données et de `sim/`. Vitesses : **les valeurs d'aujourd'hui** (Torche 75, Paysan 60, Guerrier 35, Tonneau 25, Dynamite 65, Archer 50 ; convoi 45, boss 35), T8.5 les multiplie. Valeurs de départ des autres champs : reprendre celles des familles actuelles (Torche ← rôdeur de suie, Paysan ← pillard de brume, Guerrier ← heaume d'argile, Tonneau, Dynamite ← artificier, Archer) ; paliers de départ pv ×1 / 2,5 / 6 / 15, dégâts ×1 / 1,5 / 2,2 / 3, prime ×1 / 1,6 / 2,5 / 4, entrées aux manches 1 / 8 / 16 / 24, Archer `manche_min` 5, les autres 1 : T8.8 et T8.21 les règlent. La brute de forge disparaît (second guerrier).
 - **Conception :** §6.1 (tableau modèle → rôle), §6.2, §6.12 (leviers).
 - **Fichiers :** `data/ennemis.json`, `sim/donnees.gd` (`_valider_ennemis`, construction de `familles`), `sim/ennemis.gd` (`volant` retiré, `explose`), `sim/arene.gd` (`_apparaitre`, explosion), `sim/tir.gd` (plus d'argument `au_sol` ni `volants`) ; tests `test_donnees.gd`, `test_ennemis.gd`, `test_ennemis_statuts.gd`, `test_tir.gd`, `test_tir_effets.gd`, `test_arene.gd`, `test_vues.gd` (familles `% 24`), nouveau `test_ennemis_portee.gd`.
 - **Lire :** `sim/donnees.gd` `_valider_ennemis` et `_normaliser_famille` ; `sim/ennemis.gd` `ajouter`, `avancer` ; `sim/arene.gd` `_apparaitre`, `_pas_tour_et_ennemis` ; `grep -n volant -r sim tests`.
@@ -1164,7 +1164,7 @@ func id_regarde() -> int                # -1 si aucune
 
 ### Task 8.5 : Portées des armes et vitesse des ennemis ×1,5 — `sonnet`
 
-- [ ] **Objectif :** paliers de portée des armes 500 / 750 / 1 000 / 1 250 (correspondance position à position avec 300 / 600 / 900 / 1 200), vitesse de toutes les familles ×1,5 (convoi et boss compris). Phil, le 25/11/2026 : « Ennemis corps à corps trop lents, portée des ennemis et de la tour trop courte. » Le test des vitesses est écrit d'abord et échoue sur les valeurs de T8.4.
+- [x] **Objectif :** paliers de portée des armes 500 / 750 / 1 000 / 1 250 (correspondance position à position avec 300 / 600 / 900 / 1 200), vitesse de toutes les familles ×1,5 (convoi et boss compris). Phil, le 25/11/2026 : « Ennemis corps à corps trop lents, portée des ennemis et de la tour trop courte. » Le test des vitesses est écrit d'abord et échoue sur les valeurs de T8.4.
 - **Conception :** §6.2, §6.1 (portées), §6.12 (valeurs interdites).
 - **Fichiers :** `data/armes.json`, `data/ennemis.json`, `sim/donnees.gd` (`PORTEES`) ; tests `test_donnees.gd`, `test_contenu.gd`, nouveau `test_vitesses_ennemis.gd`.
 - **Lire :** `grep -n '"portee"' data/armes.json`, `grep -n 'PORTEES' -r sim tests`.
@@ -1278,7 +1278,7 @@ func id_regarde() -> int                # -1 si aucune
 
 ### Task 8.11 : Sprites des 24 ennemis et retrait de la guêpe — `sonnet`
 
-- [ ] **Objectif :** `Apparence.ENTITES` couvre les 24 familles (modèle du pack, couleur du palier : jaune → `Yellow`, rouge → `Red`, violet → `Purple`, bleu → `Blue` ; Torche `torch`, Paysan `pawn`, Guerrier `warrior`, Tonneau `barrel` ×1,5, Dynamite `tnt`, Archer `archer`), le convoi et le boss gardent leurs sprites ; la guêpe maison et tout ce qui vole disparaissent. L'explosion des familles à explosion suit le modèle, plus la liste de 2 ids.
+- [x] **Objectif :** `Apparence.ENTITES` couvre les 24 familles (modèle du pack, couleur du palier : jaune → `Yellow`, rouge → `Red`, violet → `Purple`, bleu → `Blue` ; Torche `torch`, Paysan `pawn`, Guerrier `warrior`, Tonneau `barrel` ×1,5, Dynamite `tnt`, Archer `archer`), le convoi et le boss gardent leurs sprites ; la guêpe maison et tout ce qui vole disparaissent. L'explosion des familles à explosion suit le modèle, plus la liste de 2 ids.
 - **Conception :** §6.1, §4 (aucun sprite d'ennemi dessiné par nous).
 - **Fichiers :** `visuels/apparence.gd` (`MODELES`, `ENTITES`), `visuels/recadrages.gd` (régénéré par `tools/generer_recadrages.gd`), `tools/generer_recadrages.gd`, `visuels/arene_2d.gd` (`VITESSE_VOL`, flottement), `visuels/effets.gd` (`FAMILLES_EXPLOSIVES` dérivée des modèles `barrel` et `tnt`), suppression de `assets/maison/` et de `tools/dessiner_guepe.gd` ; tests `test_apparence.gd`, `test_arene_2d.gd`, `test_effets.gd`, `test_recadrages.gd`, `test_garde_ressources.gd`, suppression de `test_sprite_guepe.gd`. `CREDITS.md` : voir T8.21 (la ligne de la guêpe y est retirée).
 - **Lire :** `grep -n 'guepe\|volant\|flottement' -r visuels tools tests`, `visuels/apparence.gd` `ENTITES` et `entree`.
@@ -1345,7 +1345,7 @@ func id_regarde() -> int                # -1 si aucune
 
 ### Task 8.15 : Sons de tir par arme et d'impact par type de dégâts — `sonnet`
 
-- [ ] **Objectif :** D15. Un son de tir propre à chacune des 30 armes et un son d'impact par type de dégâts (5), pris dans le « 400+ Sounds Pack » (CC0, déjà cité dans `CREDITS.md`), surtout dans ses dossiers Weapons et Combat and Gore, puis dans tout dossier adapté (Magic, Explosions…) s'il n'y a pas 30 sons distincts ; jamais le même fichier d'origine deux fois. Dossier du pack : https://drive.google.com/drive/folders/10Owjc3qqK0tWUJANwKOYmKsidLofonc0 (liste par `https://drive.google.com/embeddedfolderview?id=<id du dossier>`, téléchargement par `https://drive.google.com/uc?export=download&id=<id>`). Même conversion que T5.6 : Ogg Vorbis par ffmpeg, silence de tête coupé, `loudnorm` à −18 LUFS. Indépendante de la planche.
+- [x] **Objectif :** D15. Un son de tir propre à chacune des 30 armes et un son d'impact par type de dégâts (5), pris dans le « 400+ Sounds Pack » (CC0, déjà cité dans `CREDITS.md`), surtout dans ses dossiers Weapons et Combat and Gore, puis dans tout dossier adapté (Magic, Explosions…) s'il n'y a pas 30 sons distincts ; jamais le même fichier d'origine deux fois. Dossier du pack : https://drive.google.com/drive/folders/10Owjc3qqK0tWUJANwKOYmKsidLofonc0 (liste par `https://drive.google.com/embeddedfolderview?id=<id du dossier>`, téléchargement par `https://drive.google.com/uc?export=download&id=<id>`). Même conversion que T5.6 : Ogg Vorbis par ffmpeg, silence de tête coupé, `loudnorm` à −18 LUFS. Indépendante de la planche.
 - **Conception :** §6.5 bis, D15.
 - **Fichiers :** `sons/catalogue_sons.gd`, `sons/detecteur_sons.gd`, `sons/lecteur_sons.gd`, `assets/sons/tir_<id>.ogg` (30) et `assets/sons/impact_<type>.ogg` (5) avec leurs `.import`, `assets/sons/SOURCES.md` (une ligne par son : identifiant, sous-dossier, fichier d'origine) ; tests `test_catalogue_sons.gd`, `test_detecteur_sons.gd`, `test_lecteur_sons.gd`. `CREDITS.md` : voir T8.21 (la ligne du pack existe déjà, son nombre de sons y est mis à jour).
 - **Lire :** `sons/*.gd` (les trois), `assets/sons/SOURCES.md`, `tests/unitaires/test_catalogue_sons.gd`.
@@ -1386,8 +1386,8 @@ func id_regarde() -> int                # -1 si aucune
 
 ### Task 8.17 : Police Metamorphous, tailles du thème et taille de l'interface — `sonnet`
 
-- [ ] **Objectif :** Metamorphous (SIL OFL 1.1) remplace Tiny5 partout, DejaVu Sans reste en repli pour les symboles ; les tailles de texte passent par un seul réglage de `ThemeJeu` au lieu des surcharges locales ; réglage « Taille de l'interface » de 75 à 125 % (défaut 100 %), persistant, appliqué à tout l'ATH.
-- **Conception :** §6.6, §6.7 (taille), D9.
+- [x] **Objectif :** Metamorphous (SIL OFL 1.1) remplace Tiny5 partout, DejaVu Sans reste en repli pour les symboles ; les tailles de texte passent par un seul réglage de `ThemeJeu` au lieu des surcharges locales ; réglage « Taille de l'interface » de 75 à 125 % (défaut 100 %), persistant, appliqué à tout l'ATH. **Décision de pilotage du 25/11/2026 :** Metamorphous à 16 px élargit la boutique au-delà de la part permise ; la PR embarque donc la partie « cartes compactes » de T8.19 (image, nom, prix, rareté ; effet entier et description en infobulle, texte à 16 px minimum, bandeau à 45 % au plus) et le test de surface.
+- **Conception :** §6.6, §6.7 (taille), D9, D13.
 - **Fichiers :** `assets/polices/metamorphous/` (fichier woff2 latin du paquet npm `@fontsource/metamorphous`, `OFL.txt`, `.import`), `ui/theme.gd`, `ui/hud.gd`, `ui/boutique_ui.gd`, `ui/scores.gd`, `ui/reglages_ui.gd`, `app/reglages.gd`, `i18n/textes_reglages.csv` ; tests `test_theme_pack.gd`, `test_mise_en_page.gd`, `test_reglages.gd`, `test_reglages_mise_en_page.gd`, `test_garde_ressources.gd` (liste fermée : la police est citée par `ui/theme.gd` seul). `CREDITS.md` : voir T8.21.
 - **Lire :** `ui/theme.gd` (constantes, `_construire`), `app/reglages.gd` en entier, `grep -n 'font_size\|TAILLE_' ui/*.gd`.
 - **Interfaces :** produit `ThemeJeu.taille(role: String) -> int` (rôles `"texte"`, `"petit"`, `"titre"`) multiplié par l'échelle ; `Reglages.ECHELLES = [0.75, 0.875, 1.0, 1.125, 1.25]` (réglage : cinq crans, défaut 1,0), `Reglages.echelle_valide(valeur)` ramène à un cran ; `Reglages.vitesse_camera: float` (0,5 à 2,0, défaut 1,0, lue par T8.20).
@@ -1398,6 +1398,7 @@ func id_regarde() -> int                # -1 si aucune
   - `test_les_cinq_crans_d_echelle_sont_acceptes_et_les_autres_ramenes_au_plus_proche` : en boucle.
   - **Review Focus 4 :** `test_un_ancien_fichier_de_reglages_garde_une_echelle_valide` (1,25 ancien reste 1,25 ; 1,5 ancien devient 1,25) et `test_aucun_texte_ne_deborde_ni_ne_se_coupe_a_75_et_125_pour_cent` : les plus longs libellés réels (24 noms de familles, noms d'armes, descriptions) aux 3 résolutions de `test_mise_en_page.gd`, aux échelles 0,75 et 1,25.
   - `test_la_vitesse_de_camera_est_bornee_et_persistante`.
+  - Cartes compactes (décision de pilotage) : `test_l_infobulle_de_chaque_offre_donne_l_effet_entier_puis_l_ambiance` (toutes les offres des données, en boucle), `test_l_infobulle_se_lit_a_16_px_au_moins`, `test_les_cartes_les_plus_chargees_tiennent_a_chaque_resolution_et_a_75_et_125_pour_cent` et `test_la_boutique_est_au_moins_30_pour_cent_plus_petite_qu_avant` (`SURFACE_AVANT` mesurée sur `c4f37ef`).
 - **Vérif :** `T --filtre test_theme_pack`, `test_reglages`, `test_mise_en_page`, puis `tools/verifier.sh`.
 
 ### Task 8.18 : Barre du haut à icônes et tableau des scores — `sonnet`
@@ -1419,7 +1420,7 @@ func id_regarde() -> int                # -1 si aucune
 
 ### Task 8.19 : Boutique compacte et repliable, catégories, grille des armes — `sonnet`
 
-- [ ] **Objectif :** cartes compactes (image, nom, prix, rareté ; description en infobulle), panneau qui se replie et se déplie (touche B et bouton), raccourcis 1 à 4 et R conservés ; chaque carte porte en tête un ruban du pack de la couleur de sa catégorie (rouge « Arme », bleu « Amélioration », jaune « Revenu »), avec icône et mot écrit ; les mêmes repères dans la grille des armes équipées, la liste des améliorations achetées et le marché noir ; la liste des armes équipées devient une grille compacte d'icônes qui défile (jusqu'à 255), détail en infobulle.
+- [ ] **Objectif :** _(cartes compactes déjà livrées par T8.17, décision de pilotage du 25/11/2026 : image, nom, prix, rareté, effet et description en infobulle)_ panneau qui se replie et se déplie (touche B et bouton), raccourcis 1 à 4 et R conservés ; chaque carte porte en tête un ruban du pack de la couleur de sa catégorie (rouge « Arme », bleu « Amélioration », jaune « Revenu »), avec icône et mot écrit ; les mêmes repères dans la grille des armes équipées, la liste des améliorations achetées et le marché noir ; la liste des armes équipées devient une grille compacte d'icônes qui défile (jusqu'à 255), détail en infobulle.
 - **Conception :** §6.3 (interface), §6.7 (boutique, catégories), D13, D14.
 - **Fichiers :** `ui/boutique_ui.gd`, `ui/categorie_offre.gd` (nouveau : ruban, icône, mot), `ui/theme.gd` (rubans cités ici), `ui/description_offre.gd` si l'infobulle l'exige, `i18n/textes_boutique.csv` ; tests `test_boutique_ui.gd`, `test_boutique_images.gd`, `test_boutique_description.gd`, `test_mise_en_page.gd`, nouveau `test_categorie_offre.gd`. `emplacements_armes` n'est plus lu (`_capacite` supprimée).
 - **Lire :** `ui/boutique_ui.gd` par plage (`_construire_carte`, `_construire_cote`, `_afficher_armes`), `Donnees.categorie_de`, `ui/theme.gd` (`TEX_RUBAN`).
@@ -1428,7 +1429,6 @@ func id_regarde() -> int                # -1 si aucune
   - `test_chaque_categorie_a_un_ruban_une_icone_et_un_mot_et_les_trois_se_distinguent` : couleur, icône et mot distincts deux à deux, en boucle sur `Types.Categorie`.
   - `test_chaque_offre_affiche_sa_categorie_d_apres_les_donnees` : en boucle sur les 70 offres, le mot écrit est « Arme », « Amélioration » ou « Revenu ».
   - `test_le_panneau_se_replie_et_se_deplie_a_la_touche_b_et_au_bouton` ; `test_replie_le_panneau_laisse_le_bouton_pour_le_deplier_et_libere_la_zone` ; `test_les_raccourcis_1_a_4_et_r_restent`.
-  - `test_la_boutique_est_au_moins_30_pour_cent_plus_petite_qu_avant` : surface du bandeau et du côté aux trois résolutions, comparée à la constante `SURFACE_AVANT` du test (mesurée avant la tâche).
   - `test_la_grille_des_armes_defile_et_tient_255_armes_sans_deborder` ; `test_chaque_arme_de_la_grille_a_une_infobulle_et_son_repere_de_categorie`.
   - `test_aucun_libelle_ne_se_coupe_avec_les_plus_longs_noms_reels_a_75_et_125_pour_cent`.
   - `test_la_vente_a_50_pour_cent_depuis_la_grille_envoie_le_bon_index`.
@@ -1501,3 +1501,543 @@ func id_regarde() -> int                # -1 si aucune
   à corps ; les morts par poison ou brûlure ne soignent pas ; `revenu_mult` ne multiplie pas le revenu
   de base ; l’aura ignore `portee` et `recharge`.
 - **Lots 3 et 4** : terminés (T3.7, T4.3, T4.5 et T4.6 fusionnés par la PR #2).
+
+---
+
+# Lot 9 — Catalogue aligné sur Tower Survivors (D18)
+
+**Conception :** `docs/superpowers/specs/2026-11-25-retours-partie-design.md` §6.13 (décision D18 de Phil du 25/11/2026, complétée le 26/11/2026 : les trois améliorations sans homologue **restent**, soit **87** améliorations en tout, aucune retirée). Comparatif : `docs/tower_survivors.md` (§1, §3, §6 et §7 pour les écarts ; §4.1 et §4.2 **pour le garde-fou seulement** : ses noms, prix, dégâts et durées ne se recopient jamais, ni dans les données, ni dans ce plan). Elle complète la spec du jeu et celle du lot 8 et l'emporte là où elles diffèrent.
+
+**Intention :** passer de 30 armes et 40 améliorations à **75 armes** (15 par type de dégâts, réparties 1 commune, 6 peu communes, 6 rares, 2 épiques) et **87 améliorations**, avec les **dix mécaniques** qui manquent (M1 à M10 ci-dessous). Noms, textes, chiffres et prix restent originaux et calés par notre test d'équilibrage (spec du jeu §5.6) ; nos pièges (`chausse_trape`, `sablier_fele`), absents de la map, restent.
+
+**Les dix mécaniques** (citées par les tâches sous ces numéros) :
+
+- **M1** vulnérabilité cumulable par type de dégâts, plafonnée ;
+- **M2** malédiction, en deux statuts (dégâts de l'ennemi réduits, chances de toucher réduites) ;
+- **M3** repoussement ;
+- **M4** siphon de mana et mana au coup (le siphon vaut aussi pour la vie : même code, deux ressources) ;
+- **M5** dégâts selon les PV maximum de la tour, le nombre d'exemplaires ou les améliorations possédées ;
+- **M6** invocation d'alliés temporaires ;
+- **M7** tir tournant ;
+- **M8** zone posée qui inflige ses dégâts dans la durée, et **M9** bombe à retardement ;
+- **M10** épines comme second type de dégâts d'une arme.
+
+**Parallélisme :** six sessions, chacune sur ses fichiers.
+
+- **Garde-fou** : T9.1, tout de suite (tests et document seulement), **avant tout nom d'arme**.
+- **Simulation** (`sim/`, `reseau/`, `app/source_vue.gd`, `app/source_locale.gd`, `data/partie.json`, `data/unites.json`) : T9.2 dès que T8.3, T8.5 et T8.7 sont fusionnées, puis T9.3, T9.4, T9.5, T9.6, T9.7, T9.8 et T9.9 à la suite.
+- **Améliorations** (`sim/inventaire.gd`, `sim/stats_tour.gd`, `sim/arene.gd` pour consommer les stats, `data/ameliorations.json`) : T9.10, T9.11, T9.12, **après T9.8** (dernière tâche à toucher `sim/arene.gd` et `sim/tir.gd`), donc en parallèle de T9.9, qui ne touche que `reseau/`.
+- **Armes** (`data/armes.json`, `tests/unitaires/test_catalogue_armes.gd`) : T9.13 à T9.17, une tâche par type dans l'ordre tranchant, perçant, magique, siège, chaos, chacune dès que les mécaniques qu'elle impose sont fusionnées. `data/armes.json` n'a **qu'un propriétaire à la fois** : les cinq tâches s'enchaînent. On ne découpe pas le fichier : le chargeur lit `armes.json` et `ameliorations.json` d'un bloc (`FICHIERS_LISTE` de `sim/donnees.gd`) et une douzaine de tests les citent par leur nom.
+- **Rendu** (`visuels/`, `sons/`, `assets/sons/`, `tools/planche_signatures.gd`, `docs/planche_signatures.png`) : T9.18 (**attend Phil**) quand T9.13 à T9.17 sont fusionnées ; T9.19 après la validation de T9.18 ; T9.20 (sons) dès que T9.17 est fusionnée.
+- **Interface** (`ui/description_offre.gd`, `i18n/textes_boutique.csv`) : T9.21, **dès T9.2 et avant T9.10 et T9.13** : les descriptions refusent un genre, un statut ou une stat qu'elles ne connaissent pas (`test_un_genre_un_statut_ou_une_statistique_inconnus_ne_passent_pas_en_silence`), donc aucune donnée nouvelle n'entre avant leurs modèles de ligne.
+- **Passe finale** : T9.22, quand tout est fusionné.
+
+**Dépendances :** T9.1 aucune (le comparatif est sur `main`) · T9.2 T8.3, T8.5, T8.7 · T9.3 T9.2 · T9.4 T9.3, T8.7 · T9.5 T9.4 · T9.6 T9.5 · T9.7 T9.6 · T9.8 T9.7 · T9.9 T9.8, T8.2 · T9.10 T9.8, T9.21 · T9.11 T9.10 · T9.12 T9.11 · T9.13 T9.1, T9.3, T9.5, T9.6, T9.21 · T9.14 T9.13 · T9.15 T9.14, T9.4, T9.7, T9.9 · T9.16 T9.15, T9.5 · T9.17 T9.16, T9.8 · T9.18 T9.13 à T9.17, T8.14 (planche des 30, validée) · T9.19 T9.7, T9.8, T9.9, T9.18 validée par Phil · T9.20 T9.17, T8.15 · T9.21 T9.2 · T9.22 toutes. T9.3 à T9.8 s'enchaînent parce qu'elles touchent toutes `sim/arene.gd`, `sim/tir.gd` ou `sim/ennemis.gd`.
+
+**Couplages à respecter :**
+
+- T9.2 ajoute des genres d'événement, des statuts et des stats que ni le protocole, ni le rendu, ni les descriptions ne gèrent encore : il n'ajoute **aucune donnée de jeu** qui les utilise. Une arme ou une amélioration qui cite une nouveauté n'entre dans `data/` que quand la tâche qui la code, T9.9 (réseau des alliés, zones et bombes) et T9.21 (descriptions) sont fusionnées : c'est ce que la liste des dépendances impose (T9.15, T9.16 et T9.17 attendent T9.9). Le rendu en jeu, lui, vient après (T9.19) : jusque-là un genre ou un statut nouveau retombe sur le rendu par type de dégâts.
+- **Images de la boutique** : chaque offre a une image dans `ImagesOffres.OFFRES` (`visuels/images_offres.gd`, icônes des packs déjà crédités sous `assets/icones/`), et `test_boutique_images.gd` exige aujourd'hui exactement 70 offres. T9.2 remplace cette constante, et celle de `test_description_offre.gd` (même nombre en dur), par la taille des données (seule retouche permise hors de ses fichiers) ; ensuite **chaque tâche de contenu (T9.10 à T9.17) ajoute les images de ses offres**, `OFFRES` étant rangée par sections (type d'arme, famille d'amélioration) pour que les deux sessions ne touchent jamais la même section. Une image qui ne représente pas l'objet va dans `RAPPROCHEMENTS_FAIBLES`.
+- `Protocole.VERSION` : **relire celle de `main` avant de l'incrémenter** (piège de `CLAUDE.md`). Aujourd'hui `main` est à 4 et la PR #28 (T8.2) la porte à 5 : T9.9 prend 6 si T8.2 est fusionnée seule, sinon le numéro qui suit celui de `main` à ce moment-là, et garde tous les formats précédents refusés par un test en boucle.
+- Les index d'armes du réseau sont ceux de `Donnees.ids_catalogue` (ids triés) : ajouter 45 armes et 47 améliorations déplace des index. Cela ne coûte rien (les deux côtés lisent les mêmes données, l'empreinte des données est vérifiée à la connexion) mais aucun test ne doit figer un index.
+
+**Fichiers partagés, un seul propriétaire :** `CREDITS.md`, `docs/equilibrage.md`, `docs/jouer.md` et `CLAUDE.md` appartiennent à T9.22 (les autres tâches y écrivent leurs lignes dans leur rapport) ; `sim/donnees.gd`, `sim/types.gd`, `sim/vue_arene.gd`, `data/partie.json`, `data/unites.json` à T9.2 (puis à la tâche de mécanique qui y ajoute une valeur, dans l'ordre) ; `sim/equilibrage.gd` à la tâche de mécanique qui y ajoute son estimation ; `tests/unitaires/test_contenu.gd` et `test_contenu_donnees.gd` à T9.2 seule (les tests de catalogue vont dans de nouveaux fichiers : `test_catalogue_armes.gd`, `test_catalogue_ameliorations.gd`, `test_noms_origine.gd`).
+
+## Effectifs cibles du catalogue
+
+**Armes, par type de dégâts** (cinq types, tous identiques) : 1 commune, 6 peu communes, 6 rares, 2 épiques, soit 15. Aujourd'hui : 2 / 2 / 1 / 1. Dans chaque type : la commune **la plus rentable** (dégâts par seconde par pièce d'or, `Equilibrage.rendement` **aux prix d'aujourd'hui**) devient peu commune et son prix suit son palier ; on ajoute 3 peu communes, 5 rares et 1 épique. Soit 9 nouvelles armes par type, 45 en tout.
+
+**Améliorations, par famille** (champ `famille` de `ameliorations.json`, créé par T9.2). La cible est l'effectif de la map, **plus** nos trois sans homologue ; un test exige « au moins » la cible par famille et exactement 87 au total (décision de Phil du 26/11/2026) :
+
+| Famille (`famille`)         | Cible  | Dont T8.7  | Nous aujourd'hui | À ajouter | Tâche |
+| --------------------------- | ------ | ---------- | ---------------- | --------- | ----- |
+| `degats_type`               | 15     |            | 10               | 5         | T9.10 |
+| `degats_global`             | 3      |            | 2                | 1         | T9.10 |
+| `degats_classe`             | 7      |            | 3                | 4         | T9.10 |
+| `cadence`                   | 2      |            | 2 (1 de plus)    | 0         |       |
+| `etats`                     | 8      |            | 0                | 8         | T9.10 |
+| `epines`                    | 11     |            | 2                | 9         | T9.11 |
+| `pv_max`                    | 7      |            | 2                | 5         | T9.11 |
+| `regeneration`              | 6      |            | 4                | 2         | T9.11 |
+| `armure`                    | 5      |            | 2                | 3         | T9.11 |
+| `esquive`                   | 1      |            | 1                | 0         |       |
+| `mana`                      | 7      | au moins 3 | 0                | 4 au plus | T9.12 |
+| `revenu`                    | 9      |            | 8                | 1         | T9.12 |
+| `boutique`                  | 3      |            | 2                | 1         | T9.12 |
+| `aura_mixte`                | 1      |            | 0                | 1         | T9.12 |
+| `critique` (sans homologue) | 2      |            | 2                | 0         |       |
+| **Total**                   | **87** |            | **40**           | **47**    |       |
+
+Les 47 à ajouter sont les 3 améliorations de mana de T8.7 (déjà comptées dans `mana`) et les **44** de T9.10 à T9.12 ; si T8.7 en a livré plus de trois, T9.12 en ajoute d'autant moins (le total reste 87).
+
+**Répartition imposée des mécaniques sur les 45 nouvelles armes** (minimum par type ; le reste est laissé à la tâche) : chaque mécanique est portée par au moins une arme du catalogue, et par type :
+
+| Type      | Mécaniques imposées parmi les 9 nouvelles                                                                                                |
+| --------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| tranchant | M1 (vulnérabilité tranchante), M2 (`malediction_toucher`), M7 (tir tournant), M10 (épines)                                               |
+| perçant   | M1 (vulnérabilité perçante), M3 (repoussement), M10 (épines)                                                                             |
+| magique   | M1 (vulnérabilité magique), M4 (`mana_au_coup`, siphon de mana), M7 (tir tournant), M8 (zone posée)                                      |
+| siège     | M1 (vulnérabilité de siège), M5 (PV maximum de la tour ; améliorations possédées), M8 (zone posée, deux armes), M9 (bombe à retardement) |
+| chaos     | M1 (vulnérabilité de chaos), M2 (`malediction_degats`), M4 (siphon de vie), M5 (exemplaires), M6 (invocation, deux armes)                |
+
+## Choix du plan faute d'information dans la conception (à relire par Phil)
+
+1. **PV maximum** (M5) : ceux de **la tour**, comme la mana maximale du lot 8 (`degats_par_mana_max`) ; pas ceux de la cible (confirmé par Phil le 26/11/2026).
+2. **Alliés** (M6) : durée limitée, **sans PV**, ignorés par les ennemis ; ils marchent vers l'ennemi le plus proche dans un rayon de garde et l'attaquent avec un ratio des dégâts de l'arme invocatrice (types de dégâts, bonus et efficacité de cette arme). Plafond global par arène. Les 6 modèles du pack servent déjà aux 24 ennemis (4 couleurs chacun) : les alliés prennent le guerrier ou l'archer **avec une teinte et un anneau au sol** qu'aucun ennemi n'a (T9.19).
+3. **Fin de manche** : alliés, zones posées et bombes à retardement **disparaissent** avec la manche ; mines et pièges gardent leur règle actuelle.
+4. **Siphon** (M4) : un seul statut `siphon` à deux ressources (`mana`, `vie`), plutôt que deux statuts ; il compte dans les 12 statuts d'événement sur 16 possibles.
+5. **Cumul des améliorations nouvelles** : chaque nouvelle stat de dégâts est **son propre facteur** (additive à l'intérieur de la stat, multiplicative entre stats, comme les catégories A, B, C d'aujourd'hui) ; le produit total des facteurs de dégâts est borné par `partie.json` `ameliorations.facteur_degats_max`.
+6. **Épines comme second type** (M10) : les dégâts de l'arme portent toujours son type principal (efficacité contre l'armure inchangée) ; le second type « épines » les fait **aussi** bénéficier des améliorations d'épines. Pas de sixième ligne dans `data/efficacite.json`.
+7. **Noms et descriptions** : les noms d'armes et d'améliorations restent dans `data/armes.json` et `data/ameliorations.json` (champ `nom`), comme aujourd'hui ; `i18n/` ne porte que les modèles de ligne d'effet des descriptions (T9.21). La demande de mettre les noms dans `i18n/` demanderait de déplacer les 117 noms déjà dans `data/` : à décider.
+8. **Boutique** : elle tire d'abord la rareté, puis uniformément dans la rareté (`Boutique._tirer_un`). Avec 75 armes et 87 améliorations, la **part d'armes** parmi les offres des premières manches baisse (aujourd'hui 10 armes sur 21 offres communes possibles, demain 5 sur 18 au moins). T9.22 mesure cette part et dispose d'un levier : `poids_genre` dans `data/boutique.json`.
+9. **Commune promue** : le critère du §6.13 peut garder `chausse_trape` (perçant) ou `sablier_fele` (chaos) comme **seule commune** de leur type. C'est conforme à la décision de Phil ; T9.14 et T9.17 le disent dans leur rapport pour qu'il juge s'il veut une autre règle.
+10. **Malédiction de toucher** (M2) : une **réduction moyenne** des dégâts de l'ennemi (`× (1 − chance)`), sans tirage : le hasard de l'arène reste consommé par la seule esquive de la tour, comme aujourd'hui, donc la suite des tirages ne bouge pas et les parties de référence de l'équilibrage restent comparables avant et après le lot (un tirage à graine fixe serait lui aussi reproductible ; c'est la comparabilité qui décide).
+
+## Interfaces figées du lot 9 (créées par T9.2 ; citées partout)
+
+```gdscript
+# sim/types.gd — ajouts (bits de Ennemis.statuts ; un octet : 8 sur 8 utilisés)
+const STATUT_VULNERABLE := 32
+const STATUT_MAUDIT := 64          # l'une ou l'autre des deux malédictions
+const STATUT_SIPHONNE := 128
+```
+
+**`VueArene`** (`SCHEMA`, `from_dict` et `to_dict` à jour ; l'ordre des listes est figé, on n'ajoute qu'à la fin ; le protocole en transporte l'index et tient sur 4 bits) :
+
+```gdscript
+const GENRES_ARME  # + "tournant", "zone_posee", "bombe", "invocation"  → 13 sur 16
+const STATUTS_ARME # + "vulnerabilite", "malediction_degats", "malediction_toucher",
+                   #   "repoussement", "siphon", "mana_au_coup"          → 12 sur 16
+var allies: Array[Dictionary]   # {id: int, pos: Vector2, unite: int (index dans Donnees.ids_unites)}
+var zones: Array[Dictionary]    # {pos: Vector2, rayon: float, reste: float (s), arme: int}
+var bombes: Array[Dictionary]   # {pos: Vector2, rayon: float, reste: float (s)}
+```
+
+**`Donnees`** : `unites: Dictionary` (id → fiche), `ids_unites: PackedStringArray` (triés) ; `FICHIERS_LISTE` gagne `"unites.json"` (facultatif en dossier de test, comme `armes.json`).
+
+**Schémas ajoutés** (validés au chargement : message nommant le fichier, le chemin et la raison, comme T8.1) :
+
+```text
+armes.json — nouveaux « kind » d'effet (Donnees._kinds_effets)
+  tournant      {branches: entier 1 à 8, pas_deg: > 0 et ≤ 180, largeur: > 0, sens: "horaire" | "antihoraire"}
+  zone_posee    {rayon: > 0, duree: > 0, periode: > 0, ratio: > 0, max_actives: entier ≥ 1}
+  bombe         {delai: > 0 et ≤ 5, rayon: > 0, ratio: > 0, max_actives: entier ≥ 1}
+  invocation    {unite: id de unites.json, duree: > 0, ratio_degats: > 0, max_actives: entier ≥ 1}   # la recharge de l'arme fait la période
+armes.json — nouveaux « kind » de statut (Donnees._kinds_statuts)
+  vulnerabilite       {ratio: > 0, duree: > 0, type_degats: facultatif, celui de l'arme par défaut}
+  malediction_degats  {ratio: ]0 ; 1], duree: > 0}      # dégâts de l'ennemi × (1 − ratio)
+  malediction_toucher {ratio: ]0 ; 1], duree: > 0}      # chance que l'attaque de l'ennemi échoue
+  repoussement        {distance: > 0}                   # recul immédiat, loin de la tour
+  siphon              {ressource: "mana" | "vie", par_seconde: > 0, duree: > 0}
+  mana_au_coup        {valeur: > 0}                     # mana rendue à la tour à chaque coup qui touche
+armes.json — champs facultatifs d'une arme
+  degats_par_pv_max: ratio ≥ 0                          # dégâts de base + ratio × PV maximum de la tour
+  degats_par_exemplaire: ratio ≥ 0                      # + ratio × dégâts de base par exemplaire de plus
+  degats_par_amelioration: {stat: une stat d'amélioration, ratio ≥ 0}   # + ratio × dégâts de base par amélioration possédée ayant cette stat
+  type_secondaire: "epines"
+unites.json — liste de {id, nom, modele: "guerrier" | "archer" | "paysan", vitesse > 0, portee > 0, cadence > 0, rayon_garde > 0}
+ameliorations.json — champ obligatoire « famille » (Types.FAMILLES_AMELIORATION, les quinze noms du tableau ci-dessus) ;
+  stats ajoutées (T9.10 à T9.12), nom → paramètres de l'effet {stat, valeur, …} :
+  degats_type, degats_global : + facultatifs croissance (ratio par tranche de partie.json ameliorations.croissance_pas_s, avec max obligatoire) et par_arme_commune (ratio par arme commune possédée)
+  toute stat « croissante » (epines_croissantes, regen_croissante, armure_croissante) porte aussi un max obligatoire
+  degats_classe {classe: "onde" | "portee_courte" | "portee_longue" | "commune"}
+  etat_degats {etat: "poison" | "brulure"} · etat_duree {etat: "poison" | "brulure" | "etourdissement"}
+  degats_contre_etat {etat: "etourdi" | "empoisonne" | "ralenti"}
+  epines_degats · epines_croissantes · epines_premier_coup · epines_soin · epines_reduction
+  epines_statut {statut: "poison" | "brulure" | "givre" | "etourdissement"}
+  pv_max_mult · soin_pv_manquants · degats_par_pv_max (par tranche de 1 000 PV maximum) · resurrection
+  regen_croissante · soin_periodique {tous_les, ratio}
+  armure_croissante · riposte_statut {statut: "givre" | "poison"}
+  mana_max_mult · mana_rupture_etourdit {rayon, duree} · degats_tant_que_mana · reduction_tant_que_mana
+  revenu_contre_pv {pv, or} · copie_prochaine_offre {raretes_max} · aura_mixte {rayon, poison, regen}
+```
+
+**`partie.json`** (valeurs de départ, réglées par T9.22) : `vulnerabilite: {plafond: 0.5, duree_max: 10.0}` (somme maximale du bonus de dégâts subis, par type et par ennemi) ; `malediction: {plafond: 0.75}` ; `repoussement: {distance_max: 400.0, facteur_boss: 0.0}` ; `limites: {allies: 64, zones: 32, bombes: 32}` ; `armes: {bonus_selon_stat_max: 4.0}` (borne de M5, en multiple des dégâts de base) ; `ameliorations: {facteur_degats_max: 20.0, croissance_pas_s: 30.0}`.
+
+**`StatsTour`** : un champ par stat d'amélioration ajoutée, **valeur neutre au départ** (0,0 pour une somme, 1,0 pour un facteur), de même nom que la stat (`degats_classe`, `etat_degats`, `degats_contre_etat` : `Dictionary` clé → valeur ; `epines_statut`, `riposte_statut` : `Dictionary` statut → valeur). `Inventaire._appliquer` accepte et accumule chaque stat dès T9.2 ; les tâches T9.10 à T9.12 les consomment.
+
+**Simulation** (créées par T9.3 à T9.8) : `Ennemis.vulnerabilite: PackedFloat32Array` (5 valeurs par ennemi, une par type, rangées à plat), `Ennemis.vulnerabiliser(i: int, type_degats: int, ratio: float, duree: float) -> void`, `Ennemis.maudire_degats(i, ratio, duree)`, `Ennemis.maudire_toucher(i, ratio, duree)`, `Ennemis.repousser(i: int, distance: float, depuis: Vector2, facteur: float) -> void`, `Ennemis.siphonner(i, ressource: int, par_seconde, duree)` ; `Tir.Bilan.mana: float` (mana gagnée par le pas) ; `Arene.mana_gagnee(montant: float) -> void` ; `class Poses` (`sim/poses.gd`, zones et bombes) : `ajouter_zone(…)`, `ajouter_bombe(…)`, `avancer(dt: float, ennemis: Ennemis, …) -> Tir.Bilan`, `vider() -> void`, `vers_vue(vue: VueArene) -> void` ; `class Allies` (`sim/allies.gd`) : `invoquer(unite: int, pos: Vector2, duree: float, degats: float, type_degats: int, arme: int) -> int`, `avancer(dt, ennemis, …) -> Tir.Bilan`, `vider() -> void`, `vers_vue(vue: VueArene) -> void` ; `ArmeEquipee.phase_deg: float` (état du tir tournant) ; `Equilibrage.REFERENCE_PV_MAX_TOUR = 1000.0`, `REFERENCE_EXEMPLAIRES = 3`, `REFERENCE_AMELIORATIONS = 3` (valeurs écrites dans le calcul du rendement, comme la mana de référence de T8.7).
+
+**Réseau, protocole version suivante (T9.9)** : `Protocole.MAX_ALLIES`, `MAX_ZONES`, `MAX_BOMBES` égaux à `partie.json` `limites` ; octets d'un allié 5 (position et index d'unité), d'une zone 7, d'une bombe 6 ; le tout dans l'état d'arène et dans l'état d'arène regardée.
+
+**Signatures et sons (T9.18, T9.20)** : `SignaturesArmes.ids()` rend les **75** armes ; `CatalogueSons.id_tir` couvre les 75 (même règle qu'au lot 8).
+
+## Points de vigilance du lot 9 (« Review Focus »), chacun pinglé par un test dans la tâche indiquée
+
+1. Cumul de statuts : cent coups de vingt armes sur les mêmes ennemis, deux malédictions sur un ennemi, vulnérabilités de types différents, siphon et vol de vie ensemble : plafonds exacts, jamais de valeur non finie, jamais un dégât négatif, la durée se rafraîchit au lieu de s'additionner (T9.3, T9.4).
+2. Alliés, zones et bombes : disparus à la fin de la manche, à la mort de la tour et à la fin de la partie ; plafonds globaux tenus quand 255 armes invoquent ; aucune fuite sur cent manches ; une zone ou une bombe dont les ennemis sont tous morts ou purgés ne plante pas (T9.7, T9.8).
+3. Déterminisme à 20 Hz : deux parties de même graine, avec tir tournant, zones, bombes et invocations, donnent la même empreinte de vue sur 600 pas ; les alliés agissent dans l'ordre de leur identifiant, les ex æquo de cible départagés par l'identifiant (T9.6, T9.7, T9.8).
+4. Réseau avec 255 armes dont des invocatrices : un état de mille ennemis, 64 alliés, 32 zones et 32 bombes tient sous `Protocole.MAX_TAILLE` et sous le budget de 50 000 octets par seconde et par client ; tous les paquets forgés ou tronqués rendent `null` ou `{}` (T9.9).
+5. Plafonds d'amélioration : le produit des facteurs de dégâts reste sous `facteur_degats_max` avec les 87 améliorations achetées ; une croissance dans le temps reste bornée en mode sans fin ; la résurrection ne joue qu'une fois par partie ; un maximum de mana ou de PV qui monte ne soigne pas deux fois (T9.10, T9.11, T9.12).
+6. Lisibilité : 75 signatures distinctes deux à deux sur forme **et** couleur du projectile, toujours lisibles au zoom le plus lointain ; avec 255 armes qui tirent, le plafond de 200 effets simultanés tient et les alliés restent distincts des ennemis (T9.18, T9.19).
+7. Boutique : la part d'armes parmi les offres de la manche 1 ne tombe pas sous celle d'avant le lot moins dix points, et chaque arme et chaque amélioration reste proposable à une manche (T9.22).
+8. Noms d'origine : un nom d'un seul mot qui est aussi un mot courant (français ou anglais), ou un chemin de fichier du pack d'images, ne fait pas échouer le garde-fou à tort, et un vrai nom d'origine glissé dans `data/`, `i18n/` ou le code le fait échouer (T9.1).
+9. Performance : 75 armes équipées en une partie, 1 000 ennemis, 64 alliés, 32 zones et 32 bombes, moins de 5 ms par pas en moyenne (T9.8).
+
+---
+
+## Session « Garde-fou »
+
+### Task 9.1 : Garde-fou des noms d'origine — `sonnet`
+
+- [ ] **Objectif :** un test lit les noms d'armes et d'améliorations de `docs/tower_survivors.md` (§4.1 et §4.2) et échoue si l'un d'eux apparaît dans `data/`, `i18n/`, `sim/`, `ui/`, `visuels/` (et, par prudence, `app/`, `reseau/`, `sons/`). Il vient **avant** les 45 armes et les 44 améliorations, pour que chaque nom écrit ensuite soit contrôlé. Il complète `test_aucun_nom_de_la_map_d_origine` de `test_contenu.gd`, qui ne regarde que quelques noms et seulement les champs des données : il reste, ce nouveau test est le filet complet.
+- **Conception :** §6.13 (garde-fou), spec du jeu ligne 10 (noms originaux).
+- **Fichiers :** `tests/outils/noms_origine.gd` (nouveau, `class_name NomsOrigine`), `tests/unitaires/test_noms_origine.gd` (nouveau), `docs/tower_survivors.md` (une seule modification : ajouter un §4.3 « Noms hors boutique » en liste à puces, pour que les noms que le document ne range pas dans un tableau soient lisibles par la machine).
+- **Lire :** `docs/tower_survivors.md` §4.1 et §4.2 (le **format** des tableaux : première colonne, ligne d'en-tête, ligne de séparation ; les phrases « Hors pool » sous les tableaux) ; `tests/unitaires/test_contenu.gd` `INTERDITS` et `test_aucun_nom_de_la_map_d_origine`.
+- **Interfaces :** produit `NomsOrigine.lire(chemin: String = "res://docs/tower_survivors.md") -> PackedStringArray` (noms bruts, dans l'ordre du document, sans doublon) ; `NomsOrigine.normaliser(texte: String) -> String` (minuscules, sans accents par `TextServer.strip_diacritics`, apostrophes typographiques ramenées à `'`, espaces insécables et fines ramenées à l'espace simple) ; `NomsOrigine.trouver(texte: String, noms: PackedStringArray) -> PackedStringArray` (les noms contenus dans le texte) ; `NomsOrigine.HOMOGRAPHES_FRANCAIS: Array[String]` (liste **fermée**, voir ci-dessous) ; `NomsOrigine.sans_chemins_d_images(source: String) -> String`.
+- **Règles de recherche (sans liste d'exceptions large) :**
+  - nom de plusieurs mots : sa forme normalisée se cherche **entière**, entre deux limites de mots (lookarounds Unicode `(?<![\p{L}\p{N}])` et `(?![\p{L}\p{N}])`, drapeau `u`, jamais `\b`) ;
+  - nom d'un seul mot : mot entier, même limites ;
+  - **homographes** : un nom d'un seul mot qui est aussi un mot courant du français (le cas existe : un nom d'amélioration d'origine est la clé de données `recharge`) n'est cherché **que comme nom entier** d'un objet (`nom` d'une arme, d'une amélioration, d'une famille, d'une unité), jamais comme mot d'un texte ou d'un code. `HOMOGRAPHES_FRANCAIS` est écrite dans le test, **au plus 3 entrées**, chacune avec un commentaire qui dit pourquoi ; un test vérifie que chaque entrée est bien l'un des noms lus (anti-dérive) et que la liste ne dépasse pas 3 ;
+  - **chemins d'images du pack** : dans les fichiers `.gd`, tout littéral entre guillemets qui contient `/` est retiré avant la recherche (le pack nomme ses dossiers et fichiers avec des mots anglais ordinaires : un nom d'origine apparaît aujourd'hui dans deux chemins de `visuels/`), puis la recherche porte sur le reste ;
+  - on lit : tous les `.gd`, `.json`, `.csv`, `.tres`, `.tscn` des dossiers cités, hors `tests/` et `docs/` ; pour les JSON, les clés **et** les valeurs.
+- **Tests :** `tests/unitaires/test_noms_origine.gd`.
+  - `test_la_liste_lue_compte_exactement_les_noms_du_document` : 75 noms d'armes et 84 d'améliorations (159), plus le §4.3 ; un fichier absent ou vide fait **échouer** le test, il ne le saute pas.
+  - `test_aucun_nom_d_origine_dans_les_donnees_les_textes_et_le_code` : boucle sur tous les noms et tous les fichiers ; le message cite le nom, le fichier et la ligne.
+  - `test_un_nom_d_origine_dans_un_texte_est_detecte` : pour chaque nom de la liste (en boucle), un texte français qui le contient entre deux mots est trouvé, y compris avec une majuscule, des accents autour, une espace insécable ou une apostrophe typographique à la place d'une apostrophe droite.
+  - `test_un_nom_d_origine_collé_a_d_autres_lettres_n_est_pas_un_faux_positif` : le nom précédé ou suivi d'une lettre ou d'un chiffre n'est pas trouvé (cas adverses : accent, point final, tiret).
+  - `test_un_homographe_n_est_refuse_que_comme_nom_entier` : « recharge réduite » passe ; un objet nommé exactement comme lui échoue (le test construit le dictionnaire, il ne touche pas aux données).
+  - `test_un_chemin_d_image_du_pack_ne_declenche_pas_le_garde_fou` : `sans_chemins_d_images` retire `"A/B + C/d.png"` et garde `var x := "<un nom de la liste>"` hors chemin.
+  - `test_la_liste_des_homographes_est_fermee_et_justifiee` (au plus 3, chaque entrée est un nom lu).
+  - **Mutation à faire à la main avant de rendre :** glisser un nom d'origine dans `data/armes.json` et dans un `.gd` de `sim/`, voir le test échouer, annuler (`git checkout -- fichier`).
+- **Vérif :** `T --filtre test_noms_origine`, puis `tools/verifier.sh`. Rapport : la liste des homographes retenue et les fichiers qui ont demandé le retrait de chemins.
+
+## Session « Simulation »
+
+### Task 9.2 : Interfaces et schémas des mécaniques, familles d'améliorations — `sonnet`
+
+- [ ] **Objectif :** figer en code les interfaces du lot, sans aucun changement de comportement ni aucune donnée de jeu nouvelle : bits de statut, genres et statuts d'événement, champs de vue, schémas validés (nouveaux `kind` d'effet et de statut, champs facultatifs d'arme, stats d'amélioration, `unites.json`, nouvelles clés de `partie.json`), champs neutres de `StatsTour`, champ `famille` des améliorations. Les tests qui figent 70 offres, 30 armes ou 40 améliorations deviennent pilotés par les données.
+- **Conception :** §6.13, §6.11, « Interfaces figées du lot 9 ».
+- **Fichiers :** `sim/types.gd` (bits, `FAMILLES_AMELIORATION`), `sim/stats_tour.gd`, `sim/inventaire.gd` (`_appliquer` : accepte et accumule chaque stat), `sim/vue_arene.gd`, `sim/donnees.gd` (`_kinds_effets`, `_kinds_statuts`, `STATS_AMELIORATION`, `_valider_armes`, `_valider_ameliorations`, `FICHIERS_LISTE`, `unites`, `ids_unites`, clés de `partie.json`), `data/partie.json`, `data/unites.json` (`[]`), `data/ameliorations.json` (champ `famille` des améliorations existantes, y compris celles de T8.7), `tests/unitaires/test_donnees.gd`, `test_donnees_categories.gd`, `test_contenu.gd`, `test_contenu_donnees.gd`, `test_vues.gd`, `test_inventaire.gd`, et **seulement** les deux constantes de 70 offres de `test_boutique_images.gd` et `test_description_offre.gd`.
+- **Lire :** `sim/donnees.gd` par `grep -n '_kinds_\|STATS_AMELIORATION\|_valider_\|_normaliser_'` ; `sim/vue_arene.gd` `GENRES_ARME`, `STATUTS_ARME`, `SCHEMA` ; `sim/inventaire.gd` `_appliquer` ; `grep -n '70\|== 30\|== 40' tests/unitaires/test_contenu*.gd`.
+- **Interfaces :** produit tout ce qui est sous « Interfaces figées du lot 9 », plus `StatsTour.facteur_epines(temps_s: float) -> float` (`1 + epines_degats + epines_croissantes × tranches de croissance_pas_s écoulées`) et `Donnees.famille_de(id: String) -> String` (« » pour une arme ou un id inconnu).
+- **Tests :**
+  - `test_chaque_amelioration_a_une_famille_valide` et `test_famille_absente_ou_inconnue_est_refusee_en_nommant_le_fichier_et_le_champ`.
+  - `test_la_famille_de_chaque_amelioration_existante_suit_ses_stats` : en boucle, table stat → famille écrite dans le test (`focalisation`, `eclaboussure`, `tirs_multiples` → `degats_classe` ; `regen`, `vol_de_vie_*` → `regeneration` ; `mana_max`, `mana_regen` → `mana` ; `relance_gratuite`, `marche_noir` → `boutique` ; `critique_chance` → `critique` ; les autres, même nom ou même famille évidente).
+  - `test_chaque_nouveau_kind_d_effet_et_de_statut_est_accepte_et_chaque_champ_invalide_est_refuse` : en boucle sur les 4 effets et les 6 statuts, fiche valide acceptée, puis chaque champ à 0, négatif, `NAN`, `INF`, texte, absent : refusé avec `armes.json`, le chemin et la raison.
+  - `test_les_champs_facultatifs_d_arme_sont_valides` : `degats_par_pv_max` négatif refusé, `degats_par_amelioration` avec une stat inconnue refusée, `type_secondaire: "feu"` refusé.
+  - `test_une_invocation_d_une_unite_inconnue_est_refusee` ; `test_unites_json_refuse_un_modele_un_id_en_double_ou_une_vitesse_nulle`.
+  - `test_chaque_nouvelle_stat_est_acceptee_et_chaque_valeur_ou_parametre_invalide_est_refuse` : en boucle sur les stats ajoutées.
+  - `test_partie_json_refuse_un_plafond_hors_bornes` : `vulnerabilite.plafond` hors `]0 ; 5]`, `malediction.plafond` hors `]0 ; 1]`, limites non entières ou nulles, `facteur_degats_max` < 1.
+  - `test_les_genres_et_les_statuts_d_evenement_tiennent_sur_quatre_bits` : `GENRES_ARME.size() <= 16` et `STATUTS_ARME.size() <= 16` ; chaque nouveau nom a son index d'aller-retour (`genre_depuis_nom`, `statut_depuis_nom`) et l'ordre ajoute **à la fin**.
+  - `test_les_bits_de_statut_sont_distincts_et_tiennent_dans_un_octet` (1, 2, 4, 8, 16, 32, 64, 128).
+  - `test_vue_arene_aller_retour_avec_allies_zones_et_bombes` : en boucle sur 0, 1, 2 et 3 entrées de chaque liste ; `from_dict` rend `null` pour un allié sans position, une zone au `reste` négatif ou non fini, plus d'entrées que `limites`.
+  - `test_les_stats_neutres_au_depart` et `test_l_inventaire_accumule_chaque_nouvelle_stat` : en boucle sur les nouvelles stats, une amélioration factice change exactement le champ de même nom.
+  - `test_la_table_d_images_et_les_descriptions_suivent_la_taille_des_donnees` (les deux constantes remplacées).
+  - `test_aucune_arme_n_utilise_encore_les_nouveautes_des_donnees_du_lot_9` n'existe **pas** : ce serait figer un état transitoire.
+- **Vérif :** `T --filtre test_donnees`, `test_vues`, `test_inventaire`, `test_contenu`, puis `tools/verifier.sh`. Rapport : `Protocole.VERSION` de `main` au moment de la tâche.
+
+### Task 9.3 : Vulnérabilité cumulable, malédiction et repoussement (M1, M2, M3) — `sonnet`
+
+- [ ] **Objectif :** trois statuts d'ennemi posés par les armes. **Vulnérabilité** : chaque application ajoute `ratio` aux dégâts subis du type, **cumulable entre armes et entre coups**, la somme **plafonnée** par `vulnerabilite.plafond` (par type et par ennemi), la durée rafraîchie jusqu'à `duree_max` ; elle multiplie le montant **avant** l'efficacité contre l'armure (`Ennemis.infliger`), jamais le poison ni la brûlure. **Malédiction** : deux statuts distincts, chacun non cumulable (le plus fort l'emporte, la durée se rafraîchit), plafonnés par `malediction.plafond` ; la réduction de dégâts s'applique **avant** l'esquive, l'armure et la mana de la tour ; la réduction de chances de toucher est une **réduction moyenne** des dégâts (`× (1 − chance)`, sans tirage : le déterminisme n'en dépend pas) appliquée au même endroit. **Repoussement** : l'ennemi recule de `distance` loin de la tour, jamais au-delà de `distance_max`, multiplié par `facteur_boss` pour le boss.
+- **Conception :** §6.13, « Choix du plan » 10.
+- **Fichiers :** `sim/ennemis.gd` (tableaux et durées, `_recalculer_bits`, `infliger`, `avancer`), `sim/tir.gd` (`_frapper` : les trois `kind`), `sim/arene.gd` si la tour doit lire les dégâts réduits ; tests nouveaux `test_ennemis_vulnerabilite.gd`, `test_ennemis_malediction.gd`, `test_repoussement.gd`, plus `test_tir.gd`.
+- **Lire :** `sim/ennemis.gd` `infliger`, `etourdir`, `_avancer_statuts`, `avancer` ; `sim/tir.gd` `_frapper` ; `sim/arene.gd` `_pas_tour_et_ennemis`.
+- **Interfaces :** produit `Ennemis.vulnerabiliser`, `maudire_degats`, `maudire_toucher`, `repousser` (figées plus haut) ; bits `STATUT_VULNERABLE` et `STATUT_MAUDIT` tenus à jour ; `Ennemis.avancer` applique la malédiction à `degats_tour` et à `attaquants_cac`.
+- **Tests :**
+  - `test_la_vulnerabilite_multiplie_les_degats_du_type_et_pas_les_autres` : en boucle sur les 5 types, ennemi sans armure, +20 % : le type touché subit 120 %, les quatre autres 100 %.
+  - `test_la_vulnerabilite_se_cumule_entre_coups_et_entre_armes_jusqu_au_plafond` : 100 applications de deux armes, somme exactement `plafond`, jamais au-dessus ; **Review Focus 1**.
+  - `test_la_vulnerabilite_se_rafraichit_et_expire_sans_s_additionner_dans_le_temps` : après `duree`, retour à 0 ; une réapplication à mi-durée repart de `duree`, pas de `duree + reste`.
+  - `test_la_vulnerabilite_ne_change_ni_le_poison_ni_la_brulure` ; `test_la_vulnerabilite_passe_avant_l_efficacite_d_armure` (valeur exacte pour une armure lourde et un type efficace).
+  - `test_un_ennemi_mort_ou_un_indice_inconnu_ne_plante_pas` pour les quatre appels ; `test_un_ratio_non_fini_ou_negatif_est_ignore`.
+  - `test_deux_maledictions_sur_un_ennemi_sont_independantes_et_non_cumulables` : le plus fort l'emporte, plafond tenu, jamais un multiplicateur négatif ; **Review Focus 1**.
+  - `test_la_malediction_de_degats_reduit_les_attaques_au_corps_a_corps_et_a_distance` : en boucle sur un Guerrier et un Archer ; `test_la_malediction_de_toucher_reduit_en_moyenne_sans_consommer_le_hasard` (le tirage de l'arène est identique avec et sans malédiction).
+  - `test_la_malediction_passe_avant_l_esquive_l_armure_et_la_mana` : valeurs exactes, ordre figé.
+  - `test_le_repoussement_eloigne_de_la_tour_de_la_distance_demandee` ; `test_il_est_borne_par_distance_max_et_nul_pour_le_boss` ; `test_un_ennemi_deja_loin_n_est_pas_repousse_hors_du_cercle_d_apparition` ; `test_un_ennemi_sur_la_tour_est_repousse_dans_une_direction_definie` (pas de division par zéro).
+  - `test_chaque_nouveau_kind_de_statut_est_pose_par_le_tir` : en boucle sur les trois, une arme factice.
+  - `test_le_pas_reste_sous_5_ms_avec_mille_ennemis_maudits_et_vulnerables`.
+- **Vérif :** `T --filtre test_ennemis_`, `test_repoussement`, `test_tir`, puis `tools/verifier.sh`.
+
+### Task 9.4 : Siphon de mana et de vie, mana au coup (M4) — `haiku`
+
+- [ ] **Objectif :** `siphon` : pendant `duree` après avoir été touché, l'ennemi verse `par_seconde` à la tour (mana ou PV selon `ressource`), tant qu'il est vivant ; un nouveau siphon de même ressource rafraîchit la durée et garde le plus fort débit. `mana_au_coup` : chaque coup qui touche rend `valeur` de mana. La mana ne dépasse jamais `Arene.mana_max()` (T8.7), les PV jamais le maximum ; sans mana maximale, rien n'est gagné et rien ne plante.
+- **Conception :** §6.13, §6.4 (mana en bouclier).
+- **Fichiers :** `sim/ennemis.gd` (tableaux de siphon, bit `STATUT_SIPHONNE`, `avancer` rend `"siphon_mana"` et `"siphon_vie"`), `sim/tir.gd` (`_frapper`, `Bilan.mana`), `sim/arene.gd` (`mana_gagnee`, fusion des bilans) ; tests nouveaux `test_siphon.gd`, plus `test_arene_tour.gd`, `test_tir.gd`.
+- **Lire :** `sim/arene.gd` `_pas_armes`, `synchroniser` et la mana de T8.7 ; `sim/ennemis.gd` `avancer`.
+- **Interfaces :** produit `Ennemis.siphonner(i, ressource, par_seconde, duree)` (`ressource` : 0 mana, 1 vie), `Tir.Bilan.mana`, `Arene.mana_gagnee(montant)`.
+- **Tests :**
+  - `test_un_ennemi_siphonne_verse_son_debit_chaque_seconde_a_la_tour` : mana et PV, 4 s, somme exacte.
+  - `test_le_siphon_s_arrete_a_la_mort_de_l_ennemi_et_a_la_fin_de_sa_duree`.
+  - `test_deux_ennemis_siphonnes_versent_chacun_leur_debit` ; `test_un_siphon_plus_faible_ne_remplace_pas_un_plus_fort_mais_rafraichit_la_duree`.
+  - `test_la_mana_gagnee_ne_depasse_pas_le_maximum_et_sans_maximum_rien_n_est_gagne` : maximum 0, 40, ratio 100 ; **Review Focus 5** (aucun double gain à la hausse du maximum).
+  - `test_les_pv_siphonnes_ne_depassent_pas_le_maximum`.
+  - `test_chaque_coup_qui_touche_rend_la_mana_au_coup_et_un_coup_sans_degats_n_en_rend_pas` ; `test_un_tir_multiple_rend_la_mana_de_chaque_coup`.
+  - `test_la_mana_rendue_sert_de_bouclier_au_coup_suivant` (intégration avec l'absorption de T8.7).
+  - `test_la_mana_gagnee_est_propre_a_chaque_arene`.
+- **Vérif :** `T --filtre test_siphon`, `test_arene_tour`, puis `tools/verifier.sh`.
+
+### Task 9.5 : Dégâts selon PV maximum, exemplaires, améliorations possédées ; épines en second type (M5, M10) — `sonnet`
+
+- [ ] **Objectif :** trois champs d'arme qui ajoutent aux dégâts de base (`degats_par_pv_max × PV maximum de la tour` ; `degats_par_exemplaire × (exemplaires − 1) × dégâts de base` ; `ratio × nombre d'améliorations possédées portant la stat × dégâts de base`, une amélioration achetée n fois compte n fois), **le bonus total borné** par `partie.json` `armes.bonus_selon_stat_max` (multiple des dégâts de base), les trois s'ajoutant à `degats_par_mana_max` de T8.7 avant critique et bonus de type. `type_secondaire: "epines"` : les dégâts de l'arme sont multipliés par `StatsTour.facteur_epines(temps)` (T9.2). L'estimation de rendement de `sim/equilibrage.gd` lit ces champs avec les valeurs de référence.
+- **Conception :** §6.13, « Choix du plan » 1 et 6.
+- **Fichiers :** `sim/tir.gd` (`degats_de_base`), `sim/inventaire.gd` (`exemplaires(id)`, `compter_stat(stat)`), `sim/arene.gd` (passe PV maximum et temps au contexte), `sim/equilibrage.gd` (`REFERENCE_*`, `dps_estime`) ; tests `test_tir_degats_selon.gd` (nouveau), `test_inventaire.gd`, `test_equilibrage.gd`.
+- **Lire :** `sim/tir.gd` `avancer_arme`, `_creer` et l'usage de `degats_par_mana_max` (T8.7) ; `sim/inventaire.gd` ; `sim/equilibrage.gd` en entier (52 lignes).
+- **Interfaces :** produit `Tir.degats_de_base(arme: Dictionary, stats: StatsTour, pv_max_tour: float, exemplaires: int, ameliorations_par_stat: Dictionary, temps_s: float) -> float` (fonction pure, testée seule), `Inventaire.exemplaires(id_arme: String) -> int`, `Inventaire.compter_stat(stat: String) -> int`, `Contexte.pv_max_tour`.
+- **Tests :**
+  - `test_degats_par_pv_max_ajoute_ratio_fois_les_pv_maximum_de_la_tour` : 100 de base, ratio 0,01, PV maximum 1 000 → 110.
+  - `test_degats_par_exemplaire_croit_avec_chaque_copie` : 1, 2, 5 copies ; une seule copie : aucun bonus.
+  - `test_degats_par_amelioration_compte_chaque_exemplaire_acheté` : 0, 1, 3 améliorations portant la stat ; une amélioration d'une autre stat ne compte pas.
+  - `test_le_bonus_total_est_borne_meme_avec_255_exemplaires_et_toutes_les_ameliorations` ; **Review Focus 5**.
+  - `test_les_trois_bonus_et_la_mana_s_additionnent_avant_le_critique` ; `test_un_champ_absent_ou_nul_ne_change_rien` (toutes les armes d'aujourd'hui gardent leurs dégâts, en boucle).
+  - `test_le_type_secondaire_epines_multiplie_les_degats_par_le_facteur_d_epines` : sans amélioration d'épines, aucun changement ; avec, le facteur exact ; l'efficacité contre l'armure reste celle du type principal.
+  - `test_l_estimation_de_rendement_lit_les_champs_avec_les_valeurs_de_reference` ; `test_une_arme_sans_champ_garde_son_rendement` (boucle sur les armes existantes, valeurs identiques à avant).
+- **Vérif :** `T --filtre test_tir_degats_selon`, `test_equilibrage`, `test_contenu`, puis `tools/verifier.sh`.
+
+### Task 9.6 : Tir tournant (M7) — `sonnet`
+
+- [ ] **Objectif :** effet `tournant` : à chaque tir, `branches` rayons partent de la tour à des angles régulièrement répartis, décalés de `phase_deg` ; chaque rayon touche tout ennemi à portée dont la distance au segment (tour → portée de l'arme) est au plus `largeur` ; la phase avance de `pas_deg` dans le sens de l'arme, modulo 360. Aucun hasard : l'angle ne dépend que du nombre de tirs de **cette** arme (deux exemplaires ont chacun leur phase, départ 0). Un ennemi n'est touché qu'une fois par tir. Les coups passent par `Tir._frapper` (critique, statuts, mana au coup). Un événement `tir` par rayon, genre `tournant`, `de` la tour, `vers` le bout du rayon, `rayon` la largeur.
+- **Conception :** §6.13, comparatif §7.1 (« motif tournant »).
+- **Fichiers :** `sim/tir.gd` (`_tournant`, aiguillage de `_effet`), `sim/arme_equipee.gd` (`phase_deg`), `sim/equilibrage.gd` (estimation : `branches × 1,0` cibles) ; tests `test_tir_tournant.gd` (nouveau), `test_equilibrage.gd`.
+- **Lire :** `sim/tir.gd` `_effet`, `_zone`, `_lancer_onde` ; `sim/arme_equipee.gd`.
+- **Interfaces :** produit `Tir._tournant(ctx, effet) -> bool`, `ArmeEquipee.phase_deg`.
+- **Tests :**
+  - `test_la_phase_avance_de_pas_deg_dans_le_bon_sens_et_boucle_a_360` : en boucle sur `horaire` et `antihoraire`.
+  - `test_un_ennemi_dans_le_rayon_est_touche_et_un_ennemi_hors_portee_ou_hors_largeur_ne_l_est_pas`.
+  - `test_sur_un_tour_complet_chaque_ennemi_a_portee_est_touche_au_moins_une_fois` (largeur et pas choisis pour couvrir) ; `test_un_ennemi_n_est_touche_qu_une_fois_par_tir_meme_avec_plusieurs_rayons`.
+  - `test_les_branches_sont_regulierement_reparties` : 1, 2, 3, 4, 8 branches.
+  - `test_deux_exemplaires_de_la_meme_arme_ont_chacun_leur_phase`.
+  - `test_le_tir_tournant_ne_consomme_pas_le_hasard_hors_critique` ; `test_deux_parties_de_meme_graine_donnent_les_memes_evenements_sur_600_pas` ; **Review Focus 3**.
+  - `test_un_evenement_par_rayon_porte_le_genre_tournant_et_l_arme`.
+  - `test_le_tir_tournant_declenche_les_statuts_et_la_mana_au_coup_de_l_arme`.
+- **Vérif :** `T --filtre test_tir_tournant`, `test_tir`, puis `tools/verifier.sh`.
+
+### Task 9.7 : Zones posées et bombes à retardement (M8, M9) — `sonnet`
+
+- [ ] **Objectif :** `sim/poses.gd` (`Poses`) tient les zones et les bombes de l'arène. **Zone posée** : posée sur la cible choisie par le ciblage de l'arme, elle inflige `ratio × dégâts` à tous les ennemis de son rayon toutes les `periode` secondes pendant `duree`, statuts de l'arme compris ; au-delà de `max_actives` par arme, la plus ancienne disparaît. **Bombe** : posée sur la position de la cible (elle ne la suit pas), elle explose après `delai` en infligeant `ratio × dégâts` dans le rayon, statuts compris, puis disparaît. Les dégâts, le critique et les bonus sont **figés à la pose**. Plafonds globaux `limites.zones` et `limites.bombes` (la plus ancienne cède). Tout disparaît à la fin de la manche, à la mort de la tour et sur `vider()`. Les vues portent `zones` et `bombes` ; l'explosion émet un `impact` de genre `bombe`, chaque impulsion un `impact` de genre `zone_posee`.
+- **Conception :** §6.13, « Choix du plan » 3.
+- **Fichiers :** `sim/poses.gd` (nouveau), `sim/tir.gd` (effets `zone_posee` et `bombe` : ils posent, ne frappent pas), `sim/arene.gd` (`poses`, pas, purge, `vue`), `sim/equilibrage.gd` (zone : `3 × duree / periode × ratio` cibles ; bombe : `3 × ratio`) ; tests `test_poses.gd` (nouveau), `test_arene.gd`, `test_equilibrage.gd`.
+- **Lire :** `sim/arene.gd` `_pas_armes`, `demarrer_manche`, `est_detruite`, `vue` ; `sim/tir.gd` `_poser_mine` et `_declencher_mines`, le modèle le plus proche.
+- **Interfaces :** produit `Poses` (figée plus haut) ; `Arene.poses: Poses`.
+- **Tests :**
+  - `test_une_zone_inflige_ses_degats_a_chaque_periode_pendant_sa_duree_et_pas_apres` : nombre exact d'impulsions.
+  - `test_une_zone_touche_tous_les_ennemis_du_rayon_et_aucun_en_dehors` ; `test_une_zone_pose_les_statuts_de_l_arme`.
+  - `test_la_zone_la_plus_ancienne_cede_au_dela_de_max_actives_et_de_la_limite_globale`.
+  - `test_une_bombe_explose_apres_son_delai_a_l_endroit_ou_elle_a_ete_posee` : la cible a bougé, la bombe non ; `test_une_bombe_sans_ennemi_dans_le_rayon_disparait_sans_erreur`.
+  - `test_les_degats_sont_figes_a_la_pose` : une amélioration achetée après n'y change rien.
+  - **Review Focus 2 :** `test_tout_disparait_a_la_fin_de_la_manche_a_la_mort_de_la_tour_et_sur_vider` ; `test_aucune_fuite_sur_cent_manches` (le nombre d'entrées de `Poses` revient à 0 à chaque manche) ; `test_une_zone_dont_tous_les_ennemis_sont_morts_ou_purges_ne_plante_pas`.
+  - `test_la_vue_porte_les_zones_et_les_bombes_avec_leur_temps_restant` ; `test_l_explosion_et_les_impulsions_emettent_un_impact_du_bon_genre`.
+  - `test_deux_parties_de_meme_graine_donnent_la_meme_empreinte_de_vue_sur_600_pas` ; **Review Focus 3**.
+  - `test_trente_deux_zones_et_trente_deux_bombes_contre_mille_ennemis_sous_5_ms_par_pas`.
+- **Vérif :** `T --filtre test_poses`, `test_arene`, puis `tools/verifier.sh`.
+
+### Task 9.8 : Invocation d'alliés temporaires (M6) — `sonnet`
+
+- [ ] **Objectif :** effet `invocation` : à chaque tir de l'arme (sa recharge fait la période), une unité de `data/unites.json` apparaît près de la tour pour `duree` secondes. Elle marche à sa `vitesse` vers l'ennemi le plus proche situé à moins de `rayon_garde` de la tour (départage : plus petit identifiant), l'attaque à sa `portee` toutes les `cadence` secondes avec `ratio_degats × dégâts de base de l'arme figés à l'invocation` (type, efficacité, critique et bonus de l'arme ; pas de statuts), puis revient près de la tour s'il n'y a plus de cible. Pas de PV : les ennemis l'ignorent. `max_actives` par arme et `limites.allies` global : la plus proche de sa fin cède. Les alliés agissent dans l'ordre de leur identifiant et **cherchent leur cible toutes les 0,25 s** (échelonnées par identifiant) pour tenir le budget de temps. Ils disparaissent à la fin de la manche, à la mort de la tour et sur `vider()`. Données : au moins deux unités (une par modèle `guerrier` et `archer`, noms originaux en français).
+- **Conception :** §6.13, comparatif §7.1 (invocation), « Choix du plan » 2 et 3.
+- **Fichiers :** `sim/allies.gd` (nouveau, `class_name Allies`, tableaux compacts), `sim/tir.gd` (effet `invocation`), `sim/arene.gd` (`allies`, pas, purge, `vue`), `sim/equilibrage.gd` (estimation : un allié compte `duree / cadence × ratio_degats` coups, borné par `max_actives`), `data/unites.json` ; tests `test_allies.gd` (nouveau), `test_arene.gd`, `test_arene_charge.gd`, `test_equilibrage.gd`.
+- **Lire :** `sim/ennemis.gd` `choisir` (même départage) ; `sim/arene.gd` comme T9.7 ; `docs/tiny_swords.md` « Unités » (le guerrier et l'archer existent en 4 couleurs, tous déjà pris par les 24 ennemis).
+- **Interfaces :** produit `Allies` (figée plus haut) ; `Arene.allies: Allies`.
+- **Tests :**
+  - `test_une_invocation_cree_une_unite_pour_sa_duree_et_la_retire_ensuite`.
+  - `test_l_allie_marche_vers_l_ennemi_le_plus_proche_dans_le_rayon_de_garde_et_ignore_les_autres` ; `test_deux_ennemis_a_egale_distance_sont_departages_par_l_identifiant`.
+  - `test_l_allie_attaque_a_sa_portee_a_sa_cadence_avec_le_ratio_des_degats_figes` : valeur exacte, efficacité d'armure comprise.
+  - `test_l_allie_revient_vers_la_tour_sans_cible`.
+  - `test_les_ennemis_ignorent_les_allies` (la tour reçoit les mêmes dégâts avec et sans alliés).
+  - `test_la_plus_proche_de_sa_fin_cede_au_dela_de_max_actives_et_de_la_limite_globale` : 255 armes invocatrices (en boucle sur des exemplaires), jamais plus de `limites.allies` ; **Review Focus 2**.
+  - **Review Focus 2 :** `test_les_allies_disparaissent_a_la_fin_de_la_manche_a_la_mort_de_la_tour_et_sur_vider` ; `test_aucune_fuite_sur_cent_manches`.
+  - `test_les_allies_agissent_dans_l_ordre_de_leur_identifiant_et_deux_parties_de_meme_graine_ont_la_meme_empreinte_sur_600_pas` ; **Review Focus 3**.
+  - `test_chaque_coup_d_un_allie_emet_un_evenement_du_genre_invocation_et_l_arme`.
+  - `test_la_vue_porte_les_allies_avec_l_index_de_leur_unite`.
+  - **Review Focus 9 :** `test_soixante_quinze_armes_equipees_mille_ennemis_soixante_quatre_allies_zones_et_bombes_sous_5_ms_par_pas` : les 75 armes du catalogue en boucle si elles existent, sinon les armes d'aujourd'hui répétées jusqu'à 75 ; si le seuil n'est pas tenu, allonger l'intervalle de recherche des alliés ou chercher par grille avant de relever le seuil.
+- **Vérif :** `T --filtre test_allies`, `test_arene_charge`, puis `tools/verifier.sh`.
+
+### Task 9.9 : Protocole : alliés, zones et bombes — `sonnet`
+
+- [ ] **Objectif :** transporter `allies`, `zones` et `bombes` dans l'état d'arène et dans l'état d'arène regardée, avec la montée de version du lot. Décodage défensif et fuzz comme les versions précédentes ; les nouveaux genres et statuts d'événement (4 bits) ne changent pas le format mais l'ancien client ne sait pas les lire : c'est ce qui motive la version.
+- **Conception :** §6.11 de la conception du lot 8, §6.13.
+- **Fichiers :** `reseau/protocole.gd` ; tests `test_protocole.gd`, `test_protocole_resultat.gd`, `test_protocole_jeton.gd` (version), `test_serveur_debit.gd`.
+- **Lire :** `reseau/protocole.gd` : `grep -n 'static func\|^const'`, puis `encoder_etat_arene` et `decoder_etat_arene` par plage ; `git log origin/main -3 -- reseau/protocole.gd` et `grep -n 'const VERSION' reseau/protocole.gd` **sur `origin/main` au moment de la tâche**.
+- **Interfaces :** consomme T9.2, T9.7, T9.8. Produit `Protocole.VERSION` = celle de `main` + 1, `MAX_ALLIES`, `MAX_ZONES`, `MAX_BOMBES` (lus dans `partie.json`), `TAILLE_FIXE` recalculée.
+- **Tests :**
+  - `test_la_version_a_ete_incrementee_et_toutes_les_precedentes_sont_refusees` : en boucle de 1 à `VERSION − 1`, un bonjour est refusé avec un motif.
+  - `test_allies_zones_et_bombes_traversent_le_protocole` : en boucle sur 0, 1, 2, 3 et la limite de chaque liste.
+  - `test_plus_que_la_limite_est_refuse_a_l_encodage_et_au_decodage`.
+  - `test_chaque_genre_et_chaque_statut_d_evenement_traverse_le_protocole` : en boucle sur `GENRES_ARME` et `STATUTS_ARME`.
+  - `test_l_etat_d_arene_regardee_porte_aussi_allies_zones_et_bombes`.
+  - **Review Focus 4 :** `test_un_etat_de_mille_ennemis_255_armes_64_allies_32_zones_et_32_bombes_tient_sous_max_taille` et `test_le_debit_de_l_arene_la_plus_chargee_reste_sous_50_000_octets_par_seconde` (hors densités, mesure comme T8.10).
+  - **Review Focus 4 :** `test_aucun_paquet_forge_ne_leve_d_exception` : tous les préfixes d'un état valide, puis 2 000 tableaux d'octets tirés d'une graine fixe, un index d'unité hors catalogue, un `reste` non fini : `null` ou `{}`.
+  - `test_la_position_d_un_allie_garde_l_erreur_de_quantification_du_protocole`.
+- **Vérif :** `T --filtre test_protocole`, `test_serveur_debit`, puis `tools/verifier.sh`.
+
+## Session « Améliorations »
+
+Règle commune aux trois tâches : **chaque nouvelle stat est son propre facteur** (voir « Choix du plan » 5). Les effets qui croissent avec le temps portent un champ `max` (obligatoire, validé par T9.2 : une croissance sans borne est refusée) et lisent le temps de partie, jamais l'horloge ; le produit des facteurs de dégâts est borné par `ameliorations.facteur_degats_max` au seul endroit où il se calcule, `Tir.facteur_degats(ctx, bits_ennemi) -> float` (créé par T9.10, étendu par T9.11 et T9.12). Chaque tâche de contenu écrit `famille`, `categorie`, `rarete`, `prix`, `nom` et `description` (français, original, mêmes règles de typographie que les existantes), ajoute les images de ses offres, et étend `tests/unitaires/test_catalogue_ameliorations.gd` (créé par T9.10 : constante `FAMILLES_TERMINEES`, `CIBLES` des quinze familles ; `test_les_familles_terminees_atteignent_leur_cible` lit l'effectif **dans les données**, « au moins la cible »). Les prix suivent la hiérarchie de rareté des tests existants (`test_le_prix_moyen_croit_avec_la_rarete…`, `test_une_epique_coute_plusieurs_minutes_de_revenu`).
+
+### Task 9.10 : Améliorations de dégâts, d'états et de classe d'arme (18) — `sonnet`
+
+- [ ] **Objectif :** consommer `croissance` et `par_arme_commune` (`degats_type`, `degats_global`), `degats_classe`, `etat_degats`, `etat_duree` et `degats_contre_etat`, puis écrire **18 améliorations** : `degats_type` +5 (un palier épique par type de dégâts, avec `par_arme_commune`), `degats_global` +1 (avec `croissance`), `degats_classe` +4 (une par classe : onde, portée courte, portée longue, arme commune), `etats` +8 (poison dégâts, brûlure dégâts, poison durée, brûlure durée, étourdissement durée, contre étourdi, contre empoisonné, contre ralenti). Classes : `onde` = l'arme a un effet `onde` ; `portee_courte` = portée ≤ 750 ; `portee_longue` = portée ≥ 1 000 ; `commune` = rareté commune. États : `etourdi`, `empoisonne`, `ralenti` sont les bits `STATUT_*` de l'ennemi visé.
+- **Conception :** §6.13, comparatif §6.2 et §7.2 (familles « dégâts », « classe », « états »).
+- **Fichiers :** `sim/inventaire.gd` (`_appliquer`, `recalculer`), `sim/stats_tour.gd`, `sim/tir.gd` (`facteur_degats`, durée et dégâts des états), `sim/ennemis.gd` (durée du poison et de la brûlure, de l'étourdissement), `data/ameliorations.json`, `visuels/images_offres.gd` (section des améliorations de dégâts, d'états et de classe), `tests/unitaires/test_catalogue_ameliorations.gd` (nouveau), `test_inventaire.gd`, `test_tir.gd`, `test_ennemis_statuts.gd`.
+- **Lire :** `sim/inventaire.gd` en entier (134 lignes) ; `sim/tir.gd` `_frapper` et `_creer` ; `sim/stats_tour.gd`.
+- **Interfaces :** produit `Tir.facteur_degats(ctx: Contexte, bits_ennemi: int) -> float` (type × global × classe × contre-état, borné), `StatsTour.facteur_classe(arme: Dictionary) -> float`, `StatsTour.facteur_contre_etat(bits: int) -> float`.
+- **Tests :**
+  - `test_la_croissance_ajoute_sa_valeur_a_chaque_tranche_de_temps_et_s_arrete_a_son_max` : 0, 1, 10 tranches, mode sans fin à la manche 60 ; **Review Focus 5**.
+  - `test_par_arme_commune_compte_les_armes_communes_du_type_possedees` ; pour le global, tous types.
+  - `test_chaque_classe_ne_boost_que_les_armes_de_sa_classe` : en boucle sur les 4 classes et sur toutes les armes de `data/`.
+  - `test_chaque_etat_boost_seulement_ce_qu_il_dit` : dégâts de poison ×(1 + valeur), durée de brûlure, durée d'étourdissement (boucle sur les trois) ; sans le statut sur l'arme, aucun effet.
+  - `test_les_degats_contre_un_etat_ne_valent_que_si_l_ennemi_a_cet_etat` : en boucle sur les 3 états.
+  - `test_le_produit_des_facteurs_reste_sous_le_plafond_avec_les_87_ameliorations` (toutes achetées, une arme de chaque classe) ; **Review Focus 5**.
+  - `test_chaque_famille_terminee_atteint_sa_cible` (familles de cette tâche) ; `test_chaque_nouvelle_amelioration_a_une_image_et_une_famille` ; `test_la_categorie_des_nouvelles_ameliorations_est_amelioration` (aucune n'est économique).
+- **Vérif :** `T --filtre test_catalogue_ameliorations`, `test_inventaire`, `test_contenu`, `test_description_offre`, `test_boutique_images`, `test_noms_origine`, puis `tools/verifier.sh`.
+
+### Task 9.11 : Améliorations d'épines, de PV, de régénération et d'armure (19) — `sonnet`
+
+- [ ] **Objectif :** consommer les stats d'épines, de PV, de régénération et d'armure, puis écrire **19 améliorations** : `epines` +9 (`epines_degats` ×2, `epines_croissantes`, `epines_premier_coup`, `epines_soin`, `epines_reduction`, `epines_statut` pour poison, brûlure, givre, étourdissement), `pv_max` +5 (`pv_max_mult` ×2, `soin_pv_manquants`, `degats_par_pv_max`, `resurrection`), `regeneration` +2 (`regen_croissante`, `soin_periodique`), `armure` +3 (`armure_croissante`, `riposte_statut` givre et poison).
+      Règles : les épines renvoient `facteur_epines(temps)` × le coup reçu (au corps à corps seulement, comme aujourd'hui) ; `epines_premier_coup` ajoute son ratio au **premier** renvoi sur chaque ennemi ; `epines_soin` rend à la tour ce ratio des dégâts renvoyés ; `epines_reduction` réduit les dégâts de corps à corps reçus **avant** l'armure et la mana (plafond 0,5) ; `epines_statut` et `riposte_statut` posent le statut sur l'attaquant qui touche ; `pv_max_mult` multiplie le maximum (un maximum qui monte soigne du même montant) ; `soin_pv_manquants` rend ce ratio des PV manquants au début de chaque manche ; `degats_par_pv_max` est un facteur de `Tir.facteur_degats` par tranche de 1 000 PV maximum ; `resurrection` relève la tour à ce ratio de son maximum **une fois par partie** ; `regen_croissante` et `armure_croissante` suivent la règle de croissance bornée ; `soin_periodique` rend `ratio × PV maximum` tous les `tous_les` secondes.
+- **Conception :** §6.13, comparatif §7.2 (familles « épines », « PV », « régénération », « armure »).
+- **Fichiers :** `sim/arene.gd` (`_pas_tour_et_ennemis`, `_pv_max`, résurrection, début de manche), `sim/ennemis.gd` (drapeau « déjà renvoyé » par ennemi), `sim/tir.gd` (`facteur_degats`), `sim/inventaire.gd`, `sim/stats_tour.gd`, `data/ameliorations.json`, `visuels/images_offres.gd` (section des améliorations de survie), `tests/unitaires/test_catalogue_ameliorations.gd`, `test_arene_tour.gd`, `test_ennemis_statuts.gd`.
+- **Lire :** `sim/arene.gd` `_pas_tour_et_ennemis`, `_pv_borne`, `est_detruite` ; la règle des épines dans `ui/description_offre.gd` (`grep -n epines`).
+- **Tests :**
+  - `test_les_epines_renvoient_le_facteur_d_epines_et_toujours_seulement_le_corps_a_corps` ; `test_epines_premier_coup_ne_joue_qu_une_fois_par_ennemi` ; `test_epines_soin_rend_le_ratio_des_degats_renvoyes_sans_depasser_le_maximum`.
+  - `test_epines_reduction_passe_avant_l_armure_et_la_mana_et_est_plafonnee` ; `test_chaque_statut_d_epines_et_de_riposte_est_pose_sur_l_attaquant` : en boucle sur les 4 et les 2.
+  - `test_pv_max_mult_soigne_du_montant_gagne_et_un_maximum_qui_baisse_ne_tue_pas` ; `test_soin_pv_manquants_joue_au_debut_de_chaque_manche`.
+  - `test_degats_par_pv_max_ajoute_son_ratio_par_tranche_de_mille_pv`.
+  - **Review Focus 5 :** `test_la_resurrection_ne_joue_qu_une_fois_par_partie_meme_avec_deux_exemplaires` et `test_la_resurrection_ne_joue_pas_quand_la_tour_survit` ; `test_regen_croissante_et_armure_croissante_s_arretent_a_leur_max`.
+  - `test_soin_periodique_rend_le_ratio_du_maximum_a_chaque_periode` ; `test_toute_nouvelle_stat_de_survie_est_neutre_sans_amelioration` (parties identiques à avant, empreinte de vue égale).
+  - `test_chaque_famille_terminee_atteint_sa_cible` ; images et familles comme T9.10.
+- **Vérif :** `T --filtre test_catalogue_ameliorations`, `test_arene_tour`, `test_contenu`, `test_description_offre`, `test_boutique_images`, `test_noms_origine`, puis `tools/verifier.sh`.
+
+### Task 9.12 : Améliorations de mana, de revenu, de boutique et d'aura mixte (au plus 7) ; effectif final — `sonnet`
+
+- [ ] **Objectif :** consommer `mana_max_mult`, `mana_rupture_etourdit` (quand le bouclier de mana tombe à 0 sous un coup, les ennemis du `rayon` sont étourdis `duree`, une fois par chute), `degats_tant_que_mana` et `reduction_tant_que_mana` (facteur de `Tir.facteur_degats` et réduction des coups reçus tant que la mana est au-dessus de 0), `revenu_contre_pv` (revenu fixe en plus, PV maximum en moins, jamais sous 1), `copie_prochaine_offre` (le prochain achat d'une offre de rareté au plus `raretes_max` donne un second exemplaire gratuit, **une seule fois par exemplaire de l'amélioration**) et `aura_mixte` (dans le `rayon`, dégâts de chaos par seconde aux ennemis et PV par seconde à la tour tant qu'un ennemi s'y trouve), puis écrire les améliorations qui manquent à la cible : `mana` jusqu'à 7 (au plus 4, T8.7 en a livré au moins 3), `revenu` +1, `boutique` +1, `aura_mixte` +1. **Effectif final :** les quinze familles atteignent leur cible et le total vaut **exactement 87**.
+- **Conception :** §6.13, §6.4 (mana), comparatif §7.2.
+- **Fichiers :** `sim/arene.gd`, `sim/boutique.gd` (`acheter`), `sim/inventaire.gd`, `sim/stats_tour.gd`, `sim/tir.gd` (`facteur_degats`), `data/ameliorations.json`, `visuels/images_offres.gd` (section mana, revenu, boutique, aura), `tests/unitaires/test_catalogue_ameliorations.gd`, `test_arene_tour.gd`, `test_boutique.gd`, `test_donnees_categories.gd`.
+- **Lire :** `sim/boutique.gd` `acheter` ; `sim/arene.gd` (la mana de T8.7) ; `test_donnees_categories.gd` (la règle « `revenu` si et seulement si tous les effets sont économiques »).
+- **Tests :**
+  - `test_la_chute_du_bouclier_etourdit_les_ennemis_du_rayon_une_seule_fois_par_chute`.
+  - `test_degats_et_reduction_tant_que_mana_ne_valent_que_mana_au_dessus_de_zero`.
+  - `test_revenu_contre_pv_ajoute_l_or_retire_les_pv_et_ne_descend_pas_sous_un_pv_maximum` ; **Review Focus 5**.
+  - `test_copie_prochaine_offre_double_le_prochain_achat_eligible_une_fois_et_pas_une_offre_plus_rare` : en boucle sur les 4 raretés.
+  - `test_l_aura_mixte_inflige_et_soigne_tant_qu_un_ennemi_est_dans_le_rayon`.
+  - `test_les_nouvelles_stats_economiques_sont_dans_la_categorie_revenu` (liste économique de `test_donnees_categories.gd` étendue à `revenu_contre_pv`).
+  - **Effectif :** `test_chaque_famille_atteint_sa_cible_et_le_total_est_87` : les quinze `CIBLES`, au moins la cible par famille, exactement 87 ; `FAMILLES_TERMINEES` doit contenir les quinze (test d'anti-dérive).
+  - `test_chaque_stat_du_schema_est_utilisee_par_une_amelioration` (existant, doit rester vert avec les 25 stats ajoutées) ; `test_les_87_ameliorations_ont_un_id_un_nom_une_image_et_une_description_uniques`.
+- **Vérif :** `T --filtre test_catalogue_ameliorations`, `test_boutique`, `test_contenu`, puis `tools/verifier.sh`.
+
+## Session « Armes »
+
+Gabarit commun des tâches T9.13 à T9.17 (une par type de dégâts, dans cet ordre). Pour son type, la tâche : **promeut** en peu commune celle de ses deux communes dont le rendement (`Equilibrage.rendement`, **aux prix d'avant**) est le plus haut, ajuste son prix à son palier, puis **ajoute 9 armes** : 3 peu communes, 5 rares, 1 épique. Elle écrit pour chacune `id` (snake_case sans accent), `nom` et `description` en français originaux (aucun nom d'origine : T9.1 le contrôle), `rarete`, `prix`, `type_degats`, `degats`, `recharge`, `portee` (500, 750, 1 000 ou 1 250), `ciblage`, `effets`, `statuts` et les champs de mécaniques de la « Répartition imposée » ; **tous les chiffres sont les nôtres**, calés pour que les tests d'équilibrage existants restent verts (rendement moyen strictement croissant avec la rareté dans chaque type ; aucune arme hors de ¼ à 4 fois la médiane du type ; commune achetable dès l'or de départ ; épique de plusieurs minutes de revenu). Elle ajoute les images de ses 9 armes (`visuels/images_offres.gd`, section du type) et les lignes de sa tâche dans `tests/unitaires/test_catalogue_armes.gd`. Elle **ne touche à aucun autre type** et note dans son rapport le rendement de chaque arme, la commune promue et la forme de chaque nouvelle arme.
+
+Tests du gabarit (écrits par T9.13, étendus par chaque tâche en ajoutant son type à `TYPES_TERMINES`) :
+
+- `test_la_cible_d18_quinze_armes_par_type_reparties_1_6_6_2` : en boucle sur `TYPES_TERMINES`, 15 armes, et par rareté 1, 6, 6, 2.
+- `test_la_commune_conservee_est_la_moins_rentable_des_deux_d_origine` : constante `RENDEMENT_AVANT` (les dix communes d'origine, rendement **mesuré par script avant toute modification**, écrite par T9.13 pour les cinq types) ; la commune promue a le rendement avant le plus haut, son prix est au moins le plus petit prix des peu communes du type.
+- `test_repartition_imposee_des_mecaniques_du_type` : table de la « Répartition imposée », par type.
+- `test_chaque_nouvelle_arme_agit_dans_une_arene` : en boucle sur les armes du type absentes de `RENDEMENT_AVANT`, une arène, des ennemis à portée, 100 pas : des dégâts, ou l'effet propre (une unité, une zone, une bombe, de la mana, un recul) est observé.
+- `test_deux_armes_du_type_different_par_forme_statuts_mecanique_ou_portee` : les paires du type ; deux armes de même forme, mêmes statuts et même portée sont refusées (lisibilité des signatures, D5).
+- `test_toute_nouvelle_arme_a_une_image_et_un_nom_original` ; les tests de catalogue existants (`test_contenu*.gd`, `test_description_offre.gd`, `test_boutique_images.gd`, `test_noms_origine.gd`) restent verts.
+
+### Task 9.13 : Armes tranchantes — 1 promotion et 9 nouvelles — `sonnet`
+
+- [ ] **Objectif :** gabarit ci-dessus pour `tranchant` ; crée `RENDEMENT_AVANT` pour les cinq types et `test_catalogue_armes.gd`. Mécaniques imposées parmi les 9 : M1 (vulnérabilité tranchante), M2 (`malediction_toucher`), M7 (tir tournant), M10 (`type_secondaire: "epines"`).
+- **Conception :** §6.13, comparatif §6.1 et §7.1.
+- **Fichiers :** `data/armes.json`, `visuels/images_offres.gd`, `tests/unitaires/test_catalogue_armes.gd` (nouveau).
+- **Lire :** `data/armes.json` des armes tranchantes (script, pas en entier) ; `sim/equilibrage.gd` ; les tests `test_contenu.gd` de rendement.
+- **Interfaces :** consomme T9.3, T9.5, T9.6 (effets et statuts), T9.1 (garde-fou), T9.21 (descriptions).
+- **Tests :** gabarit ci-dessus, `TYPES_TERMINES = ["tranchant"]`.
+- **Vérif :** `T --filtre test_catalogue_armes`, `test_contenu`, `test_noms_origine`, `test_description_offre`, puis `tools/verifier.sh`.
+
+### Task 9.14 : Armes perçantes — 1 promotion et 9 nouvelles — `sonnet`
+
+- [ ] **Objectif :** gabarit pour `perçant` (`type_degats` s'écrit « perçant » dans les données). Imposées : M1 (vulnérabilité perçante), M3 (repoussement), M10 (épines). Le rapport dit si la commune conservée est `chausse_trape` (« Choix du plan » 9).
+- **Fichiers / Lire / Interfaces :** comme T9.13 ; consomme T9.3 et T9.5. **Tests :** gabarit, `TYPES_TERMINES` + `perçant`. **Vérif :** comme T9.13.
+
+### Task 9.15 : Armes magiques — 1 promotion et 9 nouvelles — `sonnet`
+
+- [ ] **Objectif :** gabarit pour `magique`. Imposées : M1 (vulnérabilité magique), M4 (`mana_au_coup` et siphon de mana), M7 (tir tournant), M8 (zone posée).
+- **Fichiers / Lire :** comme T9.13 ; **Interfaces :** consomme T9.4, T9.6, T9.7, T9.9. **Tests :** gabarit, `TYPES_TERMINES` + `magique`, plus `test_les_armes_de_mana_du_lot_8_gardent_leurs_champs` (les 4 armes de `degats_par_mana_max` de T8.7 sont inchangées). **Vérif :** comme T9.13.
+
+### Task 9.16 : Armes de siège — 1 promotion et 9 nouvelles — `sonnet`
+
+- [ ] **Objectif :** gabarit pour `siège`. Imposées : M1 (vulnérabilité de siège), M5 (`degats_par_pv_max` ; `degats_par_amelioration` sur une stat que portent déjà des améliorations existantes, comme la cadence), M8 (zone posée, **deux** armes), M9 (bombe à retardement).
+- **Fichiers / Lire :** comme T9.13 ; **Interfaces :** consomme T9.5, T9.7, T9.9. **Tests :** gabarit, `TYPES_TERMINES` + `siège`. **Vérif :** comme T9.13.
+
+### Task 9.17 : Armes de chaos — 1 promotion et 9 nouvelles ; cible D18 complète — `sonnet`
+
+- [ ] **Objectif :** gabarit pour `chaos`. Imposées : M1 (vulnérabilité de chaos), M2 (`malediction_degats`), M4 (siphon de vie), M5 (`degats_par_exemplaire`), M6 (invocation, **deux** armes, unités de `data/unites.json`). Le rapport dit si la commune conservée est `sablier_fele`. **Cible complète :** `TYPES_TERMINES` est supprimée, le test de cible boucle sur `Types.NOMS_TYPES` (les cinq) et exige **75** armes, 15 par type, 1 / 6 / 6 / 2 ; un test vérifie que chaque mécanique M1 à M10 est portée par au moins une arme du catalogue (boucle sur les dix).
+- **Fichiers / Lire :** comme T9.13 ; **Interfaces :** consomme T9.4, T9.5, T9.8, T9.9. **Tests :** gabarit complet, `test_la_cible_d18_est_75_armes_quinze_par_type_1_6_6_2_en_boucle_sur_les_cinq_types`, `test_chaque_mecanique_est_portee_par_au_moins_une_arme`, `test_les_pieges_d_origine_du_jeu_sont_toujours_la`. **Vérif :** comme T9.13, plus `T` en entier.
+
+## Session « Rendu »
+
+### Task 9.18 : Planche des 45 nouvelles signatures d'armes — `sonnet` — **attend Phil**
+
+- [ ] **Objectif :** proposer une signature visuelle (D5) pour chacune des 45 nouvelles armes dans `visuels/signatures_armes.gd` (table, sans l'intégrer en jeu) et la montrer sur une planche, `docs/planche_signatures.png` (sections par type, les 30 signatures validées au lot 8 en vignettes de rappel), composée par `tools/planche_signatures.gd` comme celle de T8.14. Les armes à mécanique propre ont une **marque** qui se voit d'un coup d'œil : rayon tournant, disque au sol d'une zone posée, bombe à mèche, allié invoqué, marqueur de vulnérabilité. Sources : effets du pack d'abord, puis formes dessinées par code aux couleurs du pack. Chaque carte nomme l'arme. **Aucune intégration avant la validation de Phil** : l'agent principal met la ligne du tableau d'avancement à `a_valider` avec `attend` renseigné.
+- **Conception :** §6.5 et D5 de la conception du lot 8, §6.13.
+- **Fichiers :** `visuels/signatures_armes.gd`, `tools/planche_signatures.gd`, `docs/planche_signatures.png`, `tests/unitaires/test_signatures_armes.gd`, `test_garde_ressources.gd` si le script cite une image du pack.
+- **Lire :** `visuels/signatures_armes.gd` et `docs/planche_signatures.png` (T8.14) ; `visuels/effets.gd` `PROJECTILES`, `IMPACTS`, `TRAITS`, `COULEURS` ; `data/armes.json` des 45 nouvelles (par script).
+- **Interfaces :** étend `SignaturesArmes` : `ids()` rend les **75** armes ; `de(id_arme)` gagne la clé `marque: String` (`""`, `"rayon_tournant"`, `"disque_au_sol"`, `"bombe"`, `"allie"`, `"vulnerabilite"`) ; le reste du dictionnaire est inchangé, `son == "tir_" + id_arme`.
+- **Tests :**
+  - `test_chaque_arme_a_une_signature_et_il_n_y_en_a_pas_d_autre` : les ids de `Donnees.armes`, dans la boucle, ni plus ni moins (75 aujourd'hui, jamais un effectif en dur).
+  - `test_deux_armes_n_ont_jamais_la_meme_signature` et `test_deux_armes_ne_partagent_jamais_la_forme_et_la_couleur_du_projectile` : toutes les paires (2 775 pour 75), **Review Focus 6**.
+  - `test_les_signatures_restent_lisibles_au_zoom_le_plus_lointain` : valeur ≥ 0,6, opacité ≥ 0,8 (les 75).
+  - `test_le_statut_de_la_signature_est_celui_de_l_arme_nouveaux_statuts_compris` ; `test_la_marque_correspond_a_la_mecanique_de_l_arme` : en boucle, une arme à effet `tournant`, `zone_posee`, `bombe` ou `invocation` a la marque correspondante, une arme à statut `vulnerabilite` la marque `vulnerabilite`, les autres `""`.
+  - `test_les_signatures_d_avant_le_lot_ne_changent_pas` (les 30 de T8.14, comparées champ à champ).
+  - `test_une_arme_inconnue_n_a_pas_de_signature`.
+- **Vérif :** `T --filtre test_signatures_armes`, `godot --headless --path . --script res://tools/planche_signatures.gd`, puis `tools/verifier.sh`. Rapport : lien vers la planche.
+
+### Task 9.19 : Mécaniques et signatures en jeu — `sonnet`
+
+- [ ] **Objectif :** après la validation de la planche : (a) les 45 signatures entrent en jeu comme celles du lot 8 (`Effets` lit `SignaturesArmes.de` de l'arme de l'événement) ; (b) les **alliés** se dessinent avec les feuilles du guerrier et de l'archer du pack, une **teinte** et un **anneau au sol** qu'aucun des 24 ennemis n'a, interpolés entre deux états comme les ennemis ; (c) une **zone posée** est un disque au sol pendant son temps restant, une **bombe** grossit et pulse jusqu'à son explosion (feuille d'explosion du pack), un **tir tournant** dessine ses rayons, un **repoussement** un trait de recul ; (d) les trois nouveaux bits de statut (vulnérable, maudit, siphonné) ont chacun une teinte et un petit marqueur, distincts des cinq anciens ; (e) les genres et statuts d'événement nouveaux ont tous un rendu. Le plafond de 200 effets tient.
+- **Conception :** §6.5 et D5 du lot 8, §6.13, « Choix du plan » 2.
+- **Fichiers :** `visuels/effets.gd`, `visuels/arene_2d.gd`, `visuels/apparence.gd` (modèles des alliés), `visuels/signatures_armes.gd` (rien d'autre que des corrections demandées par Phil), `visuels/teinte_*.gdshader` si la teinte des alliés l'exige, `visuels/interpolation.gd` ; tests `test_effets.gd`, `test_evenements_genre.gd`, `test_arene_2d.gd`, `test_apparence.gd`.
+- **Lire :** `visuels/effets.gd` `rendu`, `_tir`, `_impact`, `_statut`, `COULEURS_STATUT`, `FORMES_STATUT` ; `visuels/apparence.gd` `ENTITES` ; `docs/tiny_swords.md` (unités et explosions).
+- **Interfaces :** consomme `VueArene.allies`, `zones`, `bombes` (T9.2, T9.7, T9.8), `Protocole` (T9.9), `SignaturesArmes` (T9.18). Produit `Arene2D.teinte_instance` étendue aux trois bits, `Effets.COULEUR_ALLIE`.
+- **Tests :**
+  - `test_chaque_arme_produit_un_tir_aux_formes_et_a_la_couleur_de_sa_signature` : en boucle sur le catalogue ; `test_deux_armes_ne_produisent_jamais_le_meme_rendu` : toutes les paires.
+  - `test_chaque_genre_et_chaque_statut_d_evenement_a_un_rendu` : en boucle sur `GENRES_ARME` et `STATUTS_ARME` ; un index inconnu retombe sur le rendu par type de dégâts sans erreur.
+  - **Review Focus 6 :** `test_un_allie_n_a_ni_la_teinte_ni_le_marquage_d_un_ennemi` : en boucle sur les 24 familles, la teinte et l'anneau de l'allié diffèrent de chacune ; `test_le_plafond_de_200_effets_tient_avec_255_armes_qui_tirent` ; `test_les_allies_sont_interpoles_entre_deux_etats_sans_saut`.
+  - `test_une_zone_se_dessine_au_sol_pendant_son_temps_restant_et_disparait_avec_la_vue` ; `test_une_bombe_grossit_jusqu_a_son_explosion` ; `test_un_tir_tournant_dessine_un_rayon_par_branche` ; `test_un_repoussement_dessine_un_trait_vers_l_exterieur`.
+  - `test_les_trois_nouveaux_statuts_ont_des_teintes_distinctes_entre_elles_et_des_cinq_anciennes`.
+  - `test_une_vue_sans_allies_ni_zones_ni_bombes_ne_dessine_rien_de_plus`.
+- **Vérif :** `T --filtre test_effets`, `test_arene_2d`, `test_apparence`, puis `tools/verifier.sh`. Captures de contrôle aux trois résolutions relues, avec 64 alliés et 255 armes qui tirent.
+
+### Task 9.20 : Sons de tir des 45 nouvelles armes — `sonnet`
+
+- [ ] **Objectif :** D15 pour les 45 nouvelles armes : un son de tir propre à chacune, pris dans le « 400+ Sounds Pack » (CC0, déjà cité par `CREDITS.md`), **jamais le même fichier d'origine deux fois sur l'ensemble des 75 et des 5 sons d'impact**, même conversion que T8.15 (Ogg Vorbis par ffmpeg, silence de tête coupé, `loudnorm` à −18 LUFS). Le pack n'offre qu'environ 50 sons de tir nettement distincts (relevé de T8.15) : les sons manquants viennent d'**un second pack sous licence CC0** que la session **choisit elle-même, sans attendre Phil** (décision de Phil du 26/11/2026), par exemple un pack de Kenney ; elle vérifie la licence à sa source, la cite dans `assets/sons/SOURCES.md`, et la ligne de `CREDITS.md` passe par T9.22. Une licence douteuse ou non vérifiable écarte le pack. Indépendante de la planche.
+- **Conception :** §6.5 bis (D15) du lot 8, §6.13.
+- **Fichiers :** `sons/catalogue_sons.gd` (rien si la liste dérive déjà des données), `assets/sons/tir_<id>.ogg` (45) avec leurs `.import`, `assets/sons/SOURCES.md` (une ligne par son) ; tests `test_catalogue_sons.gd`, `test_detecteur_sons.gd`. `CREDITS.md` : voir T9.22.
+- **Lire :** `assets/sons/SOURCES.md` (les fichiers d'origine déjà pris), `sons/catalogue_sons.gd`, `tests/unitaires/test_catalogue_sons.gd`.
+- **Interfaces :** consomme `CatalogueSons.id_tir` (T8.15), qui couvre déjà toute arme des données.
+- **Tests :**
+  - `test_chaque_arme_du_catalogue_a_son_fichier_de_tir` : en boucle sur `Donnees.armes`, le fichier existe et n'est pas un silence.
+  - `test_deux_armes_n_ont_jamais_le_meme_fichier_ni_le_meme_fichier_d_origine` : toutes les paires (empreinte du fichier et origine lue dans `SOURCES.md`) ; un son d'impact n'est jamais un son de tir.
+  - `test_chaque_son_est_liste_dans_sources_md` ; `test_chaque_fichier_de_son_pese_moins_de_80_ko`.
+  - `test_le_detecteur_choisit_le_son_de_l_arme_de_l_evenement` : en boucle sur le catalogue.
+  - `test_la_liste_des_sons_de_tir_suit_les_donnees` (anti-dérive).
+- **Vérif :** `T --filtre test_catalogue_sons`, `test_detecteur_sons`, puis `tools/verifier.sh`.
+
+## Session « Interface »
+
+### Task 9.21 : Descriptions des nouvelles mécaniques — `haiku`
+
+- [ ] **Objectif :** la boutique décrit **chaque** nouvelle mécanique en français, avec ses chiffres : 4 effets, 6 statuts, 4 champs d'arme (`degats_par_pv_max`, `degats_par_exemplaire`, `degats_par_amelioration`, `type_secondaire`) et 25 stats d'amélioration. Le texte dit comment ça se cumule et le plafond (la vulnérabilité « jusqu'à x % », la malédiction, les bonus de M5 « au plus x fois les dégâts de base », les croissances « jusqu'à x »), qui se lisent dans `Donnees.partie`. Fait **avant** T9.10 et T9.13 : les listes fermées de `description_offre.gd` refusent ce qu'elles ne connaissent pas.
+- **Conception :** §6.13 ; comparatif §7 (le sens de chaque mécanique).
+- **Fichiers :** `ui/description_offre.gd` (`EFFETS`, `STATUTS`, `STATISTIQUES`, modèles), `i18n/textes_boutique.csv` (clés `BOUTIQUE_EFFET_*`, colonne `fr`), `tests/unitaires/test_description_offre.gd`.
+- **Lire :** `ui/description_offre.gd` (`grep -n 'EFFETS\|STATUTS\|STATISTIQUES\|_morceaux_\|match'`) ; `i18n/textes_boutique.csv` (les lignes `BOUTIQUE_EFFET_`) ; `tests/unitaires/test_description_offre.gd` `test_chaque_genre_d_effet_chaque_statut_et_chaque_statistique_a_son_modele`.
+- **Interfaces :** consomme les noms de T9.2 ; ne produit aucun nom nouveau.
+- **Tests :**
+  - `test_chaque_nouveau_genre_statut_champ_et_stat_a_son_modele` : en boucle sur les listes de `Donnees` et de `VueArene` (jamais une liste en dur), une fiche factice valide donne une ligne non vide avec ses chiffres.
+  - `test_un_genre_un_statut_ou_une_statistique_inconnus_ne_passent_toujours_pas_en_silence` (inchangé).
+  - `test_la_ligne_de_chaque_mecanique_dit_son_plafond_ou_sa_borne_quand_elle_en_a_une` : vulnérabilité, malédiction, M5, croissances, valeurs lues dans `partie.json`.
+  - `test_typographie_francaise_des_nouvelles_lignes` (espaces insécables, « », apostrophes) ; `test_les_nouvelles_infobulles_tiennent_dans_la_carte_a_75_et_125_pour_cent` (les plus longues, trois résolutions).
+  - `test_les_cles_de_textes_boutique_ont_toutes_une_valeur_francaise` (aucune clé vide).
+- **Vérif :** `T --filtre test_description_offre`, `test_boutique_ui`, puis `tools/verifier.sh`.
+
+## Passe finale
+
+### Task 9.22 : Passe d'équilibrage du catalogue complet et clôture du lot — `sonnet`
+
+- [ ] **Objectif :** rejouer la passe d'équilibrage de T8.21 (`tools/equilibrage.gd`) avec les 75 armes, les 87 améliorations et les dix mécaniques ; consigner les chiffres dans `docs/equilibrage.md` (rendement de chacune des 75 armes, par type et par rareté ; les cibles du robot ; la part d'armes dans les offres). **Critère** (conception §6.12) : les cibles du robot consignées restent atteintes ; le robot de référence (`bonne`) n'est pas éliminé avant la manche 20 ; un robot qui n'achète rien tombe au plus tard à la fin de la manche 3 ; PV et dégâts ennemis croissent strictement de manche en manche. **Leviers autorisés sans revenir à Phil** : ceux de T8.21, plus les chiffres des 45 armes et des 44 améliorations, les plafonds de `partie.json` (`vulnerabilite`, `malediction`, `repoussement`, `limites`, `armes`, `ameliorations`), et `poids_genre` dans `data/boutique.json` (poids de tirage des armes et des améliorations, **seulement** si la part d'armes de la manche 1 tombe sous le seuil de l'objectif). **Non modifiables sans Phil** : les paliers de portée (500 / 750 / 1 000 / 1 250), la vitesse ×1,5, les portées d'ennemis 350 et 650, **et les effectifs de D18** (75 armes, 15 par type, 1 / 6 / 6 / 2, 87 améliorations). Clôture : `CREDITS.md` (sons ajoutés, nombre de sons du pack utilisés), `docs/jouer.md` (les mécaniques, pour le joueur), `CLAUDE.md` (un piège par difficulté réelle rencontrée), ce plan (suivis).
+- **Conception :** §6.12, §6.13.
+- **Fichiers :** `data/difficulte.json`, `data/ennemis.json`, `data/armes.json`, `data/ameliorations.json`, `data/boutique.json`, `data/partie.json`, `docs/equilibrage.md`, `docs/jouer.md`, `CREDITS.md`, `CLAUDE.md`, ce plan (suivis), `tests/unitaires/test_equilibrage_partie.gd`, `test_donnees.gd`, `test_catalogue_boutique.gd` (nouveau), `tests/integration/test_multijoueur.gd`.
+- **Lire :** `docs/equilibrage.md` en entier ; les rapports et rétros de T9.1 à T9.21 ; `sim/boutique.gd` `_tirer_un`.
+- **Interfaces :** consomme tout le lot ; ne change aucune interface (sauf `poids_genre` si le levier est utilisé, avec son schéma validé par `sim/donnees.gd`).
+- **Tests :**
+  - `test_le_robot_de_reference_n_est_pas_elimine_avant_la_manche_20` : robot `bonne`, graines 1 à 10, catalogue complet.
+  - `test_un_joueur_raisonnable_atteint_au_moins_la_manche_douze_en_mediane` ; `test_sans_achat_la_tour_tombe_avant_la_fin_de_la_manche_3` ; `test_pv_et_degats_ennemis_croissent_strictement` (tests de T8.8 et T8.21 toujours verts).
+  - **Review Focus 7 :** `test_la_part_d_armes_dans_les_offres_de_la_manche_1_ne_tombe_pas_sous_la_valeur_d_avant_le_lot_moins_dix_points` : constante `PART_ARMES_AVANT` **mesurée par script sur les données d'avant T9.13** (`git show` du commit qui précède, relevée dans le rapport), graines fixes, 1 000 tirages de quatre offres ; `test_chaque_arme_et_chaque_amelioration_reste_proposable_a_une_manche` : en boucle sur tout le catalogue.
+  - **Review Focus 3 :** `test_deux_parties_de_meme_graine_avec_le_robot_qui_achete_tout_ont_la_meme_empreinte_de_vue_sur_600_pas`.
+  - **Review Focus 4 :** `test_un_client_avec_255_armes_dont_des_invocatrices_recoit_un_etat_valide` (intégration, ENet local, port tiré à l'exécution).
+  - `test_le_rendement_des_armes_croit_avec_la_rarete_dans_chaque_type_catalogue_complet` (les tests de `test_contenu.gd`, sur les 75 armes) ; `test_la_cible_d18_est_toujours_tenue` (75 armes, 1 / 6 / 6 / 2 par type, 87 améliorations, en boucle).
+  - `test_chaque_arme_du_catalogue_a_une_signature_un_son_une_image_et_une_description` : en boucle, les quatre fichiers existent.
+- **Vérif :** `godot --headless --path . --script res://tools/equilibrage.gd -- --graines 50 --strategie toutes`, `npx -y prettier@3.9.10 --check` sur les Markdown touchés, puis `tools/verifier.sh` complet. Rapport : ce qui reste à Phil (planche validée ? sons manquants ? règle de la commune promue ?).

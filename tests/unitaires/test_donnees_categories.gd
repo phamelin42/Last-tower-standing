@@ -152,3 +152,28 @@ func test_les_stats_de_mana_sont_des_stats_d_amelioration_valides() -> void:
 	for stat: String in ["mana_max", "mana_regen"]:
 		var brut := _muter(_brut_reel(), "ameliorations.json", [0, "effets", 0, "stat"], stat)
 		verifier_egal(Donnees.valider(brut), PackedStringArray(), "stat « %s »" % stat)
+
+
+func test_les_portees_d_armes_sont_500_750_1000_1250() -> void:
+	var d := Donnees.charger()
+	verifier_non_nul(d)
+	if d == null:
+		return
+	verifier_egal(Donnees.PORTEES, [500, 750, 1000, 1250] as Array[int])
+	var utilisees: Dictionary = {}
+	for id: String in d.armes:
+		var portee := int((d.armes[id] as Dictionary)["portee"])
+		verifier(portee in Donnees.PORTEES, "%s : portée %d" % [id, portee])
+		utilisees[portee] = true
+	for portee: int in Donnees.PORTEES:
+		verifier(utilisees.has(portee), "aucune arme de portée %d" % portee)
+
+
+func test_une_ancienne_portee_est_refusee_en_nommant_armes_json_et_portee() -> void:
+	for ancienne: int in [300, 600, 900, 1200, 499, 1251, 0]:
+		var brut := _muter(_brut_reel(), "armes.json", [0, "portee"], ancienne)
+		var messages := Donnees.valider(brut)
+		verifier(
+			_un_message_nomme(messages, "armes.json", "portee"),
+			"portée %d acceptée : %s" % [ancienne, messages]
+		)

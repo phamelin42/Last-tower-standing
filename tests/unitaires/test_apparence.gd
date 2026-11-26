@@ -9,6 +9,19 @@ const ANIMATIONS: Array[String] = ["repos", "course", "attaque", "attaque_bas", 
 ## Écart minimal entre deux teintes de tour, en degrés : au-dessous, deux joueurs se confondent.
 const ECART_TEINTE_MIN: float = 20.0
 
+## Modèle de jeu → modèle du pack, et palier → couleur du pack (spécification, § 6.1).
+const SPRITE_DU_MODELE: Dictionary = {
+	"torche": "torch",
+	"paysan": "pawn",
+	"guerrier": "warrior",
+	"tonneau": "barrel",
+	"dynamite": "tnt",
+	"archer": "archer",
+}
+const COULEUR_DU_PALIER: Dictionary = {
+	"jaune": "Yellow", "rouge": "Red", "violet": "Purple", "bleu": "Blue"
+}
+
 var _donnees: Donnees = null
 
 
@@ -72,19 +85,66 @@ func test_la_mort_de_toute_famille_utilise_la_meme_feuille() -> void:
 	verifier(images <= int(mort["colonnes"]) * int(mort["lignes"]), "toutes les images existent")
 
 
-func test_seule_la_famille_volante_flotte_et_la_guepe_a_sa_feuille_maison() -> void:
+func test_les_24_entrees_se_distinguent_par_modele_et_couleur() -> void:
+	verifier_egal(_donnees.familles.size(), 24)
+	var vues: Dictionary = {}
+	var feuilles: Dictionary = {}
 	for famille: Dictionary in _donnees.familles:
 		var id: String = famille["id"]
+		verifier(Apparence.ENTITES.has(id), "%s : une entrée" % id)
+		if not Apparence.ENTITES.has(id):
+			continue
+		var source: Dictionary = Apparence.ENTITES[id]
+		var signature: String = "%s/%s" % [source["modele"], source["couleur_pack"]]
+		verifier_faux(
+			vues.has(signature), "%s : %s déjà prise par %s" % [id, signature, vues.get(signature)]
+		)
+		vues[signature] = id
+		var feuille: String = Apparence.entree(id)["feuille"]
+		verifier_faux(
+			feuilles.has(feuille), "%s : même feuille que %s" % [id, feuilles.get(feuille)]
+		)
+		feuilles[feuille] = id
+
+
+func test_le_modele_de_sprite_suit_le_modele_de_jeu_et_le_tonneau_est_agrandi() -> void:
+	for famille: Dictionary in _donnees.familles:
+		var id: String = famille["id"]
+		var source: Dictionary = Apparence.ENTITES[id]
+		var attendu: String = String(SPRITE_DU_MODELE[famille["modele"]])
+		verifier_egal(String(source["modele"]), attendu, "%s : modèle du pack" % id)
+		var echelle: float = 1.5 if attendu == "barrel" else 1.0
+		verifier_proche(float(source["echelle"]), echelle, 0.0001, "%s : échelle" % id)
+
+
+func test_la_couleur_de_l_entree_suit_le_palier() -> void:
+	var vus: Dictionary = {}
+	for famille: Dictionary in _donnees.familles:
+		var id: String = famille["id"]
+		var couleur: String = String(COULEUR_DU_PALIER[famille["palier"]])
+		verifier_egal(String((Apparence.ENTITES[id] as Dictionary)["couleur_pack"]), couleur, id)
+		verifier(String(Apparence.entree(id)["feuille"]).contains(couleur), "%s : feuille" % id)
+		vus[famille["palier"]] = true
+	verifier_egal(vus.size(), COULEUR_DU_PALIER.size(), "tous les paliers sont couverts")
+
+
+func test_aucune_trace_de_la_guepe_ni_du_vol() -> void:
+	verifier_faux(DirAccess.dir_exists_absolute("res://assets/maison"), "assets/maison/ absent")
+	for dossier: String in ["res://visuels", "res://tools"]:
+		for nom: String in DirAccess.get_files_at(dossier):
+			if not nom.ends_with(".gd"):
+				continue
+			var texte: String = FileAccess.get_file_as_string("%s/%s" % [dossier, nom]).to_lower()
+			verifier_faux(texte.contains("guepe"), "%s/%s cite la guêpe" % [dossier, nom])
+	for id: String in Apparence.ENTITES:
+		var source: Dictionary = Apparence.ENTITES[id]
+		verifier_faux(source.has("volant"), "%s : volant" % id)
+		verifier_faux(source.has("flottement"), "%s : flottement" % id)
 		var e: Dictionary = Apparence.entree(id)
-		verifier_egal(bool(e["volant"]), bool(famille["volant"]), "%s : vol" % id)
-		verifier_egal(float(e["flottement"]) > 0.0, bool(famille["volant"]), "%s : flottement" % id)
-	var guepe: Dictionary = Apparence.entree("guepe_de_laiton")
-	verifier_egal(String(guepe["feuille"]), "res://assets/maison/guepe_de_laiton.png")
-	verifier_proche(float(guepe["echelle"]), 1.0, 0.0001)
-	verifier_egal(guepe["repos"], Vector2i(0, 6), "ligne 0 : vol, 6 images")
-	verifier_egal(guepe["attaque"], Vector2i(1, 4), "ligne 1 : coup, 4 images")
-	for id: String in [String(_donnees.convoi["id"]), String(_donnees.boss["id"])]:
-		verifier_faux(bool(Apparence.entree(id)["volant"]), "%s ne vole pas" % id)
+		verifier_faux(e.has("volant"), "%s : entrée volante" % id)
+		verifier_faux(e.has("flottement"), "%s : entrée flottante" % id)
+	verifier(Apparence.entree("guepe_de_laiton").is_empty(), "plus d'entrée pour la guêpe")
+	verifier_faux(Apparence.MODELES.has("guepe"), "plus de modèle de guêpe")
 
 
 func test_le_convoi_est_un_mouton_a_deux_avec_son_sac_d_or_et_le_boss_un_guerrier_a_trois() -> void:

@@ -24,7 +24,7 @@ const FICHIERS_LISTE: Array[String] = ["armes.json", "ameliorations.json"]
 const FICHIERS_OPTIONNELS_EN_TEST: Array[String] = [
 	"armes.json", "ameliorations.json", "ennemis.json"
 ]
-const PORTEES: Array[int] = [300, 600, 900, 1200]
+const PORTEES: Array[int] = [500, 750, 1000, 1250]
 const CATEGORIES: Array[String] = ["A", "B", "C"]
 const STATS_AMELIORATION: Array[String] = [
 	"degats_type",
@@ -137,9 +137,7 @@ static func depuis_brut(brut: Dictionary) -> Donnees:
 	ids.sort()
 	d.ids_catalogue = PackedStringArray(ids)
 	var ennemis: Dictionary = brut["ennemis.json"]
-	var liste_familles: Array = ennemis["familles"]
-	for entree: Variant in liste_familles:
-		d.familles.append(_normaliser_famille(entree))
+	d.familles = DonneesEnnemis.construire_familles(ennemis)
 	d.convoi = _copie(ennemis["convoi"])
 	d.boss = _copie(ennemis["boss"])
 	d.empreinte = _empreinte(brut)
@@ -212,7 +210,7 @@ static func valider(brut: Dictionary) -> PackedStringArray:
 	if presents.has("ameliorations.json"):
 		_valider_ameliorations(presents["ameliorations.json"], ids, err)
 	if presents.has("ennemis.json"):
-		_valider_ennemis(presents["ennemis.json"], err)
+		DonneesEnnemis.valider(presents["ennemis.json"], err)
 	return PackedStringArray(err)
 
 
@@ -406,7 +404,7 @@ static func _valider_armes(liste: Array, ids: Dictionary, err: Array[String]) ->
 		if _nombre(a, _ent("portee", 0.0), f, ch, err):
 			var portee: int = int(a["portee"])
 			if not portee in PORTEES:
-				_err(err, f, _sous(ch, "portee"), "doit valoir 300, 600, 900 ou 1200")
+				_err(err, f, _sous(ch, "portee"), "doit valoir 500, 750, 1000 ou 1250")
 		var effets_ok := _tableau(a, "effets", f, ch, err)
 		if effets_ok:
 			var effets: Array = a["effets"]
@@ -531,56 +529,6 @@ static func _valider_effet_amelioration(
 		if not e.has("categorie") or not e["categorie"] in CATEGORIES:
 			var raison := "attendu A, B ou C, reçu %s" % _decrire(e.get("categorie"))
 			_err(err, f, _sous(ch, "categorie"), raison)
-
-
-## `ennemis.json` : soit entièrement vide (familles, convoi et boss vides : dossier de test),
-## soit complet.
-static func _valider_ennemis(e: Dictionary, err: Array[String]) -> void:
-	var f := "ennemis.json"
-	var familles_ok := _tableau(e, "familles", f, "", err)
-	var convoi_ok := _objet(e, "convoi", f, "", err)
-	var boss_ok := _objet(e, "boss", f, "", err)
-	if not (familles_ok and convoi_ok and boss_ok):
-		return
-	var familles_brutes: Array = e["familles"]
-	var convoi_brut: Dictionary = e["convoi"]
-	var boss_brut: Dictionary = e["boss"]
-	if familles_brutes.is_empty() and convoi_brut.is_empty() and boss_brut.is_empty():
-		return
-	var ids: Dictionary = {}
-	if familles_brutes.is_empty():
-		_err(err, f, "familles", "au moins une famille attendue")
-	for i in familles_brutes.size():
-		var ch := "familles[%d]" % i
-		var entree: Variant = familles_brutes[i]
-		if not entree is Dictionary:
-			_err(err, f, ch, "attendu un objet, reçu %s" % _decrire(entree))
-			continue
-		var fam: Dictionary = entree
-		_identifiant(fam, f, ch, err, ids)
-		_texte(fam, "nom", f, ch, err)
-		_nom_enum(fam, "armure", Types.NOMS_ARMURES, f, ch, err)
-		_booleen(fam, "volant", f, ch, err)
-		for spec: Dictionary in [
-			_pos("pv"),
-			_pos("vitesse"),
-			_nn("degats"),
-			_nn("portee_attaque"),
-			_pos("cadence_attaque"),
-			_nn("prime"),
-		]:
-			_nombre(fam, spec, f, ch, err)
-	_identifiant(convoi_brut, f, "convoi", err, ids)
-	_texte(convoi_brut, "nom", f, "convoi", err)
-	for spec: Dictionary in [_pos("pv"), _pos("vitesse"), _nn("prime")]:
-		_nombre(convoi_brut, spec, f, "convoi", err)
-	_identifiant(boss_brut, f, "boss", err, ids)
-	_texte(boss_brut, "nom", f, "boss", err)
-	var champs_boss := [
-		_pos("pv"), _pos("vitesse"), _nn("degats"), _nn("portee_attaque"), _pos("cadence_attaque")
-	]
-	for spec: Dictionary in champs_boss:
-		_nombre(boss_brut, spec, f, "boss", err)
 
 
 # --- Briques de validation ---------------------------------------------------------------------
@@ -916,18 +864,9 @@ static func _normaliser_amelioration(v: Variant) -> Dictionary:
 	}
 
 
-static func _normaliser_famille(v: Variant) -> Dictionary:
-	var sortie := _copie(v)
-	sortie["armure"] = Types.armure_depuis_nom(sortie["armure"])
-	return sortie
-
-
-# --- Empreinte ---------------------------------------------------------------------------------
-
-
 static func _contenu_vide(nom: String) -> Variant:
 	if nom == "ennemis.json":
-		return {"familles": [], "convoi": {}, "boss": {}}
+		return {"modeles": [], "paliers": [], "convoi": {}, "boss": {}}
 	return []
 
 

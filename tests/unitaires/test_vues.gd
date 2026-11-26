@@ -60,10 +60,12 @@ func _vue_pleine() -> VueArene:
 	var familles := PackedByteArray()
 	var pvs := PackedByteArray()
 	var statuts := PackedByteArray()
+	# Toutes les familles du jeu, convoi et boss compris : l'index tient dans un octet.
+	var nb_familles := Donnees.charger().familles.size() + 2
 	for i in 300:
 		ids.append(1000 + i)
 		positions.append(Vector2(float(i) * 3.5 - 500.0, 250.0 - float(i) * 1.25))
-		familles.append(i % 8)
+		familles.append(i % nb_familles)
 		pvs.append((i * 37) % 256)
 		statuts.append(i % 32)
 	vue.ennemis_id = ids

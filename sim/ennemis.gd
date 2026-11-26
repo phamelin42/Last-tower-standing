@@ -18,6 +18,9 @@ const EPSILON_TEMPS := 0.0001
 const DEGATS_MAX := 1e12
 ## Tolérance pour dire qu'un ennemi est arrivé à son point d'arrêt.
 const TOLERANCE_ARRET := 0.01
+## Bits réservés au rang de retrait dans la clé de tri de `purger` (16 millions de retraits).
+const RANG_BITS := 24
+const RANG_MASQUE := (1 << RANG_BITS) - 1
 
 ## Vivants uniquement ; les morts en attente de purge ne sont pas comptés.
 var taille: int = 0
@@ -34,7 +37,10 @@ var portee: PackedFloat32Array = PackedFloat32Array()
 var intervalle: PackedFloat32Array = PackedFloat32Array()
 var attaque_cd: PackedFloat32Array = PackedFloat32Array()
 var prime: PackedInt32Array = PackedInt32Array()
-var volant: PackedByteArray = PackedByteArray()
+## 1 : au contact de la tour, l'ennemi explose (dégâts à la tour, puis il disparaît).
+var explose: PackedByteArray = PackedByteArray()
+## 1 : mort par explosion, qui ne rapporte ni prime ni élimination.
+var sans_prime: PackedByteArray = PackedByteArray()
 var armure: PackedByteArray = PackedByteArray()
 var mort: PackedByteArray = PackedByteArray()
 ## Bits `Types.STATUT_*`, tenus à jour à chaque changement de statut.
@@ -55,6 +61,12 @@ var _cumuls_max: int
 var _givre_par_cumul: float
 var _givre_plafond: float
 var _suivant: int = 0
+## Plus petit carré de distance d'un vivant à `_centre_d2` (-1 : à recalculer). Les armes prêtes
+## mais sans cible rebalayaient chaque pas tous les ennemis : avec quarante armes, cela coûtait
+## plus de 10 ms par pas. Une mort ne l'invalide pas (il reste un minorant sûr) ; tout
+## déplacement ou ajout le fait.
+var _d2_min: float = -1.0
+var _centre_d2: Vector2 = Vector2.ZERO
 var _indice_par_id: Dictionary = {}
 ## Nombre d'entrées des tableaux, morts en attente compris.
 var _n: int = 0
@@ -81,8 +93,8 @@ func ajouter(
 	portee_attaque: float,
 	cadence: float,
 	prime_or: int,
-	est_volant: bool,
-	type_armure: int
+	type_armure: int,
+	explose_au_contact: bool = false
 ) -> int:
 	if not points_de_vie > 0.0 or not is_finite(points_de_vie):
 		return -1
@@ -96,6 +108,7 @@ func ajouter(
 	ids.append(id)
 	famille.append(clampi(fam, 0, 255))
 	pos.append(position)
+	_d2_min = -1.0
 	pv.append(points_de_vie)
 	pv_max.append(points_de_vie)
 	vitesse.append(maxf(vitesse_de_base, 0.0) if is_finite(vitesse_de_base) else 0.0)
@@ -104,7 +117,8 @@ func ajouter(
 	intervalle.append(1.0 / cadence if cadence > 0.0 and is_finite(cadence) else 0.0)
 	attaque_cd.append(0.0)
 	prime.append(prime_or)
-	volant.append(1 if est_volant else 0)
+	explose.append(1 if explose_au_contact else 0)
+	sans_prime.append(0)
 	armure.append(clampi(type_armure, 0, 255))
 	mort.append(0)
 	statuts.append(0)
@@ -120,6 +134,20 @@ func ajouter(
 
 
 ## -1 si l'identifiant est inconnu ou purgé.
+## Minorant du carré de la distance de `centre` au vivant le plus proche : `INF` sans vivant. Une
+## requête de portée `r` autour de `centre` ne trouve rien si `r × r` lui est inférieur.
+func distance2_minimale(centre: Vector2) -> float:
+	if _d2_min >= 0.0 and _centre_d2 == centre:
+		return _d2_min
+	var minimum := INF
+	for i: int in _n:
+		if mort[i] == 0:
+			minimum = minf(minimum, pos[i].distance_squared_to(centre))
+	_d2_min = minimum
+	_centre_d2 = centre
+	return minimum
+
+
 func indice_de(id: int) -> int:
 	return int(_indice_par_id.get(id, -1))
 
@@ -265,7 +293,13 @@ func avancer(
 	var degats_tour := 0.0
 	var attaquants := PackedInt32Array()
 	var tues := PackedInt32Array()
-	var resultat := {"degats_tour": 0.0, "attaquants_cac": attaquants, "tues_par_statut": tues}
+	var explosions := PackedInt32Array()
+	var resultat := {
+		"degats_tour": 0.0,
+		"attaquants_cac": attaquants,
+		"tues_par_statut": tues,
+		"explosions": explosions,
+	}
 	if not dt > 0.0 or not is_finite(dt) or _n == 0:
 		return resultat
 	var vit_mult := mult_vitesse if mult_vitesse > 0.0 and is_finite(mult_vitesse) else 0.0
@@ -297,8 +331,18 @@ func avancer(
 		if distance > arret:
 			var pas := minf(vitesse[i] * facteur * dt, distance - arret)
 			pos[i] = depart + vers * (pas / distance)
+			_d2_min = -1.0
 			distance -= pas
 		if distance > arret + TOLERANCE_ARRET:
+			continue
+		if explose[i] != 0:
+			# Au contact : un seul coup, tout de suite, puis l'ennemi disparaît sans prime. Il n'est
+			# pas un attaquant au corps à corps : ses dégâts rejoignent ceux à distance (une
+			# esquive possible, aucune épine).
+			degats_tour += degats[i] * deg_mult
+			explosions.append(i)
+			sans_prime[i] = 1
+			_tuer(i)
 			continue
 		var cd: float = attaque_cd[i] - dt
 		if cd <= 0.0 and degats[i] > 0.0 and intervalle[i] > 0.0:
@@ -313,13 +357,13 @@ func avancer(
 
 ## Indices des vivants à portée du centre, par identifiant croissant (l'ordre des indices ne
 ## l'est plus après une purge : le tri passe par les identifiants).
-func dans_rayon(centre: Vector2, rayon: float, inclure_volants: bool) -> PackedInt32Array:
+func dans_rayon(centre: Vector2, rayon: float) -> PackedInt32Array:
 	var trouves := PackedInt32Array()
 	if not rayon >= 0.0 or not is_finite(rayon):
 		return trouves
 	var r2 := rayon * rayon
 	for i: int in _n:
-		if mort[i] != 0 or (volant[i] != 0 and not inclure_volants):
+		if mort[i] != 0:
 			continue
 		if pos[i].distance_squared_to(centre) <= r2:
 			trouves.append(ids[i])
@@ -329,7 +373,7 @@ func dans_rayon(centre: Vector2, rayon: float, inclure_volants: bool) -> PackedI
 	return trouves
 
 
-## Indice du meilleur vivant à portée (volants compris) ou -1 ; à égalité parfaite, le plus
+## Indice du meilleur vivant à portée ou -1 ; à égalité parfaite, le plus
 ## petit identifiant. Un mode inconnu se comporte comme PLUS_PROCHE.
 func choisir(centre: Vector2, portee_max: float, mode: int) -> int:
 	if not portee_max >= 0.0 or not is_finite(portee_max):
@@ -359,24 +403,56 @@ func choisir(centre: Vector2, portee_max: float, mode: int) -> int:
 
 
 ## Retire les morts en échangeant chaque place libérée avec le dernier élément (l'identifiant
-## suit ses propres données). Rend `[{id, famille, prime, pos}]` par identifiant croissant.
+## suit ses propres données). Rend `[{id, famille, prime, pos, sans_prime}]` par identifiant
+## croissant.
 func purger() -> Array[Dictionary]:
 	var retires: Array[Dictionary] = []
+	# Clé de tri native : l'identifiant dans les bits de poids fort, le rang de retrait dessous.
+	var cles := PackedInt64Array()
+	_d2_min = -1.0
 	var i := 0
 	while i < _n:
 		if mort[i] == 0:
 			i += 1
 			continue
-		retires.append({"id": ids[i], "famille": int(famille[i]), "prime": prime[i], "pos": pos[i]})
-		_indice_par_id.erase(ids[i])
 		var dernier := _n - 1
-		if i != dernier:
-			_copier(dernier, i)
-			_indice_par_id[ids[i]] = i
-		_redimensionner(dernier)
+		if mort[dernier] != 0:
+			# Un mort en queue part sans copie (1 000 Tonneaux qui explosent ensemble : aucune).
+			_noter_retrait(dernier, retires, cles)
+			_n = dernier
+			continue
+		_noter_retrait(i, retires, cles)
+		_copier(dernier, i)
+		_indice_par_id[ids[i]] = i
 		_n = dernier
-	retires.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a["id"] < b["id"])
-	return retires
+	# Une seule réduction des tableaux, après le balayage : la refaire à chaque retrait coûtait
+	# vingt-quatre `resize` par ennemi retiré.
+	_redimensionner(_n)
+	# Un tri par comparateur GDScript coûtait 5 ms pour 1 000 retraits : le tri natif des clés
+	# donne le même ordre (identifiants uniques).
+	cles.sort()
+	var tries: Array[Dictionary] = []
+	tries.resize(retires.size())
+	for rang: int in cles.size():
+		tries[rang] = retires[cles[rang] & RANG_MASQUE]
+	return tries
+
+
+func _noter_retrait(i: int, retires: Array[Dictionary], cles: PackedInt64Array) -> void:
+	cles.append((ids[i] << RANG_BITS) | retires.size())
+	(
+		retires
+		. append(
+			{
+				"id": ids[i],
+				"famille": int(famille[i]),
+				"prime": prime[i],
+				"pos": pos[i],
+				"sans_prime": sans_prime[i] != 0,
+			}
+		)
+	)
+	_indice_par_id.erase(ids[i])
 
 
 func _copier(de: int, vers: int) -> void:
@@ -391,7 +467,8 @@ func _copier(de: int, vers: int) -> void:
 	intervalle[vers] = intervalle[de]
 	attaque_cd[vers] = attaque_cd[de]
 	prime[vers] = prime[de]
-	volant[vers] = volant[de]
+	explose[vers] = explose[de]
+	sans_prime[vers] = sans_prime[de]
 	armure[vers] = armure[de]
 	mort[vers] = mort[de]
 	statuts[vers] = statuts[de]
@@ -417,7 +494,8 @@ func _redimensionner(n: int) -> void:
 	intervalle.resize(n)
 	attaque_cd.resize(n)
 	prime.resize(n)
-	volant.resize(n)
+	explose.resize(n)
+	sans_prime.resize(n)
 	armure.resize(n)
 	mort.resize(n)
 	statuts.resize(n)

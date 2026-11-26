@@ -32,16 +32,30 @@ func tirer(manche: int) -> int:
 		_dernier_etait_convoi = true
 		return n
 	_dernier_etait_convoi = false
-	var choix := 0
-	if n > 1:
-		if _derniere_famille < 0:
-			choix = _rng.randi_range(0, n - 1)
-		else:
-			choix = _rng.randi_range(0, n - 2)
-			if choix >= _derniere_famille:
-				choix += 1
+	var candidates := _familles_disponibles(manche)
+	var choix := candidates[0]
+	if candidates.size() > 1:
+		var sans_derniere: Array[int] = []
+		for i: int in candidates:
+			if i != _derniere_famille:
+				sans_derniere.append(i)
+		choix = sans_derniere[_rng.randi_range(0, sans_derniere.size() - 1)]
 	_derniere_famille = choix
 	return choix
+
+
+## Index des familles qui peuvent sortir à la manche `manche` : leur palier est entré
+## (`manche_entree`) et leur modèle est arrivé (`manche_min`). Jamais vide : à défaut, la première
+## famille, pour qu'une manche ait toujours des ennemis.
+func _familles_disponibles(manche: int) -> Array[int]:
+	var disponibles: Array[int] = []
+	for i in _donnees.familles.size():
+		var famille: Dictionary = _donnees.familles[i]
+		if manche >= int(famille["manche_entree"]) and manche >= int(famille["manche_min"]):
+			disponibles.append(i)
+	if disponibles.is_empty():
+		disponibles.append(0)
+	return disponibles
 
 
 ## {pv, degats, vitesse, resistance_controle} d'une manche commencée au temps `temps` (s de jeu).
