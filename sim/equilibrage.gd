@@ -11,6 +11,9 @@ const PRIX_MIN := 1
 const REFERENCE_PV_MAX_TOUR := 1000.0
 const REFERENCE_EXEMPLAIRES := 3
 const REFERENCE_AMELIORATIONS := 3
+## Secondes entre deux attaques d'un allié invoqué (`data/unites.json` `cadence`), faute de
+## connaître son unité depuis la seule définition de l'arme.
+const REFERENCE_CADENCE_ALLIE := 1.0
 ## Plafond des bonus « selon », en multiple des dégâts de base (`partie.json` `armes`).
 const BONUS_SELON_STAT_MAX := 4.0
 
@@ -36,12 +39,24 @@ static func dps_estime(arme: Dictionary, mana_max: float = 0.0) -> float:
 	var base: float = arme.get("degats", 0.0)
 	var degats := base + float(arme.get("degats_par_mana_max", 0.0)) * maxf(mana_max, 0.0)
 	degats += minf(_bonus_selon(arme, base), BONUS_SELON_STAT_MAX * base)
-	return degats * tirs_par_seconde(arme) * cibles_estimees(arme)
+	return degats * _tirs_utiles(arme) * cibles_estimees(arme)
 
 
 static func rendement(arme: Dictionary, mana_max: float = 0.0) -> float:
 	var prix: int = arme.get("prix", PRIX_MIN)
 	return dps_estime(arme, mana_max) / float(maxi(prix, PRIX_MIN))
+
+
+## Tirs par seconde qui comptent : une arme qui invoque ne fait pas durer plus de `max_actives`
+## alliés à la fois, donc au plus `max_actives / duree` invocations par seconde.
+static func _tirs_utiles(arme: Dictionary) -> float:
+	var tirs := tirs_par_seconde(arme)
+	var effets: Array = arme.get("effets", [])
+	for effet: Dictionary in effets:
+		if effet.get("kind", "") == "invocation":
+			var duree := maxf(float(effet.get("duree", 1.0)), RECHARGE_MIN)
+			tirs = minf(tirs, float(effet.get("max_actives", 1)) / duree)
+	return tirs
 
 
 ## Les trois bonus « selon » aux valeurs de référence ; zéro pour une arme qui n'en a pas.
@@ -74,6 +89,9 @@ static func _cibles_effet(effet: Dictionary) -> float:
 			return projectiles * 0.5
 		"mine", "piege":
 			return 2.0
+		"invocation":
+			var coups: float = float(effet.get("duree", 1.0)) / REFERENCE_CADENCE_ALLIE
+			return coups * float(effet.get("ratio_degats", 1.0))
 		"zone_posee":
 			var impulsions: float = (
 				float(effet.get("duree", 1.0))
