@@ -1545,9 +1545,10 @@ func id_regarde() -> int                # -1 si aucune
 - **Armes** (`data/armes.json`, `tests/unitaires/test_catalogue_armes.gd`) : T9.13 à T9.17, une tâche par type dans l'ordre tranchant, perçant, magique, siège, chaos, chacune dès que les mécaniques qu'elle impose sont fusionnées. `data/armes.json` n'a **qu'un propriétaire à la fois** : les cinq tâches s'enchaînent. On ne découpe pas le fichier : le chargeur lit `armes.json` et `ameliorations.json` d'un bloc (`FICHIERS_LISTE` de `sim/donnees.gd`) et une douzaine de tests les citent par leur nom.
 - **Rendu** (`visuels/`, `sons/`, `assets/sons/`, `tools/planche_signatures.gd`, `docs/planche_signatures.png`) : T9.18 (**attend Phil**) quand T9.13 à T9.17 sont fusionnées ; T9.19 après la validation de T9.18 ; T9.20 (sons) dès que T9.17 est fusionnée.
 - **Interface** (`ui/description_offre.gd`, `i18n/textes_boutique.csv`) : T9.21, **dès T9.2 et avant T9.10 et T9.13** : les descriptions refusent un genre, un statut ou une stat qu'elles ne connaissent pas (`test_un_genre_un_statut_ou_une_statistique_inconnus_ne_passent_pas_en_silence`), donc aucune donnée nouvelle n'entre avant leurs modèles de ligne.
-- **Passe finale** : T9.22, quand tout est fusionné.
+- **Apparence de la tour** (D19 ; `visuels/`, `sim/vue_arene.gd`, `sim/donnees_apparence.gd`, `reseau/protocole.gd`, `data/apparence_tour.json`, `data/skins_tour.json`, `assets/tour_apparence/`) : T9.23 après T9.11 et T9.12 (les statistiques) et T9.9 (protocole) ; T9.24 (**attend Phil**) après T9.23 ; T9.25 après la validation de T9.24 et T9.19 (même fichier `visuels/arene_2d.gd`).
+- **Passe finale** : T9.22, quand tout est fusionné, **T9.23 à T9.25 comprises**.
 
-**Dépendances :** T9.1 aucune (le comparatif est sur `main`) · T9.2 T8.3, T8.5, T8.7 · T9.3 T9.2 · T9.4 T9.3, T8.7 · T9.5 T9.4 · T9.6 T9.5 · T9.7 T9.6 · T9.8 T9.7 · T9.9 T9.8, T8.2 · T9.10 T9.8, T9.21 · T9.11 T9.10 · T9.12 T9.11 · T9.13 T9.1, T9.3, T9.5, T9.6, T9.21 · T9.14 T9.13 · T9.15 T9.14, T9.4, T9.7, T9.9 · T9.16 T9.15, T9.5 · T9.17 T9.16, T9.8 · T9.18 T9.13 à T9.17, T8.14 (planche des 30, validée) · T9.19 T9.7, T9.8, T9.9, T9.18 validée par Phil · T9.20 T9.17, T8.15 · T9.21 T9.2 · T9.22 toutes. T9.3 à T9.8 s'enchaînent parce qu'elles touchent toutes `sim/arene.gd`, `sim/tir.gd` ou `sim/ennemis.gd`.
+**Dépendances :** T9.1 aucune (le comparatif est sur `main`) · T9.2 T8.3, T8.5, T8.7 · T9.3 T9.2 · T9.4 T9.3, T8.7 · T9.5 T9.4 · T9.6 T9.5 · T9.7 T9.6 · T9.8 T9.7 · T9.9 T9.8, T8.2 · T9.10 T9.8, T9.21 · T9.11 T9.10 · T9.12 T9.11 · T9.13 T9.1, T9.3, T9.5, T9.6, T9.21 · T9.14 T9.13 · T9.15 T9.14, T9.4, T9.7, T9.9 · T9.16 T9.15, T9.5 · T9.17 T9.16, T9.8 · T9.18 T9.13 à T9.17, T8.1 · T9.23 T9.11, T9.12, T9.9, T8.10 · T9.24 T9.23 · T9.25 T9.19, T9.24 (validée) · T9.22 tout le lot, T9.23 à T9.25 compris4 (planche des 30, validée) · T9.19 T9.7, T9.8, T9.9, T9.18 validée par Phil · T9.20 T9.17, T8.15 · T9.21 T9.2 · T9.22 toutes. T9.3 à T9.8 s'enchaînent parce qu'elles touchent toutes `sim/arene.gd`, `sim/tir.gd` ou `sim/ennemis.gd`.
 
 **Couplages à respecter :**
 
@@ -2038,11 +2039,67 @@ Tests du gabarit (écrits par T9.13, étendus par chaque tâche en ajoutant son 
   - `test_les_cles_de_textes_boutique_ont_toutes_une_valeur_francaise` (aucune clé vide).
 - **Vérif :** `T --filtre test_description_offre`, `test_boutique_ui`, puis `tools/verifier.sh`.
 
+## Session « Apparence de la tour » (D19, ajoutée le 26/11/2026)
+
+Conception : §6.14 (décision D19 de Phil du 26/11/2026). Ces trois tâches se font **après T9.10 à T9.12** (les améliorations qui fournissent les statistiques) et **avant T9.22**, qui clôt le lot (ses lignes de `docs/jouer.md` et de `CREDITS.md` couvrent aussi T9.23 à T9.25). La revue du lot 10 reste en dernier. T9.24 **attend Phil** (planche avant/après), T9.25 après sa validation. `sim/` ne connaît pas l'apparence : T9.23 ne transmet que des **statistiques**, T9.24 et T9.25 vivent dans `visuels/`. Le lot 11 (skins, §6.15) réutilise le format d'ancrage créé ici (B7).
+
+### Task 9.23 : Statistiques d'apparence dans la vue, seuils dans `data/`, protocole — `sonnet`
+
+- [ ] **Objectif :** (a) `VueArene` porte, en plus de `tour_pv_max`, `tour_armure`, `tour_mana` et `tour_mana_max` (déjà là), quatre champs `tour_epines`, `tour_esquive`, `tour_regen` et `tour_vol_de_vie` (somme du vol de vie au coup et à la mort), valeurs **effectives** de `StatsTour`, remplis par `Arene.vue` ; (b) ils passent dans le protocole, pour l'arène du joueur **et** pour l'arène regardée (A4), avec une **montée de `Protocole.VERSION`** : relire celle de `main` avant de l'incrémenter, garder tous les formats précédents refusés par un test en boucle (piège de `CLAUDE.md`) ; (c) `data/apparence_tour.json` (A2) : pour chacune des sept statistiques (`epines`, `pv_max`, `mana`, `armure`, `esquive`, `regen`, `vol_de_vie`), trois seuils strictement croissants, et pour `pv_max` l'agrandissement de chaque palier, **au plus 0,25** (A3) ; (d) la validation (`sim/donnees_apparence.gd`, nouveau, appelé par `sim/donnees.gd` comme `DonneesEnnemis`) refuse un seuil non fini, non croissant ou absent, une statistique inconnue ou manquante, un agrandissement au-dessus de 0,25 ou décroissant. Valeurs de départ : seuils tirés des gains d'une, de quelques et de nombreuses améliorations de la statistique dans `data/ameliorations.json` ; Phil les ajuste en voyant la planche de T9.24. **Aucune apparence ni aucun palier ne passe dans `sim/` ni dans le réseau.**
+- **Conception :** §6.14 (A1 à A4), §6.11 du lot 8 (budget réseau).
+- **Fichiers :** `sim/vue_arene.gd`, `sim/arene.gd` (`vue`), `sim/donnees.gd` (liste des fichiers), `sim/donnees_apparence.gd` (nouveau), `data/apparence_tour.json` (nouveau), `reseau/protocole.gd` ; tests `test_vues.gd`, `test_donnees_apparence.gd` (nouveau), `test_protocole_apparence.gd` (nouveau), `test_serveur_debit.gd`.
+- **Lire :** `sim/vue_arene.gd` (`SCHEMA`, `to_dict`, `from_dict`), `reseau/protocole.gd` (`encoder_etat_arene`, `encoder_etat_arene_regardee`, `OFFSET_*`, `TAILLE_FIXE`), `sim/donnees_ennemis.gd` (modèle d'un validateur à part), `test_protocole_v5.gd`.
+- **Interfaces :** produit `VueArene.tour_epines`, `tour_esquive`, `tour_regen`, `tour_vol_de_vie: float` ; `Donnees.apparence_tour: Dictionary` ({`stats`: {nom: [seuil1, seuil2, seuil3]}, `agrandissement`: [p1, p2, p3]}) ; `Protocole.VERSION`.
+- **Tests :**
+  - `test_la_vue_porte_chaque_statistique_d_apparence` : en boucle sur **toutes les améliorations de `data/`** dont la stat est l'une des sept, l'acheter change le champ de la vue qui lui correspond, et aucun autre champ d'apparence ; jamais un nombre d'améliorations en dur.
+  - `test_une_tour_sans_amelioration_a_des_statistiques_d_apparence_neutres` ; `test_la_simulation_ne_depend_pas_de_l_apparence` (deux arènes de même graine, empreinte de vue égale pour tout champ hors apparence).
+  - `test_l_etat_d_arene_et_l_etat_d_arene_regardee_portent_les_quatre_champs_aller_retour` : valeurs limites (0, très grande), puis `null` pour un flottant non fini ; **Review Focus 4 du lot 9** étendu : tous les préfixes d'un état valide et 2 000 tableaux tirés d'une graine fixe rendent `null` ou `{}`.
+  - `test_les_versions_precedentes_du_protocole_sont_refusees` : en boucle de 1 à `VERSION - 1`.
+  - `test_chaque_statistique_a_trois_seuils_strictement_croissants` (en boucle sur les sept, lues dans les données) ; `test_un_seuil_non_croissant_non_fini_ou_manquant_est_refuse` (mutations de la table) ; `test_l_agrandissement_est_borne_a_25_pour_cent_et_croissant` (0,26 refusé) ; `test_une_statistique_inconnue_est_refusee`.
+  - `test_chaque_palier_est_atteignable` : en boucle, acheter toutes les améliorations d'une statistique atteint son troisième seuil (sinon le palier est mort).
+  - `test_le_budget_de_50_000_octets_par_client_tient_toujours` (8 clients, 1 000 ennemis, arène regardée).
+- **Vérif :** `T --filtre test_vues`, `test_donnees_apparence`, `test_protocole_apparence`, `test_serveur_debit`, puis `tools/verifier.sh`. Dépend de T9.11, T9.12 (statistiques), T9.9 (protocole des alliés) et T8.10 (arène regardée).
+
+### Task 9.24 : Planche avant/après des superpositions de la tour — `sonnet` — **attend Phil**
+
+- [ ] **Objectif :** dessiner les **21 superpositions** (7 statistiques × 3 paliers) en pixel art du style de Tiny Swords (A1, A5) : piques sur les murs, plaques en couches, bulle bleue (taille et opacité par palier), lueur verte, filets rouges aspirés, flou et images rémanentes pour l'esquive ; la tour qui grandit n'a pas d'image, elle a un facteur. Outils **libres seulement** (licence OSI : code Godot qui compose des images, ou un éditeur libre comme Pixelorama, Krita ou GIMP, licence vérifiée à sa source) ; **ni Aseprite ni génération d'images par IA**. Les images vivent dans `assets/tour_apparence/` (publiées sous CC0 avec le jeu), leurs **points d'ancrage** (B7) dans `data/skins_tour.json`, créé ici avec le seul skin `defaut` (la tour Chevalier actuelle) ; `visuels/apparence_tour.gd` (`ApparenceTour`) porte la logique pure : `paliers(vue, donnees) -> Dictionary`, `echelle(paliers) -> float`, `remplissage_mana(vue) -> float`. Une **planche avant/après**, `docs/planche_apparence_tour.png`, composée sans écran par `tools/planche_apparence_tour.gd` : par statistique, la tour nue puis les trois paliers côte à côte ; une tour avec tout au maximum ; les huit couleurs de joueur. **Aucune intégration avant la validation de Phil** : l'agent principal met la ligne du tableau d'avancement à `a_valider` avec `attend` renseigné.
+- **Conception :** §6.14 (A1 à A3, A5), B7 du §6.15 pour le format des ancrages.
+- **Fichiers :** `visuels/apparence_tour.gd` (nouveau), `assets/tour_apparence/*.png` avec leurs `.import`, `assets/tour_apparence/SOURCES.md` (outil et licence de chaque image), `data/skins_tour.json` (nouveau, skin `defaut`), `sim/donnees_apparence.gd` (validation des ancrages), `tools/planche_apparence_tour.gd` (nouveau), `docs/planche_apparence_tour.png` ; tests `test_apparence_tour.gd` (nouveau), `test_garde_ressources.gd` si le script cite une image du pack.
+- **Lire :** `docs/tiny_swords.md` §3.1 (la tour du joueur) ; `visuels/arene_2d.gd` (`SHADER_TOUR`, taille de la tour) ; `tools/planche_signatures.gd` (modèle de planche sans écran, glyphes du `TextServer`).
+- **Interfaces :** consomme `Donnees.apparence_tour` (T9.23). Produit `ApparenceTour.paliers(vue: VueArene, donnees: Donnees) -> Dictionary` ({stat: 0 à 3}), `ApparenceTour.echelle(paliers: Dictionary, donnees: Donnees) -> float` (1,0 à 1,25), `ApparenceTour.remplissage_mana(vue: VueArene) -> float` (0 à 1), et `Donnees.skins_tour: Dictionary` ({id: {sprite, ancrages: {superposition: {x, y}}}}).
+- **Tests :**
+  - `test_chaque_statistique_a_ses_trois_superpositions` : en boucle sur les statistiques et les paliers lus dans les données, l'image existe, n'est pas vide (pixels opaques) et tient dans le cadre de la tour.
+  - `test_deux_superpositions_ne_se_confondent_jamais` : toutes les paires, sur l'empreinte de l'image.
+  - `test_les_paliers_suivent_les_seuils` : en boucle, juste sous le seuil, au seuil, au-dessus ; 0 sous le premier ; jamais plus de 3.
+  - `test_l_echelle_ne_depasse_jamais_1_25_et_croit_avec_le_palier_de_pv_max` (neutre à 1,0).
+  - `test_le_remplissage_de_la_mana_suit_le_ratio_et_disparait_a_zero` : mana maximale 0, mana 0, 0,5, pleine ; ratio non fini ramené à 0.
+  - `test_le_skin_par_defaut_a_un_ancrage_pour_chaque_superposition` ; `test_un_skin_sans_ancrage_pour_une_superposition_est_refuse` (B7).
+  - `test_chaque_superposition_reste_lisible_au_zoom_le_plus_lointain` (nombre de pixels opaques et contraste minimum avec la pierre, mesurés à l'échelle du zoom de la caméra).
+  - `test_chaque_image_est_listee_dans_sources_md_avec_une_licence_libre`.
+  - `test_la_planche_existe_et_montre_chaque_statistique`.
+- **Vérif :** `T --filtre test_apparence_tour`, `godot --headless --path . --script res://tools/planche_apparence_tour.gd`, puis `tools/verifier.sh`. Rapport : lien vers la planche, outils et licences utilisés. Dépend de T9.23.
+
+### Task 9.25 : Apparence de la tour en jeu — `sonnet`
+
+- [ ] **Objectif :** après la validation de la planche : (a) `Arene2D` dessine, sur la tour du joueur **et** sur celle de l'arène regardée (A4), les superpositions de chaque statistique à son palier, aux ancrages du skin ; (b) la tour **grandit** de `echelle` (+25 % au plus), **sur le sprite seulement** ; (c) la bulle de mana se **remplit** selon `remplissage_mana` à chaque image et disparaît à 0 ; (d) un changement de palier se fond (0,3 s) au lieu de sauter, et un joueur qui regarde une autre arène voit **ses** superpositions, pas les siennes ; (e) l'esquive montre un flou et deux images rémanentes (animation : skill `animer-attaques-sorts`, capture avant et après par `tools/capturer.sh`) ; (f) rien de clignotant (aucun éclair au-dessus de trois par seconde). **Rien dans `sim/`.**
+- **Conception :** §6.14.
+- **Fichiers :** `visuels/arene_2d.gd`, `visuels/apparence_tour.gd`, `visuels/teinte_tour.gdshader` si l'agrandissement ou la teinte l'exige ; tests `test_arene_2d.gd`, `test_apparence_tour.gd`.
+- **Lire :** `visuels/arene_2d.gd` (dessin de la tour, `distance_arret`, arène regardée de T8.13) ; `visuels/apparence_tour.gd` (T9.24).
+- **Interfaces :** consomme `ApparenceTour`, `Donnees.skins_tour`, `VueArene` (T9.23). Ne produit aucune interface de simulation.
+- **Tests :**
+  - `test_chaque_statistique_a_chaque_palier_dessine_sa_superposition_a_son_ancrage` : en boucle sur les sept et les trois paliers, avec une vue factice.
+  - `test_une_statistique_sous_son_premier_seuil_ne_dessine_rien` ; `test_une_tour_sans_amelioration_se_dessine_comme_avant` (comparaison à une capture de référence).
+  - `test_l_agrandissement_ne_change_ni_le_rayon_de_la_tour_ni_la_distance_d_arret_des_ennemis` : `Arene2D.distance_arret` et les positions de la vue sont identiques à l'échelle 1,0 et 1,25 ; l'échelle du sprite ne dépasse jamais 1,25 (A3).
+  - `test_la_tour_regardee_montre_les_statistiques_de_son_joueur` ; `test_un_changement_de_palier_se_fond_sans_saut` (opacité intermédiaire à mi-fondu).
+  - `test_la_bulle_de_mana_disparait_a_zero_et_est_pleine_au_maximum`.
+  - `test_les_sept_statistiques_au_maximum_tiennent_dans_le_budget_de_dessin` : banc de T5.1b, 1 000 ennemis, pas plus d'une milliseconde de dessin ajoutée en moyenne par image.
+- **Vérif :** `T --filtre test_arene_2d`, `test_apparence_tour`, puis `tools/verifier.sh` ; captures avant et après à trois résolutions, **relues**, avec une tour regardée. Dépend de T9.23, de T9.24 **validée par Phil** et de T9.19 (même fichier `visuels/arene_2d.gd`, dans cet ordre).
+
 ## Passe finale
 
 ### Task 9.22 : Passe d'équilibrage du catalogue complet et clôture du lot — `sonnet`
 
-- [ ] **Objectif :** rejouer la passe d'équilibrage de T8.21 (`tools/equilibrage.gd`) avec les 75 armes, les 87 améliorations et les dix mécaniques ; consigner les chiffres dans `docs/equilibrage.md` (rendement de chacune des 75 armes, par type et par rareté ; les cibles du robot ; la part d'armes dans les offres). **Critère** (conception §6.12) : les cibles du robot consignées restent atteintes ; le robot de référence (`bonne`) n'est pas éliminé avant la manche 20 ; un robot qui n'achète rien tombe au plus tard à la fin de la manche 3 ; PV et dégâts ennemis croissent strictement de manche en manche. **Leviers autorisés sans revenir à Phil** : ceux de T8.21, plus les chiffres des 45 armes et des 44 améliorations, les plafonds de `partie.json` (`vulnerabilite`, `malediction`, `repoussement`, `limites`, `armes`, `ameliorations`), et `poids_genre` dans `data/boutique.json` (poids de tirage des armes et des améliorations, **seulement** si la part d'armes de la manche 1 tombe sous le seuil de l'objectif). **Non modifiables sans Phil** : les paliers de portée (500 / 750 / 1 000 / 1 250), la vitesse ×1,5, les portées d'ennemis 350 et 650, **et les effectifs de D18** (75 armes, 15 par type, 1 / 6 / 6 / 2, 87 améliorations). Clôture : `CREDITS.md` (sons ajoutés, nombre de sons du pack utilisés), `docs/jouer.md` (les mécaniques, pour le joueur), `CLAUDE.md` (un piège par difficulté réelle rencontrée), ce plan (suivis).
+- [ ] **Objectif :** rejouer la passe d'équilibrage de T8.21 (`tools/equilibrage.gd`) avec les 75 armes, les 87 améliorations et les dix mécaniques ; consigner les chiffres dans `docs/equilibrage.md` (rendement de chacune des 75 armes, par type et par rareté ; les cibles du robot ; la part d'armes dans les offres). **Critère** (conception §6.12) : les cibles du robot consignées restent atteintes ; le robot de référence (`bonne`) n'est pas éliminé avant la manche 20 ; un robot qui n'achète rien tombe au plus tard à la fin de la manche 3 ; PV et dégâts ennemis croissent strictement de manche en manche. **Leviers autorisés sans revenir à Phil** : ceux de T8.21, plus les chiffres des 45 armes et des 44 améliorations, les plafonds de `partie.json` (`vulnerabilite`, `malediction`, `repoussement`, `limites`, `armes`, `ameliorations`), et `poids_genre` dans `data/boutique.json` (poids de tirage des armes et des améliorations, **seulement** si la part d'armes de la manche 1 tombe sous le seuil de l'objectif). **Non modifiables sans Phil** : les paliers de portée (500 / 750 / 1 000 / 1 250), la vitesse ×1,5, les portées d'ennemis 350 et 650, **et les effectifs de D18** (75 armes, 15 par type, 1 / 6 / 6 / 2, 87 améliorations). Clôture : `CREDITS.md` (sons ajoutés, nombre de sons du pack utilisés), `docs/jouer.md` (les mécaniques, pour le joueur), `CLAUDE.md` (un piège par difficulté réelle rencontrée), ce plan (suivis). Les lignes de `docs/jouer.md` (la tour qui change d’apparence) et de `CREDITS.md` (outils des superpositions) de T9.23 à T9.25 y entrent aussi.
 - **Conception :** §6.12, §6.13.
 - **Fichiers :** `data/difficulte.json`, `data/ennemis.json`, `data/armes.json`, `data/ameliorations.json`, `data/boutique.json`, `data/partie.json`, `docs/equilibrage.md`, `docs/jouer.md`, `CREDITS.md`, `CLAUDE.md`, ce plan (suivis), `tests/unitaires/test_equilibrage_partie.gd`, `test_donnees.gd`, `test_catalogue_boutique.gd` (nouveau), `tests/integration/test_multijoueur.gd`.
 - **Lire :** `docs/equilibrage.md` en entier ; les rapports et rétros de T9.1 à T9.21 ; `sim/boutique.gd` `_tirer_un`.
@@ -2057,6 +2114,192 @@ Tests du gabarit (écrits par T9.13, étendus par chaque tâche en ajoutant son 
   - `test_chaque_arme_du_catalogue_a_une_signature_un_son_une_image_et_une_description` : en boucle, les quatre fichiers existent.
 - **Vérif :** `godot --headless --path . --script res://tools/equilibrage.gd -- --graines 50 --strategie toutes`, `npx -y prettier@3.9.10 --check` sur les Markdown touchés, puis `tools/verifier.sh` complet. Rapport : ce qui reste à Phil (planche validée ? sons manquants ? règle de la commune promue ?).
 
+# Lot 11 — Progression, défis et skins de tour (décisions de Phil du 26/11/2026, D20)
+
+**Conception :** `docs/superpowers/specs/2026-11-25-retours-partie-design.md` §6.15 (décisions B1 à B8 de Phil, « défaut oui pour tout » ; elles ne se discutent pas, une objection se dit dans la PR) et §6.14 pour les superpositions que les skins portent (B7).
+
+**Démarrage et place dans l'ordre :** après T9.25 pour le rendu (T11.6, T11.7), mais T11.1 et T11.3 démarrent **tout de suite** : elles ne touchent ni `sim/` ni `visuels/`. Le lot 11 passe **avant** la revue finale du lot 10, qui reste la dernière étape (son démarrage attend T11.9).
+
+**Intention :** garder d'une partie à l'autre ce que le joueur a réussi (défis, skins débloqués, statistiques) sans jamais le perdre, offrir un défi par skin de tour purement cosmétique, et montrer le skin choisi aux autres joueurs.
+
+**Règles de dépendance du lot (celles de `CLAUDE.md`, sans exception) :**
+
+- **Hors de `sim/`.** La sauvegarde et l'évaluation des défis vivent dans le nouveau dossier **`progression/`**. `sim/` ne le connaît pas, ne connaît pas `user://` ni les skins ; il produit seulement un **bilan de partie** (donnée pure, T11.2) et range un **entier opaque** (le skin) avec chaque joueur (T11.5). `progression/` lit l'état d'arène et le bilan par l'API publique (`sim/partie.gd`) et n'écrit jamais dans `sim/`. `reseau/` n'appelle que `sim/partie.gd`.
+- **`ui/`** porte le choix du skin et la liste des défis ; **tous les textes** passent par `i18n/*.csv` (français, espaces insécables).
+- **`visuels/`** dessine les skins et les superpositions, depuis `data/skins_tour.json` et `data/apparence_tour.json`.
+- Le chargeur de données unique (`sim/donnees.gd`) charge et valide aussi `data/defis.json` et `data/skins_tour.json` ; `sim/` ne les lit pas.
+
+**Parallélisme :** quatre sessions, chacune sur ses fichiers.
+
+- **Progression** (`progression/`, `app/progression_locale.gd`, `data/defis.json`, `docs/defis.md`) : T11.1 (**attend Phil**) et T11.3 tout de suite ; T11.4 après la liste validée et T11.2.
+- **Simulation** (`sim/`, `reseau/`, `app/source_vue.gd`, `app/source_locale.gd`) : T11.2 après la liste validée de T11.1 et T9.9, puis T11.5. Les deux montent `Protocole.VERSION` : **dans cet ordre, relire celle de `main` avant de l'incrémenter**.
+- **Rendu** (`visuels/`, `assets/tours/`, `tools/planche_skins_tour.gd`) : T11.6 (**attend Phil**) quand T11.1 est validée et T9.24 fusionnée ; T11.7 après la validation de T11.6, T9.25 et T11.5.
+- **Interface** (`ui/`, `i18n/`) : T11.8 quand T11.3, T11.4 et T11.5 sont fusionnées.
+- **Passe finale** : T11.9, quand tout est fusionné.
+
+**Dépendances :** T11.1 T9.1 · T11.2 T11.1 (validée), T9.9 · T11.3 aucune · T11.4 T11.1 (validée), T11.2, T11.3 · T11.5 T11.2, T9.24 · T11.6 T11.1 (validée), T9.24 · T11.7 T9.25, T11.5, T11.6 (validée) · T11.8 T11.3, T11.4, T11.5 · T11.9 T11.1 à T11.8
+
+**Choix du plan faute d'information dans la conception (à relire par Phil) :**
+
+1. **Source des compteurs** : un bilan calculé par la simulation et envoyé à la fin de la partie (déterministe, testable), plutôt qu'un cumul côté client sur un canal non fiable.
+2. **« Joueur présent » (B4)** : tout joueur connecté à la fin de la partie ou au moment où la condition du défi est remplie ; un joueur qui a quitté avant ne valide pas. En solo, le joueur est présent.
+3. **Skin au salon** : le skin se choisit au salon et ne change pas en cours de partie (la table des joueurs ne bouge pas pendant une manche).
+4. **Un skin non débloqué** peut être montré par un client modifié : accepté, la progression est cosmétique et non vérifiée (B2) ; le serveur ne borne que l'index.
+5. **Nombre de skins** : un par défi (B5), donc connu seulement après la liste validée de T11.1.
+6. **Vignette de tour au tableau des scores** : non prévue ; elle demanderait des statistiques par joueur dans la vue globale (autre montée de protocole).
+
+## Points de vigilance du lot 11 (« Review Focus »), chacun pinglé par un test dans la tâche indiquée
+
+1. Aucune perte : un échec d'écriture, un fichier tronqué, corrompu ou d'une version plus récente garde la dernière progression valide ; l'écriture passe par un fichier temporaire contrôlé puis renommé (T11.3).
+2. Entrée d'un tiers bornée : fichier de sauvegarde trop gros, valeurs hors bornes ou de mauvais types, index de skin hors catalogue reçu d'un client : refus propre, jamais d'exception (T11.3, T11.5).
+3. `sim/` ne connaît ni `progression/`, ni `user://`, ni les skins ; deux parties de même graine et de skins différents donnent la même empreinte de simulation (T11.2, T11.5).
+4. Un défi par skin, aucun skin orphelin, aucun défi sans skin ; chaque défi s'évalue sur des compteurs que le bilan produit (T11.4, T11.6).
+5. Les superpositions de D19 se posent sur **tous** les skins à leurs ancrages ; un skin sans ancrage est refusé au chargement (T11.6, T11.7).
+6. La couleur du joueur reste lisible sur chaque skin, pour les huit couleurs, et n'est jamais la seule information (T11.7).
+7. Licences : chaque sprite est CC0 ou CC-BY, sa licence vérifiée à sa source et citée ; tout CC-BY est crédité dans `CREDITS.md` ; les sprites existants ne sont pas retouchés (T11.6, T11.9).
+8. Les noms et textes des défis sont originaux : le garde-fou des noms d'origine (T9.1) les contrôle (T11.1, T11.4).
+
+---
+
+### Task 11.1 : Relevé des défis de la map d'origine et liste à valider — `sonnet` — **attend Phil**
+
+- [ ] **Objectif :** relever les défis de « Tower Survivors » **pour leur seule mécanique** (B3) et proposer la liste de nos défis dans `docs/defis.md` : pour chacun un **identifiant** (slug), un **nom original**, un **texte original**, une **condition mesurable** écrite avec les compteurs du bilan, son **mode** (solo, multijoueur ou les deux : B4 dit qu'il vaut dans les deux) et le **skin** qu'il débloque (un par défi, B5). Le document liste aussi **les compteurs du bilan** dont les défis ont besoin (nom, définition, unité), pour que T11.2 les produise. Sources : `docs/tower_survivors.md` d'abord (il cite déjà les récompenses de défi, « Golden Key » et le lancer gratuit) ; au plus 15 recherches web si une mécanique manque (la page de la map est illisible, § sources du document : n'en citer que des extraits remontés par la recherche, jamais des noms ni des textes). Aucun nom, texte ni chiffre de la map ne se recopie. Une récompense de défi de la map qui donne un avantage de jeu n'est pas reprise : nos récompenses sont des skins (B5). **Aucune implémentation avant la validation de Phil** : l'agent principal met la ligne du tableau d'avancement à `a_valider` avec `attend` renseigné.
+- **Conception :** §6.15 (B3, B4, B5) ; garde-fou T9.1.
+- **Fichiers :** `docs/defis.md` (nouveau), `tests/unitaires/test_defis_document.gd` (nouveau).
+- **Lire :** `docs/tower_survivors.md` (en tête : l'interdiction de recopier ; §4.3 « Noms hors boutique », les récompenses de défi) ; `tests/outils/noms_origine.gd`.
+- **Interfaces :** produit le **tableau des défis** de `docs/defis.md` (colonnes : `id`, `nom`, `texte`, `condition`, `compteurs`, `mode`) et la **liste des compteurs** (`nom`, `definition`, `unite`), lus par la machine.
+- **Tests :**
+  - `test_chaque_defi_a_un_id_un_nom_un_texte_et_une_condition_uniques`.
+  - `test_aucun_nom_ni_texte_de_defi_n_est_un_nom_d_origine` : `NomsOrigine.trouver` sur chaque nom et chaque texte, en boucle.
+  - `test_chaque_condition_ne_cite_que_des_compteurs_de_la_liste` ; `test_chaque_compteur_de_la_liste_est_utilise_par_un_defi`.
+  - `test_au_moins_un_defi_et_la_liste_n_est_jamais_vide` (un document absent ou vide **échoue**, il ne se saute pas) ; `test_typographie_francaise_des_textes_de_defis`.
+- **Vérif :** `T --filtre test_defis_document`, Prettier 3.9.10 sur `docs/defis.md`, puis `tools/verifier.sh`. Rapport : le nombre de défis proposés, les mécaniques de la map reprises et celles écartées (avec la raison), le nombre de recherches utilisées.
+
+### Task 11.2 : Bilan de partie dans la simulation et au réseau — `sonnet`
+
+- [ ] **Objectif :** `sim/` produit, pour chaque joueur, un **bilan** de partie : les compteurs de la liste validée de T11.1 (typiquement : manche atteinte, éliminations, dégâts infligés et subis, or gagné et dépensé, armes et améliorations achetées, PV minimum de la tour, temps survécu, victoire). Donnée pure (`sim/bilan.gd`, `RefCounted`), alimentée là où l'événement a lieu, déterministe (la même graine donne le même bilan). `Partie.bilan_joueur(id: int) -> Dictionary` l'expose. À la fin de la partie, le serveur envoie à **chaque joueur présent son propre bilan** (canal fiable) ; `Client` et la source locale l'exposent. **Montée de `Protocole.VERSION`** : relire celle de `main` avant de l'incrémenter, garder les formats précédents refusés par un test en boucle. Aucun défi, aucune sauvegarde ici.
+- **Conception :** §6.15 (B4 et règles de dépendance), choix du plan 1 et 2.
+- **Fichiers :** `sim/bilan.gd` (nouveau), `sim/arene.gd` (points de comptage), `sim/partie.gd`, `sim/joueur_partie.gd`, `reseau/protocole.gd`, `reseau/serveur.gd`, `reseau/client.gd`, `reseau/canal.gd`, `app/source_vue.gd`, `app/source_locale.gd`, `tests/outils/source_factice.gd` ; tests `test_bilan.gd` (nouveau), `test_partie.gd`, `test_protocole_bilan.gd` (nouveau), `test_serveur.gd`, `test_client.gd`, `test_source_locale.gd`.
+- **Lire :** `docs/defis.md` (la liste des compteurs) ; `sim/partie.gd` (`est_terminee`, `vue_globale`) ; `reseau/serveur.gd` (fin de partie) ; `test_protocole_v5.gd`.
+- **Interfaces :** produit `Bilan` (un champ par compteur de `docs/defis.md`, `a_dict() -> Dictionary`, `depuis_dict(d) -> Bilan`), `Partie.bilan_joueur(id) -> Dictionary`, `Client.bilan_recu` (signal et dernier bilan), `Protocole.encoder_bilan` / `decoder_bilan`.
+- **Tests :**
+  - `test_chaque_compteur_de_la_liste_est_produit` : en boucle sur les compteurs lus dans `docs/defis.md`, le bilan porte le champ ; jamais une liste en dur.
+  - `test_le_bilan_est_deterministe` (deux parties de même graine, bilans égaux) ; `test_chaque_joueur_a_son_propre_bilan` (2 joueurs, compteurs différents).
+  - `test_aucun_compteur_n_est_negatif_ni_non_fini` (robots passif, raisonnable, bonne, sur plusieurs graines) ; `test_les_compteurs_croissants_ne_decroissent_jamais` (suite de bilans pendant la partie).
+  - `test_le_bilan_ne_change_pas_la_simulation` : empreinte de vue égale sur 600 pas avec ou sans lecture du bilan.
+  - `test_le_bilan_aller_retour_et_paquets_forges` : tous les préfixes d'un bilan valide, puis 2 000 tableaux d'une graine fixe : `null` ou `{}` ; `test_les_versions_precedentes_sont_refusees` en boucle.
+  - `test_un_joueur_recoit_son_bilan_a_la_fin_de_la_partie_et_pas_celui_d_un_autre` (intégration ENet, port tiré à l'exécution) ; `test_un_joueur_parti_ne_recoit_pas_de_bilan`.
+- **Vérif :** `T --filtre test_bilan`, `test_protocole_bilan`, `test_serveur`, puis `tools/verifier.sh`.
+
+### Task 11.3 : Sauvegarde de la progression — `sonnet`
+
+- [ ] **Objectif :** `progression/sauvegarde.gd` (`Sauvegarde`) et `progression/profil.gd` (`Profil`) : le **profil** (défis réussis, skins débloqués, skin choisi, nombre de parties, meilleure manche) se lit et s'écrit dans **un fichier local versionné** sous `user://progression.json`, avec une **copie de secours** (B1). **Aucune perte en cas d'échec d'écriture** : on écrit dans un fichier temporaire (nom propre au processus), on le **relit et on le contrôle**, puis on le renomme par-dessus l'ancien, qui devient la copie de secours ; un fichier absent, tronqué, corrompu ou d'une version inconnue se remplace par la copie de secours, jamais par un profil vide ; un fichier corrompu est mis de côté (`.corrompu`), jamais écrasé en silence ; un fichier d'une version **plus récente** n'est ni lu ni écrasé. Entrée d'un tiers : fichier borné en taille avant lecture, valeurs hors bornes ramenées dans leurs bornes, types faux refusés. Même patron que `app/reglages.gd` (fichier temporaire renommé, dernière ligne témoin, taille maximale). Aucun nom de joueur ni donnée personnelle dans le fichier.
+- **Conception :** §6.15 (B1, B2), contexte commun §11 (aucune perte, entrées bornées).
+- **Fichiers :** `progression/sauvegarde.gd`, `progression/profil.gd` (nouveaux) ; tests `tests/unitaires/test_sauvegarde.gd` (nouveau).
+- **Lire :** `app/reglages.gd` en entier (le patron d'écriture et de lecture bornée) ; `tests/cas_de_test.gd` (`dossier_temporaire`, `attendre_erreur`).
+- **Interfaces :** produit `Profil` (`defis_reussis: Array[String]`, `skins_debloques: Array[String]`, `skin_choisi: String`, `parties: int`, `meilleure_manche: int`, `version: int`), `Sauvegarde.charger(chemin: String) -> Profil` (jamais `null` : profil vide au premier lancement), `Sauvegarde.enregistrer(profil: Profil, chemin: String) -> bool` (`false` sans rien perdre si l'écriture échoue), `Sauvegarde.VERSION: int`.
+- **Tests :** tout fichier sous `dossier_temporaire()`.
+  - `test_un_profil_complet_fait_l_aller_retour` ; `test_le_premier_lancement_donne_un_profil_vide_sans_erreur`.
+  - **Review Focus 1 :** `test_un_echec_d_ecriture_garde_la_progression_precedente` : un écrivain qui échoue à chaque étape (création du temporaire, écriture, contrôle, renommage), en boucle sur les étapes ; l'ancien fichier reste identique à l'octet.
+  - `test_un_fichier_tronque_a_chaque_longueur_se_remplace_par_la_copie_de_secours` : en boucle sur **tous** les préfixes ; `test_principal_et_secours_corrompus_donnent_un_profil_vide_et_conservent_le_fichier_corrompu`.
+  - `test_deux_enregistrements_laissent_l_avant_dernier_etat_valide_en_secours`.
+  - `test_une_version_plus_recente_n_est_ni_lue_ni_ecrasee` ; `test_chaque_version_precedente_se_migre` (en boucle sur les versions précédentes, fixtures écrites dans le test).
+  - **Review Focus 2 :** `test_un_fichier_trop_gros_est_refuse_avant_lecture` ; `test_valeurs_hors_bornes_ou_de_mauvais_types_sont_ramenees_ou_refusees` (manche négative, non finie, énorme ; identifiants non textuels ; tableau de dix mille entrées).
+  - `test_deux_processus_n_ecrivent_pas_le_meme_fichier_temporaire` ; `test_le_fichier_ne_contient_aucun_champ_hors_de_la_liste` (liste blanche des clés).
+- **Vérif :** `T --filtre test_sauvegarde`, puis `tools/verifier.sh`. Rapport : la taille maximale retenue et le format.
+
+### Task 11.4 : Défis et déblocage des skins — `sonnet`
+
+- [ ] **Objectif :** `data/defis.json` (la liste **validée** de T11.1, un défi par skin) et `progression/defis.gd` (`Defis`) : `Defis.evaluer(bilan, profil, donnees) -> Array[String]` rend les défis **nouvellement réussis** par ce bilan, les ajoute au profil avec le skin qu'ils débloquent, et ne valide jamais deux fois le même défi. En multijoueur, **chaque poste** évalue **son** bilan (B4) ; en solo, de même. `app/progression_locale.gd` (nouveau) relie la fin de partie à l'évaluation puis à la sauvegarde (T11.3), et **ne fait rien sur un serveur dédié** (B2). Validation du fichier par `sim/donnees.gd` : un défi sans condition, un compteur inconnu, un identifiant en double ou un nom d'origine est refusé.
+- **Conception :** §6.15 (B2, B4, B5) ; choix du plan 1 et 2.
+- **Fichiers :** `data/defis.json` (nouveau), `sim/donnees.gd` et `sim/donnees_progression.gd` (nouveau, validation), `progression/defis.gd` (nouveau), `app/progression_locale.gd` (nouveau), `app/jeu.gd` (une ligne : appel à la fin de partie) ; tests `test_defis.gd` (nouveau), `test_donnees_progression.gd` (nouveau), `test_progression_locale.gd` (nouveau).
+- **Lire :** `docs/defis.md` validé ; `progression/sauvegarde.gd` (T11.3) ; `sim/bilan.gd` (T11.2) ; `app/jeu.gd` (fin de partie).
+- **Interfaces :** consomme `Bilan`, `Profil`, `Sauvegarde`. Produit `Defis.evaluer(bilan: Dictionary, profil: Profil, donnees: Donnees) -> Array[String]`, `Donnees.defis: Dictionary` ({id: {nom, texte, condition, skin}}).
+- **Tests :**
+  - `test_chaque_defi_se_reussit_avec_un_bilan_qui_remplit_sa_condition_et_pas_sans` : en boucle sur **tous les défis de `data/`**, un bilan juste au seuil le valide, un bilan juste en dessous non (aucun nombre de défis en dur).
+  - `test_un_defi_deja_reussi_n_est_jamais_valide_deux_fois` ; `test_reussir_un_defi_debloque_son_skin_et_seulement_celui_la`.
+  - **Review Focus 4 :** `test_chaque_defi_debloque_un_skin_et_chaque_skin_a_un_defi` (en boucle, `defaut` exclu) ; `test_aucun_defi_ne_cite_un_compteur_absent_du_bilan`.
+  - `test_deux_joueurs_valident_chacun_leur_defi` (deux profils, deux bilans) ; `test_un_joueur_parti_avant_la_fin_ne_valide_rien` ; `test_le_solo_valide_comme_le_multijoueur`.
+  - `test_un_serveur_dedie_n_ecrit_aucun_fichier`.
+  - `test_un_defi_malforme_est_refuse_au_chargement` (mutations : condition vide, compteur inconnu, doublon, nom d'origine) ; **Review Focus 8 :** `test_aucun_nom_ni_texte_de_defi_n_est_un_nom_d_origine` sur `data/defis.json`.
+- **Vérif :** `T --filtre test_defis`, `test_donnees_progression`, `test_progression_locale`, `test_noms_origine`, puis `tools/verifier.sh`.
+
+### Task 11.5 : Skin choisi, transmis au serveur et aux autres joueurs — `sonnet`
+
+- [ ] **Objectif :** le client envoie son skin au serveur (à la connexion, puis au salon : nouvelle intention, nom à choisir par la tâche) ; `Partie.definir_skin(id, index)` le range **avec le joueur** comme un **entier opaque** (`sim/` ne sait pas ce qu'est un skin) ; `VueGlobale.joueurs[i]["skin"]` le diffuse et l'état d'arène regardée le porte (les autres joueurs le voient, B2). Le serveur **borne l'index** : hors catalogue (négatif, trop grand, non reçu), il vaut le skin par défaut (index 0). Le skin ne change qu'au salon (choix du plan 3). **Montée de `Protocole.VERSION`** : relire celle de `main` avant de l'incrémenter, formats précédents refusés par un test en boucle.
+- **Conception :** §6.15 (B2, B8) ; choix du plan 3 et 4.
+- **Fichiers :** `sim/partie.gd`, `sim/joueur_partie.gd`, `sim/vue_globale.gd`, `reseau/protocole.gd`, `reseau/serveur.gd`, `reseau/client.gd`, `reseau/canal.gd`, `app/source_vue.gd`, `app/source_locale.gd`, `tests/outils/source_factice.gd` ; tests `test_partie.gd`, `test_vues.gd`, `test_protocole_skin.gd` (nouveau), `test_serveur.gd`, `test_client.gd`, `test_source_locale.gd`.
+- **Lire :** `reseau/serveur.gd` (demande de jointure, intentions du salon) ; `sim/vue_globale.gd` (`SCHEMA_JOUEUR`) ; `data/skins_tour.json` (T9.24 : l'ordre des skins fait l'index).
+- **Interfaces :** produit `Partie.definir_skin(id: int, index: int) -> bool`, `VueGlobale.joueurs[i]["skin"]: int`, `Client.definir_skin(index: int)`, `Donnees.ids_skins() -> Array[String]` (l'ordre du fichier).
+- **Tests :**
+  - **Review Focus 2 :** `test_un_index_de_skin_hors_catalogue_vaut_le_skin_par_defaut` : −1, 0, taille, taille + 1, 2³¹ − 1, en boucle.
+  - `test_chaque_skin_du_catalogue_fait_l_aller_retour_jusqu_aux_autres_joueurs` : en boucle sur `Donnees.ids_skins()`, jamais un nombre en dur.
+  - **Review Focus 3 :** `test_le_skin_ne_change_pas_la_simulation` : deux parties de même graine, skins différents, empreinte de simulation égale sur 600 pas.
+  - `test_le_skin_ne_change_qu_au_salon` ; `test_un_nouveau_client_a_le_skin_par_defaut_tant_qu_il_n_en_choisit_pas`.
+  - `test_paquets_forges_et_versions_precedentes` (préfixes, 2 000 tableaux d'une graine fixe, versions de 1 à `VERSION - 1`) ; `test_le_budget_reseau_tient_avec_huit_skins_differents`.
+  - `test_deux_clients_voient_le_skin_l_un_de_l_autre` (intégration ENet, port tiré à l'exécution).
+- **Vérif :** `T --filtre test_protocole_skin`, `test_serveur`, `test_client`, puis `tools/verifier.sh`.
+
+### Task 11.6 : Sprites de tour et planche des skins — `sonnet` — **attend Phil**
+
+- [ ] **Objectif :** un **sprite de tour par défi** (B5, B6), pixel art proche de Tiny Swords, sous licence **CC0**, ou **CC-BY** avec crédit dans `CREDITS.md` et la **licence vérifiée à sa source** (page de l'auteur et fichier de licence de l'archive, citée dans `assets/tours/SOURCES.md` avec auteur, URL, licence et date de vérification) ; une licence douteuse ou non vérifiable écarte l'image. Les **sprites existants ne sont pas retouchés** pour en faire des skins ; les **tours Gobelin** de Tiny Swords, déjà dans le dépôt (`Factions/Goblins/Buildings/Wood_Tower/`), sont candidates **telles quelles**. Outils de dessin éventuels : libres seulement (licence OSI), ni Aseprite ni IA. Chaque skin entre dans `data/skins_tour.json` avec : son sprite, ses **ancrages** pour chacune des 21 superpositions de D19 (B7), sa **zone de marque** de la couleur du joueur (drapeau ou liseré, B8) et le défi qui le débloque. Une **planche des skins**, `docs/planche_skins_tour.png`, composée sans écran par `tools/planche_skins_tour.gd` : chaque skin avec ses huit couleurs de joueur, puis avec les superpositions du palier 3 posées. **Aucune intégration avant la validation de Phil** (les entrées de données sont inertes tant que T11.7 et T11.8 ne les lisent pas).
+- **Conception :** §6.15 (B5 à B8), §6.14 (A5).
+- **Fichiers :** `assets/tours/*.png` avec leurs `.import`, `assets/tours/SOURCES.md` (nouveau), `data/skins_tour.json`, `sim/donnees_apparence.gd` (validation), `tools/planche_skins_tour.gd` (nouveau), `docs/planche_skins_tour.png` ; tests `test_skins_tour.gd` (nouveau), `test_garde_ressources.gd`.
+- **Lire :** `docs/tiny_swords.md` §3.1 ; `docs/defis.md` validé (le nombre de skins) ; `assets/sons/SOURCES.md` (modèle de source citée) ; `data/skins_tour.json` (T9.24).
+- **Interfaces :** consomme `Donnees.skins_tour` (T9.24) et `Donnees.defis` (T11.4). Étend chaque entrée de `Donnees.skins_tour` : `defi: String` (vide pour `defaut`), `marque: {x, y, largeur, hauteur}`.
+- **Tests :**
+  - `test_chaque_skin_a_son_sprite_dans_les_bornes_de_taille` : en boucle, le fichier existe et tient dans 256 × 384 pixels.
+  - **Review Focus 4 :** `test_un_skin_par_defi_et_un_defi_par_skin` (hors `defaut`).
+  - **Review Focus 5 :** `test_chaque_skin_a_un_ancrage_pour_chacune_des_21_superpositions_dans_son_cadre` : en boucle sur les skins, les statistiques et les paliers lus dans `data/apparence_tour.json` ; un skin incomplet est refusé au chargement.
+  - **Review Focus 6 :** `test_chaque_skin_a_une_zone_de_marque_dans_son_image_avec_des_pixels_teintables`.
+  - **Review Focus 7 :** `test_chaque_sprite_est_liste_dans_sources_md_avec_une_licence_cc0_ou_cc_by_et_une_url` ; `test_aucun_fichier_de_tiny_swords_n_a_ete_modifie` (empreintes des images utilisées par les skins existants).
+  - `test_la_planche_existe_et_montre_chaque_skin`.
+- **Vérif :** `T --filtre test_skins_tour`, `test_garde_ressources`, `godot --headless --path . --script res://tools/planche_skins_tour.gd`, `git diff --stat origin/main -- assets/tiny_swords` vide, puis `tools/verifier.sh`. Rapport : lien vers la planche, la source et la licence de chaque sprite, ce qui a été écarté et pourquoi.
+
+### Task 11.7 : Skins et marque de couleur en jeu — `sonnet`
+
+- [ ] **Objectif :** après la validation de la planche : `Arene2D` dessine la tour de chaque joueur avec **son skin** (le sien et celui de l'arène regardée, lu dans la vue globale), pose les **superpositions de D19 à ses ancrages**, et pose la **marque de la couleur du joueur** (B8) dans sa zone, par la teinte de `teinte_tour.gdshader` ; un index de skin inconnu retombe sur `defaut` sans erreur. L'agrandissement de la tour (T9.25) s'applique au skin entier, toujours à +25 % au plus et sans rien changer dans `sim/`.
+- **Conception :** §6.15 (B7, B8), §6.14.
+- **Fichiers :** `visuels/arene_2d.gd`, `visuels/apparence_tour.gd`, `visuels/teinte_tour.gdshader` ; tests `test_arene_2d.gd`, `test_apparence_tour.gd`, `test_skins_tour_rendu.gd` (nouveau).
+- **Lire :** `visuels/arene_2d.gd` (dessin de la tour, teinte des joueurs 5 à 8) ; `data/skins_tour.json` ; `docs/planche_skins_tour.png`.
+- **Interfaces :** consomme `Donnees.skins_tour`, `VueGlobale.joueurs[i]["skin"]` (T11.5), `ApparenceTour` (T9.24, T9.25).
+- **Tests :**
+  - **Review Focus 5 :** `test_chaque_superposition_se_pose_sur_chaque_skin_a_son_ancrage` : en boucle sur les skins, les statistiques et les paliers.
+  - **Review Focus 6 :** `test_la_marque_de_chaque_skin_prend_la_couleur_du_joueur_pour_les_huit_couleurs` (huit rendus deux à deux distincts, toujours dans la zone de marque) ; `test_le_nom_du_joueur_reste_ecrit_sous_chaque_skin`.
+  - `test_un_index_de_skin_inconnu_se_dessine_avec_le_skin_par_defaut` ; `test_la_tour_regardee_porte_le_skin_de_son_joueur`.
+  - `test_un_skin_ne_change_ni_la_distance_d_arret_ni_le_rayon_de_la_tour` (A3 sur chaque skin).
+  - `test_changer_de_skin_ne_change_pas_les_performances` : banc de T5.1b, 1 000 ennemis.
+- **Vérif :** `T --filtre test_arene_2d`, `test_skins_tour_rendu`, puis `tools/verifier.sh` ; captures avant et après, **relues**, pour chaque skin avec les superpositions au palier 3. Dépend de T9.25, T11.5 et de T11.6 **validée par Phil**.
+
+### Task 11.8 : Interface : défis, skins et choix du skin — `sonnet`
+
+- [ ] **Objectif :** (a) un écran **« Progression »** depuis le menu principal : la liste des défis (réussi ou non, texte, skin qu'il débloque) et les statistiques (parties jouées, meilleure manche) ; (b) le **choix du skin** au salon, avec l'aperçu de la tour et, pour un skin verrouillé, le défi qui le débloque ; le choix est enregistré dans le profil et envoyé au serveur (T11.5) ; (c) l'**écran de fin** liste les défis réussis pendant la partie et les skins débloqués. Navigation **au clavier et à la manette**, focus visible, taille de l'interface de 75 à 125 % (T8.17), aucune information portée par la couleur seule. Tous les textes dans `i18n/textes_progression.csv` (nouveau, colonne `fr`, espaces insécables).
+- **Conception :** §6.15 (B2, B5), règles de dépendance du lot (`ui/` et `i18n/`).
+- **Fichiers :** `ui/progression_ui.gd` (nouveau), `ui/salon_ui.gd`, `ui/fin_ui.gd`, `app/menu_principal.gd` (une entrée), `i18n/textes_progression.csv` (nouveau), `i18n/textes_salon.csv`, `i18n/textes_fin.csv` ; tests `test_progression_ui.gd` (nouveau), `test_salon_ui.gd`, `test_fin_ui.gd`.
+- **Lire :** `ui/reglages_ui.gd` (écran du menu, modèle) ; `ui/salon_ui.gd` ; `ui/fin_ui.gd` ; `ui/mise_en_page.gd` ; `progression/defis.gd` et `progression/sauvegarde.gd`.
+- **Interfaces :** consomme `Profil`, `Donnees.defis`, `Donnees.skins_tour`, `Client.definir_skin` (T11.5). Ne produit aucune interface de simulation.
+- **Tests :**
+  - `test_l_ecran_liste_chaque_defi_de_data_avec_son_etat` : en boucle sur `Donnees.defis`, réussi ou non selon le profil.
+  - `test_un_skin_verrouille_dit_son_defi_et_ne_peut_pas_etre_choisi` ; `test_choisir_un_skin_debloque_l_enregistre_dans_le_profil_et_l_envoie_au_serveur` (boucle sur les skins).
+  - `test_la_fin_de_partie_liste_les_defis_reussis_et_les_skins_debloques` ; `test_une_fin_sans_defi_ne_montre_aucun_bloc_vide`.
+  - `test_tout_se_navigue_au_clavier_et_le_focus_est_visible` ; `test_les_ecrans_tiennent_a_75_et_125_pour_cent_sur_les_trois_resolutions`.
+  - `test_les_cles_de_textes_de_progression_ont_toutes_une_valeur_francaise_typographiee` ; `test_aucune_information_ne_repose_sur_la_couleur_seule` (un défi réussi porte aussi un texte).
+- **Vérif :** `T --filtre test_progression_ui`, `test_salon_ui`, `test_fin_ui`, puis `tools/verifier.sh` ; captures **relues** aux trois résolutions et à 75 et 125 %.
+
+### Task 11.9 : Clôture du lot 11 — `sonnet`
+
+- [ ] **Objectif :** `CREDITS.md` (chaque source CC-BY de T11.6 avec son auteur et sa licence ; les CC0 citées), `docs/jouer.md` (défis, skins, où se trouve le fichier de progression), `CLAUDE.md` (la structure : le dossier `progression/` et sa règle de dépendance ; **un piège par difficulté réelle rencontrée** dans le lot), ce plan (cases cochées, suivis), et un **test d'intégration** à deux clients : chacun choisit un skin, les deux se voient, la partie finie chaque poste reçoit son bilan et valide son défi. Les autres tâches du lot y ont écrit leurs lignes dans leur rapport.
+- **Conception :** §6.15.
+- **Fichiers :** `CREDITS.md`, `docs/jouer.md`, `CLAUDE.md`, ce plan, `tests/integration/test_multijoueur.gd`, `tests/unitaires/test_credits.gd`.
+- **Lire :** les rapports et rétros de T11.1 à T11.8 ; `assets/tours/SOURCES.md`.
+- **Tests :**
+  - `test_chaque_source_cc_by_des_skins_est_creditee_dans_credits_md` (**Review Focus 7**, en boucle sur `assets/tours/SOURCES.md`).
+  - `test_deux_clients_se_voient_leur_skin_et_valident_chacun_leur_defi` (intégration ENet, port tiré à l'exécution) ; `test_un_echec_d_ecriture_a_la_fin_de_la_partie_ne_perd_pas_la_progression`.
+  - `test_aucun_nom_d_origine_dans_les_defis_les_skins_et_les_textes` (garde-fou T9.1 relancé sur tout le lot).
+- **Vérif :** Prettier 3.9.10 sur les Markdown touchés, `tools/verifier.sh` complet. Rapport : ce qui reste à Phil (liste des défis validée ? planche des skins validée ? sources CC-BY ?).
+
+---
+
 # Lot 10 — Revue finale par les skills de game development (demandé par Phil le 26/11/2026)
 
 > Phil : « Une fois tous les lots terminés, utilise les skills de game development pour faire des
@@ -2064,7 +2307,7 @@ Tests du gabarit (écrits par T9.13, étendus par chaque tâche en ajoutant son 
 > tendances jeu vidéo trouvées en ligne pour peaufiner un peu plus le jeu. Si pas d'amélioration
 > trouvable, si tout est déjà conforme, n'en invente pas ! »
 
-**Démarrage :** quand les lots 8 et 9 sont fusionnés (T8.21 et T9.22 cochées). Ce lot est un
+**Démarrage :** quand les lots 8, 9 et 11 sont fusionnés (T8.21, T9.22 et T11.9 cochées). Ce lot est un
 squelette : T10.4 et la suite se détaillent par `superpowers:writing-plans` une fois la synthèse
 faite.
 

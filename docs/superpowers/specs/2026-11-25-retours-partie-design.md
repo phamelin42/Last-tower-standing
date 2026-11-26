@@ -3,7 +3,7 @@
 > Date : 25/11/2026. Source : 13 retours de Phil après une partie jouée sous Godot, et ses
 > réponses aux questions de cadrage le même soir. Cette conception complète la spec du jeu
 > (`2026-11-24-jeu-tour-design.md`) et l'emporte sur elle là où elles diffèrent. Elle donnera le
-> lot 8 du plan. **Validée par Phil le 25/11/2026.**
+> lot 8 du plan. **Validée par Phil le 25/11/2026** ; D19 et D20 ajoutées le 26/11/2026.
 
 ## 1. Intention
 
@@ -43,6 +43,8 @@ Ces décisions ne se remettent pas en cause ; une objection se dit dans la PR.
 | D16 | Difficulté          | « Jeu beaucoup trop simple : je n'ai rien acheté pendant 10 manches et je ne suis toujours pas mort. » **Sans aucun achat, la tour tombe au plus tard à la fin de la manche 3.**                                                                                              |
 | D17 | Montée en puissance | « Les ennemis doivent faire de plus en plus de dégâts et être de plus en plus résistants avec les manches. » Leurs **dégâts et leurs PV augmentent à chaque manche**, dès la manche 1.                                                                                        |
 | D18 | Catalogue           | « On doit faire le même nombre d'armes dans le même type » que la map : **15 armes par type de dégâts** (75), réparties comme la map ; **84 améliorations** comme la map, plus nos 3 sans homologue (87) ; les **dix mécaniques d'armes** qui nous manquent. Détail au §6.13. |
+| D19 | Tour                | **L'apparence de la tour suit ses améliorations** (demandé le 26/11/2026, « défaut oui pour tout ») : épines, PV, mana, armure, esquive, régénération et vol de vie se voient sur la tour, aussi sur celles des autres joueurs. Détail au §6.14.                              |
+| D20 | Progression         | **Sauvegarde de la progression, défis et skins de tour** (26/11/2026) : défis réussis, skins débloqués et choisis, statistiques, enregistrés en local ; un skin par défi, purement cosmétique. Détail au §6.15.                                                               |
 
 Les propositions de la session de pilotage acceptées par Phil le même soir :
 
@@ -343,6 +345,111 @@ version publique ; le « type » est le type de dégâts, comme dans la boutique
   (T8.1, T8.3, T8.5, T8.7) et après la planche des signatures (T8.14), pour ne pas mettre deux
   sessions sur les mêmes fichiers. La passe d'équilibrage du lot 8 (T8.21) est rejouée à la fin du
   lot 9.
+
+### 6.14 Apparence de la tour (D19)
+
+Décisions de Phil du 26/11/2026 (« défaut oui pour tout »). Livrée par les tâches T9.23 à T9.25 du
+plan, **après** T9.10 à T9.12 (les améliorations qui donnent les statistiques) ; la revue du lot 10
+reste en dernier.
+
+- **A1, ce qui se voit.** Une statistique offensive reste montrée par les armes ; les sept
+  statistiques de survie se voient sur la tour :
+
+  | Statistique  | Ce qu'on voit                                                                     |
+  | ------------ | --------------------------------------------------------------------------------- |
+  | épines       | piques sur les murs                                                               |
+  | PV maximum   | la tour grandit                                                                   |
+  | mana         | bulle bleue, d'autant plus pleine que mana / mana maximale est haut, disparue à 0 |
+  | armure       | couches de plaques                                                                |
+  | esquive      | flou et images rémanentes                                                         |
+  | régénération | lueur verte                                                                       |
+  | vol de vie   | filets rouges aspirés                                                             |
+
+- **A2, trois paliers nets** par statistique. Les seuils vivent dans `data/apparence_tour.json`
+  (validé au chargement), jamais dans le code. Une statistique sous son premier seuil ne montre
+  rien. Pour la mana, le palier est celui de la **mana maximale** (taille et opacité de la bulle) ;
+  son remplissage suit le ratio mana / mana maximale à chaque image, et la bulle disparaît à 0
+  (lecture du plan : la conception ne dit pas à quoi sert le palier de la mana, voir les points
+  ouverts).
+- **A3, agrandissement purement visuel**, **+25 % au plus** (borne validée dans
+  `data/apparence_tour.json`). Il ne s'applique qu'au sprite : le rayon de la tour dans `sim/`, la
+  distance d'arrêt des ennemis (`Arene2D.distance_arret`) et leur portée ne changent pas. Un test
+  le garde : agrandir la tour au maximum ne déplace aucun ennemi ni aucun tir de la simulation.
+- **A4, on voit aussi les tours des autres joueurs** (arène regardée, T8.13). Les statistiques
+  nécessaires passent donc dans `VueArene` (épines, esquive, régénération, vol de vie, s'ajoutant à
+  `tour_pv_max`, `tour_armure`, `tour_mana` et `tour_mana_max` qui y sont déjà), avec **une montée de
+  `Protocole.VERSION`** : relire celle de `main` avant de l'incrémenter (piège de `CLAUDE.md`).
+  La simulation ne transmet que des **statistiques**, jamais un palier ni une apparence : elle ne
+  connaît pas l'apparence.
+- **A5, superpositions dessinées** dans le style de Tiny Swords, avec des outils libres (licence
+  OSI ; ni Aseprite ni générateur d'images par IA). **Une planche avant/après** est montrée à Phil
+  pour validation avant leur intégration en jeu, comme T9.18.
+- **Rendu dans `visuels/` seulement.** `sim/` ne connaît pas l'apparence ; `visuels/` lit la vue et
+  les seuils, n'écrit jamais dans `sim/`. Chaque superposition a un **point d'ancrage** décrit dans
+  `data/` (voir B7 : les skins du §6.15 en ont chacun les leurs).
+
+### 6.15 Progression, défis et skins de tour (D20)
+
+Décisions de Phil du 26/11/2026 (« défaut oui pour tout »). Livrée par un lot 11 du plan, avant la
+revue du lot 10.
+
+- **B1, ce qu'on sauvegarde** : les défis réussis, les skins débloqués, le skin choisi et des
+  statistiques (nombre de parties, meilleure manche). Un fichier local sous `user://`, **versionné**,
+  avec une **copie de secours**. **Aucune perte en cas d'échec d'écriture** : on écrit dans un
+  fichier temporaire, on le relit pour le contrôler, puis on le **renomme** par-dessus l'ancien (qui
+  devient la copie de secours) ; un fichier absent, tronqué ou d'une version inconnue se remplace par
+  la copie de secours, jamais par un fichier vide. Un fichier trop gros est refusé avant lecture
+  (entrée d'un tiers : le contexte commun §11).
+- **B2, locale et non vérifiée.** La progression est cosmétique : le serveur ne la vérifie pas. Le
+  **skin choisi est transmis au serveur** pour que les autres joueurs le voient ; le serveur borne
+  l'index reçu (un index hors catalogue vaut le skin par défaut), comme tout champ venu d'un
+  client. Un serveur dédié n'enregistre rien.
+- **B3, les défis de la map d'origine**, relevés pour leur **seule mécanique** : noms et textes
+  originaux, garde-fou des noms d'origine (T9.1) appliqué à `data/defis.json` et aux textes. La liste
+  est **soumise à Phil pour validation avant toute implémentation** (tâche qui attend Phil).
+- **B4, solo et multijoueur** : un défi vaut dans les deux modes ; en multijoueur, **chaque joueur
+  présent valide le défi** pour lui-même (chaque poste enregistre dans son fichier local).
+- **B5 (Phil), un skin par défi**, purement cosmétique : aucun effet sur le jeu, la simulation ou
+  l'équilibrage.
+- **B6, sprites de tour** en pixel art proches de Tiny Swords, sous licence **CC0**, ou **CC-BY**
+  avec crédit dans `CREDITS.md` et la licence **vérifiée à la source** (citée dans
+  `assets/tours/SOURCES.md`). Les sprites existants ne sont **pas retouchés** pour en faire des
+  skins. Une **planche des skins** est montrée à Phil avant l'intégration. Les tours Gobelin de
+  Tiny Swords, déjà dans le dépôt (`Wood_Tower_{C}`), sont candidates.
+- **B7, les superpositions de D19 se posent sur n'importe quel skin**, à des points d'ancrage **par
+  skin** décrits dans `data/skins_tour.json` ; un skin sans ancrage pour une superposition est refusé
+  au chargement.
+- **B8, la couleur du joueur reste lisible** : chaque skin garde une marque de la couleur du joueur
+  (drapeau ou liseré), pour les huit couleurs ; la couleur n'est jamais la seule information (le nom
+  reste écrit sous la tour, comme aujourd'hui).
+
+**Règles de dépendance du lot 11** (celles de `CLAUDE.md`, aucune exception) :
+
+- La **sauvegarde et l'évaluation des défis** vivent dans un nouveau dossier **`progression/`**,
+  **hors de `sim/`** : `sim/` ne connaît ni `progression/`, ni les skins, ni `user://`.
+  `progression/` lit l'état d'arène et le bilan de partie par l'API publique (`sim/partie.gd`) ;
+  il n'écrit jamais dans `sim/`.
+- Le **bilan de partie** (compteurs que les défis lisent) est produit par `sim/` comme donnée pure
+  et transmis par le réseau à la fin de la partie ; le skin choisi n'est pour `sim/` qu'un entier
+  opaque rangé avec le joueur.
+- `ui/` porte le choix du skin et la liste des défis ; tous les textes passent par `i18n/*.csv`.
+- `visuels/` dessine les skins et les superpositions, depuis `data/skins_tour.json` et
+  `data/apparence_tour.json`.
+
+**Points ouverts** (une valeur par défaut est retenue dans le plan ; Phil la change s'il le veut) :
+
+1. **Palier de la mana** (A2) : lu comme celui de la mana maximale, avec remplissage par ratio.
+2. **Source des compteurs de défis** : un bilan calculé par la simulation et envoyé à la fin de la
+   partie (déterministe, testable), plutôt qu'un cumul côté client sur un canal non fiable.
+3. **« Joueur présent »** (B4) : tout joueur connecté à la fin de la partie ou au moment où la
+   condition du défi est remplie ; un joueur qui a quitté avant ne valide pas.
+4. **Tours des autres joueurs** (A4) : on les voit dans l'arène regardée ; le tableau des scores
+   n'affiche pas de tour. Si Phil veut une vignette de tour au tableau, il faut des statistiques
+   par joueur dans la vue globale (autre montée de protocole).
+5. **Nombre de skins** : un par défi, donc connu seulement après la liste validée (B3) ; les sprites
+   à trouver ou à dessiner en dépendent (B6).
+6. **Un skin non débloqué** peut être montré par un client modifié : accepté, la progression est
+   cosmétique et non vérifiée (B2).
 
 ## 7. Découpage proposé pour le plan (lot 8)
 
