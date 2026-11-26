@@ -1502,7 +1502,7 @@ Session « animations » (`session_01FhwUocJCCBccFbTwV9Fk1k`). Décision de Ph
   - `test_la_case_mouvement_reduit_est_decochee_par_defaut` ; `test_le_reglage_fait_l_aller_retour_et_une_valeur_non_booleenne_donne_la_valeur_par_defaut` (comme les autres réglages : fichier absent, trop gros, tronqué).
   - `test_la_case_est_dans_les_reglages_avec_son_texte` (focus clavier, valeur lue à l'ouverture, typographie française, clé de texte non vide) ; `test_les_reglages_tiennent_a_75_et_125_pour_cent_avec_la_nouvelle_case` (trois résolutions).
   - `test_basculer_la_case_agit_tout_de_suite_sur_l_arene` : cocher puis décocher change `Arene2D.mouvement_reduit` sans relancer la partie ; `test_une_nouvelle_arene_reprend_la_valeur_du_reglage`.
-- **Vérif :** `T --filtre test_reglages`, `test_reglages_ui`, `test_reglages_mise_en_page`, puis `tools/verifier.sh` ; captures de l'écran des réglages aux tailles 75 et 125 %, **relues**. Dépend de **T8.20** (fusionnée : même `app/jeu.gd`) et de T8.22.
+- **Vérif :** `T --filtre test_reglages`, `test_reglages_ui`, `test_reglages_mise_en_page`, puis `tools/verifier.sh` ; captures de l'écran des réglages aux tailles 75 et 125 %, **relues**. Dépend de **T8.20** (à fusionner d'abord, même `app/jeu.gd`) et de T8.22.
 
 ## Passe finale
 
