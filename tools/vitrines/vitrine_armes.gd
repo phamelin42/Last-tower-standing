@@ -45,6 +45,8 @@ const ENNEMIS_DANS_BANDE: Array[Vector2] = [
 const INDEX_TIRE: int = 1
 
 const PERIODE: float = 1.2
+## Un piège se déclenche quand un ennemi passe : la vitrine laisse le piège posé ce temps-là.
+const DELAI_PIEGE: float = 0.6
 const DECALAGE: float = 0.1
 const GRAINE: int = 20261126
 ## Sauts d'un rebond après le premier impact : de l'ennemi du milieu au dernier, puis au premier.
@@ -66,6 +68,7 @@ var mouvement_reduit: bool = false
 var _donnees: Donnees = null
 var _temps: float = 0.0
 var _prochains: Array[float] = []
+var _en_retard: Array[Dictionary] = []
 var _sprites: Array[Sprite2D] = []
 var _ids: PackedInt32Array = PackedInt32Array()
 var _positions: PackedVector2Array = PackedVector2Array()
@@ -145,6 +148,11 @@ func avancer(delta: float) -> void:
 		while _temps >= _prochains[bande]:
 			_prochains[bande] += PERIODE
 			_tirer(bande)
+	for i: int in range(_en_retard.size() - 1, -1, -1):
+		_en_retard[i]["reste"] = float(_en_retard[i]["reste"]) - delta
+		if float(_en_retard[i]["reste"]) <= 0.0:
+			effets.ajouter(_en_retard[i]["evenement"])
+			_en_retard.remove_at(i)
 	effets.avancer(delta)
 	reactions.avancer(delta)
 	_animer_ennemis()
@@ -208,8 +216,12 @@ func _animer_ennemis() -> void:
 func _tirer(bande: int) -> void:
 	var id: String = armes[bande]
 	var avant: int = _en_jeu()
+	var piege: int = VueArene.genre_depuis_nom("piege")
 	for evenement: Dictionary in evenements_du_cycle(id):
-		effets.ajouter(evenement)
+		if evenement["k"] == "impact" and int(evenement["genre"]) == piege:
+			_en_retard.append({"reste": DELAI_PIEGE, "evenement": evenement})
+		else:
+			effets.ajouter(evenement)
 	crees[id] = int(crees.get(id, 0)) + _en_jeu() - avant
 
 
@@ -269,6 +281,17 @@ func evenements_du_cycle(id: String) -> Array[Dictionary]:
 				liste.append(impact)
 				depart = arrivee
 				rang = (rang + 1) % ENNEMIS_DANS_BANDE.size()
+		"aura", "onde":
+			# Rien ne part vers un ennemi : l'impact est centré sur la tour, au rayon de l'effet
+			# (celui de l'onde à son dernier pas). Une aura n'émet aucun tir.
+			var impact: Dictionary = evenement_de(id, "impact")
+			var tour: Vector2 = en_unites(position_tour(bande))
+			impact["de"] = tour
+			impact["vers"] = tour
+			impact["rayon"] = float(effet.get("rayon_max", rayon))
+			if String(effet["kind"]) == "aura":
+				liste.clear()
+			liste.append(impact)
 		_:
 			var impact: Dictionary = evenement_de(id, "impact")
 			impact["rayon"] = rayon
