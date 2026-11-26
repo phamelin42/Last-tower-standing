@@ -149,9 +149,15 @@ func _stat(nom: String) -> Dictionary:
 	return d.duplicate()
 
 
+## Les unités livrées (les armes du catalogue en invoquent) plus celles du test.
+func _unites_avec(extra: Array) -> Array:
+	var unites: Array = AidesPartie.brut()["unites.json"]
+	return unites + extra
+
+
 func _brut() -> Dictionary:
 	var brut := AidesPartie.brut()
-	brut["unites.json"] = [_unite()]
+	brut["unites.json"] = _unites_avec([_unite()])
 	return brut
 
 
@@ -394,18 +400,18 @@ func test_unites_json_refuse_un_modele_un_id_en_double_ou_une_vitesse_nulle() ->
 		else:
 			unite[c[0]] = c[1]
 		var brut := _brut()
-		brut["unites.json"] = [unite]
+		brut["unites.json"] = _unites_avec([unite])
 		verifier(
 			_nomme(Donnees.valider(brut), "unites.json", String(c[0])), "%s = %s" % [c[0], c[1]]
 		)
 	var doublon := _brut()
-	doublon["unites.json"] = [_unite(), _unite()]
+	doublon["unites.json"] = _unites_avec([_unite(), _unite()])
 	verifier(_nomme(Donnees.valider(doublon), "unites.json", "id"))
 	for modele: String in Donnees.MODELES_UNITES:
 		var unite := _unite()
 		unite["modele"] = modele
 		var brut := _brut()
-		brut["unites.json"] = [unite]
+		brut["unites.json"] = _unites_avec([unite])
 		verifier_egal(Donnees.valider(brut), PackedStringArray(), modele)
 
 
@@ -413,11 +419,15 @@ func test_les_unites_sont_triees_et_indexees() -> void:
 	var b := _unite()
 	b["id"] = "a0"
 	var brut := _brut()
-	brut["unites.json"] = [_unite(), b]
+	brut["unites.json"] = _unites_avec([_unite(), b])
 	var d := Donnees.depuis_brut(brut)
 	verifier_non_nul(d)
-	verifier_egal(d.ids_unites, PackedStringArray(["a0", "u1"]))
-	verifier_egal(d.unites.size(), 2)
+	var attendues := PackedStringArray(["a0", "u1"])
+	for id: String in AidesPartie.donnees().ids_unites:
+		attendues.append(id)
+	attendues.sort()
+	verifier_egal(d.ids_unites, attendues)
+	verifier_egal(d.unites.size(), attendues.size())
 	verifier(Donnees.FICHIERS_LISTE.has("unites.json"))
 	# Les données livrées ont au moins une unité par modèle de combat (T9.8).
 	var livrees := AidesPartie.donnees()

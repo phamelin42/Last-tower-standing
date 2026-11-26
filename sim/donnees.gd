@@ -337,10 +337,6 @@ static func _valider_partie(p: Dictionary, err: Array[String]) -> void:
 		_pos("esquive_k"),
 	]:
 		_nombre(p, spec, f, "", err)
-	# Plus de plafond d'armes (lot 8) : la clé n'est plus lue, mais une ancienne valeur reste
-	# validée tant que le fichier la porte (T8.21 la supprime).
-	if p.has("emplacements_armes"):
-		_nombre(p, _ent("emplacements_armes", 1.0), f, "", err)
 	var tour_ok := _objet(p, "tour", f, "", err)
 	if tour_ok:
 		var tour: Dictionary = p["tour"]
@@ -442,6 +438,10 @@ static func _valider_boutique(b: Dictionary, err: Array[String]) -> void:
 	for nom in Types.NOMS_RARETES:
 		poids.append(_nn(nom))
 	_table(b, "poids", f, "", err, "manche", poids, false, true)
+	if b.has("poids_genre"):
+		_table(
+			b, "poids_genre", f, "", err, "manche", [_nn("arme"), _nn("amelioration")], false, true
+		)
 	var relance_ok := _objet(b, "relance", f, "", err)
 	if relance_ok:
 		var relance: Dictionary = b["relance"]

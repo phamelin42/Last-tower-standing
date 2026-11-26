@@ -30,6 +30,26 @@ Vous achetez, vous améliorez et vous survivez aux vagues. Le dernier en vie gag
 - **Marché noir** : un objet spécial. Au lieu d'une offre au hasard, il vous laisse choisir une
   amélioration dans une liste (jusqu'à la rareté rare).
 
+## La mana
+
+Certains objets donnent de la **mana maximale** et de la **régénération de mana**. La mana absorbe
+les coups reçus **avant** les PV de la tour ; elle se régénère d'elle-même, par seconde. Sans objet de
+mana, la réserve est nulle.
+
+## La caméra et la mini-carte
+
+- **Déplacer la vue** : les flèches ou `W`, `A`, `S`, `D`. **Espace** recentre la tour. La molette
+  zoome (la sensibilité se règle dans les réglages) ; la vue s'éloigne au plus jusqu'à deux fois
+  le cercle d'apparition des ennemis.
+- **Mini-carte** : elle montre toute l'arène ; un clic y déplace la vue. Pendant l'observation, les
+  vignettes des autres arènes s'y trouvent : cliquez sur l'une pour la regarder, **Espace** pour
+  revenir à la vôtre.
+
+## La taille de l'interface
+
+Les réglages proposent cinq tailles pour toute l'interface : 75 %, 87,5 %, 100 %, 112,5 % et
+125 %.
+
 ## L'économie
 
 - Vous commencez avec **500 or**.
