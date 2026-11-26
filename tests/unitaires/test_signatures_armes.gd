@@ -6,6 +6,17 @@ extends CasDeTest
 ## leur, et une arme sans signature retombe sur le rendu par type (`test_effets.gd`).
 
 const ArmesLot8 := preload("res://tests/unitaires/armes_lot_8.gd")
+const SignaturesLot8 := preload("res://tests/unitaires/signatures_lot_8.gd")
+## Rang des types de dégâts dans `data/armes.json`.
+const TYPE_SIEGE: int = 3
+const TYPE_CHAOS: int = 4
+## Effet de l'arme → marque de sa mécanique ; sinon la vulnérabilité, sinon rien.
+const MARQUES_DES_EFFETS: Dictionary = {
+	"tournant": "rayon_tournant",
+	"zone_posee": "disque_au_sol",
+	"bombe": "bombe",
+	"invocation": "allie",
+}
 
 var _donnees: Donnees = null
 
@@ -38,10 +49,35 @@ func test_chaque_signature_designe_une_arme_des_donnees() -> void:
 		verifier(not SignaturesArmes.de(id).is_empty(), "signature de %s" % id)
 
 
-func test_les_trente_armes_du_lot_8_gardent_leur_signature() -> void:
-	verifier_egal(ArmesLot8.IDS.size(), 30)
+## Les armes de siège et de chaos du lot 9 entrent dans les données avant leur signature (une
+## autre tâche) : seules celles-là peuvent en manquer. Tranchantes, perçantes et magiques ont
+## toutes la leur, et le test strict (une ligne par arme, ni plus ni moins) reviendra avec elles.
+func test_toute_arme_sans_signature_est_de_siege_ou_de_chaos() -> void:
+	var avec: PackedStringArray = SignaturesArmes.ids()
+	for id: String in _ids_donnees():
+		if avec.has(id):
+			continue
+		var type_degats: int = int((_donnees.armes[id] as Dictionary)["type_degats"])
+		verifier(
+			type_degats == TYPE_SIEGE or type_degats == TYPE_CHAOS,
+			"%s (type %d) n'a pas de signature" % [id, type_degats]
+		)
 	for id: String in ArmesLot8.IDS:
-		verifier(not SignaturesArmes.de(id).is_empty(), "signature de %s perdue" % id)
+		verifier(avec.has(id), "signature de %s perdue" % id)
+
+
+func test_les_trente_signatures_du_lot_8_ne_changent_pas() -> void:
+	verifier_egal(SignaturesLot8.LIGNES.size(), 30)
+	for id: Variant in SignaturesLot8.LIGNES:
+		var ligne: Array = SignaturesLot8.LIGNES[id]
+		var s: Dictionary = SignaturesArmes.de(String(id))
+		verifier_egal(s.get("projectile"), ligne[0], "%s : projectile" % id)
+		verifier_egal(s.get("couleur"), SignaturesArmes.PALETTE[ligne[1]], "%s : couleur" % id)
+		verifier_egal(s.get("trainee"), ligne[2], "%s : traînée" % id)
+		verifier_egal(s.get("impact"), ligne[3], "%s : impact" % id)
+		verifier_egal(s.get("statut"), ligne[4], "%s : statut" % id)
+		verifier_egal(s.get("son"), "tir_" + String(id), "%s : son" % id)
+		verifier_egal(s.get("marque"), "", "%s : marque" % id)
 
 
 func test_une_arme_inconnue_n_a_pas_de_signature() -> void:
@@ -170,6 +206,11 @@ func test_le_libelle_affiche_de_chaque_statut_a_ses_accents() -> void:
 		"etourdissement": "étourdissement",
 		"brulure": "brûlure",
 		"vol_de_vie": "vol de vie",
+		"vulnerabilite": "vulnérabilité",
+		"malediction_toucher": "malédiction",
+		"repoussement": "repoussement",
+		"siphon": "siphon",
+		"mana_au_coup": "mana au coup",
 	}
 	for statut: Variant in SignaturesArmes.STATUTS:
 		verifier(attendus.has(statut), "libellé attendu manquant pour %s" % statut)
@@ -177,3 +218,38 @@ func test_le_libelle_affiche_de_chaque_statut_a_ses_accents() -> void:
 		verifier_egal(libelle, attendus.get(statut, ""))
 		verifier(not libelle.contains("_"), "%s : identifiant affiché" % statut)
 	verifier_egal(SignaturesArmes.libelle_statut("inconnu"), "")
+
+
+func _marque_attendue(id: String) -> String:
+	var arme: Dictionary = _donnees.armes[id]
+	for effet: Variant in arme["effets"]:
+		var kind: String = String((effet as Dictionary)["kind"])
+		if MARQUES_DES_EFFETS.has(kind):
+			return String(MARQUES_DES_EFFETS[kind])
+	for statut: Variant in arme["statuts"]:
+		if String((statut as Dictionary)["kind"]) == "vulnerabilite":
+			return "vulnerabilite"
+	return ""
+
+
+func test_la_marque_correspond_a_la_mecanique_de_l_arme() -> void:
+	var vues: Dictionary = {}
+	for id: String in SignaturesArmes.ids():
+		var marque: String = SignaturesArmes.de(id)["marque"]
+		verifier_egal(marque, _marque_attendue(id), "%s : marque" % id)
+		verifier(SignaturesArmes.MARQUES.has(marque), "%s : marque %s inconnue" % [id, marque])
+		vues[marque] = true
+	for marque: String in ["", "rayon_tournant", "disque_au_sol", "vulnerabilite"]:
+		verifier(vues.has(marque), "aucune arme n'a la marque « %s »" % marque)
+
+
+func test_les_nouveaux_statuts_ont_chacun_leur_forme_et_leur_libelle() -> void:
+	for statut: String in [
+		"vulnerabilite", "malediction_toucher", "repoussement", "siphon", "mana_au_coup"
+	]:
+		verifier(SignaturesArmes.STATUTS.has(statut), "%s : forme" % statut)
+		verifier(SignaturesArmes.libelle_statut(statut) != "", "%s : libellé" % statut)
+	var formes: Dictionary = {}
+	for forme: Variant in SignaturesArmes.STATUTS.values():
+		verifier(not formes.has(forme), "forme de statut en double : %s" % forme)
+		formes[forme] = true

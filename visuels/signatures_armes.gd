@@ -3,8 +3,8 @@ extends RefCounted
 ## Signature visuelle de chaque arme : forme et couleur du projectile, traînée, impact, statut.
 ## Table seule : rien ici n'est encore branché sur le jeu (l'intégration attend la validation de
 ## Phil sur `docs/planche_signatures.png`). La table se lit par identifiant d'arme et ne fige
-## aucun effectif : une arme ajoutée à `data/armes.json` reçoit sa ligne ici. Celles du lot 9 la
-## reçoivent à T9.18 et retombent d'ici là sur le rendu par type de dégâts (`de()` rend `{}`).
+## aucun effectif : une arme ajoutée à `data/armes.json` reçoit sa ligne ici (celles de siège et de
+## chaos du lot 9 la reçoivent avec leur planche ; d'ici là `de()` rend `{}`).
 ##
 ## Grammaire : 12 formes × 10 couleurs × 6 traînées × 8 impacts. Chaque type de dégâts garde ses
 ## deux couleurs (on reconnaît le type de loin) ; la forme du projectile départage les armes d'une
@@ -45,7 +45,22 @@ const STATUTS: Dictionary = {
 	"etourdissement": "croix_plus",
 	"brulure": "feu",
 	"vol_de_vie": "soin",
+	"vulnerabilite": "cible_brisee",
+	"malediction_toucher": "voile",
+	"repoussement": "recul",
+	"siphon": "siphon",
+	"mana_au_coup": "cristal",
 }
+
+## Ce que la marque d'une mécanique propre montre d'un coup d'œil (`de()["marque"]`, `""` sans).
+const MARQUES: Array[String] = [
+	"",
+	"rayon_tournant",
+	"disque_au_sol",
+	"bombe",
+	"allie",
+	"vulnerabilite",
+]
 
 ## Libellé affiché d'un statut (la planche, plus tard l'interface) : avec ses accents.
 const LIBELLES_STATUTS: Dictionary = {
@@ -54,6 +69,11 @@ const LIBELLES_STATUTS: Dictionary = {
 	"etourdissement": "étourdissement",
 	"brulure": "brûlure",
 	"vol_de_vie": "vol de vie",
+	"vulnerabilite": "vulnérabilité",
+	"malediction_toucher": "malédiction",
+	"repoussement": "repoussement",
+	"siphon": "siphon",
+	"mana_au_coup": "mana au coup",
 }
 
 ## Deux couleurs par type de dégâts, toutes vives (valeur ≥ 0,6) pour se lire au dézoom.
@@ -102,6 +122,53 @@ const TABLE: Dictionary = {
 	"miroir_brise": ["losange", "magenta", "etincelles", "etoile", ""],
 	"vortex_de_verre": ["spirale", "violet", "double", "explosion", "vol_de_vie"],
 	"horloge_folle": ["croissant", "magenta", "pointille", "croix", "brulure"],
+	# Lot 9 : tranchantes, perçantes et magiques (T9.18).
+	"serpe_de_vigne": ["croissant", "turquoise", "zigzag", "entaille", "vulnerabilite"],
+	"rasoir_tournoyant": ["shuriken", "turquoise", "etincelles", "croix", ""],
+	"couperet_a_epines": ["carre", "acier", "zigzag", "croix", ""],
+	"lame_de_brume": ["trait", "turquoise", "ondule", "halo", "malediction_toucher"],
+	"faucheuse_double": ["losange", "acier", "double", "pointes", "poison"],
+	"fleau_de_rasoirs": ["triangle", "acier", "filet", "anneau", "vulnerabilite"],
+	"hache_de_garde": ["hexagone", "acier", "pointille", "halo", "malediction_toucher"],
+	"scie_a_ruban": ["disque", "acier", "ondule", "etoile", "poison"],
+	"moissonneuse_d_acier": ["carre", "turquoise", "double", "entaille", "vulnerabilite"],
+	"javeline_de_jet": ["trait", "paille", "ondule", "croix", "repoussement"],
+	"trait_en_gerbe": ["triangle", "vert", "zigzag", "etoile", ""],
+	"fleche_marquante": ["hexagone", "paille", "etincelles", "halo", "vulnerabilite"],
+	"arc_de_remparts": ["croissant", "vert", "ondule", "anneau", "vulnerabilite"],
+	"herse_de_pieux": ["triangle", "paille", "pointille", "explosion", "repoussement"],
+	"lance_epineuse": ["shuriken", "vert", "double", "croix", "poison"],
+	"carquois_en_rafale": ["disque", "paille", "zigzag", "eclaboussure", "vulnerabilite"],
+	"mur_de_pointes": ["carre", "vert", "filet", "etoile", "repoussement"],
+	"couronne_de_pointes": ["spirale", "paille", "ondule", "anneau", "repoussement"],
+	"rune_de_veille": ["carre", "indigo", "pointille", "halo", ""],
+	"eclat_siphonneur": ["goutte", "indigo", "filet", "eclaboussure", "siphon"],
+	"lueur_vagabonde": ["disque", "bleu", "ondule", "halo", ""],
+	"prisme_de_faille": ["triangle", "bleu", "etincelles", "croix", "vulnerabilite"],
+	"orage_en_cage": ["carre", "bleu", "zigzag", "explosion", "brulure"],
+	"couronne_d_etoiles": ["shuriken", "indigo", "double", "explosion", "mana_au_coup"],
+	"vasque_d_arcanes": ["croissant", "bleu", "filet", "anneau", "siphon"],
+	"nuee_d_etincelles": ["trait", "bleu", "pointille", "pointes", "mana_au_coup"],
+	"nova_celeste": ["spirale", "bleu", "zigzag", "halo", "vulnerabilite"],
+}
+
+## id → marque de la mécanique propre de l'arme (voir `MARQUES`) ; une arme absente n'en a pas.
+const MARQUES_ARMES: Dictionary = {
+	"serpe_de_vigne": "vulnerabilite",
+	"rasoir_tournoyant": "rayon_tournant",
+	"faucheuse_double": "rayon_tournant",
+	"fleau_de_rasoirs": "vulnerabilite",
+	"moissonneuse_d_acier": "rayon_tournant",
+	"fleche_marquante": "vulnerabilite",
+	"arc_de_remparts": "vulnerabilite",
+	"carquois_en_rafale": "vulnerabilite",
+	"couronne_de_pointes": "vulnerabilite",
+	"rune_de_veille": "disque_au_sol",
+	"lueur_vagabonde": "rayon_tournant",
+	"prisme_de_faille": "vulnerabilite",
+	"orage_en_cage": "disque_au_sol",
+	"couronne_d_etoiles": "rayon_tournant",
+	"nova_celeste": "vulnerabilite",
 }
 
 
@@ -128,5 +195,6 @@ static func de(id_arme: String) -> Dictionary:
 		"trainee": ligne[2],
 		"impact": ligne[3],
 		"statut": ligne[4],
+		"marque": String(MARQUES_ARMES.get(id_arme, "")),
 		"son": "tir_" + id_arme,
 	}
