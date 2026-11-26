@@ -43,6 +43,9 @@ var _temps: float = 0.0
 var _manche: int = 0
 var _manche_max: int = 0
 var _composition: Composition = null
+## Tire la famille de chaque apparition : graine de la composition, donc la même suite chez tous les
+## joueurs ; à part de `_rng` (positions) pour ne pas décaler leur suite.
+var _rng_familles := RandomNumberGenerator.new()
 var _mult_pv: float = 1.0
 var _mult_degats: float = 1.0
 var _mult_vitesse: float = 1.0
@@ -101,6 +104,8 @@ func demarrer_manche(numero: int, composition: Composition, mult: Dictionary) ->
 	_manche = maxi(numero, 0)
 	_manche_max = maxi(_manche_max, _manche)
 	_composition = composition
+	if composition != null:
+		_rng_familles.seed = composition.graine
 	_lire_mult(mult)
 	_boss_en_cours = false
 	# Sans fin : le boss tombé ne doit pas redonner la victoire à chaque pas.
@@ -187,7 +192,7 @@ func _faire_apparaitre(dt: float) -> void:
 
 func _apparaitre() -> void:
 	var position := _point_d_apparition()
-	var famille := _composition.tirer(_rng)
+	var famille := _composition.tirer(_rng_familles)
 	if famille >= _donnees.familles.size():
 		# Convoi : il marche vers la tour sans jamais attaquer, et sa prime est élevée.
 		var c: Dictionary = _donnees.convoi

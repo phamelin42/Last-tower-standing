@@ -6,6 +6,9 @@ extends RefCounted
 
 var familles: PackedInt32Array = PackedInt32Array()
 var poids: PackedFloat32Array = PackedFloat32Array()
+## Graine de la suite des familles tirées par les apparitions : chaque arène la reprend au début de
+## la manche, donc tous les joueurs d'une partie affrontent les mêmes familles dans le même ordre.
+var graine: int = 0
 
 
 ## Une seule famille, de poids 1.

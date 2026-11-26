@@ -51,6 +51,7 @@ func tirer(manche: int) -> Composition:
 			autres.append(i)
 	nombre = mini(nombre, autres.size() + 1)
 	var composition := Composition.new()
+	composition.graine = _rng.randi()
 	composition.familles.append(majoritaire)
 	for _k: int in range(1, nombre):
 		var tiree := _rng.randi_range(0, autres.size() - 1)

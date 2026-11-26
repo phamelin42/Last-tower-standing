@@ -290,3 +290,24 @@ func test_le_tirage_est_le_meme_pour_tous_les_joueurs() -> void:
 		verifier_egal(v2.prochaines_armures, v1.prochaines_armures)
 		manches_vues[v1.manche] = true
 	verifier(manches_vues.size() >= 4, "plusieurs manches comparées (%d)" % manches_vues.size())
+
+
+func test_tous_les_joueurs_affrontent_les_memes_familles_dans_le_meme_ordre() -> void:
+	d.partie["tour"]["pv"] = 1e12
+	var melee := Composition.new()
+	melee.familles = PackedInt32Array([0, 1, 2])
+	melee.poids = PackedFloat32Array([0.6, 0.2, 0.2])
+	melee.graine = 4242
+	var suites: Array[PackedInt32Array] = []
+	for graine_arene: int in [11, 12, 13]:
+		var a := Arene.new(d, graine_arene)
+		a.demarrer_manche(3, melee, _mult(0.0))
+		for _pas: int in 600:
+			a.avancer(DT)
+		var suite := PackedInt32Array()
+		for i: int in a.ennemis.ids.size():
+			suite.append(int(a.ennemis.famille[i]))
+		suites.append(suite)
+	verifier(suites[0].size() > 5, "des ennemis sont apparus")
+	verifier_egal(suites[1], suites[0], "joueur 2 comme joueur 1")
+	verifier_egal(suites[2], suites[0], "joueur 3 comme joueur 1")
