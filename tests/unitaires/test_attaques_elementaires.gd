@@ -12,6 +12,7 @@ const PROJECTILES: Dictionary = {
 	"glace": "eclat_glace",
 	"bombe": "bombe",
 	"poison": "fiole",
+	"arcane": "rune",
 }
 
 var _a: AttaquesElementaires = null
@@ -212,3 +213,74 @@ func test_le_poison_eclabousse_au_rayon_puis_laisse_trois_nuages() -> void:
 	verifier(_a.opacite_max() <= 0.6 + 0.001, "un nuage n'est jamais plus opaque que 0,6")
 	_avancer(7)
 	verifier_egal(_a.nombre_vivants(), 0, "les nuages s'effacent en 36 images")
+
+
+func test_l_arcane_dure_dix_images_avec_deux_points_qui_tournent() -> void:
+	verifier_proche(_duree_en_images("arcane"), 10.0, 0.01)
+	verifier_egal(_a.etats("etincelle").size(), 2, "deux points autour de la rune")
+	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 2)
+	var rune: Vector2 = _a.etats("rune")[0]["position"]
+	var points: Array[Dictionary] = _a.etats("etincelle")
+	for point: Dictionary in points:
+		var position: Vector2 = point["position"]
+		verifier_proche(position.distance_to(rune), AttaquesElementaires.RAYON_ORBITE, 0.5)
+	verifier(_a.particules_actives() >= 1, "trois points bleus qui s'effacent")
+
+
+func test_l_eclat_de_rune_ne_depasse_jamais_quarante_pixels() -> void:
+	_a.impacter("arcane", ARRIVEE, 0.0)
+	for image: int in 12:
+		for eclat: Dictionary in _a.etats("eclat_rune"):
+			verifier(eclat["taille"].x <= 40.0 and eclat["taille"].y <= 40.0, "rune ≤ 40 px")
+		_avancer(1)
+
+
+func _eclair(de: Vector2, vers: Vector2) -> void:
+	_a.impacter("foudre", vers, 0.0, false, de)
+
+
+func test_la_foudre_attend_son_anticipation_puis_trace_un_eclair() -> void:
+	verifier_proche(_duree_en_images("foudre"), 3.0, 0.01, "3 images d'anticipation")
+	verifier_egal(_a.etats("depart").size(), 1)
+	verifier_egal(_a.etats("rune").size() + _a.etats("boule_feu").size(), 0, "pas de projectile")
+	_eclair(DEPART, ARRIVEE)
+	var eclairs: Array[PackedVector2Array] = _a.eclairs()
+	verifier_egal(eclairs.size(), 1)
+	var points: PackedVector2Array = eclairs[0]
+	verifier(points.size() >= 7 and points.size() <= 9, "6 à 8 segments")
+	verifier_egal(points[0], DEPART)
+	verifier_egal(points[points.size() - 1], ARRIVEE)
+	verifier_egal(_a.etats("etincelle").size(), 1, "une étincelle sur la cible")
+
+
+func test_l_eclair_est_retrace_toutes_les_deux_images_a_graine_fixe() -> void:
+	_eclair(DEPART, ARRIVEE)
+	var premier: PackedVector2Array = _a.eclairs()[0]
+	_avancer(1)
+	verifier_egal(_a.eclairs()[0], premier, "même tracé dans les 2 premières images")
+	_avancer(1)
+	verifier_different(_a.eclairs()[0], premier, "retracé à la 3e image")
+	var autre := AttaquesElementaires.new()
+	arbre.root.add_child(autre)
+	autre.impacter("foudre", ARRIVEE, 0.0, false, DEPART)
+	verifier_egal(autre.eclairs()[0], premier, "mêmes événements, même éclair")
+	autre.free()
+
+
+func test_l_eclair_dure_six_images_puis_s_efface_en_trois() -> void:
+	_eclair(DEPART, ARRIVEE)
+	_avancer(5)
+	verifier_proche(_a.opacite_max(), AttaquesElementaires.ALPHA_MAX, 0.001, "plein jusqu'à 6")
+	_avancer(2)
+	verifier(_a.opacite_max() < AttaquesElementaires.ALPHA_MAX, "il s'efface")
+	_avancer(3)
+	verifier_egal(_a.eclairs().size(), 0, "fini en 9 images")
+
+
+func test_mouvement_reduit_l_eclair_reste_fixe() -> void:
+	_a.mouvement_reduit = true
+	_eclair(DEPART, ARRIVEE)
+	var premier: PackedVector2Array = _a.eclairs()[0]
+	_avancer(5)
+	verifier_egal(_a.eclairs()[0], premier)
+	verifier_egal(_a.particules_actives(), 0)
