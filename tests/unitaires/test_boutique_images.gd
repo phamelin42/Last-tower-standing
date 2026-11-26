@@ -188,9 +188,11 @@ func test_l_image_est_decorative_ni_souris_ni_focus() -> void:
 	var vue := _vue(offres)
 	vue.armes.append({"id": armes[0], "recharge_ratio": 0.0})
 	_ui.afficher(vue)
-	var arme := _ui.find_child("ImageArme0", true, false) as TextureRect
-	verifier_egal(arme.mouse_filter, Control.MOUSE_FILTER_IGNORE, "arme : souris")
-	verifier_egal(arme.focus_mode, Control.FOCUS_NONE, "arme : focus")
+	# Dans la grille, la case est le bouton ; le repère de catégorie qu'elle porte est décoratif.
+	var arme := _ui.find_child("Arme0", true, false) as Button
+	var repere := arme.find_child("Repere", true, false) as TextureRect
+	verifier_egal(repere.mouse_filter, Control.MOUSE_FILTER_IGNORE, "repère d'arme : souris")
+	verifier_egal(repere.focus_mode, Control.FOCUS_NONE, "repère d'arme : focus")
 
 
 func test_la_taille_de_l_image_reste_dans_ses_bornes_et_dans_la_carte_a_chaque_resolution() -> void:
@@ -238,7 +240,7 @@ func test_l_image_grandit_avec_la_fenetre_sans_depasser_ses_bornes() -> void:
 # --- Armes équipées et marché noir -----------------------------------------------------------
 
 
-func test_chaque_arme_equipee_montre_son_image_devant_son_nom_en_boucle() -> void:
+func test_chaque_arme_equipee_montre_son_image_dans_sa_case_de_la_grille_en_boucle() -> void:
 	_monter_boutique()
 	var vue := _vue([])
 	var ids: Array[String] = []
@@ -247,15 +249,11 @@ func test_chaque_arme_equipee_montre_son_image_devant_son_nom_en_boucle() -> voi
 	for id: String in ids:
 		vue.armes = [{"id": id, "recharge_ratio": 0.0}]
 		_ui.afficher(vue)
-		var image := _ui.find_child("ImageArme0", true, false) as TextureRect
-		var nom := _ui.find_child("NomArme0", true, false) as Label
-		verifier_egal(_chemin(image.texture), ImagesOffres.chemin_case(id), "l'image de %s" % id)
-		verifier(
-			image.get_index() < nom.get_index() and image.get_parent() == nom.get_parent(),
-			"%s : l'image précède le nom sur sa ligne" % id
-		)
-		var cote := image.custom_minimum_size.x
-		verifier(cote >= 32.0 and cote <= 40.0, "%s : image de %s px dans [32, 40]" % [id, cote])
+		var case := _ui.find_child("Arme0", true, false) as Button
+		verifier_egal(_chemin(case.icon), ImagesOffres.chemin_case(id), "l'image de %s" % id)
+		verifier(case.expand_icon, "%s : l'image s'adapte à la case" % id)
+		verifier(case.custom_minimum_size.x >= 48.0, "%s : case d'au moins 48 px" % id)
+		verifier(case.text.is_empty(), "%s : la case ne porte que l'image" % id)
 
 
 func test_chaque_choix_du_marche_noir_montre_son_image() -> void:

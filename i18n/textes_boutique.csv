@@ -7,8 +7,6 @@ BOUTIQUE_RELANCER_GRATUITE,gratuite
 BOUTIQUE_PRIX,%s or
 BOUTIQUE_VENDU,Vendu
 BOUTIQUE_OR_INSUFFISANT,Or insuffisant
-BOUTIQUE_PLEINS,Emplacements pleins
-BOUTIQUE_AMELIORATION,Amélioration
 BOUTIQUE_VENDRE_PRIX,Vendre (%s or)
 BOUTIQUE_ARMES_TITRE,Armes équipées
 BOUTIQUE_AUCUNE_ARME,Aucune arme équipée
@@ -90,3 +88,13 @@ BOUTIQUE_EFFET_BONUS_ELIM,+%s or tous les %s ennemis tués
 BOUTIQUE_EFFET_RELANCE_UNE,%s relance gratuite de la boutique par manche
 BOUTIQUE_EFFET_RELANCE_PLUSIEURS,%s relances gratuites de la boutique par manche
 BOUTIQUE_EFFET_MARCHE_NOIR,"ouvre un choix gratuit d’une amélioration, jusqu’à la rareté %s"
+BOUTIQUE_CATEGORIE_ARME,Arme
+BOUTIQUE_CATEGORIE_AMELIORATION,Amélioration
+BOUTIQUE_CATEGORIE_REVENU,Revenu
+BOUTIQUE_REPLIER,Replier la boutique
+BOUTIQUE_DEPLIER,Déplier la boutique
+BOUTIQUE_RACCOURCI,Raccourci : %s
+BOUTIQUE_AMELIORATIONS_TITRE,Améliorations achetées
+BOUTIQUE_ARMES_AU_MAXIMUM,Maximum d’armes atteint
+BOUTIQUE_ARME_A_VENDRE,Touchez une arme pour la vendre
+BOUTIQUE_QUANTITE,×%s
