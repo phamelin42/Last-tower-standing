@@ -408,8 +408,11 @@ func test_aucun_libelle_ne_se_coupe_avec_les_plus_longs_noms_reels_a_75_et_125_p
 		for resolution: Vector2 in RESOLUTIONS:
 			var zone := resolution / echelle
 			var jeu := await _jeu_a(zone)
+			# Une vue de la partie arrivant entre deux images remplacerait celle du test.
+			jeu.source.set_process(false)
 			var vue := VueArene.new()
-			vue.argent = OR_ABONDANT
+			# Or insuffisant sur chaque offre : la note « Or insuffisant » doit tenir entière.
+			vue.argent = 0
 			vue.cout_relance = prix_max
 			vue.marche_noir_ouvert = true
 			for i: int in plus_longues.size():
@@ -434,6 +437,7 @@ func test_aucun_libelle_ne_se_coupe_avec_les_plus_longs_noms_reels_a_75_et_125_p
 			jeu.boutique.afficher(vue)
 			await attendre_images(3)
 			var ou := "à %s, échelle %s" % [resolution, echelle]
+			var notes_or := 0
 			for noeud: Node in jeu.boutique.find_children("*", "Label", true, false):
 				var libelle := noeud as Label
 				if not libelle.is_visible_in_tree() or libelle.text.is_empty():
@@ -443,6 +447,8 @@ func test_aucun_libelle_ne_se_coupe_avec_les_plus_longs_noms_reels_a_75_et_125_p
 					. get_string_size(libelle.text, 0, -1, libelle.get_theme_font_size("font_size"))
 					. x
 				)
+				if libelle.text.begins_with(tr("BOUTIQUE_OR_INSUFFISANT")):
+					notes_or += 1
 				if libelle.autowrap_mode == TextServer.AUTOWRAP_OFF:
 					verifier(
 						largeur <= libelle.size.x + 1.0, "« %s » coupé %s" % [libelle.text, ou]
@@ -465,11 +471,52 @@ func test_aucun_libelle_ne_se_coupe_avec_les_plus_longs_noms_reels_a_75_et_125_p
 						minimum.x <= bouton.size.x + 1.0 and minimum.y <= bouton.size.y + 1.0,
 						"bouton « %s » trop petit pour son texte %s" % [bouton.text, ou]
 					)
+			verifier(notes_or > 0, "une note « Or insuffisant » est affichée %s" % ou)
 			var ecran := Rect2(Vector2.ZERO, zone)
 			for panneau: PanelContainer in jeu.boutique.panneaux():
 				verifier(
 					ecran.encloses(panneau.get_global_rect()), "panneau dans la fenêtre %s" % ou
 				)
+			_liberer(jeu)
+
+
+## Or insuffisant : la note « Or insuffisant » de chaque carte s'affiche entière (ni points de
+## suspension, ni ligne masquée) aux crans extrêmes de l'interface et aux quatre résolutions, sans
+## faire dépasser au bandeau 45 % de la hauteur. L'or de départ à zéro rend toute offre trop chère,
+## avec les offres réelles de la partie : plus besoin d'un or abondant pour contourner le défaut.
+func test_la_note_or_insuffisant_tient_entiere_sans_depasser_les_seuils() -> void:
+	_donnees = AidesPartie.donnees({"economie.json": [[["or_depart"], 0]]})
+	var police := ThemeJeu.police()
+	var texte := tr("BOUTIQUE_OR_INSUFFISANT")
+	for echelle: float in ECHELLES_EXTREMES:
+		for resolution: Vector2 in RESOLUTIONS:
+			var zone := resolution / echelle
+			var jeu := await _jeu_a(zone)
+			jeu.source.set_process(false)
+			var ou := "à %s, échelle %s" % [resolution, echelle]
+			var vues := 0
+			for i: int in BoutiqueUi.NB_OFFRES:
+				var note := jeu.boutique.find_child("Note%d" % i, true, false) as Label
+				if note == null or not note.visible:
+					continue
+				vues += 1
+				verifier_egal(note.text, texte, "note de la carte %d %s" % [i, ou])
+				verifier(not note.clip_text, "note non rognée %s" % ou)
+				verifier_egal(
+					note.get_visible_line_count(), note.get_line_count(), "ligne masquée %s" % ou
+				)
+				var largeur := police.get_string_size(note.text, 0, -1, 16).x
+				verifier(
+					note.get_line_count() > 1 or largeur <= note.size.x + 1.0, "note coupée %s" % ou
+				)
+			verifier(vues > 0, "au moins une note affichée %s" % ou)
+			verifier(
+				jeu.boutique.rect_bandeau_minimal().y <= MiseEnPage.PART_MAX_BOUTIQUE * zone.y,
+				(
+					"bandeau sous %d %% de la hauteur %s"
+					% [roundi(MiseEnPage.PART_MAX_BOUTIQUE * 100), ou]
+				)
+			)
 			_liberer(jeu)
 
 
