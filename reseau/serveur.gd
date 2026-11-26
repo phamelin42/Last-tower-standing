@@ -596,7 +596,9 @@ func _envoyer_arene_propre(pair: int, p: _Pair, dt: float) -> void:
 		return
 	var lot := _tampon(p.cible).prendre(p.curseur, TAMPON_PAR_ENVOI)
 	vue.evenements = lot.evenements
-	var octets := Protocole.encoder_etat_arene(vue, _donnees.ids_catalogue)
+	var octets := Protocole.encoder_etat_arene(
+		vue, _donnees.ids_catalogue, _donnees.ids_unites.size()
+	)
 	if octets.is_empty():
 		etats_trop_gros += 1
 		return
@@ -642,7 +644,9 @@ func _envoyer_arene_regardee(pair: int, p: _Pair, dt: float) -> void:
 		etats_trop_gros += 1
 		return
 	copie.evenements = lot.evenements
-	var octets := Protocole.encoder_etat_arene_regardee(p.regarde, copie, _donnees.ids_catalogue)
+	var octets := Protocole.encoder_etat_arene_regardee(
+		p.regarde, copie, _donnees.ids_catalogue, _donnees.ids_unites.size()
+	)
 	if octets.is_empty():
 		etats_trop_gros += 1
 		return

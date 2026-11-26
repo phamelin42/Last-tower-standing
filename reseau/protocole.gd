@@ -26,7 +26,12 @@ enum Intention {
 ## 5 : armes jusqu'à 255, mana, familles suivantes (jusqu'à 3), arme et événement `absorption`
 ##     dans les événements (14 octets), `dps` et densités dans l'état global, état d'arène
 ##     regardée, intention `REGARDER` (lot 8).
-const VERSION: int = 5
+## 6 : l'état global porte les PV et les PV max de la tour de chaque joueur (8 octets de plus
+##     par joueur, suivi S14).
+## 7 : alliés (5 octets), zones posées (7) et bombes (6) dans l'état d'arène, trois compteurs de
+##     plus ; les genres et statuts d'événement du lot 9 (4 bits chacun, format inchangé) ne sont
+##     lisibles que par cette version (lot 9).
+const VERSION: int = 7
 ## Taille du jeton d'hôte ; un bonjour sans jeton en porte 0.
 const JETON_OCTETS: int = 8
 const MAX_ENNEMIS: int = 2000
@@ -39,6 +44,10 @@ const MAX_MOTIF_OCTETS: int = 200
 const MAX_JOUEURS: int = 16
 const MAX_OFFRES: int = 8
 const MAX_ARMES: int = 255
+## Plafonds d'alliés, de zones et de bombes : ceux de `partie.json` `limites` (un test les compare).
+const MAX_ALLIES: int = VueArene.ALLIES_MAX
+const MAX_ZONES: int = VueArene.ZONES_MAX
+const MAX_BOMBES: int = VueArene.BOMBES_MAX
 ## Familles annoncées pour la manche suivante.
 const MAX_FAMILLES_SUIVANTES: int = 3
 ## Plus grand identifiant de joueur qu'on peut regarder : un identifiant de joueur est celui du
@@ -51,8 +60,9 @@ const ECHELLE_POS: float = 16.0
 const POS_MAX: float = 32767.0 / 16.0
 const ERREUR_POS_MAX: float = 1.0 / 32.0
 
-## Octets d'un état d'arène sans offre, arme, amélioration, ennemi ni événement.
-const TAILLE_FIXE: int = 60
+## Octets d'un état d'arène sans offre, arme, amélioration, ennemi, événement, allié, zone ni
+## bombe.
+const TAILLE_FIXE: int = 63
 const OFFSET_PHASE: int = 5
 const OFFSET_TOUR_PV: int = 11
 const OFFSET_MANA: int = 36
@@ -64,7 +74,7 @@ const OFFSET_NB_JOUEURS: int = 10
 
 const _OCTETS_ENNEMI: int = 9
 const _OCTETS_EVENEMENT: int = 14
-const _OCTETS_JOUEUR_MIN: int = 22
+const _OCTETS_JOUEUR_MIN: int = 30
 ## Octets d'une carte de densité diffusée : identifiant (i32) et 256 cases.
 const _OCTETS_DENSITE: int = 4 + VueGlobale.DENSITE_OCTETS
 const _SANS_ARME: int = 0xFFFF
@@ -249,9 +259,10 @@ static func type_de(b: PackedByteArray) -> int:
 
 
 ## `u8 type · f32 temps · u8 flags · i32 dernier_rempart · u8 n_joueurs` puis par joueur
-## `[i32 id · u8 n + nom · u16 manche · u16 eliminations · f32 degats · f32 dps · i32 revenu ·
-## u8 flags]`, `u8 n_classement · n × i32`, `u8 n_densites · n × [i32 id · 256 octets]`. Vide si
-## plus de 16 joueurs, 16 rangs ou 16 cartes, ou si une carte n'a pas 256 octets.
+## `[i32 id · u8 n + nom · u16 manche · u16 eliminations · f32 degats · f32 dps · f32 pv ·
+## f32 pv_max · i32 revenu · u8 flags]`, `u8 n_classement · n × i32`,
+## `u8 n_densites · n × [i32 id · 256 octets]`. Vide si plus de 16 joueurs, 16 rangs ou 16
+## cartes, ou si une carte n'a pas 256 octets.
 static func encoder_etat_global(v: VueGlobale) -> PackedByteArray:
 	if v.joueurs.size() > MAX_JOUEURS or v.classement.size() > MAX_JOUEURS:
 		return PackedByteArray()
@@ -280,6 +291,8 @@ static func encoder_etat_global(v: VueGlobale) -> PackedByteArray:
 		e.u16(int(j["eliminations"]))
 		e.f32(float(j["degats"]))
 		e.f32(float(j.get("dps", 0.0)))
+		e.f32(float(j.get("pv", 0.0)))
+		e.f32(float(j.get("pv_max", 0.0)))
 		e.i32(int(j["revenu"]))
 		e.u8((1 if bool(j["vivant"]) else 0) | (2 if bool(j["victorieux"]) else 0))
 	e.u8(v.classement.size())
@@ -318,6 +331,8 @@ static func decoder_etat_global(b: PackedByteArray) -> VueGlobale:
 		var eliminations := l.u16()
 		var degats := l.f32()
 		var dps := l.f32()
+		var pv := l.f32()
+		var pv_max := l.f32()
 		var revenu := l.i32()
 		var drapeaux := l.u8()
 		if not l.ok or drapeaux & ~3 != 0:
@@ -333,6 +348,8 @@ static func decoder_etat_global(b: PackedByteArray) -> VueGlobale:
 					"eliminations": eliminations,
 					"degats": degats,
 					"dps": dps,
+					"pv": pv,
+					"pv_max": pv_max,
 					"revenu": revenu,
 					"vivant": drapeaux & 1 != 0,
 					"victorieux": drapeaux & 2 != 0,
@@ -364,9 +381,13 @@ static func decoder_etat_global(b: PackedByteArray) -> VueGlobale:
 ## Voir la spécification (§ 4) pour la disposition. Renvoie un tableau VIDE (refus explicite,
 ## rien n'est envoyé) si l'état n'est pas représentable : plus de 2 000 ennemis, tableaux
 ## d'ennemis de tailles différentes, identifiant absent du catalogue, genre/rareté/phase hors
-## bornes, plus de 255 armes, 8 offres ou 3 familles suivantes, arme hors catalogue. Les événements
-## au-delà de 64 sont abandonnés.
-static func encoder_etat_arene(v: VueArene, catalogue: PackedStringArray) -> PackedByteArray:
+## bornes, plus de 255 armes, 8 offres ou 3 familles suivantes, arme hors catalogue, plus d'alliés,
+## de zones ou de bombes que les plafonds, un allié dont l'unité est hors de `nb_unites` (si elle
+## est donnée), une zone ou une bombe au rayon ou au temps restant non fini ou négatif. Les
+## événements au-delà de 64 sont abandonnés.
+static func encoder_etat_arene(
+	v: VueArene, catalogue: PackedStringArray, nb_unites: int = -1
+) -> PackedByteArray:
 	var n := v.ennemis_id.size()
 	var coherent := (
 		n <= MAX_ENNEMIS
@@ -378,6 +399,9 @@ static func encoder_etat_arene(v: VueArene, catalogue: PackedStringArray) -> Pac
 		and v.armes.size() <= MAX_ARMES
 		and v.ameliorations.size() <= 65535
 		and v.prochaines_familles.size() <= MAX_FAMILLES_SUIVANTES
+		and v.allies.size() <= MAX_ALLIES
+		and v.zones.size() <= MAX_ZONES
+		and v.bombes.size() <= MAX_BOMBES
 		and v.phase >= Types.Phase.PREPARATION
 		and v.phase <= Types.Phase.DEFAITE
 	)
@@ -436,8 +460,12 @@ static func encoder_etat_arene(v: VueArene, catalogue: PackedStringArray) -> Pac
 				return PackedByteArray()
 		armes_evt.append(arme_evt)
 
+	if not ProtocolePoses.encodables(v, catalogue.size(), nb_unites):
+		return PackedByteArray()
+
 	var taille := (
 		TAILLE_FIXE
+		+ ProtocolePoses.octets(v)
 		+ 2 * familles_suivantes.size()
 		+ 5 * indices_offres.size()
 		+ 3 * indices_armes.size()
@@ -504,6 +532,7 @@ static func encoder_etat_arene(v: VueArene, catalogue: PackedStringArray) -> Pac
 		var statut_arme := clampi(int(evt.get("statut", 0)), 0, VueArene.STATUTS_ARME.size() - 1)
 		e.u8(genre_arme | (statut_arme << 4))
 		e.u16(armes_evt[i])
+	ProtocolePoses.ecrire(e, v)
 	e.u16(v.eliminations)
 	e.f32(v.degats_infliges)
 	e.u16(v.manche_max)
@@ -512,8 +541,12 @@ static func encoder_etat_arene(v: VueArene, catalogue: PackedStringArray) -> Pac
 
 ## `null` si le paquet est invalide : tronqué, trop grand, octets en trop, type inconnu, compteur
 ## supérieur aux octets restants ou aux bornes, indice hors du catalogue, phase/armure/genre hors
-## bornes, drapeau inconnu, flottant non fini, amélioration en double.
-static func decoder_etat_arene(b: PackedByteArray, catalogue: PackedStringArray) -> VueArene:
+## bornes, drapeau inconnu, flottant non fini, amélioration en double, plus d'alliés, de zones ou de
+## bombes que les plafonds, index d'unité hors de `nb_unites` (si elle est donnée) ou d'arme de zone
+## hors du catalogue.
+static func decoder_etat_arene(
+	b: PackedByteArray, catalogue: PackedStringArray, nb_unites: int = -1
+) -> VueArene:
 	if b.size() > MAX_TAILLE or b.size() < TAILLE_FIXE:
 		return null
 	var l := LecteurOctets.new(b)
@@ -652,6 +685,8 @@ static func decoder_etat_arene(b: PackedByteArray, catalogue: PackedStringArray)
 		if index_arme != _SANS_ARME:
 			evenement["arme"] = index_arme
 		v.evenements.append(evenement)
+	if not ProtocolePoses.lire(l, v, nb_catalogue, nb_unites):
+		return null
 	v.eliminations = l.u16()
 	v.degats_infliges = l.f32()
 	v.manche_max = l.u16()
@@ -664,11 +699,11 @@ static func decoder_etat_arene(b: PackedByteArray, catalogue: PackedStringArray)
 ## autre joueur, regardée de son vivant. Vide si l'identifiant n'est pas dans 0 à 255 ou si l'état
 ## n'est pas représentable (voir `encoder_etat_arene`).
 static func encoder_etat_arene_regardee(
-	id_joueur: int, v: VueArene, catalogue: PackedStringArray
+	id_joueur: int, v: VueArene, catalogue: PackedStringArray, nb_unites: int = -1
 ) -> PackedByteArray:
 	if id_joueur < 0 or id_joueur > MAX_ID_REGARDE:
 		return PackedByteArray()
-	var etat := encoder_etat_arene(v, catalogue)
+	var etat := encoder_etat_arene(v, catalogue, nb_unites)
 	if etat.is_empty():
 		return PackedByteArray()
 	var sortie := PackedByteArray([Msg.ETAT_ARENE_REGARDEE])
@@ -680,7 +715,7 @@ static func encoder_etat_arene_regardee(
 
 ## `{id: int, vue: VueArene}`, ou `{}` si le paquet est invalide.
 static func decoder_etat_arene_regardee(
-	b: PackedByteArray, catalogue: PackedStringArray
+	b: PackedByteArray, catalogue: PackedStringArray, nb_unites: int = -1
 ) -> Dictionary:
 	if b.size() > MAX_TAILLE or b.size() < 5 or b[0] != Msg.ETAT_ARENE_REGARDEE:
 		return {}
@@ -689,7 +724,7 @@ static func decoder_etat_arene_regardee(
 		return {}
 	var etat := PackedByteArray([Msg.ETAT_ARENE])
 	etat.append_array(b.slice(5))
-	var vue := decoder_etat_arene(etat, catalogue)
+	var vue := decoder_etat_arene(etat, catalogue, nb_unites)
 	if vue == null:
 		return {}
 	return {"id": id, "vue": vue}

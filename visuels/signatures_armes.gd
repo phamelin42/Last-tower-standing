@@ -3,7 +3,8 @@ extends RefCounted
 ## Signature visuelle de chaque arme : forme et couleur du projectile, traînée, impact, statut.
 ## Table seule : rien ici n'est encore branché sur le jeu (l'intégration attend la validation de
 ## Phil sur `docs/planche_signatures.png`). La table se lit par identifiant d'arme et ne fige
-## aucun effectif : une arme ajoutée à `data/armes.json` reçoit sa ligne ici, un test l'exige.
+## aucun effectif : une arme ajoutée à `data/armes.json` reçoit sa ligne ici. Celles du lot 9 la
+## reçoivent à T9.18 et retombent d'ici là sur le rendu par type de dégâts (`de()` rend `{}`).
 ##
 ## Grammaire : 12 formes × 10 couleurs × 6 traînées × 8 impacts. Chaque type de dégâts garde ses
 ## deux couleurs (on reconnaît le type de loin) ; la forme du projectile départage les armes d'une

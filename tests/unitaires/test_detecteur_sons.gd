@@ -3,6 +3,8 @@ extends CasDeTest
 ## ne se joue qu'une fois par vue, un franchissement de seuil ou de phase se joue une seule fois,
 ## et rien ne se joue sans changement.
 
+const ArmesLot8 := preload("res://tests/unitaires/armes_lot_8.gd")
+
 
 func _vue(manche: int = 1, phase: int = Types.Phase.MANCHE, pv: float = 100.0) -> VueArene:
 	var v := VueArene.new()
@@ -171,11 +173,16 @@ func _evenement_arme(genre: String, index_arme: int, type_degats: int = 0) -> Di
 func test_le_detecteur_choisit_le_son_de_l_arme_de_l_evenement() -> void:
 	var donnees: Donnees = Donnees.charger()
 	var catalogue: PackedStringArray = donnees.ids_catalogue
+	var propres: PackedStringArray = CatalogueSons.ids_armes()
+	for id: String in ArmesLot8.IDS:
+		verifier(propres.has(id), "%s a perdu son son de tir" % id)
+	# Une arme du lot 9 sans son propre (avant T9.20) se fait entendre par le son « tir ».
 	for id: Variant in donnees.armes:
 		var v := _vue()
 		v.evenements.append(_evenement_arme("tir", catalogue.find(String(id))))
 		var sons: Array[String] = DetecteurSons.sons_du_pas(null, v, catalogue)
-		verifier_egal(sons, ["tir_" + String(id)] as Array[String], "tir de %s" % id)
+		var attendu: String = "tir_" + String(id) if propres.has(String(id)) else CatalogueSons.TIR
+		verifier_egal(sons, [attendu] as Array[String], "tir de %s" % id)
 
 
 func test_un_evenement_sans_arme_donne_le_son_tir() -> void:
