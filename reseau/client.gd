@@ -367,6 +367,8 @@ static func _nom_du_genre(genre: int) -> String:
 			return "quitter_partie"
 		Protocole.Intention.PRET:
 			return "pret"
+		Protocole.Intention.SKIN:
+			return "definir_skin"
 		_:
 			return "options"
 
@@ -462,6 +464,11 @@ func quitter_partie() -> void:
 
 func est_hote() -> bool:
 	return salon != null and salon.hote == id_local() and id_local() > 0
+
+
+## Choisit le skin de tour au salon (index du catalogue, borné par le serveur).
+func definir_skin(index: int) -> void:
+	_intention(Protocole.Intention.SKIN, index)
 
 
 func pret(est_pret: bool) -> void:

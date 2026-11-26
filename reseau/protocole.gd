@@ -25,24 +25,31 @@ enum Msg {
 	BILAN
 }
 enum Intention {
-	ACHETER = 1, RELANCER, VENDRE, MARCHE_NOIR, OBSERVER, SANS_FIN, QUITTER, PRET, OPTIONS, REGARDER
+	ACHETER = 1,
+	RELANCER,
+	VENDRE,
+	MARCHE_NOIR,
+	OBSERVER,
+	SANS_FIN,
+	QUITTER,
+	PRET,
+	OPTIONS,
+	REGARDER,
+	SKIN
 }
 
 ## 2 : ajout de `RESULTAT` (réponse du serveur à chaque intention).
 ## 3 : un octet de plus par événement d'arène (genre et statut de l'arme, T5.3b).
 ## 4 : le bonjour porte un jeton d'hôte (0 ou 8 octets, T7.2b).
-## 5 : armes jusqu'à 255, mana, familles suivantes (jusqu'à 3), arme et événement `absorption`
-##     dans les événements (14 octets), `dps` et densités dans l'état global, état d'arène
-##     regardée, intention `REGARDER` (lot 8).
-## 6 : l'état global porte les PV et les PV max de la tour de chaque joueur (8 octets de plus
-##     par joueur, suivi S14).
+## 5 : armes jusqu'à 255, mana, familles suivantes (3 au plus), arme et événement `absorption`
+##     (14 octets), `dps` et densités dans l'état global, arène regardée, `REGARDER` (lot 8).
+## 6 : l'état global porte les PV et PV max de chaque tour (8 octets par joueur, suivi S14).
 ## 7 : alliés (5 octets), zones posées (7) et bombes (6) dans l'état d'arène, trois compteurs de
-##     plus ; les genres et statuts d'événement du lot 9 (4 bits chacun, format inchangé) ne sont
-##     lisibles que par cette version (lot 9).
+##     plus ; genres et statuts d'événement du lot 9 (4 bits chacun) lisibles par elle seule.
 ## 8 : message `BILAN`, le bilan de fin de partie envoyé à chaque joueur présent (lot 11).
-## 9 : l'état d'arène porte quatre flottants d'apparence de la tour de plus (épines, esquive,
-##     régénération, vol de vie : 16 octets), aussi pour l'arène regardée (lot 9, D19).
-const VERSION: int = 9
+## 9 : quatre flottants d'apparence de la tour dans l'état d'arène (16 octets), aussi regardée.
+## 10 : l'état global porte le skin de chaque joueur (1 octet) ; intention `SKIN` au salon.
+const VERSION: int = 10
 ## Taille du jeton d'hôte ; un bonjour sans jeton en porte 0.
 const JETON_OCTETS: int = 8
 const MAX_ENNEMIS: int = 2000
@@ -88,7 +95,7 @@ const OFFSET_NB_JOUEURS: int = 10
 
 const _OCTETS_ENNEMI: int = 9
 const _OCTETS_EVENEMENT: int = 14
-const _OCTETS_JOUEUR_MIN: int = 30
+const _OCTETS_JOUEUR_MIN: int = 31
 ## Octets d'une carte de densité diffusée : identifiant (i32) et 256 cases.
 const _OCTETS_DENSITE: int = 4 + VueGlobale.DENSITE_OCTETS
 const _SANS_ARME: int = 0xFFFF
@@ -161,7 +168,7 @@ static func motif_version(version_recue: int) -> String:
 ## trop long (64 octets) ou invalide ; pour `REGARDER`, l'argument est -1 (cesser) ou un
 ## identifiant de joueur (0 à `MAX_ID_REGARDE`).
 static func encoder_intention(genre: int, arg: int, texte: String = "") -> PackedByteArray:
-	if genre < Intention.ACHETER or genre > Intention.REGARDER:
+	if genre < Intention.ACHETER or genre > Intention.SKIN:
 		return PackedByteArray()
 	if genre == Intention.REGARDER and not _id_regarde_valide(arg):
 		return PackedByteArray()
@@ -192,7 +199,7 @@ static func decoder_intention(b: PackedByteArray) -> Dictionary:
 	var texte := l.texte(n, MAX_TEXTE_OCTETS)
 	if not l.ok or l.reste() != 0:
 		return {}
-	if genre < Intention.ACHETER or genre > Intention.REGARDER:
+	if genre < Intention.ACHETER or genre > Intention.SKIN:
 		return {}
 	if genre == Intention.REGARDER and not _id_regarde_valide(arg):
 		return {}
@@ -231,7 +238,7 @@ static func decoder_refus(b: PackedByteArray) -> String:
 ## `u8 type · u8 genre · u8 code` : ce que le serveur a répondu à une intention (`genre` =
 ## `Intention`, `code` = `Types.Resultat`). Vide si l'un des deux est hors bornes.
 static func encoder_resultat(genre: int, code: int) -> PackedByteArray:
-	if genre < Intention.ACHETER or genre > Intention.REGARDER:
+	if genre < Intention.ACHETER or genre > Intention.SKIN:
 		return PackedByteArray()
 	if code < Types.Resultat.OK or code > Types.Resultat.ARMES_AU_MAXIMUM:
 		return PackedByteArray()
@@ -253,7 +260,7 @@ static func decoder_resultat(b: PackedByteArray) -> Dictionary:
 	var code := l.u8()
 	if not l.ok or l.reste() != 0:
 		return {}
-	if genre < Intention.ACHETER or genre > Intention.REGARDER:
+	if genre < Intention.ACHETER or genre > Intention.SKIN:
 		return {}
 	if code < Types.Resultat.OK or code > Types.Resultat.ARMES_AU_MAXIMUM:
 		return {}
@@ -322,6 +329,7 @@ static func encoder_etat_global(v: VueGlobale) -> PackedByteArray:
 		e.f32(float(j.get("pv_max", 0.0)))
 		e.i32(int(j["revenu"]))
 		e.u8((1 if bool(j["vivant"]) else 0) | (2 if bool(j["victorieux"]) else 0))
+		e.u8(clampi(int(j.get("skin", 0)), 0, VueGlobale.SKIN_MAX))
 	e.u8(v.classement.size())
 	for rang: int in v.classement:
 		e.i32(rang)
@@ -362,6 +370,7 @@ static func decoder_etat_global(b: PackedByteArray) -> VueGlobale:
 		var pv_max := l.f32()
 		var revenu := l.i32()
 		var drapeaux := l.u8()
+		var skin := l.u8()
 		if not l.ok or drapeaux & ~3 != 0:
 			return null
 		(
@@ -380,6 +389,7 @@ static func decoder_etat_global(b: PackedByteArray) -> VueGlobale:
 					"revenu": revenu,
 					"vivant": drapeaux & 1 != 0,
 					"victorieux": drapeaux & 2 != 0,
+					"skin": skin,
 				}
 			)
 		)

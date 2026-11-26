@@ -13,6 +13,9 @@ var victorieux: bool = false
 ## A vaincu le boss, même s'il a repris la partie en mode sans fin (`victorieux` retombe alors).
 var a_vaincu: bool = false
 var parti: bool = false
+## Index du skin de tour choisi au salon : un entier opaque pour la simulation, qui ne change rien à
+## la partie (la vue globale le diffuse).
+var skin: int = 0
 ## Plus rien à simuler : tour détruite, boss vaincu ou joueur parti.
 var fige: bool = false
 var pas_fin: int = -1

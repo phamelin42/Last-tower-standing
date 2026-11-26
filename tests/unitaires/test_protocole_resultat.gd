@@ -19,7 +19,7 @@ func _avec_octet_en_plus(b: PackedByteArray) -> PackedByteArray:
 
 
 func test_resultat_aller_retour_pour_chaque_genre_et_chaque_code() -> void:
-	for genre: int in range(Protocole.Intention.ACHETER, Protocole.Intention.REGARDER + 1):
+	for genre: int in range(Protocole.Intention.ACHETER, Protocole.Intention.SKIN + 1):
 		for code: int in range(Types.Resultat.OK, Types.Resultat.ARMES_AU_MAXIMUM + 1):
 			var b := Protocole.encoder_resultat(genre, code)
 			verifier_egal(b.size(), 3, "message compact")
@@ -28,7 +28,7 @@ func test_resultat_aller_retour_pour_chaque_genre_et_chaque_code() -> void:
 
 
 func test_resultat_hors_bornes_n_est_pas_encode() -> void:
-	for genre: int in [-1, 0, Protocole.Intention.REGARDER + 1, 255, 1 << 20]:
+	for genre: int in [-1, 0, Protocole.Intention.SKIN + 1, 255, 1 << 20]:
 		verifier(Protocole.encoder_resultat(genre, 0).is_empty(), "genre %d" % genre)
 	for code: int in [-1, Types.Resultat.ARMES_AU_MAXIMUM + 1, 255, 1 << 20]:
 		verifier(Protocole.encoder_resultat(1, code).is_empty(), "code %d" % code)
@@ -44,7 +44,7 @@ func test_resultat_decodage_defensif() -> void:
 		var autre := valide.duplicate()
 		autre[0] = t
 		verifier_egal(Protocole.decoder_resultat(autre), {}, "type %d" % t)
-	for genre: int in [0, Protocole.Intention.REGARDER + 1, 255]:
+	for genre: int in [0, Protocole.Intention.SKIN + 1, 255]:
 		var mauvais := valide.duplicate()
 		mauvais[1] = genre
 		verifier_egal(Protocole.decoder_resultat(mauvais), {}, "genre %d" % genre)

@@ -84,6 +84,10 @@ func emettre_vue_regardee(id_joueur: int, vue: VueArene) -> void:
 	vue_regardee_recue.emit(id_joueur, vue)
 
 
+func definir_skin(index: int) -> void:
+	_noter("definir_skin", [index])
+
+
 func continuer_sans_fin() -> void:
 	_noter("continuer_sans_fin", [])
 

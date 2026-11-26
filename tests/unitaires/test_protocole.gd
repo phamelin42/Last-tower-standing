@@ -352,7 +352,7 @@ func test_intention_de_genre_inconnu_ou_mal_formee_est_refusee() -> void:
 	for b in _troncatures(valide):
 		verifier_egal(Protocole.decoder_intention(b), {}, "taille %d" % b.size())
 	verifier_egal(Protocole.decoder_intention(_avec_octet_en_plus(valide)), {})
-	for genre: int in [0, Protocole.Intention.REGARDER + 1, 255]:
+	for genre: int in [0, Protocole.Intention.SKIN + 1, 255]:
 		var b := valide.duplicate()
 		b[1] = genre
 		verifier_egal(Protocole.decoder_intention(b), {}, "genre %d" % genre)

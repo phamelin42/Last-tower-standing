@@ -217,3 +217,22 @@ func test_deux_sources_ne_se_melangent_pas() -> void:
 	var nb := vues_b.size()
 	_simuler(source_b, 0.5)
 	verifier(vues_b.size() > nb, "B continue après la sortie de A")
+
+
+func test_le_skin_choisi_avant_le_depart_arrive_dans_la_vue_globale_et_reste_borne() -> void:
+	var d_skins := AidesPartie.donnees()
+	var nombre := d_skins.ids_skins().size()
+	for index: int in [1, 0, -4, nombre, 99999]:
+		var source := SourceLocale.new()
+		arbre.root.add_child(source)
+		var vues: Array[VueGlobale] = []
+		source.vue_globale_recue.connect(func(v: VueGlobale) -> void: vues.append(v))
+		source.definir_skin(index)
+		verifier(source.demarrer(d_skins, AidesPartie.config(GRAINE), "Mina"), "démarrage")
+		_simuler(source, 1.0)
+		verifier(not vues.is_empty(), "une vue globale")
+		if not vues.is_empty():
+			var attendu := index if index >= 0 and index < nombre else 0
+			verifier_egal(int(vues[0].joueurs[0]["skin"]), attendu, "skin %d" % index)
+		source.quitter_partie()
+		source.free()
