@@ -1,6 +1,6 @@
 {
 	"poids": [
-		{"manche": 1, "commune": 45, "peu_commune": 43, "rare": 12, "epique": 0},
+		{"manche": 1, "commune": 30, "peu_commune": 55, "rare": 15, "epique": 0},
 		{"manche": 6, "commune": 55, "peu_commune": 30, "rare": 12, "epique": 3},
 		{"manche": 12, "commune": 40, "peu_commune": 32, "rare": 20, "epique": 8},
 		{"manche": 20, "commune": 28, "peu_commune": 32, "rare": 26, "epique": 14},
