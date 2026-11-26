@@ -196,7 +196,7 @@ static func _frapper(ctx: Contexte, i: int, degats: float) -> float:
 
 ## Meilleur vivant à portée du centre selon le ciblage de l'arme, hors `exclus` (identifiants) ;
 ## égalité parfaite : plus petit identifiant. -1 si aucun.
-static func _choisir(ctx: Contexte, portee: float, exclus: Array[int], au_sol: bool) -> int:
+static func _choisir(ctx: Contexte, portee: float, exclus: Array[int]) -> int:
 	var ennemis := ctx.ennemis
 	var mode := int(ctx.arme.def["ciblage"])
 	var r2 := portee * portee
@@ -205,7 +205,7 @@ static func _choisir(ctx: Contexte, portee: float, exclus: Array[int], au_sol: b
 	var meilleur := -1
 	var meilleure_cle := 0.0
 	for i: int in ennemis.ids.size():
-		if ennemis.mort[i] != 0 or (au_sol and ennemis.volant[i] != 0):
+		if ennemis.mort[i] != 0:
 			continue
 		var d2 := ennemis.pos[i].distance_squared_to(ctx.centre)
 		if d2 > r2 or (not exclus.is_empty() and exclus.has(ennemis.ids[i])):
@@ -225,13 +225,13 @@ static func _choisir(ctx: Contexte, portee: float, exclus: Array[int], au_sol: b
 	return meilleur
 
 
-static func _existe(ctx: Contexte, point: Vector2, rayon: float, volants: bool) -> bool:
+static func _existe(ctx: Contexte, point: Vector2, rayon: float) -> bool:
 	var ennemis := ctx.ennemis
 	var r2 := rayon * rayon
 	if point == ctx.centre and ennemis.distance2_minimale(point) > r2:
 		return false
 	for i: int in ennemis.ids.size():
-		if ennemis.mort[i] != 0 or (not volants and ennemis.volant[i] != 0):
+		if ennemis.mort[i] != 0:
 			continue
 		if ennemis.pos[i].distance_squared_to(point) <= r2:
 			return true
@@ -239,16 +239,14 @@ static func _existe(ctx: Contexte, point: Vector2, rayon: float, volants: bool) 
 
 
 ## Frappe tous les vivants dans `rayon` autour de `point` ; rend leur nombre.
-static func _zone(
-	ctx: Contexte, point: Vector2, rayon: float, degats: float, volants: bool, exclu: int
-) -> int:
+static func _zone(ctx: Contexte, point: Vector2, rayon: float, degats: float, exclu: int) -> int:
 	var ennemis := ctx.ennemis
 	var r2 := rayon * rayon
 	if point == ctx.centre and ennemis.distance2_minimale(point) > r2:
 		return 0
 	var touches := 0
 	for i: int in ennemis.ids.size():
-		if i == exclu or ennemis.mort[i] != 0 or (not volants and ennemis.volant[i] != 0):
+		if i == exclu or ennemis.mort[i] != 0:
 			continue
 		if ennemis.pos[i].distance_squared_to(point) <= r2:
 			_frapper(ctx, i, degats)
@@ -277,9 +275,9 @@ static func _volees(ctx: Contexte, kind: String, effet: Dictionary) -> bool:
 	var deja: Array[int] = []
 	var a_tire := false
 	for _tir: int in 1 + maxi(ctx.stats.tirs_multiples, 0):
-		var i := _choisir(ctx, portee, deja, false)
+		var i := _choisir(ctx, portee, deja)
 		if i < 0 and not deja.is_empty():
-			i = _choisir(ctx, portee, [], false)
+			i = _choisir(ctx, portee, [])
 		if i < 0:
 			break
 		deja.append(ctx.ennemis.ids[i])
@@ -304,14 +302,14 @@ static func _tir_cible_unique(ctx: Contexte, i: int) -> void:
 	var rayon := 0.0
 	if ctx.stats.eclaboussure > 0.0:
 		rayon = RAYON_ECLABOUSSURE
-		_zone(ctx, position, rayon, degats * ctx.stats.eclaboussure, true, i)
+		_zone(ctx, position, rayon, degats * ctx.stats.eclaboussure, i)
 	_evenement(ctx, "impact", ctx.centre, position, rayon)
 
 
 static func _tir_zone(ctx: Contexte, i: int, rayon: float) -> void:
 	var position := ctx.ennemis.pos[i]
 	_evenement(ctx, "tir", ctx.centre, position, 0.0)
-	_zone(ctx, position, rayon, ctx.degats_base * _critique(ctx), true, -1)
+	_zone(ctx, position, rayon, ctx.degats_base * _critique(ctx), -1)
 	_evenement(ctx, "impact", ctx.centre, position, rayon)
 
 
@@ -372,7 +370,7 @@ static func _tir_barrage(ctx: Contexte, i: int, effet: Dictionary) -> void:
 	for _p: int in int(effet["projectiles"]):
 		var angle := deg_to_rad(ctx.rng.randf_range(-demi, demi))
 		var point := ctx.centre + direction.rotated(angle) * distance
-		_zone(ctx, point, rayon, ctx.degats_base * _critique(ctx), true, -1)
+		_zone(ctx, point, rayon, ctx.degats_base * _critique(ctx), -1)
 		_evenement(ctx, "impact", ctx.centre, point, rayon)
 
 
@@ -380,7 +378,7 @@ static func _tir_barrage(ctx: Contexte, i: int, effet: Dictionary) -> void:
 
 
 static func _lancer_onde(ctx: Contexte, _effet_onde: Dictionary) -> bool:
-	var i := _choisir(ctx, float(ctx.arme.def["portee"]), [], false)
+	var i := _choisir(ctx, float(ctx.arme.def["portee"]), [])
 	if i < 0:
 		return false
 	(
@@ -449,11 +447,11 @@ static func _premier_effet(effets: Array, kinds: Array[String]) -> Dictionary:
 # --- Mines et pièges ---------------------------------------------------------------------------
 
 
-## Pose à la position d'un ennemi au sol ; rien si le nombre de mines actives est atteint.
+## Pose à la position d'un ennemi ; rien si le nombre de mines actives est atteint.
 static func _poser_mine(ctx: Contexte, effet: Dictionary) -> bool:
 	if ctx.arme.mines.size() >= int(effet["max_actives"]):
 		return false
-	var i := _choisir(ctx, float(ctx.arme.def["portee"]), [], true)
+	var i := _choisir(ctx, float(ctx.arme.def["portee"]), [])
 	if i < 0:
 		return false
 	var position := ctx.ennemis.pos[i]
@@ -462,8 +460,8 @@ static func _poser_mine(ctx: Contexte, effet: Dictionary) -> bool:
 	return true
 
 
-## Une mine explose, et disparaît, dès qu'un ennemi au sol entre dans son rayon ; elle ne
-## frappe que le sol, et ne tient pas à l'ennemi sur lequel elle a été posée.
+## Une mine explose, et disparaît, dès qu'un ennemi entre dans son rayon ; elle ne tient pas à
+## l'ennemi sur lequel elle a été posée.
 static func _declencher_mines(ctx: Contexte, effets: Array) -> void:
 	var mines := ctx.arme.mines
 	if mines.is_empty():
@@ -475,21 +473,21 @@ static func _declencher_mines(ctx: Contexte, effets: Array) -> void:
 	var rayon := float(effet["rayon"])
 	for k: int in range(mines.size() - 1, -1, -1):
 		var point := mines[k]
-		if not _existe(ctx, point, rayon, false):
+		if not _existe(ctx, point, rayon):
 			continue
 		mines.remove_at(k)
-		_zone(ctx, point, rayon, ctx.degats_base * _critique(ctx), false, -1)
+		_zone(ctx, point, rayon, ctx.degats_base * _critique(ctx), -1)
 		_evenement(ctx, "impact", ctx.centre, point, rayon)
 
 
 # --- Aura --------------------------------------------------------------------------------------
 
 
-## Frappe tout ce qui est dans le rayon, volants compris ; ne consomme rien s'il n'y a personne.
+## Frappe tout ce qui est dans le rayon ; ne consomme rien s'il n'y a personne.
 static func _aura(ctx: Contexte, effet: Dictionary) -> bool:
 	var rayon := float(effet["rayon"])
-	if not _existe(ctx, ctx.centre, rayon, true):
+	if not _existe(ctx, ctx.centre, rayon):
 		return false
-	_zone(ctx, ctx.centre, rayon, ctx.degats_base * _critique(ctx), true, -1)
+	_zone(ctx, ctx.centre, rayon, ctx.degats_base * _critique(ctx), -1)
 	_evenement(ctx, "impact", ctx.centre, ctx.centre, rayon)
 	return true

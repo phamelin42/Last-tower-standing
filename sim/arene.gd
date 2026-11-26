@@ -199,7 +199,6 @@ func _apparaitre() -> void:
 			0.0,
 			0.0,
 			int(c["prime"]),
-			false,
 			Types.Armure.AUCUNE
 		)
 		return
@@ -213,8 +212,8 @@ func _apparaitre() -> void:
 		float(f["portee_attaque"]),
 		float(f["cadence_attaque"]),
 		int(f["prime"]),
-		bool(f["volant"]),
-		int(f["armure"])
+		int(f["armure"]),
+		bool(f["explose"])
 	)
 
 
@@ -275,12 +274,15 @@ func _pas_armes(dt: float) -> void:
 ## mort : tout passe par la purge.
 func _purger() -> void:
 	for r: Dictionary in ennemis.purger():
-		_eliminations += 1
-		economie.gagner(economie.prime(int(r["prime"]), _manche, _stats))
-		economie.gagner(economie.enregistrer_elimination(_stats))
-		if int(r["id"]) == _boss_id:
-			_boss_mort = true
 		var p: Vector2 = r["pos"]
+		# Mort par explosion (un Tonneau au contact) : ni prime ni élimination, seulement
+		# l'événement qui fait disparaître l'ennemi à l'écran.
+		if not bool(r["sans_prime"]):
+			_eliminations += 1
+			economie.gagner(economie.prime(int(r["prime"]), _manche, _stats))
+			economie.gagner(economie.enregistrer_elimination(_stats))
+			if int(r["id"]) == _boss_id:
+				_boss_mort = true
 		_ajouter_evenement(
 			{
 				"k": "mort",
