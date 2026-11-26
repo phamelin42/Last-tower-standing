@@ -1004,15 +1004,15 @@ avant l'écran « Rejoindre »).
 
 **Intention :** lire la partie (texte net, boutique compacte, icônes, PV de la tour sur la tour, un effet et un son par arme, revenu et dégâts par seconde au tableau), démarrer plus vite (portées 500 / 750 / 1 000 / 1 250, ennemis ×1,5), et se rapprocher de « Tower Survivors » (armes illimitées, vagues mêlées, mana en bouclier, seulement les 24 ennemis du pack). Un jeu « beaucoup trop simple » (D16, D17) devient un jeu où la difficulté monte à chaque manche.
 
-**Décisions de Phil reprises par les tâches :** D1 icônes · D2 armes sans plafond · D3 dézoom · D4 mini-carte avec les arènes des autres · D5 un effet par arme · D6 portées et vitesse · D7 24 ennemis du pack, plusieurs par vague · D8 trois classes de portée · D9 police Metamorphous · D10 revenu et dégâts par seconde au tableau · D11 PV sur la tour · D12 mana en bouclier et armes de mana · D13 boutique trop grande · D14 catégories arme, amélioration, revenu · D15 un son de tir par arme · D16 sans achat, la tour tombe au plus tard à la fin de la manche 3 · D17 PV et dégâts ennemis strictement croissants à chaque manche. Phil, le 25/11/2026 : « Ennemis corps à corps trop lents, portée des ennemis et de la tour trop courte. »
+**Décisions de Phil reprises par les tâches :** D1 icônes · D2 armes sans plafond · D3 dézoom · D4 mini-carte avec les arènes des autres · D5 un effet par arme · D6 portées et vitesse · D7 24 ennemis du pack, plusieurs par vague · D8 trois classes de portée · D9 police Metamorphous · D10 revenu et dégâts par seconde au tableau · D11 PV sur la tour · D12 mana en bouclier et armes de mana · D13 boutique trop grande · D14 catégories arme, amélioration, revenu · D15 un son de tir par arme · D16 sans achat, la tour tombe au plus tard à la fin de la manche 3 · D17 PV et dégâts ennemis strictement croissants à chaque manche. D21 (26/11/2026) mouvement réduit, aucune secousse de caméra (T8.22). Phil, le 25/11/2026 : « Ennemis corps à corps trop lents, portée des ennemis et de la tour trop courte. »
 
 **Parallélisme :** trois sessions, chacune sur ses fichiers, plus une passe finale.
 
 - **Simulation** (`sim/`, `data/`, `reseau/`, `app/source_vue.gd`, `app/source_locale.gd`), à lancer tout de suite, tâches à la suite : T8.1, T8.2, T8.3, T8.4 **avec T8.11** (décision de pilotage, pour le couplage ci-dessous), T8.5, T8.6, T8.7, T8.8, T8.9, T8.10. Un fichier (`sim/donnees.gd`, `sim/arene.gd`, `sim/tir.gd`, `data/ennemis.json`…) passe d'une tâche à la suivante ; entre sessions, chaque fichier n'a qu'une tâche propriétaire par moment.
-- **Rendu** (`visuels/`, `sons/`, `assets/sons/`, `project.godot`) : T8.14 (attend Phil) et T8.15 (indépendante de la planche) dès que T8.1 est fusionnée, puis T8.12 et T8.13 dès que T8.4 et T8.11 sont fusionnées, puis T8.16 (après la validation de Phil). T8.11 est faite par la session Simulation.
+- **Rendu** (`visuels/`, `sons/`, `assets/sons/`, `project.godot`) : T8.14 (attend Phil) et T8.15 (indépendante de la planche) dès que T8.1 est fusionnée, puis T8.12 et T8.13 dès que T8.4 et T8.11 sont fusionnées, puis T8.16 (après la validation de Phil). T8.22 (D21), dès que T8.16 est fusionnée. T8.11 est faite par la session Simulation.
 - **Interface** (`ui/`, `i18n/`, `assets/polices/`, `app/reglages.gd`, `app/jeu.gd`) : T8.17, T8.18, T8.19, T8.20. Démarre quand T8.1 est fusionnée ; T8.20 attend T8.10 et T8.13.
 - **Passe finale** : T8.21, quand tout est fusionné.
-- **Dépendances :** T8.1 aucune · T8.2 T8.1 · T8.3 T8.1 · T8.4 T8.1 · T8.5 T8.4 · T8.6 T8.4 · T8.7 T8.1, T8.4 · T8.8 T8.4 à T8.7 · T8.9 T8.1 · T8.10 T8.2, T8.9 · T8.11 T8.1, T8.4 (PR commune avec T8.4) · T8.12 T8.1, T8.11 · T8.13 T8.1, T8.12 · T8.14 T8.1 (planche validée par Phil le 26/11/2026) · T8.15 T8.1, T8.3 · T8.16 T8.3, T8.13, T8.14 validée par Phil · T8.17 aucune · T8.18 T8.1, T8.6, T8.9, T8.17 · T8.19 T8.1, T8.3, T8.13, T8.17, T8.18 · T8.20 T8.9, T8.10, T8.13, T8.17, T8.18, T8.19 · T8.21 toutes.
+- **Dépendances :** T8.1 aucune · T8.2 T8.1 · T8.3 T8.1 · T8.4 T8.1 · T8.5 T8.4 · T8.6 T8.4 · T8.7 T8.1, T8.4 · T8.8 T8.4 à T8.7 · T8.9 T8.1 · T8.10 T8.2, T8.9 · T8.11 T8.1, T8.4 (PR commune avec T8.4) · T8.12 T8.1, T8.11 · T8.13 T8.1, T8.12 · T8.14 T8.1 (planche validée par Phil le 26/11/2026) · T8.15 T8.1, T8.3 · T8.16 T8.3, T8.13, T8.14 validée par Phil · T8.17 aucune · T8.18 T8.1, T8.6, T8.9, T8.17 · T8.19 T8.1, T8.3, T8.13, T8.17, T8.18 · T8.20 T8.9, T8.10, T8.13, T8.17, T8.18, T8.19 · T8.22 T8.13, T8.16, T8.17 · T8.21 toutes les autres.
 - **Couplage à respecter :** T8.4 change les identifiants des familles (24 au lieu de 8) et casse `Apparence.ENTITES` et `Effets.FAMILLES_EXPLOSIVES` tant que T8.11 n'est pas faite. Les deux ne vont vers `main` **qu'ensemble** : dans une seule PR de la session Simulation, qui touche alors `visuels/apparence.gd`, `visuels/effets.gd` et `assets/maison/` le temps de T8.11. Même règle pour T8.3 et T8.19 au sujet de `emplacements_armes` : T8.3 cesse de l'exiger mais laisse la clé dans `data/partie.json`, T8.18 et T8.19 cessent de la lire, T8.21 la supprime.
 - **Fichiers partagés, un seul propriétaire :** `CREDITS.md` appartient à T8.21 (les autres tâches y écrivent leurs lignes dans leur rapport) ; `project.godot` (actions de touches) à T8.13 ; `ui/theme.gd` à l'Interface, `i18n/*.csv` à l'Interface (les textes visibles des autres sessions y passent par les clés existantes ou sont demandés à l'Interface dans le rapport).
 
@@ -1471,6 +1471,26 @@ func id_regarde() -> int                # -1 si aucune
 
 ---
 
+## Mouvement réduit (D21, ajoutée le 26/11/2026)
+
+Session « Rendu ». Décision de Phil du 26/11/2026 (conception §6.16) : une seule tâche, qui touche `visuels/` et les réglages. Elle s'ajoute au lot 8 et **ne retarde pas la passe finale** : T8.21 n'a pas besoin d'elle, mais le lot 10 attend T8.22 comme T8.21.
+
+### Task 8.22 : Mouvement réduit, gel d'impact et aucune secousse de caméra — `sonnet`
+
+- [ ] **Objectif :** (a) la **case « Mouvement réduit »** des réglages, décochée par défaut, conservée dans `user://reglages.cfg` ; (b) le **gel d'impact**, purement visuel : sur l'ennemi touché par un impact marqué (explosion, zone, coup qui tue, boss), l'animation et l'interpolation de son sprite se suspendent 80 ms au plus, trois déclenchements par seconde au plus, jamais deux gels simultanés sur le même ennemi, puis le sprite rattrape sa position sans saut ; (c) **case cochée** : aucun gel, aucun recul de l'ennemi touché, il ne reste que l'éclat bref (`ReactionsCoups`, trois images) ; (d) **aucune secousse de caméra, quel que soit le réglage** : la caméra ne bouge que sur la commande du joueur. La simulation à 20 Hz, le réseau et `Engine.time_scale` ne bougent pas (règle de `CLAUDE.md` : le `game-feel` qui passe par `Engine.time_scale` est remplacé par ce gel visuel). Animation : skill local `animer-attaques-sorts`, capture avant et après par `tools/capturer.sh`.
+- **Conception :** §6.16 (D21), §6.9 (caméra), `CLAUDE.md` (skills de jeu tiers).
+- **Fichiers :** `visuels/reactions_coups.gd`, `visuels/effets.gd`, `visuels/interpolation.gd`, `visuels/arene_2d.gd` (suspension de l'interpolation), `app/reglages.gd` (clé `mouvement_reduit`), `ui/reglages_ui.gd`, `i18n/textes_reglages.csv` ; tests `test_reactions_coups.gd`, `test_effets.gd`, `test_arene_2d.gd`, `test_camera_arene.gd`, `test_reglages.gd`, `test_reglages_ui.gd`.
+- **Lire :** `visuels/reactions_coups.gd` en entier (éclat, recul, plafond de trois par seconde) ; `visuels/interpolation.gd` ; `visuels/camera_arene.gd` ; `app/reglages.gd` et `ui/reglages_ui.gd` (modèle d'un réglage et de sa case) ; `CLAUDE.md` (hit-stop).
+- **Interfaces :** produit `Reglages.mouvement_reduit: bool` (faux par défaut), `ReactionsCoups.mouvement_reduit` (lu à chaque impact) et `ReactionsCoups.gel_restant(id_ennemi: int) -> float` (secondes, 0 sans gel). Ne touche à aucune interface de simulation ni de réseau.
+- **Tests :**
+  - **Aucune secousse :** `test_la_camera_ne_bouge_jamais_sans_commande_du_joueur` : 600 images avec des impacts, des morts, des absorptions et un boss, réglage décoché **puis** coché, position et décalage de la caméra identiques à l'image d'origine ; `test_le_temps_du_moteur_ne_change_jamais` (`Engine.time_scale == 1.0` pendant un gel).
+  - `test_la_case_mouvement_reduit_est_decochee_par_defaut` ; `test_le_reglage_fait_l_aller_retour_et_une_valeur_non_booleenne_donne_la_valeur_par_defaut` (comme les autres réglages : fichier absent, trop gros, tronqué).
+  - `test_un_impact_marque_gele_l_ennemi_touche_au_plus_80_ms_puis_il_reprend_sans_saut` : position affichée constante pendant le gel, égale à celle de l'interpolation après ; `test_le_gel_est_plafonne` (trois par seconde, jamais deux sur le même ennemi, un coup simple ne gèle pas).
+  - `test_le_gel_ne_change_ni_le_temps_de_la_simulation_ni_le_reseau` : empreinte de vue égale sur 600 pas, gel actif ou non.
+  - `test_case_cochee_ni_gel_ni_recul_et_l_eclat_bref_reste` : la position affichée est la position simulée, l'éclat dure `DUREE_FLASH`, jamais plus de trois par seconde et par ennemi (WCAG 2.3.1).
+  - `test_la_case_est_dans_les_reglages_avec_son_texte` (focus clavier, valeur lue au démarrage, typographie française) ; `test_basculer_la_case_agit_tout_de_suite_en_jeu`.
+- **Vérif :** `T --filtre test_reactions_coups`, `test_camera_arene`, `test_reglages`, `test_reglages_ui`, puis `tools/verifier.sh` ; captures avant et après, **relues**, case décochée et cochée. Dépend de T8.13 (caméra), T8.16 (effets en jeu) et T8.17 (réglages) ; indépendante de T8.21, qui ne touche pas ces fichiers.
+
 ## Passe finale
 
 ### Task 8.21 : Passe d'équilibrage et clôture du lot — `sonnet`
@@ -1548,7 +1568,7 @@ func id_regarde() -> int                # -1 si aucune
 - **Apparence de la tour** (D19 ; `visuels/`, `sim/vue_arene.gd`, `sim/donnees_apparence.gd`, `reseau/protocole.gd`, `data/apparence_tour.json`, `data/skins_tour.json`, `assets/tour_apparence/`) : T9.23 après T9.11 et T9.12 (les statistiques) et T9.9 (protocole) ; T9.24 (**attend Phil**) après T9.23 ; T9.25 après la validation de T9.24 et T9.19 (même fichier `visuels/arene_2d.gd`).
 - **Passe finale** : T9.22, quand tout est fusionné, **T9.23 à T9.25 comprises**.
 
-**Dépendances :** T9.1 aucune (le comparatif est sur `main`) · T9.2 T8.3, T8.5, T8.7 · T9.3 T9.2 · T9.4 T9.3, T8.7 · T9.5 T9.4 · T9.6 T9.5 · T9.7 T9.6 · T9.8 T9.7 · T9.9 T9.8, T8.2 · T9.10 T9.8, T9.21 · T9.11 T9.10 · T9.12 T9.11 · T9.13 T9.1, T9.3, T9.5, T9.6, T9.21 · T9.14 T9.13 · T9.15 T9.14, T9.4, T9.7, T9.9 · T9.16 T9.15, T9.5 · T9.17 T9.16, T9.8 · T9.18 T9.13 à T9.17, T8.1 · T9.23 T9.11, T9.12, T9.9, T8.10 · T9.24 T9.23 · T9.25 T9.19, T9.24 (validée) · T9.22 tout le lot, T9.23 à T9.25 compris4 (planche des 30, validée) · T9.19 T9.7, T9.8, T9.9, T9.18 validée par Phil · T9.20 T9.17, T8.15 · T9.21 T9.2 · T9.22 toutes. T9.3 à T9.8 s'enchaînent parce qu'elles touchent toutes `sim/arene.gd`, `sim/tir.gd` ou `sim/ennemis.gd`.
+**Dépendances :** T9.1 aucune (le comparatif est sur `main`) · T9.2 T8.3, T8.5, T8.7 · T9.3 T9.2 · T9.4 T9.3, T8.7 · T9.5 T9.4 · T9.6 T9.5 · T9.7 T9.6 · T9.8 T9.7 · T9.9 T9.8, T8.2 · T9.10 T9.8, T9.21 · T9.11 T9.10 · T9.12 T9.11 · T9.13 T9.1, T9.3, T9.5, T9.6, T9.21 · T9.14 T9.13 · T9.15 T9.14, T9.4, T9.7, T9.9 · T9.16 T9.15, T9.5 · T9.17 T9.16, T9.8 · T9.18 T9.13 à T9.17, T8.14 (planche des 30, validée) · T9.19 T9.7, T9.8, T9.9, T9.18 validée par Phil · T9.20 T9.17, T8.15 · T9.21 T9.2 · T9.22 toutes, T9.23 à T9.25 comprises · T9.23 T9.11, T9.12, T9.9, T8.10 · T9.24 T9.23 · T9.25 T9.19, T9.24 (validée par Phil). T9.3 à T9.8 s'enchaînent parce qu'elles touchent toutes `sim/arene.gd`, `sim/tir.gd` ou `sim/ennemis.gd`.
 
 **Couplages à respecter :**
 
@@ -2307,7 +2327,7 @@ Conception : §6.14 (décision D19 de Phil du 26/11/2026). Ces trois tâches se
 > tendances jeu vidéo trouvées en ligne pour peaufiner un peu plus le jeu. Si pas d'amélioration
 > trouvable, si tout est déjà conforme, n'en invente pas ! »
 
-**Démarrage :** quand les lots 8, 9 et 11 sont fusionnés (T8.21, T9.22 et T11.9 cochées). Ce lot est un
+**Démarrage :** quand les lots 8, 9 et 11 sont fusionnés (T8.21, T8.22, T9.22 et T11.9 cochées). Ce lot est un
 squelette : T10.4 et la suite se détaillent par `superpowers:writing-plans` une fois la synthèse
 faite.
 

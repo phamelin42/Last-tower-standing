@@ -3,7 +3,7 @@
 > Date : 25/11/2026. Source : 13 retours de Phil après une partie jouée sous Godot, et ses
 > réponses aux questions de cadrage le même soir. Cette conception complète la spec du jeu
 > (`2026-11-24-jeu-tour-design.md`) et l'emporte sur elle là où elles diffèrent. Elle donnera le
-> lot 8 du plan. **Validée par Phil le 25/11/2026** ; D19 et D20 ajoutées le 26/11/2026.
+> lot 8 du plan. **Validée par Phil le 25/11/2026** ; D19, D20 et D21 ajoutées le 26/11/2026.
 
 ## 1. Intention
 
@@ -45,6 +45,7 @@ Ces décisions ne se remettent pas en cause ; une objection se dit dans la PR.
 | D18 | Catalogue           | « On doit faire le même nombre d'armes dans le même type » que la map : **15 armes par type de dégâts** (75), réparties comme la map ; **84 améliorations** comme la map, plus nos 3 sans homologue (87) ; les **dix mécaniques d'armes** qui nous manquent. Détail au §6.13. |
 | D19 | Tour                | **L'apparence de la tour suit ses améliorations** (demandé le 26/11/2026, « défaut oui pour tout ») : épines, PV, mana, armure, esquive, régénération et vol de vie se voient sur la tour, aussi sur celles des autres joueurs. Détail au §6.14.                              |
 | D20 | Progression         | **Sauvegarde de la progression, défis et skins de tour** (26/11/2026) : défis réussis, skins débloqués et choisis, statistiques, enregistrés en local ; un skin par défi, purement cosmétique. Détail au §6.15.                                                               |
+| D21 | Mouvement           | **Mouvement réduit** (26/11/2026) : aucune secousse de caméra dans le jeu, quel que soit le réglage ; une case « mouvement réduit » dans les réglages, décochée par défaut, coupe le gel d'impact et ne laisse qu'un éclat bref à l'impact. Détail au §6.16.                  |
 
 Les propositions de la session de pilotage acceptées par Phil le même soir :
 
@@ -450,6 +451,24 @@ revue du lot 10.
    à trouver ou à dessiner en dépendent (B6).
 6. **Un skin non débloqué** peut être montré par un client modifié : accepté, la progression est
    cosmétique et non vérifiée (B2).
+
+### 6.16 Mouvement réduit (D21)
+
+Décision de Phil du 26/11/2026. Livrée par la tâche T8.22 du plan.
+
+- **Aucune secousse de caméra**, quel que soit le réglage : la caméra ne bouge que sur la commande du
+  joueur (flèches, ZQSD, Espace, molette, §6.9). Cette règle **remplace** la secousse que préconise le
+  skill `game-feel` (écarté, voir `CLAUDE.md`).
+- **Case « Mouvement réduit »** dans les réglages, **décochée par défaut**, conservée comme les autres
+  réglages (`app/reglages.gd`). Cochée, elle **coupe le gel d'impact** (et le recul de l'ennemi touché,
+  qui est un mouvement) ; il ne reste à l'impact **qu'un éclat bref** (l'éclaircissement de l'ennemi
+  touché, déjà borné à trois par seconde par ennemi, WCAG 2.3.1).
+- **Le gel d'impact** (décoché : actif) suspend, sur l'ennemi touché, l'animation et l'interpolation de
+  son sprite pendant quelques images (80 ms au plus, trois déclenchements par seconde au plus). Il reste
+  **purement visuel** (`CLAUDE.md`) : la simulation à 20 Hz et le réseau gardent le temps réel, et
+  `Engine.time_scale` ne bouge jamais.
+- **Point ouvert** : cochée, la case coupe aussi le recul de l'ennemi touché (un déplacement). Phil la
+  change s'il veut le garder.
 
 ## 7. Découpage proposé pour le plan (lot 8)
 
