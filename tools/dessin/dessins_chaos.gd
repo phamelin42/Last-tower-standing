@@ -1,7 +1,7 @@
 extends RefCounted
-## Sprites d'effets d'attaques, armes du chaos (dé pipé, sablier fêlé, miroir brisé, vortex de verre,
-## horloge folle) : style de Tiny Swords (voir `tools/dessiner_effets_attaques.gd`), palette violet,
-## magenta, verre bleuté et or. La cornue instable garde les planches du poison.
+## Sprites d'effets d'attaques, armes du chaos (dé pipé, sablier fêlé, miroir brisé, vortex de
+## verre, horloge folle) : style de Tiny Swords (voir `tools/dessiner_effets_attaques.gd`),
+## palette violet, magenta, verre bleuté et or. La cornue instable garde les planches du poison.
 
 const Commun := preload("res://tools/dessin/dessin_commun.gd")
 const BLANC := Commun.BLANC
