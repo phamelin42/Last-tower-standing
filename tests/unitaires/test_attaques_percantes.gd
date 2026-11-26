@@ -8,6 +8,7 @@ const TOUR := Vector2(40.0, 300.0)
 const CIBLE := Vector2(360.0, 300.0)
 const ARMES: Dictionary = {
 	"arbalete_de_bureau": ["arbalete", "cible_unique"],
+	"chausse_trape": ["chausse_trape", "piege"],
 }
 
 var _a: AttaquesElementaires = null
@@ -79,5 +80,88 @@ func test_mouvement_reduit_l_arbalete_garde_ses_sprites_sans_particule() -> void
 	_a.impacter("arbalete", CIBLE, 0.0)
 	verifier_egal(_a.particules_actives(), 0)
 	verifier_egal(_a.etats("plante").size(), 1, "le carreau planté reste")
+
+
+# --- Chausse-trape : piège ---------------------------------------------------------------------
+
+
+func test_trois_chausse_trapes_sont_lancees_en_eventail_puis_restent_au_sol() -> void:
+	verifier(_a.piege("chausse_trape", TOUR, CIBLE))
+	verifier_egal(_a.etats("chausse_trape").size(), 6, "trois lancées et trois pour le sol")
+	_avancer(6)
+	var en_vol: Array[Dictionary] = _a.etats("chausse_trape")
+	var visibles: int = 0
+	for c: Dictionary in en_vol:
+		if c["visible"]:
+			visibles += 1
+	verifier(visibles >= 1, "au moins une est en l'air")
+	_avancer(80)
+	var posees: Array[Dictionary] = _a.etats("chausse_trape")
+	verifier_egal(posees.size(), 3, "elles restent tant que le piège n'a pas servi")
+	var ecart_y: float = 0.0
+	for c: Dictionary in posees:
+		verifier(c["visible"], "posée et visible")
+		verifier((c["position"] as Vector2).distance_to(CIBLE) <= 40.0, "autour de la cible")
+		ecart_y = maxf(ecart_y, absf((c["position"] as Vector2).y - CIBLE.y))
+	verifier(ecart_y >= 8.0, "en éventail, pas empilées")
+
+
+func test_les_chausse_trapes_posees_ne_s_effacent_pas_avant_le_declenchement() -> void:
+	_a.piege("chausse_trape", TOUR, CIBLE)
+	_avancer(60 * 20)
+	verifier_egal(_a.etats("chausse_trape").size(), 3, "toujours là après vingt secondes")
+	verifier_proche(_a.etats("chausse_trape")[0]["alpha"], AttaquesElementaires.ALPHA_MAX, 0.001)
+
+
+func test_le_declenchement_retire_les_pointes_du_piege_et_pas_celles_d_un_autre() -> void:
+	_a.piege("chausse_trape", TOUR, CIBLE)
+	var ailleurs: Vector2 = CIBLE + Vector2(0.0, 200.0)
+	_a.piege("chausse_trape", TOUR, ailleurs)
+	_avancer(60)
+	verifier_egal(_a.etats("chausse_trape").size(), 6, "trois posées par piège, plus les lancées")
+	_a.retirer_pieges(CIBLE)
+	verifier_egal(_a.etats("chausse_trape").size(), 3, "seul le piège déclenché est retiré")
+
+
+func test_le_declenchement_dessine_les_pointes_et_l_anneau_au_rayon_reel() -> void:
+	var rayon: float = _rayon_px("chausse_trape")
+	_a.impacter("chausse_trape", CIBLE, rayon)
+	verifier_egal(_a.etats("pointes_sol").size(), 1, "les pointes jaillissent")
+	verifier_proche(_a.etats("pointes_sol")[0]["diametre"], rayon * 2.0, rayon * 0.2, "au rayon")
+	verifier_egal(_a.etats("").size(), 1, "un anneau")
+	verifier_proche(_a.diametre_max(), rayon * 2.0, rayon * 2.0 * 0.1, "rien au-delà de la zone")
+	verifier(_a.particules_actives() <= 8, "au plus huit particules")
+	_avancer(60)
+	verifier_egal(_a.nombre_vivants(), 0)
+
+
+func test_chausse_trape_dans_effets_pose_au_tir_et_retire_au_declenchement() -> void:
+	var effets: Effets = Effets.new()
+	effets.catalogue = _donnees.ids_catalogue
+	arbre.root.add_child(effets)
+	var vitrine: VitrineArmes = VitrineArmes.new()
+	vitrine.armes = ["chausse_trape"] as Array[String]
+	var evenements: Array[Dictionary] = vitrine.evenements_du_cycle("chausse_trape")
+	effets.ajouter(evenements[0])
+	verifier_egal(effets.elementaires().etats("chausse_trape").size(), 6, "lancée au tir")
+	verifier_egal(effets.formes_vivantes().has("piege"), false, "plus de croix générique")
+	for _i: int in 80:
+		effets.avancer(IMAGE)
+	verifier_egal(effets.elementaires().etats("chausse_trape").size(), 3, "elle attend")
+	effets.ajouter(evenements[1])
+	verifier_egal(effets.elementaires().etats("chausse_trape").size(), 0, "retirée au déclenchement")
+	verifier_egal(effets.elementaires().etats("pointes_sol").size(), 1, "les pointes jaillissent")
+	vitrine.free()
+	effets.free()
+
+
+func test_mouvement_reduit_les_chausse_trapes_ne_tournent_pas_et_sans_particule() -> void:
+	_a.mouvement_reduit = true
+	_a.piege("chausse_trape", TOUR, CIBLE)
+	_avancer(5)
+	for c: Dictionary in _a.etats("chausse_trape"):
+		verifier_proche(c["rotation"], c["rotation"], 0.0)
+	_a.impacter("chausse_trape", CIBLE, 45.0)
+	verifier_egal(_a.particules_actives(), 0)
 
 

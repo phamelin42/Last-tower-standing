@@ -132,6 +132,7 @@ static func _scripts() -> Array[GDScript]:
 		AttaqueGuillotine,
 		AttaqueTourbillon,
 		AttaqueArbalete,
+		AttaqueChausseTrape,
 	]
 
 
@@ -502,7 +503,7 @@ func nouveau(kind: String, planche: String, duree: float) -> Dictionary:
 	n.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	n.modulate = Color(1.0, 1.0, 1.0, ALPHA_MAX)
 	n.visible = true
-	n.z_index = -1 if kind == "sol" or kind == "ombre" or kind == "piege" else 0
+	n.z_index = -1 if kind == "sol" or kind == "ombre" else 0
 	var effet: Dictionary = _fiche(n, kind, planche, duree)
 	_vivants.append(effet)
 	return effet

@@ -24,7 +24,7 @@ const NOMS: PackedStringArray = [
 	"pointes_sol",
 ]
 ## Hauteur des pointes qui jaillissent du sol, image par image.
-const HAUTEURS_POINTES: Array[int] = [3, 7, 11, 11, 8, 4]
+const HAUTEURS_POINTES: Array[int] = [2, 5, 8, 8, 6, 3]
 const RAYONS_GERBE: Array[float] = [3.0, 6.5, 9.0, 11.0]
 
 
@@ -195,8 +195,8 @@ static func _pointes_sol() -> Image:
 		var h: int = HAUTEURS_POINTES[i]
 		for k: int in 8:
 			var a: float = TAU * k / 8.0 + PI / 8.0
-			var bx: int = roundi(16.0 + cos(a) * 12.0)
-			var by: int = roundi(20.0 + sin(a) * 8.0)
+			var bx: int = roundi(16.0 + cos(a) * 11.0)
+			var by: int = roundi(19.0 + sin(a) * 11.0)
 			t.p(bx - 2, by, BOIS)
 			t.p(bx + 2, by, BOIS)
 			for dy: int in h:
