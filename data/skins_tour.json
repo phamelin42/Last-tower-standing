@@ -1,0 +1,31 @@
+{
+  "defaut": {
+    "sprite": "res://assets/tiny_swords/Factions/Knights/Buildings/Tower/Tower_Blue.png",
+    "ancrages": {
+      "epines": {
+        "x": 64,
+        "y": 150
+      },
+      "mana": {
+        "x": 64,
+        "y": 140
+      },
+      "armure": {
+        "x": 64,
+        "y": 170
+      },
+      "esquive": {
+        "x": 64,
+        "y": 128
+      },
+      "regen": {
+        "x": 64,
+        "y": 150
+      },
+      "vol_de_vie": {
+        "x": 64,
+        "y": 150
+      }
+    }
+  }
+}

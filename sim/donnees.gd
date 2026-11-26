@@ -20,12 +20,13 @@ const FICHIERS_OBJET: Array[String] = [
 	"boutique.json",
 	"ennemis.json",
 	"apparence_tour.json",
+	"skins_tour.json",
 ]
 const FICHIERS_LISTE: Array[String] = [
 	"armes.json", "ameliorations.json", "unites.json", "defis.json"
 ]
 const FICHIERS_OPTIONNELS_EN_TEST: Array[String] = (
-	FICHIERS_LISTE + ["ennemis.json", "apparence_tour.json"]
+	FICHIERS_LISTE + ["ennemis.json", "apparence_tour.json", "skins_tour.json"]
 )
 const PORTEES: Array[int] = [500, 750, 1000, 1250]
 const CATEGORIES: Array[String] = ["A", "B", "C"]
@@ -130,8 +131,10 @@ var unites: Dictionary
 var ids_unites: PackedStringArray
 ## id → défi (`data/defis.json`, lot 11), dans l'ordre du fichier ; hors empreinte (cosmétique).
 var defis: Dictionary
-## Seuils d'apparence de la tour (D19) : `stats` et `agrandissement` ; hors empreinte (visuel).
+## Apparence de la tour (D19) : seuils (`stats`, `agrandissement`) et skins (id → sprite et
+## ancrages), hors empreinte (visuel).
 var apparence_tour: Dictionary
+var skins_tour: Dictionary
 ## Hash stable du contenu des fichiers (poignée de main réseau). Il porte sur le contenu lu,
 ## pas sur sa mise en forme : un fichier reformaté garde la même empreinte.
 var empreinte: int
@@ -209,6 +212,7 @@ static func depuis_brut(brut: Dictionary) -> Donnees:
 	d.ids_unites = PackedStringArray(ids_u)
 	d.defis = DonneesProgression.normaliser(brut.get("defis.json", []))
 	d.apparence_tour = DonneesApparence.normaliser(brut.get("apparence_tour.json", {}))
+	d.skins_tour = _copie(brut.get("skins_tour.json", {}))
 	var ennemis: Dictionary = brut["ennemis.json"]
 	d.familles = DonneesEnnemis.construire_familles(ennemis)
 	d.convoi = _copie(ennemis["convoi"])
@@ -219,6 +223,7 @@ static func depuis_brut(brut: Dictionary) -> Donnees:
 		complet["unites.json"] = []
 	complet.erase("defis.json")
 	complet.erase("apparence_tour.json")
+	complet.erase("skins_tour.json")
 	d.empreinte = _empreinte(complet)
 	return d
 
@@ -272,7 +277,7 @@ static func valider(brut: Dictionary) -> PackedStringArray:
 	for nom in tout:
 		if not brut.has(nom):
 			# Un jeu de données bâti à la main peut ignorer les unités : liste vide.
-			if nom not in ["unites.json", "defis.json", "apparence_tour.json"]:
+			if nom not in ["unites.json", "defis.json", "apparence_tour.json", "skins_tour.json"]:
 				err.append("%s: absent du jeu de données" % nom)
 			continue
 		var contenu: Variant = brut[nom]
@@ -290,7 +295,7 @@ static func valider(brut: Dictionary) -> PackedStringArray:
 	if presents.has("difficulte.json"):
 		_valider_difficulte(presents["difficulte.json"], err)
 	if presents.has("efficacite.json"):
-		_valider_efficacite(presents["efficacite.json"], err)
+		DonneesEfficacite.valider(presents["efficacite.json"], err)
 	if presents.has("boutique.json"):
 		_valider_boutique(presents["boutique.json"], err)
 	var ids: Dictionary = {}
@@ -306,6 +311,7 @@ static func valider(brut: Dictionary) -> PackedStringArray:
 	if presents.has("ennemis.json"):
 		DonneesEnnemis.valider(presents["ennemis.json"], err)
 	DonneesApparence.valider(presents.get("apparence_tour.json", {}), err)
+	DonneesApparence.valider_skins(presents.get("skins_tour.json", {}), err)
 	return PackedStringArray(err)
 
 
@@ -428,36 +434,6 @@ static func _valider_difficulte(d: Dictionary, err: Array[String]) -> void:
 		for spec: Dictionary in paliers:
 			_nombre(apres, spec, f, "apres_table", err)
 	_nombre(d, _ratio("resistance_plancher"), f, "", err)
-
-
-static func _valider_efficacite(e: Dictionary, err: Array[String]) -> void:
-	var f := "efficacite.json"
-	_noms_ordonnes(e, "lignes", Types.NOMS_TYPES, f, err)
-	_noms_ordonnes(e, "colonnes", Types.NOMS_ARMURES, f, err)
-	if not _tableau(e, "valeurs", f, "", err):
-		return
-	var valeurs: Array = e["valeurs"]
-	if valeurs.size() != Types.NOMS_TYPES.size():
-		var raison := "%d lignes attendues, reçu %d" % [Types.NOMS_TYPES.size(), valeurs.size()]
-		_err(err, f, "valeurs", raison)
-	for i in valeurs.size():
-		var chemin := "valeurs[%d]" % i
-		var ligne: Variant = valeurs[i]
-		if not ligne is Array:
-			_err(err, f, chemin, "attendu un tableau, reçu %s" % _decrire(ligne))
-			continue
-		var cases: Array = ligne
-		if cases.size() != Types.NOMS_ARMURES.size():
-			var raison := (
-				"%d colonnes attendues, reçu %d" % [Types.NOMS_ARMURES.size(), cases.size()]
-			)
-			_err(err, f, chemin, raison)
-		for j in cases.size():
-			var valeur: Variant = cases[j]
-			if not _est_nombre(valeur) or float(valeur) < 0.0:
-				_err(
-					err, f, "%s[%d]" % [chemin, j], "nombre ≥ 0 attendu, reçu %s" % _decrire(valeur)
-				)
 
 
 static func _valider_boutique(b: Dictionary, err: Array[String]) -> void:
@@ -954,7 +930,7 @@ static func _normaliser_arme(v: Variant) -> Dictionary:
 static func _contenu_vide(nom: String) -> Variant:
 	if nom == "ennemis.json":
 		return {"modeles": [], "paliers": [], "convoi": {}, "boss": {}}
-	return {} if nom == "apparence_tour.json" else []
+	return {} if nom in ["apparence_tour.json", "skins_tour.json"] else []
 
 
 ## Hash SHA-256 du contenu canonique de chaque fichier (clés triées, entiers et flottants
