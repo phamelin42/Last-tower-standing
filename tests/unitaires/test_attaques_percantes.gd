@@ -10,6 +10,7 @@ const ARMES: Dictionary = {
 	"arbalete_de_bureau": ["arbalete", "cible_unique"],
 	"chausse_trape": ["chausse_trape", "piege"],
 	"carreau_ricochet": ["ricochet", "rebond"],
+	"herse_de_ressorts": ["herse", "barrage"],
 }
 
 var _a: AttaquesElementaires = null
@@ -182,5 +183,26 @@ func test_chaque_rebond_du_carreau_jette_des_etincelles_sans_planter() -> void:
 	verifier_egal(_a.etats("plante").size(), 0, "il ne se plante pas : il repart")
 	verifier(_a.diametre_max() <= 60.0)
 	verifier(_a.particules_actives() >= 1, "des étincelles")
+
+
+# --- Herse de ressorts : barrage et étourdissement ---------------------------------------------
+
+
+func test_chaque_pique_de_la_herse_part_deux_images_apres_le_precedent() -> void:
+	var retard: float = AttaquesElementaires.RETARD_BARRAGE
+	var premiere: float = _a.tirer("herse", TOUR, CIBLE, 0.0)
+	var seconde: float = _a.tirer("herse", TOUR, CIBLE, retard)
+	verifier_proche((seconde - premiere) / IMAGE, 2.0, 0.01, "décalés de 2 images")
+	verifier_egal(_a.etats("pique").size(), 2, "un pique par tir")
+
+
+func test_un_seul_anneau_au_rayon_reel_pour_toute_la_herse() -> void:
+	var rayon: float = _rayon_px("herse_de_ressorts")
+	for k: int in 5:
+		_a.impacter_en_groupe("herse", CIBLE + Vector2(0.0, k * 6.0), rayon)
+	verifier_egal(_a.etats("").size(), 0, "aucun anneau par pique")
+	_a.zone("herse", CIBLE, rayon)
+	verifier_egal(_a.etats("").size(), 1, "un anneau pour le tir")
+	verifier_proche(_a.diametre_max(), rayon * 2.0, rayon * 2.0 * 0.1, "au rayon réel")
 
 

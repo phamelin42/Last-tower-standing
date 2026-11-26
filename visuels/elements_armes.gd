@@ -22,6 +22,7 @@ const TOURBILLON: String = "tourbillon"
 const ARBALETE: String = "arbalete"
 const CHAUSSE_TRAPE: String = "chausse_trape"
 const RICOCHET: String = "ricochet"
+const HERSE: String = "herse"
 
 const ELEMENTS: Array[String] = [FEU, GLACE, BOMBE, POISON, FOUDRE, ARCANE, LAME]
 
@@ -42,6 +43,7 @@ const TABLE: Dictionary = {
 	"arbalete_de_bureau": ARBALETE,
 	"chausse_trape": CHAUSSE_TRAPE,
 	"carreau_ricochet": RICOCHET,
+	"herse_de_ressorts": HERSE,
 }
 
 
