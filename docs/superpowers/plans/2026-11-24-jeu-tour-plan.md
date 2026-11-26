@@ -982,6 +982,20 @@ avant l'écran « Rejoindre »).
       faire sur le VPS lui-même (ports, pare-feu) est donné à Phil en liste numérotée.
 - **Lire :** `docs/adr-001-annuaire.md` (Déploiement, Repli, Sécurité et vie privée, Fichiers et tâches).
 
+### Task 7.5 : Délai maximal de la tentative UPnP — `sonnet`
+
+- [ ] **Objectif :** la première annonce n'attend la tentative UPnP que **10 s au plus** (décision 21
+      de Phil, 26/11/2026). Passé ce délai, elle part avec le port de jeu local et l'hôte voit un
+      message ; une tentative qui finit avant 10 s ne change rien au comportement d'aujourd'hui.
+- **Lire :** `docs/adr-001-annuaire.md` (Cycle de vie de l'hôte, UPnP chez l'hôte, décisions 20 et
+  21), `app/session_reseau.gd`, `reseau/upnp_hote.gd`.
+- **Fichiers :** `app/session_reseau.gd` et ses tests ; texte du message par l'Interface si le
+  message d'échec UPnP existant ne convient pas (`i18n/textes_salon.csv`).
+- **Test :** double de `UPNP` qui ne répond jamais : annonce envoyée avec le port local après 10 s
+  (temps simulé), message affiché ; tentative rapide : annonce inchangée.
+- **À signaler dans la PR, non tranché :** tentative qui réussit après les 10 s sur un port externe
+  différent du port local.
+
 ---
 
 # Lot 8 — Retours de la première partie de Phil (conception validée le 25/11/2026)
@@ -1490,9 +1504,10 @@ func id_regarde() -> int                # -1 si aucune
   (jeton tiré à la création du salon) : traité par T7.2b (ADR 001, décision 5). « Retour au salon » recrée le salon et fait revenir les
   autres par la liste ; un vrai retour sans reconnexion demande `Client.retourner_au_salon()`.
 - **Annuaire** : lot 7 terminé le 25/11/2026 (T7.0 à T7.4, T7.3 en dernier, décision de Phil). Reste
-  à Phil le lancement du service sur le VPS (liste dans la PR de T7.4). Aucun délai global sur la
-  tentative UPnP : une box qui répond à la découverte puis se fige retarderait l'annonce sans message
-  (délai maximal avant d'annoncer le port local, à décider).
+  à Phil le lancement du service sur le VPS (liste dans la PR de T7.4). Délai maximal de la
+  tentative UPnP : 10 s puis annonce du port local avec un message (Phil, 26/11/2026, décision 21
+  de l'ADR), à faire par T7.5. UPnP et annuaire restent désactivés en mode sans fenêtre (décision
+  22).
 - **Images des offres** : 17 offres sur 70 ont une image approchante (Ravenmore et LudicArts n’ont
   pas leur objet : sablier, tirelire, trébuchet…), validée telle quelle par Phil le 25/11/2026. Liste
   dans `ImagesOffres.RAPPROCHEMENTS_FAIBLES` ; à reprendre si un pack peint gratuit les a.
