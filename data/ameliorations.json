@@ -599,7 +599,7 @@
  {
   "id": "cristal_de_reserve",
   "nom": "Cristal de réserve",
-  "description": "Un cristal taillé qui emmagasine bien plus de mana.",
+  "description": "Un cristal taillé qui emmagasine une vaste réserve de mana.",
   "rarete": "peu_commune",
   "prix": 240,
   "categorie": "amelioration",
