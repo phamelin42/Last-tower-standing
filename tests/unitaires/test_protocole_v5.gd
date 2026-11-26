@@ -237,7 +237,7 @@ func test_etat_arene_regardee_aller_retour() -> void:
 	var v := _vue()
 	v.armes.append({"id": _catalogue[3], "recharge_ratio": 1.0})
 	v.evenements = [_evenement("tir", 3)]
-	for id: int in [0, 1, 7, 255, 665857105, Protocole.MAX_ID_REGARDE]:
+	for id: int in [0, 1, 7, 255, 256, 665857105, Protocole.MAX_ID_REGARDE]:
 		var b := Protocole.encoder_etat_arene_regardee(id, v, _catalogue)
 		verifier_egal(Protocole.type_de(b), Protocole.Msg.ETAT_ARENE_REGARDEE)
 		var r := Protocole.decoder_etat_arene_regardee(b, _catalogue)
@@ -254,6 +254,17 @@ func test_etat_arene_regardee_aller_retour() -> void:
 			Protocole.encoder_etat_arene_regardee(id_invalide, v, _catalogue).is_empty(),
 			"id %d refusé" % id_invalide
 		)
+	# Le champ de l'identifiant (octets 1 à 4) tronqué, ou forgé négatif : `{}`, jamais d'erreur.
+	var complet := Protocole.encoder_etat_arene_regardee(665857105, v, _catalogue)
+	for longueur: int in range(0, 5):
+		verifier_egal(
+			Protocole.decoder_etat_arene_regardee(complet.slice(0, longueur), _catalogue),
+			{},
+			"tronqué à %d octets" % longueur
+		)
+	var negatif := complet.duplicate()
+	negatif.encode_s32(1, -665857105)
+	verifier_egal(Protocole.decoder_etat_arene_regardee(negatif, _catalogue), {}, "id négatif")
 	# Un état d'arène ordinaire n'est pas un état d'arène regardée, et réciproquement.
 	var ordinaire := Protocole.encoder_etat_arene(v, _catalogue)
 	verifier_egal(Protocole.decoder_etat_arene_regardee(ordinaire, _catalogue), {})
@@ -262,7 +273,7 @@ func test_etat_arene_regardee_aller_retour() -> void:
 
 
 func test_intention_regarder_aller_retour_avec_moins_un() -> void:
-	for arg: int in [-1, 0, 1, 255, 665857105, Protocole.MAX_ID_REGARDE]:
+	for arg: int in [-1, 0, 1, 255, 256, 665857105, Protocole.MAX_ID_REGARDE]:
 		var b := Protocole.encoder_intention(Protocole.Intention.REGARDER, arg)
 		verifier_faux(b.is_empty(), "arg %d" % arg)
 		var d := Protocole.decoder_intention(b)
@@ -276,6 +287,11 @@ func test_intention_regarder_aller_retour_avec_moins_un() -> void:
 		var forge := Protocole.encoder_intention(Protocole.Intention.OBSERVER, arg)
 		forge[1] = Protocole.Intention.REGARDER
 		verifier_egal(Protocole.decoder_intention(forge), {}, "arg %d forgé" % arg)
+	for trop_grand: int in [Protocole.MAX_ID_REGARDE + 1, 1 << 40]:
+		verifier(
+			Protocole.encoder_intention(Protocole.Intention.REGARDER, trop_grand).is_empty(),
+			"arg %d refusé à l'envoi" % trop_grand
+		)
 	for code: int in range(Types.Resultat.OK, Types.Resultat.ARMES_AU_MAXIMUM + 1):
 		var r := Protocole.decoder_resultat(
 			Protocole.encoder_resultat(Protocole.Intention.REGARDER, code)
