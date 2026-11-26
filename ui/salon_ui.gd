@@ -10,15 +10,21 @@ signal pret_change(pret: bool)
 signal options_changees(vitesse: float, graine: int, graine_fixe: bool)
 signal lancer_demande
 signal quitter
+## Skin de tour choisi (index de `data/skins_tour.json`, 0 : le skin par défaut). Le profil est déjà
+## écrit quand le signal part ; l'appelant l'envoie au serveur (`Client.definir_skin`).
+signal skin_choisi(index: int)
 
 const HAUTEUR_CONTROLE := 48.0
 const LARGEUR_COLONNE := 460.0
 const ESPACEMENT := 12
+const COTE_APERCU := 96.0
 
 var bouton_pret: Button
 var bouton_lancer: Button
 var bouton_quitter: Button
 var boutons_vitesse: Array[Button] = []
+var choix_skin: OptionButton
+var apercu_skin: TextureRect
 
 var _titre: Label
 var _info: Label
@@ -30,6 +36,13 @@ var _etat_lancer: Label
 var _est_hote: bool = false
 var _en_attente: bool = false
 var _groupe: ButtonGroup
+var _section_skin: VBoxContainer
+var _info_skin: Label
+var _donnees_skins: Donnees = null
+var _ids_skins: Array[String] = []
+var _profil_skins: Profil = null
+var _chemin_skins: String = ""
+var _skin_courant: int = 0
 
 
 func _init() -> void:
@@ -73,6 +86,35 @@ func _init() -> void:
 	_joueurs = VBoxContainer.new()
 	_joueurs.name = "Joueurs"
 	colonne.add_child(_joueurs)
+
+	_section_skin = VBoxContainer.new()
+	_section_skin.name = "Skin"
+	_section_skin.visible = false
+	var titre_skin := Label.new()
+	titre_skin.text = tr("SALON_SKIN_TITRE")
+	_section_skin.add_child(titre_skin)
+	var ligne_skin := HBoxContainer.new()
+	_section_skin.add_child(ligne_skin)
+	apercu_skin = TextureRect.new()
+	apercu_skin.name = "ApercuSkin"
+	apercu_skin.custom_minimum_size = Vector2(COTE_APERCU, COTE_APERCU)
+	apercu_skin.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	apercu_skin.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	apercu_skin.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	ligne_skin.add_child(apercu_skin)
+	choix_skin = OptionButton.new()
+	choix_skin.name = "ChoixSkin"
+	choix_skin.custom_minimum_size = Vector2(0.0, HAUTEUR_CONTROLE)
+	choix_skin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	choix_skin.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	choix_skin.item_selected.connect(selectionner_skin)
+	choix_skin.item_focused.connect(afficher_apercu_skin)
+	ligne_skin.add_child(choix_skin)
+	_info_skin = Label.new()
+	_info_skin.name = "InfoSkin"
+	_info_skin.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_section_skin.add_child(_info_skin)
+	colonne.add_child(_section_skin)
 
 	_vitesse_texte = Label.new()
 	_vitesse_texte.name = "Vitesse"
@@ -178,6 +220,8 @@ func afficher(salon: Salon, id_local: int) -> void:
 func afficher_attente() -> void:
 	visible = true
 	_en_attente = true
+	choix_skin.clear()
+	_section_skin.visible = false
 	for enfant: Node in _joueurs.get_children():
 		_joueurs.remove_child(enfant)
 		enfant.queue_free()
@@ -189,6 +233,75 @@ func afficher_attente() -> void:
 	_etat_lancer.visible = false
 	_vitesse_ligne.visible = false
 	_vitesse_texte.text = ""
+
+
+## Propose les skins de `data/skins_tour.json` : celui du profil (`chemin`) est choisi, sauf s'il
+## est inconnu ou pas encore débloqué. Un skin verrouillé reste dans la liste, écrit « verrouillé ».
+## N'envoie rien : l'appelant lit `index_skin()` pour informer le serveur.
+func configurer_skins(donnees: Donnees, chemin: String) -> void:
+	_donnees_skins = donnees
+	_ids_skins = donnees.ids_skins()
+	_chemin_skins = chemin
+	_profil_skins = Sauvegarde.charger(chemin)
+	choix_skin.clear()
+	_skin_courant = 0
+	for i: int in _ids_skins.size():
+		var nom := ProgressionUi.nom_skin(_ids_skins[i])
+		if not _skin_debloque(i):
+			nom = "%s (%s)" % [nom, tr("SALON_SKIN_VERROUILLE")]
+		choix_skin.add_item(nom)
+		if _ids_skins[i] == _profil_skins.skin_choisi and _skin_debloque(i):
+			_skin_courant = i
+	choix_skin.select(_skin_courant)
+	afficher_apercu_skin(_skin_courant)
+	_info_skin.text = tr("SALON_SKIN_CHOISI") % ProgressionUi.nom_skin(_ids_skins[_skin_courant])
+	_section_skin.visible = not _ids_skins.is_empty()
+
+
+## Vrai quand la liste des skins est remplie (`configurer_skins`) ; `afficher_attente` la vide.
+func skins_prets() -> bool:
+	return choix_skin.item_count > 0
+
+
+## Index du skin choisi (0 : le skin par défaut).
+func index_skin() -> int:
+	return _skin_courant
+
+
+## Le texte sous la liste : le skin choisi, ou le défi qui débloque un skin verrouillé.
+func texte_skin() -> String:
+	return _info_skin.text
+
+
+## Montre l'image du skin `index` sans le choisir.
+func afficher_apercu_skin(index: int) -> void:
+	if index < 0 or index >= _ids_skins.size():
+		return
+	apercu_skin.texture = ThemeJeu.apercu_skin(_donnees_skins.skins_tour[_ids_skins[index]])
+
+
+## Choisit le skin `index`. Un skin verrouillé ne se choisit pas : le texte dit son défi.
+func selectionner_skin(index: int) -> void:
+	if index < 0 or index >= _ids_skins.size():
+		return
+	afficher_apercu_skin(index)
+	if not _skin_debloque(index):
+		choix_skin.select(_skin_courant)
+		var skin: Dictionary = _donnees_skins.skins_tour[_ids_skins[index]]
+		var defi: Dictionary = _donnees_skins.defis.get(String(skin.get("defi", "")), {})
+		_info_skin.text = tr("SALON_SKIN_DEFI_VERROUILLE") % String(defi.get("nom", "?"))
+		return
+	_skin_courant = index
+	choix_skin.select(index)
+	_info_skin.text = tr("SALON_SKIN_CHOISI") % ProgressionUi.nom_skin(_ids_skins[index])
+	if not _profil_skins.verrouille:
+		_profil_skins.skin_choisi = "" if index == 0 else _ids_skins[index]
+		Sauvegarde.enregistrer(_profil_skins, _chemin_skins)
+	skin_choisi.emit(index)
+
+
+func _skin_debloque(index: int) -> bool:
+	return index == 0 or _profil_skins.skins_debloques.has(_ids_skins[index])
 
 
 func est_hote() -> bool:
