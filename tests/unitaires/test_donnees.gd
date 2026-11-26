@@ -475,13 +475,6 @@ func _mutations_partie() -> Array[Array]:
 			9,
 			"hz_min_regardee"
 		],
-		[
-			"partie : emplacements_armes à 0 s'il est présent",
-			f,
-			["emplacements_armes"],
-			0,
-			"emplacements_armes"
-		],
 		["partie : champ manquant", f, ["rayon_spawn"], SUP, "rayon_spawn"],
 		["partie : nombre en chaîne", f, ["preparation_s"], "30", "preparation_s"],
 		["partie : ratio de vente négatif", f, ["vente_ratio"], -0.5, "vente_ratio"],

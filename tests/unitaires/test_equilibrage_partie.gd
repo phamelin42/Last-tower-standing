@@ -89,3 +89,26 @@ func test_un_joueur_raisonnable_atteint_au_moins_la_manche_douze_en_mediane() ->
 		mediane >= MANCHE_MEDIANE_RAISONNABLE_MIN,
 		"médiane %d (manches %s) sous %d" % [mediane, manches, MANCHE_MEDIANE_RAISONNABLE_MIN]
 	)
+
+
+func _fichiers_texte(dossier: String) -> Array[String]:
+	var fichiers: Array[String] = []
+	for nom: String in DirAccess.get_files_at(dossier):
+		if nom.ends_with(".gd") or nom.ends_with(".json"):
+			fichiers.append(dossier.path_join(nom))
+	for sous: String in DirAccess.get_directories_at(dossier):
+		fichiers.append_array(_fichiers_texte(dossier.path_join(sous)))
+	return fichiers
+
+
+func test_emplacements_armes_n_est_plus_lu_nulle_part() -> void:
+	var cle := "emplacements" + "_armes"
+	var fichiers: Array[String] = ["res://data/partie.json"]
+	for dossier: String in ["res://sim", "res://ui", "res://app", "res://reseau"]:
+		fichiers.append_array(_fichiers_texte(dossier))
+	verifier(fichiers.size() > 10, "aucun fichier à examiner")
+	for chemin: String in fichiers:
+		verifier(
+			not FileAccess.get_file_as_string(chemin).contains(cle),
+			"%s mentionne encore %s" % [chemin, cle]
+		)

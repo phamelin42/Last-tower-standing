@@ -317,10 +317,6 @@ static func _valider_partie(p: Dictionary, err: Array[String]) -> void:
 		_pos("esquive_k"),
 	]:
 		_nombre(p, spec, f, "", err)
-	# Plus de plafond d'armes (lot 8) : la clé n'est plus lue, mais une ancienne valeur reste
-	# validée tant que le fichier la porte (T8.21 la supprime).
-	if p.has("emplacements_armes"):
-		_nombre(p, _ent("emplacements_armes", 1.0), f, "", err)
 	var tour_ok := _objet(p, "tour", f, "", err)
 	if tour_ok:
 		var tour: Dictionary = p["tour"]
