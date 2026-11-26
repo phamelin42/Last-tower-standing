@@ -212,3 +212,71 @@ func test_le_sablier_dans_effets_se_pose_au_tir_et_part_au_declenchement() -> vo
 	verifier_egal(effets.elementaires().etats("sablier").size(), 0, "retiré au déclenchement")
 	verifier_egal(effets.elementaires().etats("tourbillon_sable").size(), 1, "le tourbillon")
 	effets.free()
+
+
+# --- Miroir brisé : rebond ---------------------------------------------------------------------
+
+
+func test_le_miroir_est_un_rebond() -> void:
+	_verifier_arme("miroir_brise", "miroir", "rebond")
+
+
+func test_le_premier_eclat_part_apres_trois_images_d_anticipation() -> void:
+	verifier_proche(_a.tirer("miroir", TOUR, CIBLE) / IMAGE, 10.0, 0.01)
+	verifier_egal(_a.etats("depart").size(), 1, "l'anticipation")
+	verifier_egal(_a.etats("eclat_miroir").size(), 1, "l'éclat")
+
+
+func test_un_saut_du_miroir_est_un_eclat_de_sept_images_sans_anticipation() -> void:
+	var fin: float = _a.saut("miroir", CIBLE, CIBLE + Vector2(90.0, 20.0), 4.0 * IMAGE)
+	verifier_proche(fin / IMAGE, 4.0 + AttaquesElementaires.IMAGES_VOL_DIRECT, 0.01)
+	verifier_egal(_a.etats("depart").size(), 0, "pas d'anticipation à chaque saut")
+	verifier_egal(_a.etats("eclat_miroir").size(), 1, "un éclat par saut")
+
+
+func test_l_eclat_tourne_et_son_reflet_passe_sauf_en_mouvement_reduit() -> void:
+	_a.saut("miroir", TOUR, CIBLE, 0.0)
+	_avancer(1)
+	var rotation: float = _a.etats("eclat_miroir")[0]["rotation"]
+	var image: int = _a.etats("eclat_miroir")[0]["image"]
+	_avancer(5)
+	verifier(absf(_a.etats("eclat_miroir")[0]["rotation"] - rotation) > 0.3, "il tourne")
+	verifier(_a.etats("eclat_miroir")[0]["image"] != image, "le reflet a bougé")
+	_a.vider()
+	_a.mouvement_reduit = true
+	_a.saut("miroir", TOUR, CIBLE, 0.0)
+	_avancer(1)
+	rotation = _a.etats("eclat_miroir")[0]["rotation"]
+	image = _a.etats("eclat_miroir")[0]["image"]
+	_avancer(5)
+	verifier_proche(_a.etats("eclat_miroir")[0]["rotation"], rotation, 0.0001, "pas de rotation")
+	verifier_egal(_a.etats("eclat_miroir")[0]["image"], image, "reflet figé")
+
+
+func test_l_impact_du_miroir_est_une_gerbe_de_verre_petite_avec_quelques_eclats() -> void:
+	verifier(_a.impacter("miroir", CIBLE, 0.0, false, TOUR))
+	verifier_egal(_a.etats("gerbe_verre").size(), 1, "une gerbe de verre")
+	verifier(_a.diametre_max() <= 60.0, "cible unique : au plus 60 px")
+	verifier(_a.particules_actives() >= 1 and _a.particules_actives() <= 8, "de 1 à 8 particules")
+	_avancer(40)
+	verifier_egal(_a.nombre_vivants(), 0, "tout se dissipe")
+
+
+func test_mouvement_reduit_le_miroir_garde_ses_sprites_sans_particule() -> void:
+	_a.mouvement_reduit = true
+	_a.tirer("miroir", TOUR, CIBLE)
+	_a.impacter("miroir", CIBLE, 0.0, false, TOUR)
+	verifier_egal(_a.particules_actives(), 0)
+	verifier_egal(_a.etats("gerbe_verre").size(), 1, "la gerbe reste")
+
+
+func test_le_miroir_dans_effets_envoie_un_eclat_par_saut() -> void:
+	var effets: Effets = _effets()
+	for evenement: Dictionary in _evenements("miroir_brise"):
+		effets.ajouter(evenement)
+	verifier_egal(
+		effets.elementaires().etats("eclat_miroir").size(),
+		1 + VitrineArmes.SAUTS_REBOND,
+		"un éclat pour le tir et un pour chaque saut"
+	)
+	effets.free()
