@@ -256,4 +256,4 @@ Décision de Phil du 26/11/2026 (lot 9) : **un défi « uniquement… » pour ch
 L'aura, le tir tournant, la zone posée et la bombe ont le leur (`seul_aura`, `seul_tournant`, `seul_zone_posee`,
 `seul_bombe`) ; l'invocation recevra le sien à la livraison de ses armes (51 défis et 51 skins à la fin du lot).
 
-Statuts sans défi (Phil, 26/11) : `vulnerabilite`, `malediction_toucher`, `repoussement`, `siphon`, `mana_au_coup`.
+Statuts sans défi (Phil, 26/11) : `vulnerabilite`, `malediction_toucher`, `malediction_degats`, `repoussement`, `siphon`, `mana_au_coup`.

@@ -441,7 +441,7 @@ revue du lot 10.
 - **B12, un défi par nouveau genre d'arme, aucun par statut** _(Phil, 26/11/2026)_ : chaque genre du lot 9 qui compte
   au moins trois armes a son défi « uniquement… » et son skin (§6.15, un skin par défi) : aura et tir tournant (T9.13),
   puis zone posée, bombe et invocation (T9.15 à T9.17). Les statuts du lot 9 (`vulnerabilite`, `malediction_toucher`,
-  `repoussement`, `siphon`, `mana_au_coup`) n'en ont pas, ce que `docs/defis.md` liste. Total à la fin du lot :
+  `malediction_degats`, `repoussement`, `siphon`, `mana_au_coup`) n'en ont pas, ce que `docs/defis.md` liste. Total à la fin du lot :
   **51 défis, 51 skins**.
 
 **Règles de dépendance du lot 11** (celles de `CLAUDE.md`, aucune exception) :
