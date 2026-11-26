@@ -267,15 +267,15 @@ func test_planning_ne_sort_que_des_familles_entrees() -> void:
 	for graine: int in range(1, 21):
 		var planning := Planning.new(d, graine)
 		for manche: int in range(1, 41):
-			var famille := planning.tirer(manche)
-			if famille >= d.familles.size():
-				continue
-			verifier(famille >= 0, "une famille est toujours tirée")
-			var f: Dictionary = d.familles[famille]
-			var nom := "%s à la manche %d (graine %d)" % [f["id"], manche, graine]
-			verifier(manche >= int(f["manche_entree"]), "%s : palier pas encore entré" % nom)
-			verifier(manche >= int(f["manche_min"]), "%s : modèle pas encore arrivé" % nom)
-			paliers_vus[f["indice_palier"]] = true
+			for famille: int in planning.tirer(manche).familles:
+				if famille >= d.familles.size():
+					continue
+				verifier(famille >= 0, "une famille est toujours tirée")
+				var f: Dictionary = d.familles[famille]
+				var nom := "%s à la manche %d (graine %d)" % [f["id"], manche, graine]
+				verifier(manche >= int(f["manche_entree"]), "%s : palier pas encore entré" % nom)
+				verifier(manche >= int(f["manche_min"]), "%s : modèle pas encore arrivé" % nom)
+				paliers_vus[f["indice_palier"]] = true
 	# Contrôle : le filtre n'est pas vide de sens, chaque palier finit par sortir.
 	var nb_paliers: int = (
 		(

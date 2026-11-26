@@ -43,11 +43,11 @@ func _tirages(graine: int, manches: int) -> Array[int]:
 	var p := Planning.new(d, graine)
 	var out: Array[int] = []
 	for m: int in range(1, manches + 1):
-		out.append(p.tirer(m))
+		out.append(p.tirer(m).majoritaire())
 	return out
 
 
-func test_famille_jamais_deux_fois_de_suite_sur_20_graines() -> void:
+func test_famille_majoritaire_jamais_deux_fois_de_suite_sur_20_graines() -> void:
 	var n := d.familles.size()
 	for g: int in GRAINES:
 		var t := _tirages(g, MANCHES)

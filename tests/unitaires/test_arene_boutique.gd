@@ -63,7 +63,7 @@ func test_un_objet_de_revenu_augmente_le_versement() -> void:
 
 func test_le_revenu_suit_le_palier_de_la_manche() -> void:
 	var a := Arene.new(d, GRAINE)
-	a.demarrer_manche(6, 0, _mult())
+	a.demarrer_manche(6, Composition.unique(0), _mult())
 	verifier_egal(_vue(a).revenu, 30, "30 d'or par période dès la manche 6")
 
 
@@ -87,7 +87,7 @@ func test_une_elimination_verse_la_prime_de_l_ennemi() -> void:
 
 func test_la_prime_suit_le_palier_et_les_objets() -> void:
 	var a := Arene.new(d, GRAINE)
-	a.demarrer_manche(10, 0, _mult())  # prime ×1,5
+	a.demarrer_manche(10, Composition.unique(0), _mult())  # prime ×1,5
 	a.inventaire.ameliorations["prime_du_guet"] = 1  # +0,15 → ×1,65
 	a.synchroniser()
 	var i := a.ennemis.ajouter(0, Vector2(1300, 0), 10.0, 0.0, 0.0, 30.0, 1.0, 10, 4)
@@ -238,7 +238,7 @@ func test_la_relance_gratuite_passe_avant_l_or_et_revient_a_la_manche() -> void:
 	verifier_egal(_vue(a).relances_gratuites, 0)
 	verifier_egal(a.relancer(), Types.Resultat.OK)
 	verifier_egal(a.economie.argent, 450, "la suivante est payante, au coût de départ")
-	a.demarrer_manche(1, 0, _mult())
+	a.demarrer_manche(1, Composition.unique(0), _mult())
 	verifier_egal(_vue(a).relances_gratuites, 1, "une nouvelle manche rend la relance gratuite")
 	verifier_egal(_vue(a).cout_relance, 50, "et remet le coût à zéro")
 
@@ -248,7 +248,7 @@ func test_une_nouvelle_manche_tire_de_nouvelles_offres() -> void:
 	var avant: Array[Dictionary] = _vue(a).offres
 	var change := false
 	for manche: int in range(1, 6):
-		a.demarrer_manche(manche, 0, _mult())
+		a.demarrer_manche(manche, Composition.unique(0), _mult())
 		if _vue(a).offres != avant:
 			change = true
 	verifier(change, "les offres changent d'une manche à l'autre")

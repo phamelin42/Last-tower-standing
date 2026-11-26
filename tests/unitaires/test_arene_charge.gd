@@ -44,7 +44,7 @@ func _mesurer(a: Arene, seuil: int, pas: int) -> float:
 func test_mille_ennemis_immobiles_au_plancher_sous_5_ms_par_pas() -> void:
 	var a := Arene.new(d, GRAINE)
 	_equiper(a)
-	a.demarrer_manche(40, 0, _mult(0.0))
+	a.demarrer_manche(40, Composition.unique(0), _mult(0.0))
 	var ms := _mesurer(a, 1000, 200)
 	verifier(ms < BUDGET_MS, "%.3f ms par pas (budget %s)" % [ms, BUDGET_MS])
 
@@ -52,7 +52,7 @@ func test_mille_ennemis_immobiles_au_plancher_sous_5_ms_par_pas() -> void:
 func test_mille_ennemis_en_marche_sous_5_ms_par_pas() -> void:
 	var a := Arene.new(d, GRAINE)
 	_equiper(a)
-	a.demarrer_manche(40, 0, _mult(0.05))
+	a.demarrer_manche(40, Composition.unique(0), _mult(0.05))
 	var ms := _mesurer(a, 1000, 200)
 	verifier(ms < BUDGET_MS, "%.3f ms par pas (budget %s)" % [ms, BUDGET_MS])
 
@@ -60,7 +60,7 @@ func test_mille_ennemis_en_marche_sous_5_ms_par_pas() -> void:
 func test_aucune_fuite_de_tableaux_apres_de_longues_manches() -> void:
 	var a := Arene.new(d, GRAINE)
 	_equiper(a)
-	a.demarrer_manche(40, 0, _mult(3.0))
+	a.demarrer_manche(40, Composition.unique(0), _mult(3.0))
 	for _i: int in 6000:
 		a.avancer(DT)
 	var n := a.ennemis.taille
@@ -98,6 +98,6 @@ func test_quarante_armes_contre_mille_ennemis_sous_5_ms_par_pas() -> void:
 			break
 	a.synchroniser()
 	verifier(a.inventaire.armes.size() >= 40, "au moins quarante armes équipées")
-	a.demarrer_manche(40, 0, _mult(0.0))
+	a.demarrer_manche(40, Composition.unique(0), _mult(0.0))
 	var ms := _mesurer(a, 1000, 200)
 	verifier(ms < BUDGET_MS, "%.3f ms par pas avec %d armes" % [ms, a.inventaire.armes.size()])

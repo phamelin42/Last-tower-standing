@@ -82,7 +82,7 @@ func test_vingt_quatre_familles_six_modeles_quatre_paliers() -> void:
 
 func test_le_convoi_et_le_boss_suivent_les_familles() -> void:
 	var a := Arene.new(d, 4242)
-	a.demarrer_manche(5, d.familles.size(), _mult())
+	a.demarrer_manche(5, Composition.unique(d.familles.size()), _mult())
 	for _i: int in 100:
 		a.avancer(0.05)
 	verifier(a.nombre_ennemis() > 0, "le convoi est apparu")
