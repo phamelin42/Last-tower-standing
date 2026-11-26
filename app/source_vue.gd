@@ -10,6 +10,13 @@ signal connexion_perdue(motif: String)
 ## L'arène d'un autre joueur, regardée de son vivant (`regarder`) ; `vue_arene_recue` reste celle
 ## du joueur local, ou de la cible observée après sa mort.
 signal vue_regardee_recue(id_joueur: int, vue: VueArene)
+## Le bilan de la partie, une fois, à sa fin (`BilanPartie.noms()` → valeur), celui du joueur local.
+signal bilan_recu(bilan: Dictionary)
+
+
+## Le dernier bilan de fin de partie reçu, `{}` tant qu'il n'est pas arrivé.
+func bilan() -> Dictionary:
+	return {}
 
 
 ## Identifiant du joueur local ; -1 tant que la base n'est pas redéfinie.
