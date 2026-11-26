@@ -5,12 +5,20 @@ extends Node
 ## bus de musique. `derniers_sons` garde les identifiants du dernier pas, pour les tests.
 
 const POLYPHONIE := 8
+## Écart de hauteur d'un tir à l'autre (± 5 %), pour qu'une rafale ne sonne pas en machine à écrire.
+const VARIATION_HAUTEUR := 0.05
 
 var derniers_sons: Array[String] = []
+## Hauteurs (1,0 = normale) des tirs joués au dernier pas, pour les tests.
+var derniere_hauteur: Array[float] = []
+## `Donnees.ids_catalogue` : traduit l'index d'arme d'un tir en son. Vide, il est chargé de `data/`
+## au premier pas (le client et le serveur ont la même empreinte de données).
+var catalogue: PackedStringArray = PackedStringArray()
 
 var _joueurs: Array[AudioStreamPlayer] = []
 var _ambiance: AudioStreamPlayer = null
 var _precedente: VueArene = null
+var _hasard := RandomNumberGenerator.new()
 
 
 func _ready() -> void:
@@ -25,13 +33,23 @@ func _ready() -> void:
 	add_child(_ambiance)
 
 
+## Fixe la graine des variations de hauteur (les tests en veulent une).
+func graine(valeur: int) -> void:
+	_hasard.seed = valeur
+
+
 ## Joue ce que la transition de la vue précédente vers `vue` demande. Une vue qui n'avance pas
 ## (même `tick`, ou plus ancienne, reçue deux fois) ne rejoue pas ses événements.
 func traiter(vue: VueArene) -> void:
 	derniers_sons.clear()
+	derniere_hauteur.clear()
 	if vue == null or (_precedente != null and vue.tick <= _precedente.tick):
 		return
-	for identifiant: String in DetecteurSons.sons_du_pas(_precedente, vue):
+	if catalogue.is_empty():
+		var donnees: Donnees = Donnees.charger()
+		if donnees != null:
+			catalogue = donnees.ids_catalogue
+	for identifiant: String in DetecteurSons.sons_du_pas(_precedente, vue, catalogue):
 		_jouer(identifiant)
 	_precedente = vue
 
@@ -57,6 +75,10 @@ func _jouer(identifiant: String) -> void:
 	derniers_sons.append(identifiant)
 	var libre := _joueur_libre()
 	libre.stream = CatalogueSons.flux(identifiant)
+	libre.pitch_scale = 1.0
+	if identifiant.begins_with(CatalogueSons.TIR):
+		libre.pitch_scale = 1.0 + _hasard.randf_range(-VARIATION_HAUTEUR, VARIATION_HAUTEUR)
+		derniere_hauteur.append(libre.pitch_scale)
 	libre.play()
 
 
