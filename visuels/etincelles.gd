@@ -12,8 +12,8 @@ const NOMBRE_COUP: int = 4
 const NOMBRE_ZONE: int = 8
 const VIE: float = 0.25
 const COTE: int = 4
-const VITESSE_MIN: float = 50.0
-const VITESSE_MAX: float = 110.0
+const VITESSE_MIN: float = 90.0
+const VITESSE_MAX: float = 190.0
 const ECHELLE_MIN: float = 0.75
 const GRAINE: int = 20261126
 ## Une étincelle n'est pas plus opaque qu'un effet : la tour reste lisible.
