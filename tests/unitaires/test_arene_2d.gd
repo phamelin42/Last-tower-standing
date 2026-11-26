@@ -455,3 +455,58 @@ func test_tailles_a_l_ecran_au_zoom_par_defaut() -> void:
 		var s := _arene.sprite_instance(entite, 0)
 		var part: float = s.region_rect.size.y * s.scale.y * zoom / zone.y
 		verifier(part >= 0.04 and part <= 0.09, "entité %d : %f de la hauteur" % [entite, part])
+
+
+func test_montrer_une_arene_affiche_la_vue_regardee_et_moins_un_revient_a_la_sienne() -> void:
+	var source := SourceFactice.new()
+	arbre.root.add_child(source)
+	_arene.lier(source)
+	var f: int = _donnees.familles.size() - 1
+	_arene.definir_joueur(1, "Moi")
+	source.emettre_arene(_vue({f: 5}))
+	_arene.afficher_courant(1.0)
+	verifier_egal(_arene.nombre_instances_visibles(f), 5, "sa propre arène d'abord")
+	_arene.montrer_arene(2, "Camille", 2)
+	source.emettre_vue_regardee(2, _vue({f: 3}))
+	_arene.afficher_courant(1.0)
+	verifier_egal(_arene.nombre_instances_visibles(f), 3, "les 3 ennemis du joueur regardé")
+	source.emettre_arene(_vue({f: 7}))
+	_arene.afficher_courant(1.0)
+	verifier_egal(_arene.nombre_instances_visibles(f), 3, "la vue propre est ignorée")
+	source.emettre_vue_regardee(9, _vue({f: 11}))
+	_arene.afficher_courant(1.0)
+	verifier_egal(_arene.nombre_instances_visibles(f), 3, "la vue d'un autre joueur aussi")
+	verifier((_arene.get_node("Noms/NomJoueur") as Label).text.contains("Camille"), "nom regardé")
+	_arene.montrer_arene(-1, "", 0)
+	source.emettre_arene(_vue({f: 7}))
+	_arene.afficher_courant(1.0)
+	verifier_egal(_arene.nombre_instances_visibles(f), 7, "retour à sa propre arène")
+	verifier((_arene.get_node("Noms/NomJoueur") as Label).text.contains("Moi"), "son nom revient")
+	source.emettre_vue_regardee(2, _vue({f: 1}))
+	_arene.afficher_courant(1.0)
+	verifier_egal(_arene.nombre_instances_visibles(f), 7, "plus de vue regardée après le retour")
+	_arene.lier(null)
+	source.free()
+
+
+func test_l_espace_met_fin_a_l_arene_regardee_et_recentre() -> void:
+	var source := SourceFactice.new()
+	arbre.root.add_child(source)
+	_arene.lier(source)
+	var fin: Array[bool] = [false]
+	_arene.arene_regardee_quittee.connect(func() -> void: fin[0] = true)
+	_arene.montrer_arene(2, "Camille", 2)
+	_arene.camera().deplacer(Vector2(400.0, 0.0))
+	_arene.recentrer_ou_quitter()
+	verifier(fin[0], "le signal de fin du regard part")
+	verifier_egal(_arene.camera().decalage_unites, Vector2.ZERO, "recentrée sur sa tour")
+	verifier_faux(_arene.regarde_un_autre(), "on ne regarde plus personne")
+	fin[0] = false
+	_arene.recentrer_ou_quitter()
+	verifier_faux(fin[0], "sans regard, Espace ne fait que recentrer")
+	_arene.lier(null)
+	source.free()
+
+
+func test_la_camera_de_l_arene_est_accessible() -> void:
+	verifier_non_nul(_arene.camera(), "Arene2D.camera()")
