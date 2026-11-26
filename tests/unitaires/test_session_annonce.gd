@@ -61,7 +61,9 @@ func _session(box: UpnpHote.Passerelle, publique: bool = true) -> SessionReseau:
 
 func _port_libre(autre_que: int = 0) -> int:
 	var rng := RandomNumberGenerator.new()
-	rng.seed = GRAINE + autre_que
+	# Le numéro de processus change d'un lancement à l'autre : deux agents qui testent en même temps
+	# ne visent pas les mêmes ports, et un échec se rejoue avec le même numéro.
+	rng.seed = GRAINE + OS.get_process_id() + autre_que
 	for i: int in 40:
 		var p := rng.randi_range(20000, 60000)
 		var essai := PacketPeerUDP.new()

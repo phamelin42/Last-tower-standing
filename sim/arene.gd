@@ -292,6 +292,8 @@ func _pas_tour_et_ennemis(dt: float) -> void:
 		pv = minf(pv + _stats.regen * dt, _pv_max())
 	mana = minf(mana + _mana_regen() * dt, mana_max())
 	var resultat := ennemis.avancer(dt, Vector2.ZERO, _rayon_tour, 1.0, 1.0)
+	mana_gagnee(float(resultat["siphon_mana"]))
+	pv = minf(pv + float(resultat["siphon_vie"]), _pv_max())
 	var total: float = resultat["degats_tour"]
 	if not total > 0.0:
 		return
@@ -347,6 +349,7 @@ func _pas_armes(dt: float) -> void:
 		)
 	_degats_infliges += bilan.degats
 	pv = minf(pv + bilan.soin, _pv_max())
+	mana_gagnee(bilan.mana)
 	for e: Dictionary in bilan.evenements:
 		e["t"] = _tick
 		_ajouter_evenement(e)
@@ -537,6 +540,14 @@ func _pv_max() -> float:
 
 
 ## Mana maximale : la valeur de départ des données (0) plus les améliorations.
+## Mana gagnée (siphon, mana au coup) : jamais au-delà de la mana maximale, donc rien sans maximum.
+## Un montant nul, négatif ou non fini est ignoré.
+func mana_gagnee(montant: float) -> void:
+	if not montant > 0.0 or not is_finite(montant):
+		return
+	mana = minf(mana + montant, mana_max())
+
+
 func mana_max() -> float:
 	return float(_donnees.partie["tour"]["mana_max"]) + _stats.mana_max_bonus
 

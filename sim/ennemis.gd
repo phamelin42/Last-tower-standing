@@ -63,6 +63,11 @@ var maudit_degats: PackedFloat32Array = PackedFloat32Array()
 var maudit_degats_t: PackedFloat32Array = PackedFloat32Array()
 var maudit_toucher: PackedFloat32Array = PackedFloat32Array()
 var maudit_toucher_t: PackedFloat32Array = PackedFloat32Array()
+## Siphon : ce que l'ennemi verse à la tour par seconde (mana, vie) et la durée qui reste à chacun.
+var siphon_mana: PackedFloat32Array = PackedFloat32Array()
+var siphon_mana_t: PackedFloat32Array = PackedFloat32Array()
+var siphon_vie: PackedFloat32Array = PackedFloat32Array()
+var siphon_vie_t: PackedFloat32Array = PackedFloat32Array()
 
 var _donnees: Donnees
 var _table_efficacite: Array
@@ -75,6 +80,9 @@ var _vuln_duree_max: float
 var _maudit_plafond: float
 var _repousse_max: float
 var _rayon_spawn: float
+## Ce que les siphons ont versé pendant le pas en cours (remis à zéro par `avancer`).
+var _siphon_mana_pas: float = 0.0
+var _siphon_vie_pas: float = 0.0
 var _suivant: int = 0
 ## Plus petit carré de distance d'un vivant à `_centre_d2` (-1 : à recalculer). Les armes prêtes
 ## mais sans cible rebalayaient chaque pas tous les ennemis : avec quarante armes, cela coûtait
@@ -160,6 +168,10 @@ func ajouter(
 	maudit_degats_t.append(0.0)
 	maudit_toucher.append(0.0)
 	maudit_toucher_t.append(0.0)
+	siphon_mana.append(0.0)
+	siphon_mana_t.append(0.0)
+	siphon_vie.append(0.0)
+	siphon_vie_t.append(0.0)
 	return id
 
 
@@ -244,6 +256,22 @@ func maudire_toucher(i: int, ratio: float, duree: float) -> void:
 		return
 	maudit_toucher[i] = maxf(maudit_toucher[i], minf(ratio, _maudit_plafond))
 	maudit_toucher_t[i] = maxf(maudit_toucher_t[i], duree)
+	_recalculer_bits(i)
+
+
+## Siphon : pendant `duree`, l'ennemi verse `par_seconde` à la tour (`ressource` : 0 mana, 1 vie).
+## Un nouveau siphon de la même ressource rafraîchit la durée et garde le plus fort débit.
+func siphonner(i: int, ressource: int, par_seconde: float, duree: float) -> void:
+	if not _vivant(i) or not _dot_valide(par_seconde, duree):
+		return
+	if ressource == 0:
+		siphon_mana[i] = maxf(siphon_mana[i], par_seconde)
+		siphon_mana_t[i] = maxf(siphon_mana_t[i], duree)
+	elif ressource == 1:
+		siphon_vie[i] = maxf(siphon_vie[i], par_seconde)
+		siphon_vie_t[i] = maxf(siphon_vie_t[i], duree)
+	else:
+		return
 	_recalculer_bits(i)
 
 
@@ -336,6 +364,8 @@ func _recalculer_bits(i: int) -> void:
 		bits |= Types.STATUT_VULNERABLE
 	if maudit_degats_t[i] > 0.0 or maudit_toucher_t[i] > 0.0:
 		bits |= Types.STATUT_MAUDIT
+	if siphon_mana_t[i] > 0.0 or siphon_vie_t[i] > 0.0:
+		bits |= Types.STATUT_SIPHONNE
 	statuts[i] = bits
 
 
@@ -390,11 +420,27 @@ func _avancer_statuts(i: int, dt: float) -> void:
 		)
 		if maudit_toucher_t[i] == 0.0:
 			maudit_toucher[i] = 0.0
+	var verse_mana := 0.0
+	var verse_vie := 0.0
+	if siphon_mana_t[i] > 0.0:
+		verse_mana = siphon_mana[i] * minf(dt, siphon_mana_t[i])
+		siphon_mana_t[i] = (siphon_mana_t[i] - dt if siphon_mana_t[i] - dt > EPSILON_TEMPS else 0.0)
+		if siphon_mana_t[i] == 0.0:
+			siphon_mana[i] = 0.0
+	if siphon_vie_t[i] > 0.0:
+		verse_vie = siphon_vie[i] * minf(dt, siphon_vie_t[i])
+		siphon_vie_t[i] = siphon_vie_t[i] - dt if siphon_vie_t[i] - dt > EPSILON_TEMPS else 0.0
+		if siphon_vie_t[i] == 0.0:
+			siphon_vie[i] = 0.0
 	_recalculer_bits(i)
 	if perdu > 0.0:
 		pv[i] -= perdu
 		if pv[i] <= 0.0:
 			_tuer(i)
+	# Un ennemi tué ce pas ne verse plus rien.
+	if mort[i] == 0:
+		_siphon_mana_pas += verse_mana
+		_siphon_vie_pas += verse_vie
 
 
 ## Un pas de simulation. `tues_par_statut` et `attaquants_cac` sont des indices valables
@@ -411,9 +457,13 @@ func avancer(
 		"attaquants_cac": attaquants,
 		"tues_par_statut": tues,
 		"explosions": explosions,
+		"siphon_mana": 0.0,
+		"siphon_vie": 0.0,
 	}
 	if not dt > 0.0 or not is_finite(dt) or _n == 0:
 		return resultat
+	_siphon_mana_pas = 0.0
+	_siphon_vie_pas = 0.0
 	var vit_mult := mult_vitesse if mult_vitesse > 0.0 and is_finite(mult_vitesse) else 0.0
 	var deg_mult := mult_degats if mult_degats > 0.0 and is_finite(mult_degats) else 0.0
 	for i: int in _n:
@@ -464,6 +514,8 @@ func avancer(
 			cd = intervalle[i]
 		attaque_cd[i] = maxf(cd, 0.0)
 	resultat["degats_tour"] = degats_tour
+	resultat["siphon_mana"] = _siphon_mana_pas
+	resultat["siphon_vie"] = _siphon_vie_pas
 	return resultat
 
 
@@ -613,6 +665,10 @@ func _copier(de: int, vers: int) -> void:
 	maudit_degats_t[vers] = maudit_degats_t[de]
 	maudit_toucher[vers] = maudit_toucher[de]
 	maudit_toucher_t[vers] = maudit_toucher_t[de]
+	siphon_mana[vers] = siphon_mana[de]
+	siphon_mana_t[vers] = siphon_mana_t[de]
+	siphon_vie[vers] = siphon_vie[de]
+	siphon_vie_t[vers] = siphon_vie_t[de]
 
 
 func _redimensionner(n: int) -> void:
@@ -646,6 +702,10 @@ func _redimensionner(n: int) -> void:
 	maudit_degats_t.resize(n)
 	maudit_toucher.resize(n)
 	maudit_toucher_t.resize(n)
+	siphon_mana.resize(n)
+	siphon_mana_t.resize(n)
+	siphon_vie.resize(n)
+	siphon_vie_t.resize(n)
 
 
 ## Remplit les cinq tableaux `ennemis_*` de la vue avec des copies des vivants (les morts en
