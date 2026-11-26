@@ -79,6 +79,11 @@ const ECART_ECLAIR_MIN: float = 6.0
 const ECART_ECLAIR_MAX: float = 16.0
 ## La bouffée grise de départ de la bombe et de la fiole.
 const COULEUR_BOUFFEE := Color(0.7, 0.7, 0.72)
+## Une couronne d'aura : elle s'ouvre en 7 images, tourne de 1,5 tour par seconde et dure 14 images.
+const IMAGES_COURONNE: int = 14
+const IMAGES_COURONNE_OUVERTURE: int = 7
+const TOURS_COURONNE: float = 1.5
+const ECHELLE_COURONNE_DEPART: float = 0.25
 const IMAGES_NUAGE: int = 36
 const ALPHA_NUAGE: float = 0.6
 const MONTEE_NUAGE: float = 24.0
@@ -107,7 +112,20 @@ var _degrade: Gradient = null
 
 ## Un élément par fichier sous `visuels/attaques/` : une ligne ici suffit à en ajouter un.
 static func _scripts() -> Array[GDScript]:
-	return [AttaqueFeu, AttaqueGlace, AttaqueBombe, AttaquePoison, AttaqueFoudre, AttaqueArcane]
+	return [
+		AttaqueFeu,
+		AttaqueGlace,
+		AttaqueBombe,
+		AttaquePoison,
+		AttaqueFoudre,
+		AttaqueArcane,
+		AttaqueLame,
+		AttaqueFaucille,
+		AttaqueDisque,
+		AttaqueMoulinet,
+		AttaqueGuillotine,
+		AttaqueTourbillon,
+	]
 
 
 ## Les éléments, par identifiant (créés une fois).
@@ -171,6 +189,7 @@ func etats(planche: String) -> Array[Dictionary]:
 					"taille": n.region_rect.size * n.scale.abs(),
 					"diametre": float(e["diametre"]),
 					"visible": n.visible,
+					"image": int(e["image"]),
 					"alpha": n.modulate.a,
 					"teinte": Color(n.modulate, 1.0),
 				}
@@ -246,6 +265,8 @@ func tirer(element: String, depart: Vector2, arrivee: Vector2, retard: float = 0
 			projectile["cloche"] = float(conf["cloche"])
 			projectile["tour"] = float(conf.get("tour", 0.0))
 			projectile["bosse"] = float(conf.get("bosse", 0.0))
+			projectile["vrille"] = float(conf.get("vrille", 0.0))
+			projectile["fige_reduit"] = bool(conf.get("fige_reduit", false))
 			projectile["vol"] = vol
 			poser(projectile)
 			el.suivre_vol(self, projectile, attente, vol)
@@ -254,6 +275,92 @@ func tirer(element: String, depart: Vector2, arrivee: Vector2, retard: float = 0
 	poser(anticipation)
 	# Un éclair n'a pas de vol : il est tracé d'un coup, à la fin de l'anticipation.
 	return attente + (vol if planche != "" else 0.0)
+
+
+## Le projectile d'un saut de rebond, de `depart` à `arrivee`, sans anticipation : il part après
+## `retard` et dure `IMAGES_VOL_DIRECT` images. Rend le temps jusqu'à l'arrivée, `retard` compris,
+## ou -1 si l'élément n'a pas de projectile par saut (son impact garde alors son décalage).
+func saut(element: String, depart: Vector2, arrivee: Vector2, retard: float) -> float:
+	var el: AttaqueElement = registre().get(element)
+	if el == null or not bool(el.conf().get("saut", false)):
+		return -1.0
+	var conf: Dictionary = el.conf()
+	var vol: float = IMAGES_VOL_DIRECT * IMAGE
+	var projectile: Dictionary = nouveau("vol", String(conf["projectile"]), vol)
+	if projectile.is_empty():
+		return -1.0
+	projectile["age"] = -retard
+	projectile["depart"] = depart
+	projectile["arrivee"] = arrivee
+	projectile["couleur"] = Color.WHITE
+	projectile["echelle"] = ECHELLE * float(conf.get("echelle", 1.0))
+	projectile["fps"] = float(conf["fps"])
+	projectile["vrille"] = float(conf.get("vrille", 0.0))
+	projectile["fige_reduit"] = bool(conf.get("fige_reduit", false))
+	projectile["vol"] = vol
+	poser(projectile)
+	el.suivre_vol(self, projectile, retard, vol)
+	return retard + vol
+
+
+## L'aura d'`element` en `centre` (pixels du monde), au rayon réel `rayon_px`.
+func aura(element: String, centre: Vector2, rayon_px: float, age: float = 0.0) -> bool:
+	var el: AttaqueElement = registre().get(element)
+	return false if el == null else el.aura(self, centre, rayon_px, age)
+
+
+## Le front de l'onde d'`element`, parti de `centre` (pixels du monde).
+func onde(element: String, centre: Vector2, age: float = 0.0) -> bool:
+	var el: AttaqueElement = registre().get(element)
+	return false if el == null else el.onde(self, centre, age)
+
+
+## Une couronne de `nombre` sprites de `planche` qui tournent autour de `centre` et s'écartent
+## jusqu'à `rayon_px` en `IMAGES_COURONNE_OUVERTURE` images, puis s'effacent (`IMAGES_COURONNE`
+## au total). Vrai si un sprite au moins a été créé.
+func couronne(
+	planche: String, centre: Vector2, rayon_px: float, nombre: int, age: float, couleur: Color
+) -> bool:
+	var cree: bool = false
+	for k: int in nombre:
+		var lame: Dictionary = nouveau("couronne", planche, IMAGES_COURONNE * IMAGE)
+		if lame.is_empty():
+			break
+		lame["age"] = age
+		lame["depart"] = centre
+		lame["rayon_px"] = rayon_px
+		lame["tour"] = TAU * k / nombre
+		lame["couleur"] = couleur
+		poser(lame)
+		cree = true
+	return cree
+
+
+## Un front de `nombre` sprites de `planche`, en cercle autour de `centre`, qui avance de
+## `vitesse_px` pixels par seconde jusqu'à `rayon_px`, puis s'efface sur son dernier quart.
+func front(
+	planche: String,
+	centre: Vector2,
+	rayon_px: float,
+	vitesse_px: float,
+	nombre: int,
+	age: float,
+	couleur: Color
+) -> bool:
+	var cree: bool = false
+	for k: int in nombre:
+		var lame: Dictionary = nouveau("front", planche, rayon_px / vitesse_px)
+		if lame.is_empty():
+			break
+		lame["age"] = age
+		lame["depart"] = centre
+		lame["rayon_px"] = rayon_px
+		lame["vitesse"] = vitesse_px
+		lame["tour"] = TAU * k / nombre
+		lame["couleur"] = couleur
+		poser(lame)
+		cree = true
+	return cree
 
 
 ## Dessine l'impact de `element` en `ou` (pixels du monde). `rayon_px` : 0 pour une cible unique.
@@ -398,6 +505,10 @@ func _fiche(n: Node2D, kind: String, planche: String, duree: float) -> Dictionar
 		"suite": 0.0,
 		"tour": 0.0,
 		"bosse": 0.0,
+		"vrille": 0.0,
+		"fige_reduit": false,
+		"rayon_px": 0.0,
+		"vitesse": 0.0,
 	}
 
 
@@ -512,6 +623,24 @@ func poser(effet: Dictionary) -> void:
 				(n.get_node("Bord") as Line2D).points = points
 			var fin: float = IMAGES_ECLAIR_VISIBLE * IMAGE
 			alpha = ALPHA_MAX * (1.0 - maxf(age - fin, 0.0) / (IMAGES_ECLAIR_EFFACEMENT * IMAGE))
+		"couronne":
+			var ouverture: float = clampf(age / (IMAGES_COURONNE_OUVERTURE * IMAGE), 0.0, 1.0)
+			var rayon: float = float(effet["rayon_px"])
+			var rayon_courant: float = (
+				rayon * lerpf(ECHELLE_COURONNE_DEPART, 1.0, CourbesEffets.sortie(ouverture))
+			)
+			var phase: float = float(effet["tour"]) + age * TAU * TOURS_COURONNE
+			if mouvement_reduit:
+				phase = float(effet["tour"])
+			n.position = (effet["depart"] as Vector2) + Vector2.from_angle(phase) * rayon_courant
+			n.rotation = phase + PI / 2.0
+			alpha = ALPHA_MAX * (1.0 - maxf(t - 0.5, 0.0) / 0.5)
+		"front":
+			var avance: float = minf(age * float(effet["vitesse"]), float(effet["rayon_px"]))
+			var cap: float = float(effet["tour"])
+			n.position = (effet["depart"] as Vector2) + Vector2.from_angle(cap) * avance
+			n.rotation = cap
+			alpha = ALPHA_MAX * (1.0 - maxf(t - 0.75, 0.0) / 0.25)
 		"ombre":
 			n.position = (effet["depart"] as Vector2).lerp(effet["arrivee"], t)
 			echelle = ECHELLE * lerpf(1.0, ECHELLE_OMBRE_SOMMET, sin(t * PI))
@@ -555,8 +684,10 @@ func _poser_vol(effet: Dictionary, n: Sprite2D, t: float, age: float) -> void:
 	n.rotation = sens.angle() if sens.length() > 0.001 else 0.0
 	if hauteur > 0.0:
 		n.rotation = 0.0 if mouvement_reduit else t * float(effet["tour"])
+	elif float(effet["vrille"]) > 0.0 and not mouvement_reduit:
+		n.rotation += age * TAU * float(effet["vrille"])
 	var fps: float = float(effet["fps"])
-	if fps > 0.0:
+	if fps > 0.0 and not (mouvement_reduit and bool(effet["fige_reduit"])):
 		var images: int = int(
 			n.texture.get_width() / float((planches()[effet["planche"]] as Vector2i).x)
 		)

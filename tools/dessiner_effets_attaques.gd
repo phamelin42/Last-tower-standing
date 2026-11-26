@@ -19,6 +19,7 @@ const DESSINS: Array[GDScript] = [
 	preload("res://tools/dessin/dessins_bombe.gd"),
 	preload("res://tools/dessin/dessins_poison.gd"),
 	preload("res://tools/dessin/dessins_arcane.gd"),
+	preload("res://tools/dessin/dessins_acier.gd"),
 	preload("res://tools/dessin/dessins_partages.gd"),
 ]
 const ECHELLE_CONTACT: int = 4
@@ -28,7 +29,17 @@ const VERT_ARENE := Commun.VERT_ARENE
 const VERT_CASE := Commun.VERT_CASE
 ## Nom de la planche : taille d'une image et nombre d'images (la liste complète).
 const PLANCHES: Dictionary = Commun.PLANCHES
-const PROJECTILES: PackedStringArray = ["boule_feu", "eclat_glace", "bombe", "fiole", "rune"]
+const PROJECTILES: PackedStringArray = [
+	"boule_feu",
+	"eclat_glace",
+	"bombe",
+	"fiole",
+	"rune",
+	"lame_croissant",
+	"faucille",
+	"disque_scie",
+	"lame_tournante",
+]
 
 
 func _initialize() -> void:
