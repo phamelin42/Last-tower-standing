@@ -5,6 +5,8 @@ extends CasDeTest
 
 const DOCUMENT := "res://docs/defis.md"
 const NBSP := " "
+## Un genre d'effet n'a un défi « uniquement » que s'il compte au moins autant d'armes.
+const GENRE_MIN_ARMES := 3
 const MODES: Array[String] = ["solo", "multijoueur", "les deux"]
 ## Ce que `docs/defis.md` annonce : un document sans défi ou sans compteur ne passe pas.
 const COLONNES_DEFIS: Array[String] = ["id", "nom", "texte", "condition", "compteurs", "mode"]
@@ -55,13 +57,21 @@ func _citations(cellule: String) -> Array[String]:
 	return sortie
 
 
+func _sans_doublons(liste: Array[String]) -> Array[String]:
+	var sortie: Array[String] = []
+	for nom: String in liste:
+		if not sortie.has(nom):
+			sortie.append(nom)
+	return sortie
+
+
 func _defis() -> Array[Dictionary]:
-	return _tableau("3.")
+	return _tableau("4.")
 
 
 func _compteurs() -> Array[String]:
 	var sortie: Array[String] = []
-	for rang: Dictionary in _tableau("2."):
+	for rang: Dictionary in _tableau("2.") + _tableau("3."):
 		sortie.append(_sans_puces(String(rang["compteur"])))
 	return sortie
 
@@ -69,18 +79,19 @@ func _compteurs() -> Array[String]:
 func test_au_moins_un_defi_et_la_liste_n_est_jamais_vide() -> void:
 	var defis := _defis()
 	verifier(defis.size() >= 1, "au moins un défi")
-	verifier(_compteurs().size() >= 1, "au moins un compteur")
-	verifier(_tableau("4.").size() >= 1, "au moins un skin")
+	verifier(_tableau("2.").size() >= 1, "au moins un compteur de bilan")
+	verifier(_tableau("3.").size() >= 1, "au moins un compteur cumulé")
+	verifier(_tableau("5.").size() >= 1, "au moins un skin")
 	for rang: Dictionary in defis:
 		for colonne: String in COLONNES_DEFIS:
 			verifier(rang.has(colonne), "colonne « %s » présente" % colonne)
 			verifier_faux(
 				String(rang.get(colonne, "")).is_empty(), "colonne « %s » remplie" % colonne
 			)
-	for rang: Dictionary in _tableau("2."):
+	for rang: Dictionary in _tableau("2.") + _tableau("3."):
 		for colonne: String in COLONNES_COMPTEURS:
 			verifier_faux(String(rang.get(colonne, "")).is_empty(), "compteur : « %s »" % colonne)
-	for rang: Dictionary in _tableau("4."):
+	for rang: Dictionary in _tableau("5."):
 		for colonne: String in COLONNES_SKINS:
 			verifier_faux(String(rang.get(colonne, "")).is_empty(), "skin : « %s »" % colonne)
 
@@ -105,7 +116,7 @@ func test_chaque_defi_a_un_id_un_nom_un_texte_et_une_condition_uniques() -> void
 func test_aucun_nom_ni_texte_de_defi_n_est_un_nom_d_origine() -> void:
 	var noms := NomsOrigine.lire()
 	verifier(noms.size() > 100, "la liste des noms d'origine est lue")
-	for rang: Dictionary in _defis() + _tableau("4."):
+	for rang: Dictionary in _defis() + _tableau("5."):
 		for colonne: String in rang:
 			var trouves := NomsOrigine.trouver(_sans_puces(String(rang[colonne])), noms)
 			verifier_egal(trouves, PackedStringArray(), "« %s » : nom d'origine" % rang[colonne])
@@ -115,12 +126,12 @@ func test_chaque_condition_ne_cite_que_des_compteurs_de_la_liste() -> void:
 	var connus := _compteurs()
 	for rang: Dictionary in _defis():
 		var id := _sans_puces(String(rang["id"]))
-		var citees := _citations(String(rang["condition"]))
+		var citees := _sans_doublons(_citations(String(rang["condition"])))
 		verifier(citees.size() >= 1, "%s : la condition cite au moins un compteur" % id)
 		for nom: String in citees:
 			verifier(connus.has(nom), "%s : compteur « %s » absent de la liste" % [id, nom])
 		# La colonne des compteurs dit exactement ce que la condition lit.
-		var annonces := _citations(String(rang["compteurs"]))
+		var annonces := _sans_doublons(_citations(String(rang["compteurs"])))
 		citees.sort()
 		annonces.sort()
 		verifier_egal(annonces, citees, "%s : colonne « compteurs » et condition concordent" % id)
@@ -144,7 +155,7 @@ func test_chaque_defi_a_exactement_un_skin_et_chaque_skin_un_defi() -> void:
 		ids.append(_sans_puces(String(rang["id"])))
 	var par_defi: Dictionary = {}
 	var skins_vus: Dictionary = {}
-	for rang: Dictionary in _tableau("4."):
+	for rang: Dictionary in _tableau("5."):
 		var defi := _sans_puces(String(rang["défi"]))
 		var skin := _sans_puces(String(rang["skin (identifiant)"]))
 		verifier(ids.has(defi), "skin « %s » : défi « %s » inconnu" % [skin, defi])
@@ -184,3 +195,40 @@ func test_le_document_detecte_ses_fautes() -> void:
 		avant_ponctuation.search("Tenez : bien") != null, "l'espace simple avant « : » est vue"
 	)
 	verifier(avant_ponctuation.search("Tenez" + NBSP + ": bien") == null, "l'insécable passe")
+
+
+## Ce que les données du jeu ont vraiment : un défi « uniquement… » par type de dégâts, par statut
+## présent et par genre d'effet qui compte au moins trois armes. Rien d'inventé.
+func test_chaque_type_statut_et_genre_d_arme_des_donnees_a_son_defi_uniquement() -> void:
+	var utilises: Dictionary = {}
+	for rang: Dictionary in _defis():
+		for nom: String in _citations(String(rang["compteurs"])):
+			utilises[nom] = true
+	var donnees := Donnees.charger()
+	for nom: String in Types.NOMS_TYPES:
+		var compteur := "armes_type_" + NomsOrigine.normaliser(nom)
+		verifier(utilises.has(compteur), "type de dégâts « %s » sans défi (%s)" % [nom, compteur])
+	var par_genre: Dictionary = {}
+	var statuts: Dictionary = {}
+	for id: String in donnees.armes:
+		var arme: Dictionary = donnees.armes[id]
+		var genres: Dictionary = {}
+		for brut: Variant in arme["effets"] as Array:
+			genres[String((brut as Dictionary)["kind"])] = true
+		for genre: String in genres:
+			par_genre[genre] = int(par_genre.get(genre, 0)) + 1
+		for brut: Variant in arme.get("statuts", []) as Array:
+			statuts[String((brut as Dictionary)["kind"])] = true
+	for statut: String in statuts:
+		verifier(utilises.has("armes_statut_" + statut), "statut « %s » sans défi" % statut)
+	for genre: String in par_genre:
+		if int(par_genre[genre]) >= GENRE_MIN_ARMES:
+			verifier(utilises.has("armes_genre_" + genre), "genre « %s » sans défi" % genre)
+	# Et rien d'inventé : un compteur « uniquement » ne cite que ce qui existe dans les données.
+	for compteur: String in utilises:
+		if compteur.begins_with("armes_genre_"):
+			var genre := compteur.trim_prefix("armes_genre_")
+			verifier(par_genre.has(genre), "genre « %s » absent des données" % genre)
+		if compteur.begins_with("armes_statut_"):
+			var statut := compteur.trim_prefix("armes_statut_")
+			verifier(statuts.has(statut), "statut « %s » absent des données" % statut)
