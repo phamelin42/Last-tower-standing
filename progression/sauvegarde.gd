@@ -10,7 +10,7 @@ extends RefCounted
 
 const CHEMIN_DEFAUT := "user://progression.json"
 ## Version du format écrit. Une version plus ancienne se migre par `_migrer`.
-const VERSION := 1
+const VERSION := 2
 ## Au-delà, le fichier n'est pas lu : un profil plein pèse moins de 40 Ko.
 const TAILLE_MAX_FICHIER := 65536
 const EXTENSION_SECOURS := ".bak"
@@ -147,8 +147,8 @@ static func _lire(chemin: String) -> Dictionary:
 	return {"etat": "ok", "profil": profil}
 
 
-## Amène un fichier d'une version précédente au format courant, une version à la fois. Aucune
-## ancienne version n'existe encore : chaque format abandonné ajoutera ici son étape.
+## Amène un fichier d'une version précédente au format courant, une version à la fois ; chaque
+## format abandonné ajoute ici son étape.
 static func _migrer(donnees: Dictionary, version: int) -> Dictionary:
 	var courant := donnees
 	for v: int in range(version, VERSION):
@@ -156,8 +156,15 @@ static func _migrer(donnees: Dictionary, version: int) -> Dictionary:
 	return courant
 
 
-## L'étape qui fait passer de la version `v` à `v + 1` (aucune à ce jour : voir `_migrer`).
-static func _migrer_depuis(donnees: Dictionary, _v: int) -> Dictionary:
+## L'étape qui fait passer de la version `v` à `v + 1`. De 1 à 2 : les six cumuls (T11.3bis)
+## partent de 0, rien d'autre ne change.
+static func _migrer_depuis(donnees: Dictionary, v: int) -> Dictionary:
+	if v == 1:
+		var suite := donnees.duplicate()
+		for cle: String in Profil.BORNES_CUMULS:
+			if not suite.has(cle):
+				suite[cle] = 0
+		return suite
 	return donnees
 
 
