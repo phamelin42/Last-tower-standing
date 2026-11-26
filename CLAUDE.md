@@ -140,3 +140,5 @@ privé, lu en direct). Ses lignes vivent dans sa base, pas dans la page :
 - Lire un fichier de l'utilisateur : `JSON.new().parse` (code de retour), pas `JSON.parse_string`, qui imprime une erreur du moteur sur un fichier abîmé et fait échouer le test.
 - Après un changement de police, relancer `test_mise_en_page` : les largeurs du HUD et de la boutique en dépendent. Une image ou une icône se charge par `ui/theme.gd`, sinon `test_garde_ressources` (liste fermée) échoue.
 - Une session écrit à la pilote par l'outil `mcp__claude-code-remote__send_message`, pas par `SendMessage` (erreur 401 vers une session cloud).
+- Une classe interne GDScript ne voit pas les fonctions statiques de sa classe englobante : les appeler par la classe interne elle-même ou les y dupliquer (`tools/dessin/planche_outils.gd`).
+- Une signature ajoutée à `SignaturesArmes` est utilisée en jeu par `Effets` : celles qui attendent la validation de Phil vont dans `TABLE_LOT_9`, que garde `SignaturesArmes.en_jeu` (T9.19 la lève).

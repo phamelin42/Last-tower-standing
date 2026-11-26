@@ -24,6 +24,10 @@ const DESSINS: Array[GDScript] = [
 	preload("res://tools/dessin/dessins_magique.gd"),
 	preload("res://tools/dessin/dessins_siege.gd"),
 	preload("res://tools/dessin/dessins_chaos.gd"),
+	preload("res://tools/dessin/dessins_lot9_tranchant.gd"),
+	preload("res://tools/dessin/dessins_lot9_percant.gd"),
+	preload("res://tools/dessin/dessins_lot9_magique.gd"),
+	preload("res://tools/dessin/dessins_lot9_marques.gd"),
 	preload("res://tools/dessin/dessins_partages.gd"),
 ]
 const ECHELLE_CONTACT: int = 4
@@ -56,6 +60,17 @@ const PROJECTILES: PackedStringArray = [
 	"sablier",
 	"eclat_miroir",
 	"engrenage",
+	"couperet",
+	"rasoir",
+	"serpe",
+	"hache",
+	"javeline",
+	"fleche_marquante",
+	"lance_epineuse",
+	"siphon",
+	"prisme",
+	"lueur",
+	"vasque",
 ]
 
 

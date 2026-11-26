@@ -123,6 +123,27 @@ static func _couverture(nom: String, p: Vector2, c: Vector2, t: Vector2i) -> flo
 				(d.y + r) * 0.38 - absf(d.x - d.y * 0.15), minf(d.y + r, r * 0.3 - d.y)
 			)
 			return maxf(f, langue)
+		"cible_brisee":
+			var trou: bool = absf(fposmod(atan2(d.y, d.x) + PI, TAU) - 4.2) < 0.45
+			var bague: float = minf(r - d.length(), d.length() - (r - 4.5))
+			return maxf(minf(bague, -1.0 if trou else 1.0), 3.2 - d.length())
+		"voile":
+			var cercle: float = minf(r - d.length(), d.length() - (r - 3.5))
+			return maxf(cercle, minf(2.2 - absf(d.x - d.y) * 0.7, r - d.length()))
+		"recul":
+			var chevrons: float = -1.0
+			for decalage: float in [-7.0, 5.0]:
+				var arete: float = 2.6 - absf((d.x - decalage) + absf(d.y) * 0.9 - r * 0.45)
+				chevrons = maxf(chevrons, minf(arete, r * 0.8 - absf(d.y)))
+			return chevrons
+		"siphon":
+			var goutte: float = 4.4 - (d - Vector2(0.0, -r * 0.5)).length()
+			var coupe: float = minf(
+				minf(r * 0.7 - d.length(), d.length() - (r * 0.7 - 3.5)), d.y - r * 0.05
+			)
+			return maxf(goutte, coupe)
+		"cristal":
+			return minf(r - absf(d.x) * 1.9 - absf(d.y) * 0.8, 6.0)
 		"soin":
 			var croix: float = minf(
 				r * 0.55 - maxf(absf(d.x), absf(d.y - r * 0.3)),
