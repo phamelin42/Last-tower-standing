@@ -267,7 +267,7 @@ func test_le_cadre_de_la_vue_suit_le_zoom_et_le_decalage() -> void:
 
 
 func test_une_vignette_par_autre_joueur_avec_son_nom_et_sa_barre_de_pv() -> void:
-	verifier(Minicarte.TAILLE_TEXTE >= 16, "texte de 16 px au moins")
+	verifier(Minicarte.TEXTE_VIGNETTE >= 16, "texte de 16 px au moins")
 	for nombre: int in [1, 2, 3, 4, 5, 6, 7, 8]:
 		var m := Minicarte.new()
 		m.configurer(_donnees)

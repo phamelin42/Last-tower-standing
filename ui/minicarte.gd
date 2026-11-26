@@ -32,7 +32,7 @@ const COTE_DENSITE := 16
 const COTE_DENSITE_VIGNETTE := 8
 const COTE_APERCU := 28.0
 const HAUTEUR_BARRE := 5.0
-const TAILLE_TEXTE := 16
+const TEXTE_VIGNETTE: int = ThemeJeu.TAILLES["petit"]
 ## Classes de couleur : les quatre paliers (jaune, rouge, violet, bleu), puis le convoi et le boss.
 const CLASSE_CONVOI := 4
 const CLASSE_BOSS := 5
@@ -388,7 +388,7 @@ func _dessiner_vignette(v: Dictionary) -> void:
 		_nom_court(str(v["nom"]), largeur_texte, police),
 		HORIZONTAL_ALIGNMENT_LEFT,
 		largeur_texte,
-		TAILLE_TEXTE,
+		TEXTE_VIGNETTE,
 		couleur_texte
 	)
 	var barre := Rect2(
@@ -409,10 +409,10 @@ func _nom_court(nom: String, largeur: float, police: Font) -> String:
 	if _noms_courts.has(cle):
 		return _noms_courts[cle]
 	var court := nom
-	if police.get_string_size(nom, 0, -1, TAILLE_TEXTE).x > largeur:
+	if police.get_string_size(nom, 0, -1, TEXTE_VIGNETTE).x > largeur:
 		while (
 			court.length() > 1
-			and police.get_string_size(court + "…", 0, -1, TAILLE_TEXTE).x > largeur
+			and police.get_string_size(court + "…", 0, -1, TEXTE_VIGNETTE).x > largeur
 		):
 			court = court.substr(0, court.length() - 1)
 		court += "…"
