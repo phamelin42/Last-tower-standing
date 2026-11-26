@@ -162,7 +162,7 @@
   "id": "aieul_de_fer",
   "nom": "Aïeul de fer",
   "armure": "boss",
-  "pv": 60000,
+  "pv": 35000,
   "vitesse": 52.5,
   "degats": 60,
   "portee_attaque": 80,
