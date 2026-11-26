@@ -1,6 +1,6 @@
 class_name Etincelles
 extends RefCounted
-## Les étincelles d'un impact : une petite salve de carrés nets (3-4 px, filtre `nearest`), vers
+## Les étincelles d'un impact : une petite salve de carrés nets (6 px, filtre `nearest`), vers
 ## l'extérieur, à la couleur de l'arme. Des `CPUParticles2D` en salve unique (`one_shot`, relancée
 ## par `restart()`), posées chez `hote` et réutilisées. Une fois `PLAFOND` émetteurs en vol, une
 ## salve de plus est perdue : jamais de nœud créé de plus. La graine suit le compte des salves, donc
@@ -11,10 +11,12 @@ const PLAFOND: int = 32
 const NOMBRE_COUP: int = 4
 const NOMBRE_ZONE: int = 8
 const VIE: float = 0.25
-const COTE: int = 4
+const COTE: int = 6
 const VITESSE_MIN: float = 90.0
 const VITESSE_MAX: float = 190.0
-const ECHELLE_MIN: float = 0.75
+const ECHELLE_MIN: float = 1.0
+## Part de blanc mêlée à la couleur de l'arme, pour se lire sur le décor.
+const ECLAIRCISSEMENT: float = 0.3
 const GRAINE: int = 20261126
 ## Une étincelle n'est pas plus opaque qu'un effet : la tour reste lisible.
 const ALPHA_MAX: float = 0.85
@@ -58,7 +60,7 @@ func lancer(ou: Vector2, nombre: int, couleur: Color, age: float = 0.0) -> void:
 	var particules: CPUParticles2D = emetteur["n"]
 	particules.position = ou
 	particules.amount = nombre
-	particules.color = Color(couleur, ALPHA_MAX)
+	particules.color = Color(couleur.lerp(Color.WHITE, ECLAIRCISSEMENT), ALPHA_MAX)
 	_nb_salves += 1
 	particules.seed = GRAINE + _nb_salves
 	particules.restart()

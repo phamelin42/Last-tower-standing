@@ -296,16 +296,21 @@ func test_un_coup_simple_lance_quatre_etincelles_et_une_zone_huit() -> void:
 			verifier_egal(actifs[0].amount, 8, "type %d : 8 pour une zone" % type_degats)
 
 
-func test_les_etincelles_prennent_la_couleur_de_l_arme_et_partent_de_l_impact() -> void:
+func test_les_etincelles_sont_des_carres_de_6_px_a_la_couleur_de_l_arme_eclaircie() -> void:
+	verifier_egal(Etincelles.COTE, 6)
+	verifier_proche(Etincelles.ECLAIRCISSEMENT, 0.3, 0.0001)
 	for type_degats: int in TYPES:
 		_effets.vider()
 		_effets.ajouter(_evenement("impact", type_degats, Vector2.ZERO, ARRIVEE, 0.0))
 		var salve: CPUParticles2D = _effets.etincelles_actives()[0]
-		var arme: Color = Effets.COULEURS[type_degats]
-		verifier_proche(salve.color.r, arme.r, 0.001, "rouge du type %d" % type_degats)
-		verifier_proche(salve.color.b, arme.b, 0.001, "bleu du type %d" % type_degats)
+		var voulue: Color = Effets.COULEURS[type_degats].lerp(Color.WHITE, 0.3)
+		verifier_proche(salve.color.r, voulue.r, 0.001, "rouge du type %d" % type_degats)
+		verifier_proche(salve.color.g, voulue.g, 0.001, "vert du type %d" % type_degats)
+		verifier_proche(salve.color.b, voulue.b, 0.001, "bleu du type %d" % type_degats)
 		verifier(salve.color.a <= Effets.ALPHA_MAX + 0.0001, "pas plus opaque qu'un effet")
 		verifier_egal(salve.position, Apparence.vers_pixels(ARRIVEE), "part de l'impact")
+		verifier_egal(salve.texture.get_width(), 6, "texture de 6 px")
+		verifier_proche(salve.scale_amount_min, 1.0, 0.0001, "pas de réduction : 6 px")
 
 
 func test_les_etincelles_partent_quand_l_impact_devient_visible() -> void:
