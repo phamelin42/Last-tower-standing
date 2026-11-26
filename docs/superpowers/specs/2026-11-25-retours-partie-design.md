@@ -326,8 +326,8 @@ version publique ; le « type » est le type de dégâts, comme dans la boutique
   dans le temps, bombe à retardement. Les épines deviennent aussi un second type de dégâts
   possible pour une arme, comme dans la map.
 - **Précisions de Phil (26/11/2026)** :
-  - les armes « selon les PV maximum » ajoutent un ratio des PV maximum de **l'ennemi touché**, à
-    chaque coup (fortes contre les boss, c'est voulu) ;
+  - les armes « selon les PV maximum » ajoutent un ratio des PV maximum de **la tour**, comme les
+    armes de mana avec la mana maximale ;
   - les alliés invoqués sont **invulnérables et ignorés** des ennemis, qui continuent vers la
     tour ; 64 au plus, ils disparaissent à la fin de la manche ;
   - le critère de la commune qui change de palier s'applique partout, même s'il laisse un piège

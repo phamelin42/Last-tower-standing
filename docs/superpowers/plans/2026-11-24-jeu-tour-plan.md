@@ -1516,7 +1516,7 @@ func id_regarde() -> int                # -1 si aucune
 - **M2** malédiction, en deux statuts (dégâts de l'ennemi réduits, chances de toucher réduites) ;
 - **M3** repoussement ;
 - **M4** siphon de mana et mana au coup (le siphon vaut aussi pour la vie : même code, deux ressources) ;
-- **M5** dégâts selon les PV maximum de l'ennemi touché _(Phil, 26/11/2026)_, le nombre d'exemplaires ou les améliorations possédées ;
+- **M5** dégâts selon les PV maximum de la tour, le nombre d'exemplaires ou les améliorations possédées ;
 - **M6** invocation d'alliés temporaires ;
 - **M7** tir tournant ;
 - **M8** zone posée qui inflige ses dégâts dans la durée, et **M9** bombe à retardement ;
@@ -1572,17 +1572,17 @@ Les 47 à ajouter sont les 3 améliorations de mana de T8.7 (déjà comptées da
 
 **Répartition imposée des mécaniques sur les 45 nouvelles armes** (minimum par type ; le reste est laissé à la tâche) : chaque mécanique est portée par au moins une arme du catalogue, et par type :
 
-| Type      | Mécaniques imposées parmi les 9 nouvelles                                                                                                        |
-| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| tranchant | M1 (vulnérabilité tranchante), M2 (`malediction_toucher`), M7 (tir tournant), M10 (épines)                                                       |
-| perçant   | M1 (vulnérabilité perçante), M3 (repoussement), M10 (épines)                                                                                     |
-| magique   | M1 (vulnérabilité magique), M4 (`mana_au_coup`, siphon de mana), M7 (tir tournant), M8 (zone posée)                                              |
-| siège     | M1 (vulnérabilité de siège), M5 (PV maximum de l'ennemi touché ; améliorations possédées), M8 (zone posée, deux armes), M9 (bombe à retardement) |
-| chaos     | M1 (vulnérabilité de chaos), M2 (`malediction_degats`), M4 (siphon de vie), M5 (exemplaires), M6 (invocation, deux armes)                        |
+| Type      | Mécaniques imposées parmi les 9 nouvelles                                                                                                |
+| --------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| tranchant | M1 (vulnérabilité tranchante), M2 (`malediction_toucher`), M7 (tir tournant), M10 (épines)                                               |
+| perçant   | M1 (vulnérabilité perçante), M3 (repoussement), M10 (épines)                                                                             |
+| magique   | M1 (vulnérabilité magique), M4 (`mana_au_coup`, siphon de mana), M7 (tir tournant), M8 (zone posée)                                      |
+| siège     | M1 (vulnérabilité de siège), M5 (PV maximum de la tour ; améliorations possédées), M8 (zone posée, deux armes), M9 (bombe à retardement) |
+| chaos     | M1 (vulnérabilité de chaos), M2 (`malediction_degats`), M4 (siphon de vie), M5 (exemplaires), M6 (invocation, deux armes)                |
 
 ## Choix du plan faute d'information dans la conception (à relire par Phil)
 
-1. **PV maximum** (M5) : ceux de **l'ennemi touché** (décision de Phil du 26/11/2026) : l'arme ajoute `ratio × PV maximum de la cible` à chaque coup, avant l'efficacité de type et l'armure, hors du plafond `armes.bonus_selon_stat_max` ; elle est très forte contre les boss, c'est voulu, et son ratio est un chiffre de `data/` réglé par T9.22. L'amélioration de la famille PV maximum (`degats_par_pv_max_tour`) reste liée aux PV maximum de la tour.
+1. **PV maximum** (M5) : ceux de **la tour**, comme la mana maximale du lot 8 (`degats_par_mana_max`) ; pas ceux de la cible (confirmé par Phil le 26/11/2026).
 2. **Alliés** (M6) : durée limitée, **sans PV**, ignorés par les ennemis ; ils marchent vers l'ennemi le plus proche dans un rayon de garde et l'attaquent avec un ratio des dégâts de l'arme invocatrice (types de dégâts, bonus et efficacité de cette arme). Plafond global par arène. Les 6 modèles du pack servent déjà aux 24 ennemis (4 couleurs chacun) : les alliés prennent le guerrier ou l'archer **avec une teinte et un anneau au sol** qu'aucun ennemi n'a (T9.19).
 3. **Fin de manche** : alliés, zones posées et bombes à retardement **disparaissent** avec la manche ; mines et pièges gardent leur règle actuelle.
 4. **Siphon** (M4) : un seul statut `siphon` à deux ressources (`mana`, `vie`), plutôt que deux statuts ; il compte dans les 12 statuts d'événement sur 16 possibles.
@@ -1631,7 +1631,7 @@ armes.json — nouveaux « kind » de statut (Donnees._kinds_statuts)
   siphon              {ressource: "mana" | "vie", par_seconde: > 0, duree: > 0}
   mana_au_coup        {valeur: > 0}                     # mana rendue à la tour à chaque coup qui touche
 armes.json — champs facultatifs d'une arme
-  degats_par_pv_max: ratio ≥ 0                          # + ratio × PV maximum de l'ennemi touché, à chaque coup
+  degats_par_pv_max: ratio ≥ 0                          # dégâts de base + ratio × PV maximum de la tour
   degats_par_exemplaire: ratio ≥ 0                      # + ratio × dégâts de base par exemplaire de plus
   degats_par_amelioration: {stat: une stat d'amélioration, ratio ≥ 0}   # + ratio × dégâts de base par amélioration possédée ayant cette stat
   type_secondaire: "epines"
@@ -1645,7 +1645,7 @@ ameliorations.json — champ obligatoire « famille » (Types.FAMILLES_AMELIORAT
   degats_contre_etat {etat: "etourdi" | "empoisonne" | "ralenti"}
   epines_degats · epines_croissantes · epines_premier_coup · epines_soin · epines_reduction
   epines_statut {statut: "poison" | "brulure" | "givre" | "etourdissement"}
-  pv_max_mult · soin_pv_manquants · degats_par_pv_max_tour (par tranche de 1 000 PV maximum de la tour) · resurrection
+  pv_max_mult · soin_pv_manquants · degats_par_pv_max (par tranche de 1 000 PV maximum) · resurrection
   regen_croissante · soin_periodique {tous_les, ratio}
   armure_croissante · riposte_statut {statut: "givre" | "poison"}
   mana_max_mult · mana_rupture_etourdit {rayon, duree} · degats_tant_que_mana · reduction_tant_que_mana
@@ -1768,13 +1768,13 @@ ameliorations.json — champ obligatoire « famille » (Types.FAMILLES_AMELIORAT
 
 ### Task 9.5 : Dégâts selon PV maximum, exemplaires, améliorations possédées ; épines en second type (M5, M10) — `sonnet`
 
-- [ ] **Objectif :** trois champs d'arme qui ajoutent aux dégâts (`degats_par_pv_max × PV maximum de l'ennemi touché`, calculé à chaque coup sur la cible, hors du plafond ci-dessous ; `degats_par_exemplaire × (exemplaires − 1) × dégâts de base` ; `ratio × nombre d'améliorations possédées portant la stat × dégâts de base`, une amélioration achetée n fois compte n fois), **le bonus d'exemplaires et d'améliorations borné** par `partie.json` `armes.bonus_selon_stat_max` (multiple des dégâts de base), les trois s'ajoutant à `degats_par_mana_max` de T8.7 avant critique et bonus de type. `type_secondaire: "epines"` : les dégâts de l'arme sont multipliés par `StatsTour.facteur_epines(temps)` (T9.2). L'estimation de rendement de `sim/equilibrage.gd` lit ces champs avec les valeurs de référence.
+- [ ] **Objectif :** trois champs d'arme qui ajoutent aux dégâts de base (`degats_par_pv_max × PV maximum de la tour` ; `degats_par_exemplaire × (exemplaires − 1) × dégâts de base` ; `ratio × nombre d'améliorations possédées portant la stat × dégâts de base`, une amélioration achetée n fois compte n fois), **le bonus total borné** par `partie.json` `armes.bonus_selon_stat_max` (multiple des dégâts de base), les trois s'ajoutant à `degats_par_mana_max` de T8.7 avant critique et bonus de type. `type_secondaire: "epines"` : les dégâts de l'arme sont multipliés par `StatsTour.facteur_epines(temps)` (T9.2). L'estimation de rendement de `sim/equilibrage.gd` lit ces champs avec les valeurs de référence.
 - **Conception :** §6.13, « Choix du plan » 1 et 6.
-- **Fichiers :** `sim/tir.gd` (`degats_de_base`), `sim/inventaire.gd` (`exemplaires(id)`, `compter_stat(stat)`), `sim/arene.gd` (passe le temps au contexte ; le coup lit `Ennemis.pv_max[i]` de sa cible), `sim/equilibrage.gd` (`REFERENCE_*`, `dps_estime`) ; tests `test_tir_degats_selon.gd` (nouveau), `test_inventaire.gd`, `test_equilibrage.gd`.
+- **Fichiers :** `sim/tir.gd` (`degats_de_base`), `sim/inventaire.gd` (`exemplaires(id)`, `compter_stat(stat)`), `sim/arene.gd` (passe PV maximum et temps au contexte), `sim/equilibrage.gd` (`REFERENCE_*`, `dps_estime`) ; tests `test_tir_degats_selon.gd` (nouveau), `test_inventaire.gd`, `test_equilibrage.gd`.
 - **Lire :** `sim/tir.gd` `avancer_arme`, `_creer` et l'usage de `degats_par_mana_max` (T8.7) ; `sim/inventaire.gd` ; `sim/equilibrage.gd` en entier (52 lignes).
-- **Interfaces :** produit `Tir.degats_de_base(arme: Dictionary, stats: StatsTour, exemplaires: int, ameliorations_par_stat: Dictionary, temps_s: float) -> float` et `Tir.bonus_selon_cible(arme: Dictionary, pv_max_cible: float) -> float` (fonctions pures, testées seules), `Inventaire.exemplaires(id_arme: String) -> int`, `Inventaire.compter_stat(stat: String) -> int`.
+- **Interfaces :** produit `Tir.degats_de_base(arme: Dictionary, stats: StatsTour, pv_max_tour: float, exemplaires: int, ameliorations_par_stat: Dictionary, temps_s: float) -> float` (fonction pure, testée seule), `Inventaire.exemplaires(id_arme: String) -> int`, `Inventaire.compter_stat(stat: String) -> int`, `Contexte.pv_max_tour`.
 - **Tests :**
-  - `test_degats_par_pv_max_ajoute_ratio_fois_les_pv_maximum_de_l_ennemi_touche` : 100 de base, ratio 0,01 : 110 contre un ennemi de 1 000 PV maximum, 600 contre un boss de 50 000 ; le même tir sur deux cibles donne deux dégâts différents ; les PV restants de la cible ne comptent pas.
+  - `test_degats_par_pv_max_ajoute_ratio_fois_les_pv_maximum_de_la_tour` : 100 de base, ratio 0,01, PV maximum 1 000 → 110.
   - `test_degats_par_exemplaire_croit_avec_chaque_copie` : 1, 2, 5 copies ; une seule copie : aucun bonus.
   - `test_degats_par_amelioration_compte_chaque_exemplaire_acheté` : 0, 1, 3 améliorations portant la stat ; une amélioration d'une autre stat ne compte pas.
   - `test_le_bonus_total_est_borne_meme_avec_255_exemplaires_et_toutes_les_ameliorations` ; **Review Focus 5**.
@@ -1882,8 +1882,8 @@ Règle commune aux trois tâches : **chaque nouvelle stat est son propre facteu
 
 ### Task 9.11 : Améliorations d'épines, de PV, de régénération et d'armure (19) — `sonnet`
 
-- [ ] **Objectif :** consommer les stats d'épines, de PV, de régénération et d'armure, puis écrire **19 améliorations** : `epines` +9 (`epines_degats` ×2, `epines_croissantes`, `epines_premier_coup`, `epines_soin`, `epines_reduction`, `epines_statut` pour poison, brûlure, givre, étourdissement), `pv_max` +5 (`pv_max_mult` ×2, `soin_pv_manquants`, `degats_par_pv_max_tour`, `resurrection`), `regeneration` +2 (`regen_croissante`, `soin_periodique`), `armure` +3 (`armure_croissante`, `riposte_statut` givre et poison).
-      Règles : les épines renvoient `facteur_epines(temps)` × le coup reçu (au corps à corps seulement, comme aujourd'hui) ; `epines_premier_coup` ajoute son ratio au **premier** renvoi sur chaque ennemi ; `epines_soin` rend à la tour ce ratio des dégâts renvoyés ; `epines_reduction` réduit les dégâts de corps à corps reçus **avant** l'armure et la mana (plafond 0,5) ; `epines_statut` et `riposte_statut` posent le statut sur l'attaquant qui touche ; `pv_max_mult` multiplie le maximum (un maximum qui monte soigne du même montant) ; `soin_pv_manquants` rend ce ratio des PV manquants au début de chaque manche ; `degats_par_pv_max_tour` est un facteur de `Tir.facteur_degats` par tranche de 1 000 PV maximum ; `resurrection` relève la tour à ce ratio de son maximum **une fois par partie** ; `regen_croissante` et `armure_croissante` suivent la règle de croissance bornée ; `soin_periodique` rend `ratio × PV maximum` tous les `tous_les` secondes.
+- [ ] **Objectif :** consommer les stats d'épines, de PV, de régénération et d'armure, puis écrire **19 améliorations** : `epines` +9 (`epines_degats` ×2, `epines_croissantes`, `epines_premier_coup`, `epines_soin`, `epines_reduction`, `epines_statut` pour poison, brûlure, givre, étourdissement), `pv_max` +5 (`pv_max_mult` ×2, `soin_pv_manquants`, `degats_par_pv_max`, `resurrection`), `regeneration` +2 (`regen_croissante`, `soin_periodique`), `armure` +3 (`armure_croissante`, `riposte_statut` givre et poison).
+      Règles : les épines renvoient `facteur_epines(temps)` × le coup reçu (au corps à corps seulement, comme aujourd'hui) ; `epines_premier_coup` ajoute son ratio au **premier** renvoi sur chaque ennemi ; `epines_soin` rend à la tour ce ratio des dégâts renvoyés ; `epines_reduction` réduit les dégâts de corps à corps reçus **avant** l'armure et la mana (plafond 0,5) ; `epines_statut` et `riposte_statut` posent le statut sur l'attaquant qui touche ; `pv_max_mult` multiplie le maximum (un maximum qui monte soigne du même montant) ; `soin_pv_manquants` rend ce ratio des PV manquants au début de chaque manche ; `degats_par_pv_max` est un facteur de `Tir.facteur_degats` par tranche de 1 000 PV maximum ; `resurrection` relève la tour à ce ratio de son maximum **une fois par partie** ; `regen_croissante` et `armure_croissante` suivent la règle de croissance bornée ; `soin_periodique` rend `ratio × PV maximum` tous les `tous_les` secondes.
 - **Conception :** §6.13, comparatif §7.2 (familles « épines », « PV », « régénération », « armure »).
 - **Fichiers :** `sim/arene.gd` (`_pas_tour_et_ennemis`, `_pv_max`, résurrection, début de manche), `sim/ennemis.gd` (drapeau « déjà renvoyé » par ennemi), `sim/tir.gd` (`facteur_degats`), `sim/inventaire.gd`, `sim/stats_tour.gd`, `data/ameliorations.json`, `visuels/images_offres.gd` (section des améliorations de survie), `tests/unitaires/test_catalogue_ameliorations.gd`, `test_arene_tour.gd`, `test_ennemis_statuts.gd`.
 - **Lire :** `sim/arene.gd` `_pas_tour_et_ennemis`, `_pv_borne`, `est_detruite` ; la règle des épines dans `ui/description_offre.gd` (`grep -n epines`).
@@ -1891,7 +1891,7 @@ Règle commune aux trois tâches : **chaque nouvelle stat est son propre facteu
   - `test_les_epines_renvoient_le_facteur_d_epines_et_toujours_seulement_le_corps_a_corps` ; `test_epines_premier_coup_ne_joue_qu_une_fois_par_ennemi` ; `test_epines_soin_rend_le_ratio_des_degats_renvoyes_sans_depasser_le_maximum`.
   - `test_epines_reduction_passe_avant_l_armure_et_la_mana_et_est_plafonnee` ; `test_chaque_statut_d_epines_et_de_riposte_est_pose_sur_l_attaquant` : en boucle sur les 4 et les 2.
   - `test_pv_max_mult_soigne_du_montant_gagne_et_un_maximum_qui_baisse_ne_tue_pas` ; `test_soin_pv_manquants_joue_au_debut_de_chaque_manche`.
-  - `test_degats_par_pv_max_tour_ajoute_son_ratio_par_tranche_de_mille_pv_de_la_tour`.
+  - `test_degats_par_pv_max_ajoute_son_ratio_par_tranche_de_mille_pv`.
   - **Review Focus 5 :** `test_la_resurrection_ne_joue_qu_une_fois_par_partie_meme_avec_deux_exemplaires` et `test_la_resurrection_ne_joue_pas_quand_la_tour_survit` ; `test_regen_croissante_et_armure_croissante_s_arretent_a_leur_max`.
   - `test_soin_periodique_rend_le_ratio_du_maximum_a_chaque_periode` ; `test_toute_nouvelle_stat_de_survie_est_neutre_sans_amelioration` (parties identiques à avant, empreinte de vue égale).
   - `test_chaque_famille_terminee_atteint_sa_cible` ; images et familles comme T9.10.
