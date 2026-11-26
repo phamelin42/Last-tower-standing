@@ -1,11 +1,8 @@
 extends CasDeTest
 ## Le catalogue de sons : chaque identifiant a un fichier attendu sous `assets/sons/`, et un
 ## fichier absent devient un silence de substitution : le jeu reste jouable sans le son.
-## Chaque type de dégâts a son impact. Chaque son de tir d'arme désigne une arme de
-## `data/armes.json` et les 30 armes du lot 8 gardent le leur ; une arme du lot 9 entre dans les
-## données avant son son (T9.20) et se fait entendre d'ici là par le son « tir ».
-
-const ArmesLot8 := preload("res://tests/unitaires/armes_lot_8.gd")
+## Chaque type de dégâts a son impact. Chaque arme de `data/armes.json` a son son de tir, et
+## la liste des sons de tir est exactement celle des données.
 
 ## Le pack n'a aucune boucle de fond : l'ambiance reste un silence de substitution.
 const SANS_FICHIER: Array[String] = [CatalogueSons.AMBIANCE]
@@ -86,54 +83,11 @@ func _origines() -> Dictionary:
 
 func _ids_a_fichier() -> PackedStringArray:
 	var ids: PackedStringArray = []
-	for id: String in CatalogueSons.ids_armes():
+	for id: String in _ids_armes():
 		ids.append(CatalogueSons.id_tir(id))
 	for type: int in TYPES_DEGATS.size():
 		ids.append(CatalogueSons.id_impact(type))
 	return ids
-
-
-func test_chaque_son_de_tir_d_arme_a_son_fichier() -> void:
-	for id: String in CatalogueSons.ids_armes():
-		var son: String = CatalogueSons.id_tir(id)
-		verifier_egal(son, "tir_" + id)
-		verifier(CatalogueSons.tous().has(son), "%s absent du catalogue" % son)
-		verifier_faux(CatalogueSons.est_substitution(son), "%s : fichier manquant" % son)
-		var octets: int = FileAccess.get_file_as_bytes(CatalogueSons.chemin(son)).size()
-		verifier(octets > 2000, "%s : fichier vide ou presque (%d octets)" % [son, octets])
-
-
-func test_une_arme_sans_son_propre_retombe_sur_le_son_tir_qui_a_son_fichier() -> void:
-	verifier_faux(CatalogueSons.est_substitution(CatalogueSons.TIR), "le repli « tir » s'entend")
-	var propres: PackedStringArray = CatalogueSons.ids_armes()
-	for id: String in _ids_armes():
-		if not propres.has(id):
-			verifier_egal(CatalogueSons.id_tir(id), CatalogueSons.TIR, "repli de %s" % id)
-
-
-func test_deux_armes_n_ont_jamais_le_meme_fichier() -> void:
-	var origines: Dictionary = _origines()
-	var ids: PackedStringArray = CatalogueSons.ids_armes()
-	for i: int in ids.size():
-		for j: int in range(i + 1, ids.size()):
-			var a: String = CatalogueSons.id_tir(ids[i])
-			var b: String = CatalogueSons.id_tir(ids[j])
-			verifier(
-				_empreinte(CatalogueSons.chemin(a)) != _empreinte(CatalogueSons.chemin(b)),
-				"%s et %s : même fichier" % [a, b],
-			)
-			verifier(
-				origines.has(a) and origines.has(b) and origines[a] != origines[b],
-				"%s et %s : même fichier d'origine" % [a, b],
-			)
-
-
-func test_chaque_son_est_liste_dans_sources_md() -> void:
-	var origines: Dictionary = _origines()
-	for son: String in _ids_a_fichier():
-		verifier(origines.has(son), "%s absent de SOURCES.md" % son)
-		if origines.has(son):
-			verifier((origines[son]["fichier"] as String).ends_with(".wav"), "%s : origine" % son)
 
 
 func test_aucun_fichier_d_origine_n_est_utilise_deux_fois() -> void:
@@ -187,13 +141,67 @@ func test_chaque_fichier_de_son_pese_moins_de_80_ko() -> void:
 		verifier(octets < TAILLE_MAX_OCTETS, "%s pèse %d octets" % [identifiant, octets])
 
 
-func test_chaque_son_de_tir_designe_une_arme_des_donnees() -> void:
-	var donnees: PackedStringArray = _ids_armes()
+func test_chaque_arme_du_catalogue_a_son_fichier_de_tir() -> void:
+	for id: String in _ids_armes():
+		var son: String = CatalogueSons.id_tir(id)
+		verifier_egal(son, "tir_" + id)
+		verifier(CatalogueSons.tous().has(son), "%s absent du catalogue" % son)
+		verifier_faux(CatalogueSons.est_substitution(son), "%s : fichier manquant" % son)
+		var octets: int = FileAccess.get_file_as_bytes(CatalogueSons.chemin(son)).size()
+		verifier(octets > 2000, "%s : fichier vide ou presque (%d octets)" % [son, octets])
+		var flux: AudioStream = CatalogueSons.flux(son)
+		verifier(flux.get_length() > 0.1, "%s : silence (%f s)" % [son, flux.get_length()])
+
+
+func test_deux_armes_n_ont_jamais_le_meme_fichier_ni_le_meme_fichier_d_origine() -> void:
+	var origines: Dictionary = _origines()
+	var ids: PackedStringArray = _ids_armes()
+	for i: int in ids.size():
+		for j: int in range(i + 1, ids.size()):
+			var a: String = CatalogueSons.id_tir(ids[i])
+			var b: String = CatalogueSons.id_tir(ids[j])
+			verifier(
+				_empreinte(CatalogueSons.chemin(a)) != _empreinte(CatalogueSons.chemin(b)),
+				"%s et %s : même fichier" % [a, b],
+			)
+			verifier(
+				origines.has(a) and origines.has(b) and origines[a] != origines[b],
+				"%s et %s : même fichier d'origine" % [a, b],
+			)
+
+
+func test_un_son_d_impact_n_est_jamais_un_son_de_tir() -> void:
+	var origines: Dictionary = _origines()
+	for type: int in TYPES_DEGATS.size():
+		var impact: String = CatalogueSons.id_impact(type)
+		for id: String in _ids_armes():
+			var tir: String = CatalogueSons.id_tir(id)
+			verifier(
+				_empreinte(CatalogueSons.chemin(impact)) != _empreinte(CatalogueSons.chemin(tir)),
+				"%s et %s : même fichier" % [impact, tir],
+			)
+			verifier(origines[impact] != origines[tir], "%s et %s : même origine" % [impact, tir])
+
+
+func test_chaque_son_est_liste_dans_sources_md() -> void:
+	var origines: Dictionary = _origines()
+	for son: String in _ids_a_fichier():
+		verifier(origines.has(son), "%s absent de SOURCES.md" % son)
+		if origines.has(son):
+			var fichier: String = origines[son]["fichier"]
+			verifier(fichier.ends_with(".wav") or fichier.ends_with(".ogg"), "%s : origine" % son)
+
+
+func test_la_liste_des_sons_de_tir_suit_les_donnees() -> void:
+	var donnees: Array[String] = []
+	for id: String in _ids_armes():
+		donnees.append(id)
+	var catalogue: Array[String] = []
 	for id: String in CatalogueSons.ids_armes():
-		verifier(donnees.has(id), "son de tir orphelin : tir_%s" % id)
-
-
-func test_les_trente_armes_du_lot_8_gardent_leur_son_de_tir() -> void:
-	verifier_egal(ArmesLot8.IDS.size(), 30)
-	for id: String in ArmesLot8.IDS:
-		verifier_egal(CatalogueSons.id_tir(id), "tir_" + id, "son de tir de %s perdu" % id)
+		catalogue.append(id)
+	verifier_egal(catalogue, donnees, "ids_armes() diverge de data/armes.json")
+	var tires: Array[String] = []
+	for son: String in CatalogueSons.tous():
+		if son.begins_with("tir_"):
+			tires.append(son.trim_prefix("tir_"))
+	verifier_egal(tires, donnees, "tous() diverge de data/armes.json")
