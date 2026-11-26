@@ -43,7 +43,7 @@ une donnée pure, déterministe, qui ne dépend que de la partie.
 | `manches_sans_degats_de_suite` | Plus longue série de manches terminées sans que la tour perde de PV  | manches       | compteur remis à zéro au premier coup reçu pendant une manche         |
 | `types_degats_utilises`        | Nombre de types de dégâts différents parmi les armes jamais équipées | types         | ensemble des `type_degats` des armes équipées (`Inventaire`)          |
 | `serie_eliminations_5s`        | Plus grand nombre d'éliminations dans une fenêtre glissante de 5 s   | ennemis       | file des pas d'élimination dans `Arene`, fenêtre de 100 pas           |
-| `armes_equipees_max`           | Plus grand nombre d'emplacements d'armes occupés en même temps       | armes         | `Inventaire.armes.size()` relevé à chaque achat                       |
+| `armes_equipees_max`           | Plus grand nombre d'armes équipées en même temps                     | armes         | `Inventaire.armes.size()` relevé à chaque achat                       |
 | `or_max_detenu`                | Plus grand montant d'or détenu en même temps                         | or            | maximum de l'or du joueur relevé à chaque pas                         |
 | `offres_achetees`              | Nombre d'offres achetées (armes et améliorations, relances exclues)  | offres        | compteur incrémenté par `Boutique.acheter` quand le résultat est `OK` |
 
@@ -63,7 +63,7 @@ chiffre de la map.
 | `a_un_cheveu`         | À un cheveu         | Vainquez le boss après être tombé sous un dixième de vos points de vie. | `victoire` = 1 et `pv_min_ratio` ≤ 0.1        | `victoire`, `pv_min_ratio`          | les deux |
 | `maitre_d_un_element` | Maître d’un élément | Vainquez le boss avec des armes d’un seul type de dégâts.               | `victoire` = 1 et `types_degats_utilises` ≤ 1 | `victoire`, `types_degats_utilises` | les deux |
 | `fauchage`            | Fauchage            | Éliminez cinquante ennemis en cinq secondes.                            | `serie_eliminations_5s` ≥ 50                  | `serie_eliminations_5s`             | les deux |
-| `arsenal_complet`     | Arsenal complet     | Remplissez les huit emplacements d’armes.                               | `armes_equipees_max` ≥ 8                      | `armes_equipees_max`                | les deux |
+| `arsenal_complet`     | Arsenal complet     | Équipez huit armes en même temps.                                       | `armes_equipees_max` ≥ 8                      | `armes_equipees_max`                | les deux |
 | `coffre_plein`        | Coffre plein        | Détenez vingt mille pièces d’or en même temps.                          | `or_max_detenu` ≥ 20000                       | `or_max_detenu`                     | les deux |
 | `haie_d_epines`       | Haie d’épines       | Renvoyez cinquante mille points de dégâts avec vos épines.              | `degats_epines` ≥ 50000                       | `degats_epines`                     | les deux |
 | `main_serree`         | Main serrée         | Vainquez le boss en achetant au plus douze offres.                      | `victoire` = 1 et `offres_achetees` ≤ 12      | `victoire`, `offres_achetees`       | les deux |
