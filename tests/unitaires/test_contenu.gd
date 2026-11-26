@@ -32,7 +32,11 @@ const STATS: Array[String] = [
 	"bonus_elim",
 	"relance_gratuite",
 	"marche_noir",
+	"mana_max",
+	"mana_regen",
 ]
+## Mana maximale de référence pour comparer le rendement des armes de mana aux autres (D12).
+const MANA_MAX_REFERENCE := 100.0
 const ARMURES: Array[String] = ["légère", "moyenne", "lourde", "fortifiée", "aucune"]
 const LONGUEUR_MAX := 90
 ## Or de départ et revenu par période de 10 s au début de la partie (spec §5.2).
@@ -108,7 +112,7 @@ func _mediane(valeurs: Array[float]) -> float:
 func _moyenne_rendement(liste: Array[Dictionary]) -> float:
 	var somme := 0.0
 	for arme in liste:
-		somme += Equilibrage.rendement(arme)
+		somme += Equilibrage.rendement(arme, MANA_MAX_REFERENCE)
 	return somme / float(liste.size())
 
 
@@ -405,10 +409,10 @@ func test_aucune_arme_ne_sort_de_l_intervalle_un_quart_quatre_fois_la_mediane_du
 		var du_type := _armes_du_type(type_degats)
 		var rendements: Array[float] = []
 		for arme in du_type:
-			rendements.append(Equilibrage.rendement(arme))
+			rendements.append(Equilibrage.rendement(arme, MANA_MAX_REFERENCE))
 		var mediane := _mediane(rendements)
 		for arme in du_type:
-			var r := Equilibrage.rendement(arme)
+			var r := Equilibrage.rendement(arme, MANA_MAX_REFERENCE)
 			verifier(
 				r <= 4.0 * mediane, "%s trop puissante (%.3f / %.3f)" % [arme["id"], r, mediane]
 			)

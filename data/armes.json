@@ -271,6 +271,7 @@
   "recharge": 0.9,
   "portee": 750,
   "ciblage": "plus_proche",
+  "degats_par_mana_max": 0.08,
   "effets": [
    {
     "kind": "cible_unique"
@@ -312,6 +313,7 @@
   "recharge": 1.4,
   "portee": 1000,
   "ciblage": "plus_proche",
+  "degats_par_mana_max": 0.2,
   "effets": [
    {
     "kind": "rebond",
@@ -357,6 +359,7 @@
   "recharge": 2.5,
   "portee": 750,
   "ciblage": "plus_proche",
+  "degats_par_mana_max": 0.6,
   "effets": [
    {
     "kind": "onde",
@@ -383,6 +386,7 @@
   "recharge": 2.0,
   "portee": 1250,
   "ciblage": "plus_fort",
+  "degats_par_mana_max": 0.9,
   "effets": [
    {
     "kind": "rebond",

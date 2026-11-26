@@ -581,5 +581,47 @@
     "valeur": 1
    }
   ]
+ },
+ {
+  "id": "fiole_d_azur",
+  "nom": "Fiole d’azur",
+  "description": "Une fiole d’eau claire où dort une réserve de mana.",
+  "rarete": "commune",
+  "prix": 80,
+  "categorie": "amelioration",
+  "effets": [
+   {
+    "stat": "mana_max",
+    "valeur": 60
+   }
+  ]
+ },
+ {
+  "id": "cristal_de_reserve",
+  "nom": "Cristal de réserve",
+  "description": "Un cristal taillé qui emmagasine bien plus de mana.",
+  "rarete": "peu_commune",
+  "prix": 240,
+  "categorie": "amelioration",
+  "effets": [
+   {
+    "stat": "mana_max",
+    "valeur": 150
+   }
+  ]
+ },
+ {
+  "id": "source_vive",
+  "nom": "Source vive",
+  "description": "Une source qui rend la mana plus vite après chaque coup.",
+  "rarete": "commune",
+  "prix": 90,
+  "categorie": "amelioration",
+  "effets": [
+   {
+    "stat": "mana_regen",
+    "valeur": 1.5
+   }
+  ]
  }
 ]
