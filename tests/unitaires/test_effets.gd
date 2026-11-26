@@ -132,7 +132,9 @@ func test_chaque_statut_laisse_sa_marque_ou_retombe_sur_le_rendu_par_type() -> v
 			var sans_statut: PackedStringArray = _formes_de_l_impact(type_degats, "")
 			var formes: PackedStringArray = _formes_de_l_impact(type_degats, statut)
 			if not Effets.FORMES_STATUT.has(statut):
-				verifier_egal(formes, sans_statut, "%s retombe sur le type %d" % [statut, type_degats])
+				verifier_egal(
+					formes, sans_statut, "%s retombe sur le type %d" % [statut, type_degats]
+				)
 				continue
 			var attendue: String = String(Effets.FORMES_STATUT[statut])
 			verifier(formes.has(attendue), "%s dessine %s" % [statut, attendue])
