@@ -5,6 +5,7 @@ extends SourceVue
 ## arène) qui n'ont pas besoin d'une partie réelle.
 
 var appels: Array[Dictionary] = []
+var _dernier_bilan: Dictionary = {}
 
 var _id_local: int = 1
 var _cible: int = -1
@@ -23,6 +24,15 @@ func emettre_arene(vue: VueArene) -> void:
 
 func emettre_globale(vue: VueGlobale) -> void:
 	vue_globale_recue.emit(vue)
+
+
+func emettre_bilan(bilan: Dictionary) -> void:
+	_dernier_bilan = bilan
+	bilan_recu.emit(bilan)
+
+
+func bilan() -> Dictionary:
+	return _dernier_bilan.duplicate()
 
 
 func emettre_resultat(genre: String, code: int) -> void:

@@ -14,7 +14,15 @@ extends RefCounted
 ## `MAX_EVENEMENTS` sont abandonnés (effets visuels seulement).
 
 enum Msg {
-	BONJOUR = 1, ETAT_ARENE, ETAT_GLOBAL, INTENTION, SALON, REFUS, RESULTAT, ETAT_ARENE_REGARDEE
+	BONJOUR = 1,
+	ETAT_ARENE,
+	ETAT_GLOBAL,
+	INTENTION,
+	SALON,
+	REFUS,
+	RESULTAT,
+	ETAT_ARENE_REGARDEE,
+	BILAN
 }
 enum Intention {
 	ACHETER = 1, RELANCER, VENDRE, MARCHE_NOIR, OBSERVER, SANS_FIN, QUITTER, PRET, OPTIONS, REGARDER
@@ -31,7 +39,8 @@ enum Intention {
 ## 7 : alliés (5 octets), zones posées (7) et bombes (6) dans l'état d'arène, trois compteurs de
 ##     plus ; les genres et statuts d'événement du lot 9 (4 bits chacun, format inchangé) ne sont
 ##     lisibles que par cette version (lot 9).
-const VERSION: int = 7
+## 8 : message `BILAN`, le bilan de fin de partie envoyé à chaque joueur présent (lot 11).
+const VERSION: int = 8
 ## Taille du jeton d'hôte ; un bonjour sans jeton en porte 0.
 const JETON_OCTETS: int = 8
 const MAX_ENNEMIS: int = 2000
@@ -250,9 +259,22 @@ static func decoder_resultat(b: PackedByteArray) -> Dictionary:
 static func type_de(b: PackedByteArray) -> int:
 	if b.is_empty() or b.size() > MAX_TAILLE:
 		return -1
-	if b[0] < Msg.BONJOUR or b[0] > Msg.ETAT_ARENE_REGARDEE:
+	if b[0] < Msg.BONJOUR or b[0] > Msg.BILAN:
 		return -1
 	return b[0]
+
+
+# --- Bilan de partie -------------------------------------------------------------------------
+
+
+## Voir `ProtocoleBilan` : tableau vide si le bilan n'est pas représentable.
+static func encoder_bilan(bilan: Dictionary) -> PackedByteArray:
+	return ProtocoleBilan.encoder(bilan)
+
+
+## `{}` si le paquet est invalide.
+static func decoder_bilan(b: PackedByteArray) -> Dictionary:
+	return ProtocoleBilan.decoder(b)
 
 
 # --- État global -----------------------------------------------------------------------------

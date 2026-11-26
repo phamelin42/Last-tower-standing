@@ -64,7 +64,7 @@ func _decoder(b: PackedByteArray) -> VueArene:
 
 
 func test_la_version_a_ete_incrementee_et_toutes_les_precedentes_sont_refusees() -> void:
-	verifier_egal(Protocole.VERSION, 7, "6 sur main (S14) + 1")
+	verifier(Protocole.VERSION >= 7, "version %d" % Protocole.VERSION)
 	for ancienne: int in range(1, Protocole.VERSION):
 		var b := Protocole.encoder_bonjour("Phil", 42)
 		b[1] = ancienne
