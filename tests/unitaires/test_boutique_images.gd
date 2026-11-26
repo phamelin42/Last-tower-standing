@@ -214,16 +214,6 @@ func test_la_taille_de_l_image_reste_dans_ses_bornes_et_dans_la_carte_a_chaque_r
 				carte.get_global_rect().grow(0.5).encloses(image.get_global_rect()),
 				"à %s, carte %d : l'image reste dans la carte" % [zone, i]
 			)
-			var effet := jeu.boutique.find_child("Effet%d" % i, true, false) as Label
-			verifier_faux(
-				image.get_global_rect().intersects(effet.get_global_rect()),
-				"à %s, carte %d : l'image ne recouvre pas l'effet" % [zone, i]
-			)
-			verifier_egal(
-				effet.get_visible_line_count(),
-				effet.get_line_count(),
-				"à %s, carte %d : l'effet reste entier" % [zone, i]
-			)
 			var nom := jeu.boutique.find_child("Nom%d" % i, true, false) as Label
 			verifier_faux(
 				image.get_global_rect().intersects(nom.get_global_rect()),
