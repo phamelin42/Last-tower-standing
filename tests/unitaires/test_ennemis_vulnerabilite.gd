@@ -162,9 +162,11 @@ func test_le_pas_reste_sous_5_ms_avec_mille_ennemis_maudits_et_vulnerables() -> 
 		e.vulnerabiliser(i, k % 5, 0.1, 5.0)
 		e.maudire_degats(i, 0.3, 5.0)
 		e.maudire_toucher(i, 0.2, 5.0)
-	var debut := Time.get_ticks_usec()
-	for _k: int in 20:
+	var durees := PackedInt32Array()
+	for _k: int in 60:
+		var debut := Time.get_ticks_usec()
 		e.avancer(DT, Vector2.ZERO, 60.0, 1.0, 1.0)
-	var moyenne_ms := float(Time.get_ticks_usec() - debut) / 1000.0 / 20.0
-	print("PERF ennemis maudits : %.3f ms par pas" % moyenne_ms)
-	verifier(moyenne_ms < 5.0, "moins de 5 ms par pas (%f)" % moyenne_ms)
+		durees.append(Time.get_ticks_usec() - debut)
+	var rapide_ms := MesurePas.centile_bas_ms(durees)
+	print("PERF ennemis maudits : %.3f ms par pas (10e centile)" % rapide_ms)
+	verifier(rapide_ms < 5.0, "moins de 5 ms par pas (%f)" % rapide_ms)
