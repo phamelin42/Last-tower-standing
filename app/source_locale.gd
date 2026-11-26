@@ -90,9 +90,16 @@ func continuer_sans_fin() -> void:
 ## Refusé tant que le joueur local est en jeu. La cible ne change jamais d'elle-même : c'est
 ## l'interface d'observation qui le demande.
 func observer(id_joueur: int) -> void:
-	if _partie == null or _partie.vue_arene(ID_LOCAL, id_joueur) == null:
+	if _partie == null or not _partie.observation_permise(ID_LOCAL):
+		return
+	if _partie.vue_arene(ID_LOCAL, id_joueur) == null:
 		return
 	_cible = id_joueur
+
+
+## Sans effet : en solo, il n'y a aucune autre arène à regarder. `id_regarde` reste à -1.
+func regarder(_id_joueur: int) -> void:
+	pass
 
 
 ## Arrête tout : plus de vue, plus de partie. Sans effet si rien ne tourne.

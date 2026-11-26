@@ -237,7 +237,7 @@ func test_etat_arene_regardee_aller_retour() -> void:
 	var v := _vue()
 	v.armes.append({"id": _catalogue[3], "recharge_ratio": 1.0})
 	v.evenements = [_evenement("tir", 3)]
-	for id: int in [0, 1, 7, 255]:
+	for id: int in [0, 1, 7, 255, 665857105, Protocole.MAX_ID_REGARDE]:
 		var b := Protocole.encoder_etat_arene_regardee(id, v, _catalogue)
 		verifier_egal(Protocole.type_de(b), Protocole.Msg.ETAT_ARENE_REGARDEE)
 		var r := Protocole.decoder_etat_arene_regardee(b, _catalogue)
@@ -249,7 +249,7 @@ func test_etat_arene_regardee_aller_retour() -> void:
 		verifier_egal(vue.tick, 4242)
 		verifier_proche(vue.tour_mana, 35.5, 0.001)
 		verifier_egal(vue.evenements[0]["arme"], 3)
-	for id_invalide: int in [-1, 256, 1000]:
+	for id_invalide: int in [-1, -665857105, Protocole.MAX_ID_REGARDE + 1]:
 		verifier(
 			Protocole.encoder_etat_arene_regardee(id_invalide, v, _catalogue).is_empty(),
 			"id %d refusé" % id_invalide
@@ -262,13 +262,13 @@ func test_etat_arene_regardee_aller_retour() -> void:
 
 
 func test_intention_regarder_aller_retour_avec_moins_un() -> void:
-	for arg: int in [-1, 0, 1, 255]:
+	for arg: int in [-1, 0, 1, 255, 665857105, Protocole.MAX_ID_REGARDE]:
 		var b := Protocole.encoder_intention(Protocole.Intention.REGARDER, arg)
 		verifier_faux(b.is_empty(), "arg %d" % arg)
 		var d := Protocole.decoder_intention(b)
 		verifier_egal(d.get("genre"), Protocole.Intention.REGARDER)
 		verifier_egal(d.get("arg"), arg)
-	for arg: int in [-2, 256, 100000, -100000]:
+	for arg: int in [-2, -100000, -665857105]:
 		verifier(
 			Protocole.encoder_intention(Protocole.Intention.REGARDER, arg).is_empty(),
 			"arg %d refusé à l'envoi" % arg

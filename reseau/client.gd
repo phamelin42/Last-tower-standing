@@ -37,6 +37,12 @@ var _en_partie: bool = false
 var _termine: bool = false
 var _cible: int = -1
 var _cible_demandee: int = -1
+## Joueur regardé en plus de soi (confirmé par le serveur), sa demande en cours, le dernier tick
+## reçu de son arène et les dernières cartes de densité reçues (id de joueur → 256 octets).
+var _regarde: int = -1
+var _regarde_demande: int = -1
+var _dernier_tick_regarde: int = -1
+var _densites: Dictionary = {}
 var _dernier_tick: int = -1
 var _silence: float = 0.0
 var _attente_connexion: float = 0.0
@@ -84,6 +90,7 @@ func connecter(
 	multiplayer.server_disconnected.connect(_a_la_deconnexion)
 	canal.salon_recu.connect(_a_la_reception_salon)
 	canal.etat_arene_recu.connect(_a_la_reception_arene)
+	canal.etat_arene_regardee_recu.connect(_a_la_reception_regardee)
 	canal.etat_global_recu.connect(_a_la_reception_global)
 	canal.refus_recu.connect(_a_la_reception_refus)
 	canal.resultat_recu.connect(_a_la_reception_resultat)
@@ -103,6 +110,7 @@ func deconnecter() -> void:
 		if canal != null:
 			_delier(canal.salon_recu, _a_la_reception_salon)
 			_delier(canal.etat_arene_recu, _a_la_reception_arene)
+			_delier(canal.etat_arene_regardee_recu, _a_la_reception_regardee)
 			_delier(canal.etat_global_recu, _a_la_reception_global)
 			_delier(canal.refus_recu, _a_la_reception_refus)
 			_delier(canal.resultat_recu, _a_la_reception_resultat)
@@ -132,6 +140,10 @@ func _reinitialiser() -> void:
 	_termine = false
 	_cible = -1
 	_cible_demandee = -1
+	_regarde = -1
+	_regarde_demande = -1
+	_dernier_tick_regarde = -1
+	_densites = {}
 	_dernier_tick = -1
 	_silence = 0.0
 	_attente_connexion = 0.0
@@ -228,6 +240,26 @@ func _a_la_reception_arene(octets: PackedByteArray) -> void:
 	vue_arene_recue.emit(vue)
 
 
+## L'arène d'un autre joueur : ignorée si on ne la demande pas (ou plus), ou si elle est plus
+## ancienne que la dernière reçue.
+func _a_la_reception_regardee(octets: PackedByteArray) -> void:
+	if not _valide(octets, Protocole.Msg.ETAT_ARENE_REGARDEE) or donnees == null:
+		return
+	var r := Protocole.decoder_etat_arene_regardee(octets, donnees.ids_catalogue)
+	if r.is_empty():
+		paquets_ignores += 1
+		return
+	_silence = 0.0
+	var id: int = r["id"]
+	if id != _regarde:
+		return
+	var vue: VueArene = r["vue"]
+	if vue.tick <= _dernier_tick_regarde:
+		return
+	_dernier_tick_regarde = vue.tick
+	vue_regardee_recue.emit(id, vue)
+
+
 func _a_la_reception_global(octets: PackedByteArray) -> void:
 	if not _valide(octets, Protocole.Msg.ETAT_GLOBAL):
 		return
@@ -235,10 +267,25 @@ func _a_la_reception_global(octets: PackedByteArray) -> void:
 	if vue == null:
 		paquets_ignores += 1
 		return
+	_porter_les_densites(vue)
 	_silence = 0.0
 	_en_partie = true
 	_termine = vue.termine
 	vue_globale_recue.emit(vue)
+
+
+## Les cartes ne partent qu'une fois par seconde : un état global sans carte porte les dernières,
+## celles des joueurs encore dans la partie.
+func _porter_les_densites(vue: VueGlobale) -> void:
+	if not vue.densites.is_empty():
+		_densites = vue.densites.duplicate()
+	var presents := {}
+	for j: Dictionary in vue.joueurs:
+		presents[int(j["id"])] = true
+	for id: Variant in _densites.keys():
+		if not presents.has(id):
+			_densites.erase(id)
+	vue.densites = _densites.duplicate()
 
 
 func _a_la_reception_refus(octets: PackedByteArray) -> void:
@@ -262,6 +309,15 @@ func _a_la_reception_resultat(octets: PackedByteArray) -> void:
 		_cible = _cible_demandee
 		# Une autre arène a son propre compteur de ticks.
 		_dernier_tick = -1
+		_regarde = -1
+	elif genre == Protocole.Intention.REGARDER:
+		if code == Types.Resultat.OK:
+			_regarde = _regarde_demande
+			_dernier_tick_regarde = -1
+		elif code == Types.Resultat.ARENE_MORTE:
+			# Le serveur a ramené ce pair à sa propre arène (joueur parti, ou pair tombé).
+			_regarde = -1
+			_regarde_demande = -1
 	resultat_intention.emit(_nom_du_genre(genre), code)
 
 
@@ -277,6 +333,8 @@ static func _nom_du_genre(genre: int) -> String:
 			return "choisir_marche_noir"
 		Protocole.Intention.OBSERVER:
 			return "observer"
+		Protocole.Intention.REGARDER:
+			return "regarder"
 		Protocole.Intention.SANS_FIN:
 			return "continuer_sans_fin"
 		Protocole.Intention.QUITTER:
@@ -344,6 +402,20 @@ func choisir_marche_noir(id_amelioration: String) -> void:
 func observer(id_joueur: int) -> void:
 	_cible_demandee = id_joueur
 	_intention(Protocole.Intention.OBSERVER, id_joueur)
+
+
+## Regarde l'arène d'un autre joueur en gardant la sienne ; -1 cesse. Pris en compte quand le
+## serveur répond `OK` ; soi-même est refusé tout de suite, sans rien envoyer.
+func regarder(id_joueur: int) -> void:
+	if id_joueur == id_local() and id_joueur != -1:
+		resultat_intention.emit("regarder", Types.Resultat.INDICE_INVALIDE)
+		return
+	_regarde_demande = id_joueur
+	_intention(Protocole.Intention.REGARDER, id_joueur)
+
+
+func id_regarde() -> int:
+	return _regarde
 
 
 func continuer_sans_fin() -> void:

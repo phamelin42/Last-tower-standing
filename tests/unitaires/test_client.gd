@@ -306,6 +306,81 @@ func test_observer_apres_la_mort_et_pas_avant() -> void:
 	)
 
 
+func test_regarder_une_autre_arene_de_son_vivant_et_cesser() -> void:
+	var cs := await _partie_a_deux()
+	var a: Client = cs[0]
+	var b: Client = cs[1]
+	var ea: Espion = cs[2]
+	var regardees: Array = []
+	a.vue_regardee_recue.connect(func(id: int, v: VueArene) -> void: regardees.append([id, v]))
+	verifier_egal(a.id_regarde(), -1)
+	var n := ea.resultats.size()
+	a.regarder(a.id_local())
+	verifier_egal(ea.dernier_resultat(), ["regarder", Types.Resultat.INDICE_INVALIDE], "soi-même")
+	verifier_egal(a.id_regarde(), -1)
+	n = ea.resultats.size()
+	a.regarder(b.id_local())
+	verifier_egal(await _resultat_apres(ea, n), ["regarder", Types.Resultat.OK])
+	verifier_egal(a.id_regarde(), b.id_local())
+	verifier(
+		await _jusqua(func() -> bool: return regardees.size() >= 3), "des vues de l'arène de B"
+	)
+	for r: Array in regardees:
+		verifier_egal(r[0], b.id_local())
+	var propres := ea.arenes.size()
+	verifier(
+		await _jusqua(func() -> bool: return ea.arenes.size() > propres + 2),
+		"la sienne continue d'arriver"
+	)
+	n = ea.resultats.size()
+	a.regarder(-1)
+	verifier_egal(await _resultat_apres(ea, n), ["regarder", Types.Resultat.OK])
+	verifier_egal(a.id_regarde(), -1)
+	await attendre_images(20)
+	var apres := regardees.size()
+	await attendre_images(30)
+	verifier_egal(regardees.size(), apres, "après -1, plus rien")
+
+
+func test_un_etat_regarde_non_demande_ou_obsolete_est_ignore() -> void:
+	var cs := await _partie_a_deux()
+	var a: Client = cs[0]
+	var b: Client = cs[1]
+	var regardees: Array = []
+	a.vue_regardee_recue.connect(func(id: int, v: VueArene) -> void: regardees.append([id, v]))
+	var vue := VueArene.new()
+	vue.tick = 50
+	var octets := Protocole.encoder_etat_arene_regardee(b.id_local(), vue, d.ids_catalogue)
+	verifier_faux(octets.is_empty())
+	a.canal.etat_arene_regardee_recu.emit(octets)
+	verifier_egal(regardees.size(), 0, "rien n'a été demandé")
+	# Forgé à la main : un paquet tronqué ou du bruit ne lève rien.
+	a.canal.etat_arene_regardee_recu.emit(octets.slice(0, 3))
+	a.canal.etat_arene_regardee_recu.emit(PackedByteArray([Protocole.Msg.ETAT_ARENE_REGARDEE]))
+	verifier(a.paquets_ignores >= 2)
+
+
+func _a_des_densites(e: Espion) -> bool:
+	for v: VueGlobale in e.globales:
+		if not v.densites.is_empty():
+			return true
+	return false
+
+
+func test_le_client_garde_les_dernieres_densites_entre_deux_envois() -> void:
+	var cs := await _partie_a_deux()
+	var a: Client = cs[0]
+	var ea: Espion = cs[2]
+	verifier(await _jusqua(func() -> bool: return _a_des_densites(ea)), "une carte arrive")
+	var avant := ea.globales.size()
+	verifier(
+		await _jusqua(func() -> bool: return ea.globales.size() > avant + 2),
+		"d'autres états globaux arrivent"
+	)
+	for i: int in range(ea.globales.size() - 3, ea.globales.size()):
+		verifier_egal(ea.globales[i].densites.size(), 2, "les dernières cartes sont portées")
+
+
 func test_quitter_deconnecte_proprement_sans_perte_signalee() -> void:
 	var cs := await _partie_a_deux()
 	var a: Client = cs[0]
