@@ -171,6 +171,8 @@ var _etincelles: Etincelles = Etincelles.new(self)
 var _elementaires: AttaquesElementaires = AttaquesElementaires.new()
 ## Rang du projectile dans le barrage en cours (entre deux `avancer`).
 var _rang_barrage: int = 0
+## Le barrage en cours de lancement : `{points, dessine}`, partagé par ses impacts (un seul anneau).
+var _groupe_barrage: Dictionary = {}
 
 
 ## Une flamme en boucle, posée derrière l'unité qui la porte (le boss).
@@ -291,6 +293,22 @@ func impacts_en_attente() -> int:
 	return _en_attente.size()
 
 
+## Le temps qui reste avant que le dernier impact en attente qui vise `ou` (unités de jeu) devienne
+## visible, -1 s'il n'y en a pas. Vise : l'impact retombe à `TOLERANCE_LIEN` de `ou`, ou, pour une
+## zone, assez près pour que `ou` soit dans son rayon. L'arène y retient la mort d'un ennemi pour
+## que le coup qui le tue paraisse le tuer.
+func delai_avant_impact(ou: Vector2) -> float:
+	var point: Vector2 = Apparence.vers_pixels(ou)
+	var delai: float = -1.0
+	for attente: Dictionary in _en_attente:
+		var portee: float = maxf(
+			TOLERANCE_LIEN, Apparence.vers_pixels(Vector2(attente["rayon"], 0.0)).x
+		)
+		if Apparence.vers_pixels(attente["vers"]).distance_to(point) <= portee:
+			delai = maxf(delai, float(attente["reste"]))
+	return delai
+
+
 ## Les émetteurs d'étincelles créés (jamais plus de `PLAFOND_ETINCELLES`).
 func emetteurs_etincelles() -> Array[CPUParticles2D]:
 	return _etincelles.emetteurs()
@@ -400,7 +418,7 @@ func avancer(delta: float) -> void:
 		if age >= float(effet["duree"]):
 			_liberer(i)
 		else:
-			_poser(effet)
+			PoseEffets.poser(effet)
 	_avancer_attentes(delta)
 	_etincelles.avancer(delta)
 	_elementaires.avancer(delta)
@@ -448,7 +466,8 @@ func _avancer_attentes(delta: float) -> void:
 			float(attente["rayon"]),
 			String(attente["statut"]),
 			attente["signature"],
-			int(attente["arme"])
+			int(attente["arme"]),
+			attente["groupe"]
 		)
 		_age_initial = 0.0
 
@@ -480,7 +499,7 @@ func _tir(
 			return false
 		objet["depart"] = arrivee
 		objet["taille"] = TAILLE_PROJECTILE * 1.4
-		_poser(objet)
+		PoseEffets.poser(objet)
 		return true
 	var forme: String = rendu_arme["projectile"]
 	if forme == "":
@@ -495,7 +514,7 @@ func _tir(
 	effet["depart"] = depart
 	effet["arrivee"] = arrivee
 	effet["taille"] = taille
-	_poser(effet)
+	PoseEffets.poser(effet)
 	if _tirs_en_vol.size() < PLAFOND:
 		(
 			_tirs_en_vol
@@ -554,7 +573,7 @@ func _trainee(forme: String, depart: Vector2, arrivee: Vector2, couleur: Color) 
 		return
 	effet["depart"] = depart
 	effet["arrivee"] = arrivee
-	_poser(effet)
+	PoseEffets.poser(effet)
 
 
 ## Un impact qui répond à un tir du même lot attend l'arrivée du projectile ; un saut de rebond
@@ -574,9 +593,14 @@ func _impact(
 	var arrivee: Vector2 = Apparence.vers_pixels(vers)
 	var attente: float = _reprendre_tir(type_degats, genre, arme, arrivee)
 	var element: String = _element(arme)
+	var groupe: Dictionary = {}
 	if element != "" and genre == "barrage" and attente < 0.0:
 		var retard: float = _rang_barrage * AttaquesElementaires.RETARD_BARRAGE
 		attente = _el().tirer(element, depart, arrivee, retard)
+		if _rang_barrage == 0:
+			_groupe_barrage = {"points": [] as Array[Vector2], "dessine": false}
+		(_groupe_barrage["points"] as Array[Vector2]).append(arrivee)
+		groupe = _groupe_barrage
 		# Une seule marque de brûlure par barrage : quatre colonnes de feu cachaient la cible.
 		if _rang_barrage > 0:
 			statut = ""
@@ -590,7 +614,9 @@ func _impact(
 			_chaine_vers = arrivee
 			_chaine_reste = attente
 	if attente <= EPSILON_TEMPS:
-		return _impact_maintenant(type_degats, genre, de, vers, rayon, statut, signature, arme)
+		return _impact_maintenant(
+			type_degats, genre, de, vers, rayon, statut, signature, arme, groupe
+		)
 	if _en_attente.size() >= PLAFOND:
 		return false
 	(
@@ -606,6 +632,7 @@ func _impact(
 				"statut": statut,
 				"signature": signature,
 				"arme": arme,
+				"groupe": groupe,
 			}
 		)
 	)
@@ -637,7 +664,8 @@ func _impact_maintenant(
 	rayon: float,
 	statut: String,
 	signature: Dictionary = {},
-	arme: int = -1
+	arme: int = -1,
+	groupe: Dictionary = {}
 ) -> bool:
 	var element: String = _element(arme)
 	var couleur: Color = COULEURS[type_degats]
@@ -657,7 +685,7 @@ func _impact_maintenant(
 		if not effet.is_empty():
 			effet["depart"] = arrivee
 			effet["taille"] = maxf(rayon * Apparence.PX_PAR_UNITE * 2.0, TAILLE_IMPACT)
-			_poser(effet)
+			PoseEffets.poser(effet)
 			cree = true
 	elif saut:
 		# Le premier saut part de la tour, que le tir a déjà tracée : seul le trait des suivants.
@@ -666,7 +694,7 @@ func _impact_maintenant(
 		elif de.length() >= 1.0:
 			cree = _trait(type_degats, depart, arrivee, couleur, signature)
 	elif element != "":
-		cree = _impact_element(element, type_degats, arrivee, rayon)
+		cree = _impact_element(element, type_degats, arrivee, rayon, groupe)
 	else:
 		cree = _burst(type_degats, genre, arrivee, rayon, couleur, signature)
 	if statut != "" and FORMES_STATUT.has(statut):
@@ -688,11 +716,25 @@ func _impact_maintenant(
 
 ## L'impact d'une arme à élément, au rayon de sa zone. Un coup de siège gèle ; la bombe garde
 ## l'explosion du pack, que ses débris accompagnent.
-func _impact_element(element: String, type_degats: int, ou: Vector2, rayon: float) -> bool:
+func _impact_element(
+	element: String, type_degats: int, ou: Vector2, rayon: float, groupe: Dictionary
+) -> bool:
 	var fort: bool = type_degats == Types.TypeDegats.SIEGE
 	_coup_fort = fort
 	var rayon_px: float = rayon * Apparence.PX_PAR_UNITE
-	var cree: bool = _el().impacter(element, ou, rayon_px, fort, ou, _age_initial)
+	var cree: bool = false
+	if groupe.is_empty():
+		cree = _el().impacter(element, ou, rayon_px, fort, ou, _age_initial)
+	else:
+		cree = _el().impacter_en_groupe(element, ou, rayon_px, fort, ou, _age_initial)
+		if not bool(groupe["dessine"]):
+			# Le premier impact visible du barrage dessine la zone, au centre de tous les impacts.
+			groupe["dessine"] = true
+			var centre: Vector2 = Vector2.ZERO
+			var points: Array[Vector2] = groupe["points"]
+			for point: Vector2 in points:
+				centre += point
+			cree = _el().zone(element, centre / points.size(), rayon_px, _age_initial) or cree
 	if element == ElementsArmes.BOMBE:
 		cree = not _explosion(ou, rayon).is_empty() or cree
 	return cree
@@ -731,7 +773,7 @@ func _burst(
 			effet["taille"] = taille if not explose else minf(taille, TAILLE_IMPACT)
 			if explose:
 				_geler(effet, CourbesEffets.IMAGES_MONTEE_IMPACT * IMAGE)
-			_poser(effet)
+			PoseEffets.poser(effet)
 			cree = true
 	return cree
 
@@ -747,7 +789,7 @@ func _trait(
 		return false
 	effet["depart"] = depart
 	effet["arrivee"] = arrivee
-	_poser(effet)
+	PoseEffets.poser(effet)
 	return true
 
 
@@ -763,7 +805,7 @@ func _absorption(ou: Vector2) -> bool:
 	_pause_absorption = INTERVALLE_ABSORPTION
 	effet["depart"] = ou
 	effet["taille"] = TAILLE_ABSORPTION
-	_poser(effet)
+	PoseEffets.poser(effet)
 	return true
 
 
@@ -777,7 +819,7 @@ func _statut(statut: String, ou: Vector2) -> bool:
 		soin["depart"] = ou
 		soin["arrivee"] = Vector2.ZERO
 		soin["taille"] = TAILLE_IMPACT * 0.6
-		_poser(soin)
+		PoseEffets.poser(soin)
 		return true
 	if statut == "brulure":
 		var feu: Dictionary = _creer("feu", "image", DUREE_FEU, Color.WHITE, COUCHE_DESSUS)
@@ -785,7 +827,7 @@ func _statut(statut: String, ou: Vector2) -> bool:
 			return false
 		feu["depart"] = ou
 		feu["taille"] = TAILLE_IMPACT
-		_poser(feu)
+		PoseEffets.poser(feu)
 		return true
 	var couleur: Color = couleur_statut(statut)
 	var effet: Dictionary = _creer(forme, "statut", DUREE_STATUT, couleur, COUCHE_DESSUS)
@@ -793,7 +835,7 @@ func _statut(statut: String, ou: Vector2) -> bool:
 		return false
 	effet["depart"] = ou
 	effet["taille"] = TAILLE_IMPACT
-	_poser(effet)
+	PoseEffets.poser(effet)
 	return true
 
 
@@ -807,7 +849,7 @@ func _explosion(ou: Vector2, rayon: float) -> Dictionary:
 	effet["depart"] = ou
 	effet["taille"] = rayon * Apparence.PX_PAR_UNITE * 2.0
 	_geler(effet, AGE_PIC_EXPLOSION)
-	_poser(effet)
+	PoseEffets.poser(effet)
 	return effet
 
 
@@ -846,125 +888,6 @@ func _creer(forme: String, anim: String, duree: float, couleur: Color, couche: i
 	}
 	_vivants.append(effet)
 	return effet
-
-
-# --- Mouvement ---------------------------------------------------------------------------------
-
-
-func _poser(effet: Dictionary) -> void:
-	var noeud: Sprite2D = effet["n"]
-	var age: float = effet["age"]
-	var t: float = clampf(age / float(effet["duree"]), 0.0, 1.0)
-	var depart: Vector2 = effet["depart"]
-	var arrivee: Vector2 = effet["arrivee"]
-	var taille: float = effet["taille"]
-	var forme: String = effet["forme"]
-	var couleur: Color = effet["couleur"]
-	var alpha: float = ALPHA_MAX
-	var reduit: bool = effet["reduit"]
-	var gele: bool = float(effet["gel"]) > 0.0
-	match String(effet["anim"]):
-		"vol":
-			noeud.position = depart.lerp(arrivee, t)
-			var sens: Vector2 = arrivee - depart
-			_orienter_vol(noeud, forme, sens, t, taille)
-			noeud.scale *= CourbesEffets.echelle_apparition_tir(age)
-		"burst", "absorption":
-			noeud.position = depart
-			var grandeur: float = CourbesEffets.echelle_impact(age, reduit)
-			noeud.scale = Vector2.ONE * _echelle(forme, taille) * grandeur
-			if String(effet["anim"]) == "burst":
-				couleur = couleur.lerp(Color.WHITE, CourbesEffets.blanc_impact(age, reduit, gele))
-			alpha = CourbesEffets.alpha_impact(age)
-		"statut":
-			noeud.position = depart
-			var tourne: bool = forme == "croix_plus" or forme == "flocon"
-			noeud.rotation = t * 0.8 if tourne and not reduit else 0.0
-			noeud.scale = (
-				Vector2.ONE * _echelle(forme, taille) * (1.0 if reduit else lerpf(0.3, 1.0, t))
-			)
-			noeud.scale *= CourbesEffets.echelle_apparition_statut(age, reduit)
-			alpha = lerpf(ALPHA_MAX, 0.0, t)
-		"anneau":
-			noeud.position = depart
-			var ouverture: float = CourbesEffets.echelle_anneau(t, reduit)
-			noeud.scale = Vector2.ONE * _echelle("anneau", taille) * ouverture
-			alpha = CourbesEffets.alpha_anneau(t)
-		"trait", "saut":
-			var sens: Vector2 = arrivee - depart
-			noeud.position = depart.lerp(arrivee, 0.5)
-			noeud.rotation = sens.angle()
-			var epaisseur: float = 1.0
-			if FORMES_PROPRES.has(forme):
-				epaisseur = EPAISSEUR_TRAIT / 8.0
-			else:
-				epaisseur = ECHELLE_TRAINEE
-			noeud.scale = Vector2(maxf(sens.length(), 1.0) / 64.0, epaisseur)
-			alpha = lerpf(ALPHA_MAX, 0.0, t)
-			if String(effet["anim"]) == "saut":
-				# Allumé blanc la première image, puis la couleur de l'arme qui s'éteint en t².
-				if age < IMAGE:
-					couleur = Color.WHITE
-				alpha = lerpf(ALPHA_MAX, 0.0, t * t)
-		"image":
-			noeud.position = depart
-			_image(effet, noeud, forme, t, taille)
-			if forme == "feu":
-				noeud.scale *= CourbesEffets.echelle_apparition_statut(age, reduit)
-		"sol":
-			noeud.position = depart
-			noeud.rotation = 0.0
-			noeud.scale = Vector2.ONE * _echelle(forme, taille)
-			var pouls: float = 0.5 + 0.5 * sin(age * 4.0)
-			alpha = lerpf(ALPHA_MAX * 0.6, ALPHA_MAX, pouls)
-	var voulue := Color(couleur, alpha)
-	if noeud.modulate != voulue:
-		noeud.modulate = voulue
-
-
-func _orienter_vol(noeud: Sprite2D, forme: String, sens: Vector2, t: float, taille: float) -> void:
-	var angle: float = sens.angle() if sens.length() > 0.001 else 0.0
-	match forme:
-		"fleche":
-			noeud.rotation = angle
-			noeud.scale = Vector2.ONE * ECHELLE_FLECHE
-		"dynamite":
-			noeud.position.y -= sin(t * PI) * ARC_DYNAMITE
-			noeud.rotation = t * TAU * 2.0
-			noeud.scale = Vector2.ONE * ECHELLE_DYNAMITE
-		"trait":
-			noeud.rotation = angle
-			noeud.scale = Vector2(taille * 2.2 / 64.0, EPAISSEUR_TRAIT / 8.0)
-		"losange", "shuriken", "spirale":
-			noeud.rotation = t * TAU * 2.0
-			noeud.scale = Vector2.ONE * _echelle(forme, taille)
-		_:
-			var pouls: float = 1.0 + 0.3 * sin(t * TAU * 2.0)
-			noeud.scale = Vector2.ONE * _echelle(forme, taille) * pouls
-
-
-## Images du pack lues d'un bout à l'autre sur la durée de l'effet.
-func _image(effet: Dictionary, noeud: Sprite2D, forme: String, t: float, taille: float) -> void:
-	var nb: int = IMAGES_EXPLOSION if forme == "explosion" else IMAGES_FEU
-	var case_px: int = CASE_EXPLOSION if forme == "explosion" else CASE_FEU
-	var image: int = mini(int(t * nb), nb - 1)
-	if image != int(effet["image"]):
-		effet["image"] = image
-		noeud.region_rect = Rect2(image * case_px, 0.0, case_px, case_px)
-	var visible_px: float = DIAMETRE_EXPLOSION if forme == "explosion" else float(case_px) * 0.6
-	noeud.scale = Vector2.ONE * taille / visible_px
-
-
-## Échelle qui donne à une forme (texture de 32 px, 64 px pour l'anneau) la taille voulue en pixels.
-func _echelle(forme: String, taille: float) -> float:
-	match forme:
-		"anneau":
-			return taille / 64.0
-		"mine", "dynamite":
-			return taille / REGION_DYNAMITE.size.y
-	if not FORMES_PROPRES.has(forme) and forme != "fleche" and forme != "explosion":
-		return taille / float(FormesSignatures.TAILLE)
-	return taille / 32.0
 
 
 # --- Pool --------------------------------------------------------------------------------------

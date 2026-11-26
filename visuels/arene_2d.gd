@@ -23,6 +23,11 @@ const LARGEUR_CERCLE: float = 4.0
 ## Écart maximal (unités) entre une mort et la dernière position connue de l'ennemi mort : il a
 ## pu avancer entre deux vues.
 const PORTEE_MORT: float = 40.0
+## Un ennemi tué reste affiché jusqu'à l'impact visible qui le vise, pas plus de 20 images : le
+## coup doit paraître le tuer, et un impact jamais joué ne doit pas le garder à l'écran.
+const DELAI_MORT_MAX: float = 20.0 / 60.0
+## Marge des sommes de `delta` : vingt images à 60 i/s font vingt images, pas vingt et une.
+const MARGE_DELAI: float = 0.000001
 const NOM_LARGEUR: float = 260.0
 const NOM_TAILLE: int = 18
 const NOM_CONTOUR: int = 6
@@ -91,6 +96,8 @@ var _regions_mort: PackedFloat32Array = PackedFloat32Array()
 var _decalages_mort: PackedFloat32Array = PackedFloat32Array()
 var _morts: Array[Sprite2D] = []
 var _morts_debut: PackedFloat64Array = PackedFloat64Array()
+## Les ennemis tués dont l'impact n'est pas encore visible : `{sprite, ou, id, debut}`.
+var _mourants: Array[Dictionary] = []
 var _texture_mort: Texture2D = null
 var _effets: Effets = null
 ## Ennemis touchés : flash et recul, par id d'ennemi (purement visuel).
@@ -194,6 +201,7 @@ func reinitialiser() -> void:
 	_dernier_tick = -1
 	_vue_precedente = null
 	_effets.vider()
+	_vider_mourants()
 	_reactions.reinitialiser()
 	_echantillon_affiche = {}
 	_barres.reinitialiser()
@@ -282,6 +290,7 @@ func _vider_les_vues() -> void:
 	_dernier_tick = -1
 	_vue_precedente = null
 	_effets.vider()
+	_vider_mourants()
 	_reactions.reinitialiser()
 	_echantillon_affiche = {}
 	_barres.reinitialiser()
@@ -390,6 +399,7 @@ func _process(delta: float) -> void:
 	_horloge += delta
 	_echantillon_affiche = {}
 	_effets.avancer(delta)
+	_avancer_mourants()
 	_reactions.avancer(delta)
 	_sol.avancer(delta)
 	_afficher_echantillon()
@@ -416,6 +426,7 @@ func _recevoir(vue: VueArene, temps: float) -> void:
 	_interpolation.pousser(vue, temps)
 	_echantillon_affiche = {}
 	var explosifs: Array[Vector2] = []
+	var tues: Array[Vector2] = []
 	var cherche: bool = false
 	for evenement: Dictionary in vue.evenements:
 		match String(evenement.get("k", "")):
@@ -429,9 +440,12 @@ func _recevoir(vue: VueArene, temps: float) -> void:
 					explosifs.remove_at(rang)
 					_effets.exploser(ou)
 				else:
-					_ajouter_mort(ou)
+					tues.append(ou)
 			"tir", "impact", "absorption":
 				_effets.ajouter(evenement)
+	# Après la boucle : l'impact qui tue peut suivre l'événement de mort dans la même vue.
+	for ou: Vector2 in tues:
+		_annoncer_mort(ou, vue)
 	_barres.afficher(vue)
 	_vue_precedente = vue
 
@@ -606,6 +620,103 @@ func _creer_sprite(famille: int) -> Sprite2D:
 		sprite.add_child(Effets.creer_flamme())
 	_ennemis.add_child(sprite)
 	return sprite
+
+
+## Le crâne tout de suite, ou, si un impact en attente vise l'ennemi, l'ennemi lui-même, figé là où
+## il était affiché, jusqu'à cet impact. Sans vue précédente on ne sait pas qui est mort.
+func _annoncer_mort(ou: Vector2, vue: VueArene) -> void:
+	var rang: int = -1
+	if _effets.delai_avant_impact(ou) >= 0.0 and _mourants.size() < PLAFOND_MORTS:
+		rang = _disparu_proche(vue, ou)
+	if rang < 0:
+		_ajouter_mort(ou)
+		return
+	_mourants.append(_creer_mourant(_vue_precedente, rang, ou))
+
+
+## Rang, dans la vue précédente, de l'ennemi disparu de `vue` le plus proche de `ou` (à moins de
+## `PORTEE_MORT`, ni explosif ni déjà retenu), -1 s'il n'y en a pas.
+func _disparu_proche(vue: VueArene, ou: Vector2) -> int:
+	var avant: VueArene = _vue_precedente
+	if avant == null:
+		return -1
+	var presents: Dictionary = {}
+	for id: int in vue.ennemis_id:
+		presents[id] = true
+	for mourant: Dictionary in _mourants:
+		presents[int(mourant["id"])] = true
+	var total: int = mini(
+		avant.ennemis_id.size(), mini(avant.ennemis_pos.size(), avant.ennemis_famille.size())
+	)
+	var meilleur: int = -1
+	var distance: float = PORTEE_MORT
+	for i: int in total:
+		var f: int = avant.ennemis_famille[i]
+		if presents.has(avant.ennemis_id[i]) or f >= _explosives.size() or _explosives[f] != 0:
+			continue
+		var d: float = avant.ennemis_pos[i].distance_to(ou)
+		if d <= distance:
+			distance = d
+			meilleur = i
+	return meilleur
+
+
+## L'ennemi `rang` de `avant`, figé : même image, même teinte et même place que sur la dernière
+## image affichée. Il n'est dans aucune liste d'`_afficher_echantillon` : aucun coup ne le touche.
+func _creer_mourant(avant: VueArene, rang: int, ou: Vector2) -> Dictionary:
+	var f: int = avant.ennemis_famille[rang]
+	var id: int = avant.ennemis_id[rang]
+	var p: Vector2 = avant.ennemis_pos[rang]
+	var sprite := _creer_sprite(f) as Lutin
+	sprite.position = _reactions.position_affichee(id, Apparence.vers_pixels(p))
+	var miroir: bool = p.x > 0.0
+	var cle: int = f * NB_ANIMATIONS + _animation(f, p)
+	var image_courante: int = int(_horloge * Apparence.IMAGES_PAR_SECONDE)
+	var phase: int = _reactions.image_animation(id, image_courante) + id
+	sprite.image = _lignes[cle] * _colonnes[f] + phase % _images[cle]
+	sprite.miroir = miroir
+	sprite.flip_h = miroir
+	_poser_image(sprite, _regions[f], _decalages[f], sprite.image, miroir)
+	var statut: int = avant.ennemis_statuts[rang] if rang < avant.ennemis_statuts.size() else 0
+	var teinte: Color = teinte_statut(statut)
+	var base: Color = _entrees[f]["couleur"]
+	sprite.modulate = Color(base.r * teinte.r, base.g * teinte.g, base.b * teinte.b, 1.0)
+	return {"sprite": sprite, "ou": ou, "id": id, "debut": _horloge}
+
+
+## Le crâne remplace l'ennemi retenu dès que plus aucun impact ne le vise, ou au bout de
+## `DELAI_MORT_MAX`.
+func _avancer_mourants() -> void:
+	for i: int in range(_mourants.size() - 1, -1, -1):
+		var mourant: Dictionary = _mourants[i]
+		var ou: Vector2 = mourant["ou"]
+		var attente: float = _horloge - float(mourant["debut"])
+		if attente >= DELAI_MORT_MAX - MARGE_DELAI or _effets.delai_avant_impact(ou) < 0.0:
+			_liberer_mourant(i)
+			_ajouter_mort(ou)
+
+
+func _liberer_mourant(i: int) -> void:
+	var sprite: Sprite2D = _mourants[i]["sprite"]
+	_mourants.remove_at(i)
+	_ennemis.remove_child(sprite)
+	sprite.free()
+
+
+## Une autre partie ou une autre arène : on n'attend plus aucun impact.
+func _vider_mourants() -> void:
+	for i: int in range(_mourants.size() - 1, -1, -1):
+		_liberer_mourant(i)
+
+
+## Nombre d'ennemis tués encore affichés en attendant l'impact qui les tue.
+func nombre_mourants() -> int:
+	return _mourants.size()
+
+
+## Le sprite du `i`-ème ennemi tué en attente de son impact.
+func sprite_mourant(i: int) -> Sprite2D:
+	return _mourants[i]["sprite"] if i >= 0 and i < _mourants.size() else null
 
 
 func _ajouter_mort(ou: Vector2) -> void:

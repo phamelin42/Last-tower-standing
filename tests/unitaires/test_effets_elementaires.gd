@@ -144,3 +144,36 @@ func test_une_arme_sans_element_garde_son_rendu() -> void:
 		verifier_egal(_effets.elementaires().nombre_vivants(), 0)
 		verifier_egal(_effets.elementaires().particules_actives(), 0)
 	verifier(autres >= 24, "au moins les 24 autres armes : %d" % autres)
+
+
+func test_un_barrage_n_a_qu_un_anneau_au_rayon_reel_centre_sur_les_impacts() -> void:
+	var impacts: Array[Vector2] = []
+	var evenements: Array[Dictionary] = _vitrine.evenements_du_cycle("canon_de_cloche")
+	for evenement: Dictionary in evenements:
+		if String(evenement["k"]) == "impact":
+			impacts.append(Apparence.vers_pixels(evenement["vers"]))
+	verifier_egal(impacts.size(), 4, "quatre impacts")
+	var centre: Vector2 = Vector2.ZERO
+	for point: Vector2 in impacts:
+		centre += point
+	centre /= impacts.size()
+	for evenement: Dictionary in evenements:
+		_effets.ajouter(evenement)
+	var anneaux_max: int = 0
+	var coeurs: int = 0
+	var vu: Array[Dictionary] = []
+	for i: int in 40:
+		_image = i
+		_effets.avancer(IMAGE)
+		var anneaux: Array[Dictionary] = _effets.elementaires().etats("")
+		anneaux_max = maxi(anneaux_max, anneaux.size())
+		if not anneaux.is_empty() and vu.is_empty():
+			vu = anneaux
+		coeurs = maxi(coeurs, _effets.elementaires().etats("explosion_feu").size())
+	verifier_egal(anneaux_max, 1, "un seul anneau à la fois, pas quatre empilés")
+	verifier_egal(vu.size(), 1, "l'anneau a été vu")
+	if not vu.is_empty():
+		var rayon_px: float = 120.0 * Apparence.PX_PAR_UNITE
+		verifier_proche(float(vu[0]["diametre"]), rayon_px * 2.0, 0.01, "au rayon réel de la zone")
+		verifier_proche((vu[0]["position"] as Vector2).distance_to(centre), 0.0, 0.01, "au centre")
+	verifier(coeurs >= 2, "les cœurs de feu de chaque boule restent (%d)" % coeurs)

@@ -125,3 +125,43 @@ func test_mouvement_reduit_sans_recul() -> void:
 		for id: int in _vitrine.ids_cibles():
 			recul_max = maxf(recul_max, _vitrine.reactions.recul(id).length())
 	verifier_egal(recul_max, 0.0, "les ennemis ne reculent pas")
+
+
+func test_sans_option_la_vitrine_montre_les_six_armes_par_defaut() -> void:
+	var ids: PackedStringArray = _vitrine.armes
+	verifier_egal(VitrineArmes.lire_armes(PackedStringArray(), ids), VitrineArmes.ARMES, "défaut")
+	verifier_egal(_vitrine.armes, VitrineArmes.ARMES, "armes de l'instance")
+
+
+func test_l_option_armes_choisit_les_armes_dans_l_ordre_donne() -> void:
+	var donnees: Donnees = Donnees.charger()
+	var args := PackedStringArray(["--armes", "cornue_instable,canon_de_cloche"])
+	var voulues: Array[String] = VitrineArmes.lire_armes(args, donnees.ids_catalogue)
+	verifier_egal(voulues, ["cornue_instable", "canon_de_cloche"] as Array[String], "deux armes")
+
+
+func test_l_option_armes_refuse_l_inconnu_le_vide_et_plus_de_six_armes() -> void:
+	var donnees: Donnees = Donnees.charger()
+	var ids: PackedStringArray = donnees.ids_catalogue
+	var sept: PackedStringArray = ids.slice(0, VitrineArmes.ARMES_MAX + 1)
+	var refus: Array[PackedStringArray] = [
+		PackedStringArray(["--armes", "arme_qui_n_existe_pas"]),
+		PackedStringArray(["--armes", "canon_de_cloche,arme_qui_n_existe_pas"]),
+		PackedStringArray(["--armes", ""]),
+		PackedStringArray(["--armes"]),
+		PackedStringArray(["--armes", ",".join(sept)]),
+	]
+	for args: PackedStringArray in refus:
+		verifier_egal(VitrineArmes.lire_armes(args, ids), VitrineArmes.ARMES, "défaut : %s" % args)
+	verifier_egal(sept.size(), VitrineArmes.ARMES_MAX + 1, "sept armes sont bien données")
+
+
+func test_six_armes_au_plus_et_une_bande_chacune() -> void:
+	var donnees: Donnees = Donnees.charger()
+	var six: PackedStringArray = donnees.ids_catalogue.slice(0, VitrineArmes.ARMES_MAX)
+	var voulues: Array[String] = VitrineArmes.lire_armes(
+		PackedStringArray(["--armes", ",".join(six)]), donnees.ids_catalogue
+	)
+	verifier_egal(voulues.size(), VitrineArmes.ARMES_MAX, "six armes acceptées")
+	for i: int in voulues.size():
+		verifier_egal(voulues[i], six[i], "arme %d dans l'ordre" % i)
