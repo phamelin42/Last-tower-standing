@@ -7,6 +7,9 @@ extends RefCounted
 var degats_type: Array[float] = [1.0, 1.0, 1.0, 1.0, 1.0]
 var degats_global: float = 1.0
 var pv_max_bonus: float = 0.0
+## Somme des améliorations « mana_max » et « mana_regen » (points par seconde).
+var mana_max_bonus: float = 0.0
+var mana_regen: float = 0.0
 var regen: float = 0.0
 var armure: float = 0.0
 var esquive: float = 0.0

@@ -188,7 +188,7 @@ func _texte_carte(i: int) -> String:
 # --- Cartes ----------------------------------------------------------------------------------
 
 
-func test_quatre_cartes_avec_nom_rarete_prix_type_et_description() -> void:
+func test_quatre_cartes_avec_nom_rarete_prix_et_description_en_infobulle() -> void:
 	verifier_non_nul(_donnees, "les données réelles doivent se charger")
 	var vue := _vue()
 	_ui.afficher(vue)
@@ -202,7 +202,9 @@ func test_quatre_cartes_avec_nom_rarete_prix_type_et_description() -> void:
 		var nom: String = entree["nom"]
 		var description: String = entree["description"]
 		verifier(texte.contains(nom), "carte %d : le nom" % i)
-		verifier(texte.contains(description), "carte %d : la description" % i)
+		var infobulle := (_ui.find_child("Carte%d" % i, true, false) as Control).tooltip_text
+		verifier(infobulle.contains(description), "carte %d : la description en infobulle" % i)
+		verifier(not texte.contains(description), "carte %d : la description hors de la carte" % i)
 		verifier(texte.contains(Nombres.groupe(int(offre["prix"]))), "carte %d : le prix" % i)
 		var rarete: int = offre["rarete"]
 		var libelle: String = _traduction.get_message(Apparence.cle_libelle_rarete(rarete))
@@ -214,7 +216,8 @@ func test_quatre_cartes_avec_nom_rarete_prix_type_et_description() -> void:
 		"BOUTIQUE_TYPE_" + Types.TypeDegats.keys()[type_arme]
 	)
 	verifier(not libelle_type.is_empty(), "le type de dégâts a un libellé")
-	verifier(_texte_carte(0).contains(libelle_type), "le type de dégâts d'une arme est écrit")
+	var infobulle_arme := (_ui.find_child("Carte0", true, false) as Control).tooltip_text
+	verifier(infobulle_arme.contains(libelle_type), "le type de dégâts d'une arme est écrit")
 
 
 func test_la_rarete_est_ecrite_et_coloree_pour_chaque_rarete_en_boucle() -> void:
@@ -532,10 +535,10 @@ func test_controles_de_48_px_et_textes_de_16_px_au_moins() -> void:
 		verifier(l.get_theme_font_size("font_size") >= TAILLE_MIN, "libellé « %s »" % l.text)
 
 
-func test_noms_et_descriptions_passent_a_la_ligne_sans_deborder() -> void:
+func test_les_noms_passent_a_la_ligne_sans_deborder() -> void:
 	_ui.afficher(_vue())
 	for i: int in NB_OFFRES:
-		for nom_noeud: String in ["Nom%d" % i, "Description%d" % i]:
+		for nom_noeud: String in ["Nom%d" % i]:
 			var l := _ui.find_child(nom_noeud, true, false) as Label
 			verifier_non_nul(l, nom_noeud)
 			if l != null:

@@ -11,6 +11,7 @@ const SCHEMA: Dictionary = {
 	"termine": TYPE_BOOL,
 	"classement": TYPE_ARRAY,
 	"dernier_rempart": TYPE_INT,
+	"densites": TYPE_DICTIONARY,
 }
 
 const SCHEMA_JOUEUR: Dictionary = {
@@ -24,12 +25,22 @@ const SCHEMA_JOUEUR: Dictionary = {
 	"victorieux": TYPE_BOOL,
 }
 
+## Champ facultatif d'un joueur : les dégâts par seconde (flottant). Un état qui ne l'a pas se relit
+## avec 0.0, pour que les lecteurs n'aient pas à tester sa présence.
+const CHAMPS_JOUEUR_FACULTATIFS: Dictionary = {"dps": TYPE_FLOAT}
+
+## Carte de densité d'une arène : 16 × 16 cases, ligne par ligne, un octet par case.
+const DENSITE_OCTETS := 256
+
 var joueurs: Array[Dictionary] = []
 var temps_ecoule: float = 0.0
 var en_cours: bool = false
 var termine: bool = false
 var classement: Array[int] = []
 var dernier_rempart: int = -1
+## Identifiant de joueur → carte de densité (`DENSITE_OCTETS` octets). Vide quand elle n'est pas
+## diffusée à ce tour.
+var densites: Dictionary = {}
 
 
 func to_dict() -> Dictionary:
@@ -40,6 +51,7 @@ func to_dict() -> Dictionary:
 		"termine": termine,
 		"classement": classement.duplicate(),
 		"dernier_rempart": dernier_rempart,
+		"densites": _copie_densites(densites),
 	}
 
 
@@ -53,6 +65,7 @@ static func from_dict(d: Dictionary) -> VueGlobale:
 	vue.termine = d["termine"]
 	vue.classement = _copie_entiers(d["classement"])
 	vue.dernier_rempart = d["dernier_rempart"]
+	vue.densites = _copie_densites(d["densites"])
 	return vue
 
 
@@ -60,6 +73,10 @@ static func _valide(d: Dictionary) -> bool:
 	if not _conforme(d, SCHEMA):
 		return false
 	if not _liste_conforme(d["joueurs"], SCHEMA_JOUEUR):
+		return false
+	if not _champs_facultatifs_conformes(d["joueurs"]):
+		return false
+	if not _densites_valides(d["densites"]):
 		return false
 	return _liste_entiers_valide(d["classement"])
 
@@ -102,7 +119,42 @@ static func _copie_joueurs(valeur: Variant) -> Array[Dictionary]:
 	var liste: Array = valeur
 	for item: Variant in liste:
 		var entree: Dictionary = item
-		copie.append(entree.duplicate(true))
+		var joueur: Dictionary = entree.duplicate(true)
+		if not joueur.has("dps"):
+			joueur["dps"] = 0.0
+		copie.append(joueur)
+	return copie
+
+
+## Les champs facultatifs d'un joueur, quand ils sont là, ont le bon type.
+static func _champs_facultatifs_conformes(valeur: Variant) -> bool:
+	var liste: Array = valeur
+	for item: Variant in liste:
+		var entree: Dictionary = item
+		for cle: String in CHAMPS_JOUEUR_FACULTATIFS:
+			if entree.has(cle) and typeof(entree[cle]) != int(CHAMPS_JOUEUR_FACULTATIFS[cle]):
+				return false
+	return true
+
+
+## Clés entières, valeurs : exactement `DENSITE_OCTETS` octets.
+static func _densites_valides(valeur: Variant) -> bool:
+	var dico: Dictionary = valeur
+	for cle: Variant in dico:
+		if typeof(cle) != TYPE_INT or typeof(dico[cle]) != TYPE_PACKED_BYTE_ARRAY:
+			return false
+		var carte: PackedByteArray = dico[cle]
+		if carte.size() != DENSITE_OCTETS:
+			return false
+	return true
+
+
+static func _copie_densites(valeur: Variant) -> Dictionary:
+	var source: Dictionary = valeur
+	var copie: Dictionary = {}
+	for cle: Variant in source:
+		var carte: PackedByteArray = source[cle]
+		copie[cle] = carte.duplicate()
 	return copie
 
 

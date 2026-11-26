@@ -16,8 +16,11 @@ const NOM_MAX := 24
 const ADRESSE_MAX := 255
 ## L'annuaire des parties en ligne (ADR 001, décision 16). Vide, il est désactivé.
 const ANNUAIRE_DEFAUT := "annuaire-lts.phamelin.fr:7779"
-const ECHELLES: Array[float] = [1.0, 1.25, 1.5]
+## Taille de l'interface : cinq crans de 75 à 125 % (T8.17). Un ancien fichier à 1,5 devient 1,25.
+const ECHELLES: Array[float] = [0.75, 0.875, 1.0, 1.125, 1.25]
 const TAILLE_TEXTE_BASE := 16
+const VITESSE_CAMERA_MIN := 0.5
+const VITESSE_CAMERA_MAX := 2.0
 const SENSIBILITE_MIN := 0.5
 const SENSIBILITE_MAX := 2.0
 
@@ -25,6 +28,8 @@ var volume_general: float = 1.0
 var echelle_ui: float = 1.0
 var plein_ecran: bool = false
 var sensibilite_zoom: float = 1.0
+## Multiplie la vitesse de la caméra de l'arène (lue par la caméra, T8.20).
+var vitesse_camera: float = 1.0
 var nom_joueur: String = ""
 var derniere_adresse: String = ""
 var annuaire_adresse: String = ANNUAIRE_DEFAUT
@@ -48,6 +53,7 @@ static func charger(chemin: String = CHEMIN_DEFAUT) -> Reglages:
 	r.echelle_ui = _nombre(cfg, "echelle_ui", r.echelle_ui)
 	r.plein_ecran = _booleen(cfg, "plein_ecran", r.plein_ecran)
 	r.sensibilite_zoom = _nombre(cfg, "sensibilite_zoom", r.sensibilite_zoom)
+	r.vitesse_camera = _nombre(cfg, "vitesse_camera", r.vitesse_camera)
 	r.nom_joueur = _texte(cfg, "nom_joueur", r.nom_joueur)
 	r.derniere_adresse = _texte(cfg, "derniere_adresse", r.derniere_adresse)
 	r.annuaire_adresse = _texte(cfg, "annuaire_adresse", r.annuaire_adresse)
@@ -66,6 +72,7 @@ func sauver(chemin: String = CHEMIN_DEFAUT) -> bool:
 	cfg.set_value(SECTION, "echelle_ui", echelle_ui)
 	cfg.set_value(SECTION, "plein_ecran", plein_ecran)
 	cfg.set_value(SECTION, "sensibilite_zoom", sensibilite_zoom)
+	cfg.set_value(SECTION, "vitesse_camera", vitesse_camera)
 	cfg.set_value(SECTION, "nom_joueur", nom_joueur)
 	cfg.set_value(SECTION, "derniere_adresse", derniere_adresse)
 	cfg.set_value(SECTION, "annuaire_adresse", annuaire_adresse)
@@ -92,12 +99,13 @@ func normaliser() -> void:
 	volume_general = clampf(volume_general, 0.0, 1.0)
 	echelle_ui = echelle_valide(echelle_ui)
 	sensibilite_zoom = clampf(sensibilite_zoom, SENSIBILITE_MIN, SENSIBILITE_MAX)
+	vitesse_camera = clampf(vitesse_camera, VITESSE_CAMERA_MIN, VITESSE_CAMERA_MAX)
 	nom_joueur = texte_propre(nom_joueur, NOM_MAX)
 	derniere_adresse = texte_propre(derniere_adresse, ADRESSE_MAX)
 	annuaire_adresse = texte_propre(annuaire_adresse, ADRESSE_MAX)
 
 
-## Un niveau d'échelle prend la valeur permise la plus proche (1,0, 1,25 ou 1,5).
+## Un niveau d'échelle prend la valeur permise la plus proche (un des cinq crans de `ECHELLES`).
 static func echelle_valide(valeur: float) -> float:
 	var bornee := clampf(valeur, ECHELLES[0], ECHELLES[ECHELLES.size() - 1])
 	var meilleure: float = ECHELLES[0]
@@ -107,9 +115,9 @@ static func echelle_valide(valeur: float) -> float:
 	return meilleure
 
 
-## Taille de texte de l'interface : 16 px au niveau 1,0, jamais en dessous.
+## Taille de texte de l'interface : 16 px au cran 1,0.
 static func taille_texte_pour(echelle: float) -> int:
-	return roundi(TAILLE_TEXTE_BASE * echelle_valide(echelle))
+	return ThemeJeu.taille("texte", echelle_valide(echelle))
 
 
 ## Retire les caractères de contrôle (C0, DEL, C1) et tronque à `maximum` caractères.

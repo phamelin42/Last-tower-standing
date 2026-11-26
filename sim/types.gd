@@ -9,6 +9,10 @@ enum Rarete { COMMUNE, PEU_COMMUNE, RARE, EPIQUE }
 enum Ciblage { PLUS_PROCHE, PLUS_FORT, PLUS_FAIBLE }
 enum Phase { PREPARATION, MANCHE, BOSS, VICTOIRE, DEFAITE }
 enum Genre { ARME, AMELIORATION }
+## Catégorie d'une offre, reconnue d'un coup d'œil. Une arme est toujours `ARME` ; les
+## améliorations portent la leur dans `data/ameliorations.json`.
+enum Categorie { ARME, AMELIORATION, REVENU }
+enum ClassePortee { CORPS_A_CORPS, MOYENNE, LONGUE }
 enum Resultat {
 	OK,
 	OR_INSUFFISANT,
@@ -19,6 +23,8 @@ enum Resultat {
 	ARENE_MORTE,
 	INDICE_INVALIDE,
 	NON_DISPONIBLE,
+	# Ajouté à la fin : le réseau transporte ces codes, EMPLACEMENTS_PLEINS ne se renumérote pas.
+	ARMES_AU_MAXIMUM,
 }
 
 const STATUT_GELE := 1
@@ -34,6 +40,8 @@ const NOMS_TYPES: Array[String] = ["tranchant", "perçant", "magique", "siège",
 const NOMS_ARMURES: Array[String] = ["légère", "moyenne", "lourde", "fortifiée", "aucune", "boss"]
 const NOMS_RARETES: Array[String] = ["commune", "peu_commune", "rare", "epique"]
 const NOMS_CIBLAGES: Array[String] = ["plus_proche", "plus_fort", "plus_faible"]
+const NOMS_CATEGORIES: Array[String] = ["arme", "amelioration", "revenu"]
+const NOMS_CLASSES_PORTEE: Array[String] = ["corps_a_corps", "moyenne", "longue"]
 
 
 ## « tranchant » → TRANCHANT ; -1 si inconnu.
@@ -51,3 +59,11 @@ static func rarete_depuis_nom(nom: String) -> int:
 
 static func ciblage_depuis_nom(nom: String) -> int:
 	return NOMS_CIBLAGES.find(nom)
+
+
+static func categorie_depuis_nom(nom: String) -> int:
+	return NOMS_CATEGORIES.find(nom)
+
+
+static func classe_portee_depuis_nom(nom: String) -> int:
+	return NOMS_CLASSES_PORTEE.find(nom)

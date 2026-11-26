@@ -56,6 +56,7 @@ func _brut_catalogue() -> Dictionary:
 					"description": "Une amélioration de test.",
 					"rarete": "commune",
 					"prix": 100 + i,
+					"categorie": "amelioration",
 					"effets":
 					[
 						{
@@ -71,21 +72,25 @@ func _brut_catalogue() -> Dictionary:
 	brut["armes.json"] = armes
 	brut["ameliorations.json"] = amelios
 	brut["ennemis.json"] = {
-		"familles":
+		"modeles":
 		[
 			{
 				"id": "rampant",
-				"nom": "Rampant",
+				"noms": ["Rampant"],
 				"armure": "légère",
-				"volant": false,
+				"classe_portee": "corps_a_corps",
 				"pv": 40,
 				"vitesse": 60,
 				"degats": 4,
 				"portee_attaque": 40,
 				"cadence_attaque": 1.0,
 				"prime": 2,
+				"manche_min": 1,
+				"explose": false,
+				"raison_lenteur": "",
 			},
 		],
+		"paliers": [{"id": "jaune", "manche_entree": 1, "pv": 1.0, "degats": 1.0, "prime": 1.0}],
 		"convoi": {"id": "convoi", "nom": "Convoi", "pv": 400, "vitesse": 45, "prime": 120},
 		"boss":
 		{
@@ -113,6 +118,10 @@ func _vue(nb_ennemis: int, nb_evt: int = 0) -> VueArene:
 	v.temps_restant = 12.5
 	v.prochaine_famille = 5
 	v.prochaine_armure = Types.Armure.LOURDE
+	v.prochaines_familles = PackedInt32Array([5])
+	v.prochaines_armures = PackedByteArray([Types.Armure.LOURDE])
+	v.tour_mana = 12.5
+	v.tour_mana_max = 50.0
 	v.sans_fin = false
 	v.tour_pv = 812.5
 	v.tour_pv_max = 1000.0
@@ -186,6 +195,7 @@ func _globale(nb: int) -> VueGlobale:
 					"manche": 3 + i,
 					"eliminations": 2 * i,
 					"degats": 150.5 + float(i),
+					"dps": 12.5 * float(i),
 					"revenu": 40 + i,
 					"vivant": i % 2 == 0,
 					"victorieux": i == 0 and nb == 8,
@@ -242,7 +252,7 @@ func _ecart(a: Vector2, b: Vector2) -> float:
 
 ## Position de l'octet de compteur d'une zone dans un état d'arène (disposition de la spec §4).
 func _compteur(v: VueArene, zone: String) -> int:
-	var o := 38
+	var o := Protocole.OFFSET_NB_FAMILLES + 1 + 2 * v.prochaines_familles.size()
 	if zone == "offres":
 		return o
 	o += 1 + 5 * v.offres.size()
@@ -341,7 +351,7 @@ func test_intention_de_genre_inconnu_ou_mal_formee_est_refusee() -> void:
 	for b in _troncatures(valide):
 		verifier_egal(Protocole.decoder_intention(b), {}, "taille %d" % b.size())
 	verifier_egal(Protocole.decoder_intention(_avec_octet_en_plus(valide)), {})
-	for genre: int in [0, Protocole.Intention.OPTIONS + 1, 255]:
+	for genre: int in [0, Protocole.Intention.REGARDER + 1, 255]:
 		var b := valide.duplicate()
 		b[1] = genre
 		verifier_egal(Protocole.decoder_intention(b), {}, "genre %d" % genre)
@@ -384,7 +394,7 @@ func test_type_de_reconnait_chaque_message_et_refuse_le_reste() -> void:
 	verifier_egal(Protocole.type_de(arene), Protocole.Msg.ETAT_ARENE)
 	verifier_egal(Protocole.type_de(PackedByteArray()), -1)
 	verifier_egal(Protocole.type_de(PackedByteArray([0])), -1)
-	verifier_egal(Protocole.type_de(PackedByteArray([8])), -1)
+	verifier_egal(Protocole.type_de(PackedByteArray([Protocole.Msg.ETAT_ARENE_REGARDEE + 1])), -1)
 	verifier_egal(Protocole.type_de(Protocole.encoder_resultat(1, 0)), Protocole.Msg.RESULTAT)
 	var gros := PackedByteArray()
 	gros.resize(Protocole.MAX_TAILLE + 1)
@@ -435,8 +445,9 @@ func test_etat_global_aux_compteurs_mensongers_est_refuse() -> void:
 		verifier_nul(Protocole.decoder_etat_global(b), "joueurs=%d" % n)
 	var plein := Protocole.encoder_etat_global(_globale(8))
 	var fin := plein.size()
-	# Le compteur du classement est le premier octet après le dernier joueur.
-	var o := fin - 1 - 8 * 4
+	# Le compteur du classement est le premier octet après le dernier joueur ; l'octet final est
+	# le compteur de cartes de densité (0 ici).
+	var o := fin - 1 - 1 - 8 * 4
 	for n: int in [9, 255]:
 		var b := plein.duplicate()
 		b[o] = n
@@ -579,10 +590,11 @@ func test_taille_d_un_etat_arene_suit_la_formule() -> void:
 		var attendu := (
 			Protocole.TAILLE_FIXE
 			+ 5 * v.offres.size()
+			+ 2 * v.prochaines_familles.size()
 			+ 3 * v.armes.size()
 			+ 3 * v.ameliorations.size()
 			+ 9 * nb
-			+ 12 * 5
+			+ 14 * 5
 		)
 		verifier_egal(Protocole.encoder_etat_arene(v, _catalogue).size(), attendu, "%d" % nb)
 
@@ -685,7 +697,7 @@ func test_etat_arene_a_phase_ou_armure_ou_famille_hors_bornes_est_refuse() -> vo
 	b[Protocole.OFFSET_ARMURE] = Types.Armure.BOSS + 1
 	verifier_nul(_arene(b), "armure")
 	b = valide.duplicate()
-	b[Protocole.OFFSET_FAMILLE] = 0x80  # i8 = -128
+	b[Protocole.OFFSET_FAMILLE] = Protocole.MAX_FAMILLE + 1
 	verifier_nul(_arene(b), "famille")
 
 
@@ -753,13 +765,14 @@ func test_65536_octets_de_bruit_sont_refuses_pour_chaque_decodeur() -> void:
 	bruit.resize(65536)
 	for i in bruit.size():
 		bruit[i] = rng.randi() % 256
-	for t in range(Protocole.Msg.BONJOUR, Protocole.Msg.RESULTAT + 1):
+	for t in range(Protocole.Msg.BONJOUR, Protocole.Msg.ETAT_ARENE_REGARDEE + 1):
 		bruit[0] = t
 		verifier_nul(_arene(bruit), "arène, type %d" % t)
 		verifier_nul(Protocole.decoder_etat_global(bruit))
 		verifier_egal(Protocole.decoder_bonjour(bruit), {})
 		verifier_egal(Protocole.decoder_intention(bruit), {})
 		verifier_egal(Protocole.decoder_refus(bruit), "")
+		verifier_egal(Protocole.decoder_etat_arene_regardee(bruit, _catalogue), {})
 	var plus_un := bruit.duplicate()
 	plus_un.append(0)
 	verifier_nul(_arene(plus_un))

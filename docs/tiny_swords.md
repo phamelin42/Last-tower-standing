@@ -11,6 +11,7 @@ Phil a validé la planche :
 - **Convoi** : le mouton du pack à ×2, avec le sac d’or.
 - **Le reste** : la correspondance des sections 3.1 à 3.3 est validée telle quelle.
 - **Unité volante, suite** : le sprite maison (`assets/maison/guepe_de_laiton.png`, dessiné par `tools/dessiner_guepe.gd`) se lit comme une guêpe. Phil a choisi de renommer la famille en « Guêpes de laiton » (`guepe_de_laiton`, ex-`mite_de_laiton`). Feuille en cases de 192×192, ligne 0 vol (6 images), ligne 1 coup (4 images), échelle ×1, mort par `Dead.png`.
+- **Retrait de la guêpe (lot 8, D7)** : il n’y a plus d’unité volante ni de sprite maison (`assets/maison/`, `tools/dessiner_guepe.gd` supprimés). Les 24 familles d’ennemis (six modèles × quatre couleurs) utilisent uniquement des feuilles du pack : Torche, Paysan, Guerrier, Tonneau (×1,5), Dynamite, Archer.
 
 Les tableaux ci-dessous gardent les noms d’avant la décision, pour la trace.
 

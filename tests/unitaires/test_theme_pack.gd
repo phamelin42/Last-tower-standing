@@ -176,7 +176,7 @@ func _verifier_rendu(codes: Dictionary, origine: String) -> void:
 			continue
 		verifier(
 			police.has_char(code),
-			"%s : caractère rendu ni par Tiny5 ni par le repli : U+%04X" % [origine, code]
+			"%s : caractère rendu ni par Metamorphous ni par le repli : U+%04X" % [origine, code]
 		)
 
 
@@ -222,3 +222,50 @@ func _ajouter_codes(codes: Dictionary, texte: String) -> void:
 
 func test_la_police_est_celle_du_theme() -> void:
 	verifier_egal(_theme().default_font, ThemeJeu.police())
+
+
+func test_metamorphous_couvre_les_caracteres_du_francais() -> void:
+	var fichier := load(ThemeJeu.POLICE) as FontFile
+	verifier_non_nul(fichier, "Metamorphous chargée")
+	for c: String in "éèêàçœ«»\u00a0":
+		verifier(fichier.has_char(c.unicode_at(0)), "Metamorphous sans U+%04X" % c.unicode_at(0))
+	# L'espace fine n'y est pas : la police du thème la prend au repli, sans erreur.
+	verifier(ThemeJeu.police().has_char(0x202F), "espace fine rendue par le repli")
+
+
+func test_la_police_du_theme_est_metamorphous_avec_dejavu_en_repli() -> void:
+	verifier(ThemeJeu.POLICE.contains("metamorphous"), "police principale")
+	verifier(ThemeJeu.POLICE_REPLI.contains("dejavu-sans"), "repli")
+	var v := ThemeJeu.police() as FontVariation
+	verifier_non_nul(v, "police variable")
+	verifier(v.fallbacks.size() >= 1, "repli déclaré")
+
+
+func test_tiny5_n_est_plus_cite() -> void:
+	verifier(not DirAccess.dir_exists_absolute("res://assets/polices/tiny5"), "dossier supprimé")
+	for dossier: String in ["res://ui", "res://app", "res://visuels"]:
+		for nom: String in DirAccess.get_files_at(dossier):
+			if nom.ends_with(".gd"):
+				var texte := FileAccess.get_file_as_string(dossier.path_join(nom))
+				verifier(not texte.to_lower().contains("tiny5"), "Tiny5 cité dans %s" % nom)
+
+
+func test_aucune_taille_de_texte_en_dur_dans_ui() -> void:
+	for nom: String in DirAccess.get_files_at("res://ui"):
+		if not nom.ends_with(".gd") or nom == "theme.gd":
+			continue
+		var texte := FileAccess.get_file_as_string("res://ui/" + nom)
+		verifier(not texte.contains("font_size"), "font_size local dans %s" % nom)
+		verifier(not texte.contains("const TAILLE_"), "TAILLE_* local dans %s" % nom)
+
+
+func test_la_taille_de_texte_suit_le_role_et_l_echelle() -> void:
+	for role: String in ["texte", "petit", "titre"]:
+		for echelle: float in Reglages.ECHELLES:
+			verifier_egal(
+				ThemeJeu.taille(role, echelle),
+				roundi(ThemeJeu.TAILLES[role] * echelle),
+				"%s à %s" % [role, echelle]
+			)
+	verifier_egal(ThemeJeu.taille("texte"), 16)
+	verifier_egal(ThemeJeu.taille("inconnu"), 16, "rôle inconnu : taille du texte")

@@ -30,6 +30,47 @@ func _nb_images(f: Dictionary) -> int:
 	return int(f["colonnes"]) * int(f["lignes"])
 
 
+func test_chaque_feuille_a_ses_boites_de_recadrage() -> void:
+	for f: Dictionary in _feuilles():
+		var cle: String = f["cle_boites"]
+		verifier(Recadrages.BOITES.has(cle), "%s : table de boîtes" % cle)
+		if Recadrages.BOITES.has(cle):
+			verifier_egal(
+				(Recadrages.BOITES[cle] as Array).size(),
+				_nb_images(f),
+				"%s : une boîte par image" % cle
+			)
+	verifier_faux(Recadrages.BOITES.has("guepe"), "plus de boîtes pour la guêpe")
+
+
+func test_les_boites_d_un_modele_couvrent_ses_quatre_couleurs() -> void:
+	for cle: String in Apparence.MODELES:
+		var modele: Dictionary = Apparence.MODELES[cle]
+		if not String(modele["chemin"]).contains("%s"):
+			continue
+		for couleur: String in ["Yellow", "Red", "Purple", "Blue"]:
+			var chemin: String = Apparence.chemin_feuille(cle, couleur)
+			var img := _image(chemin)
+			verifier_non_nul(img, "%s : feuille lisible" % chemin)
+			if img == null:
+				continue
+			var case_px: Vector2i = modele["case"]
+			var colonnes: int = modele["colonnes"]
+			for image: int in colonnes * int(modele["lignes"]):
+				var cellule := Rect2i(
+					(image % colonnes) * case_px.x,
+					(image / colonnes) * case_px.y,
+					case_px.x,
+					case_px.y
+				)
+				var utile: Rect2i = img.get_region(cellule).get_used_rect()
+				if utile.size != Vector2i.ZERO:
+					verifier(
+						Recadrages.boite(cle, image).encloses(utile),
+						"%s image %d" % [chemin, image]
+					)
+
+
 func test_chaque_boite_contient_tous_les_pixels_visibles_de_son_image() -> void:
 	for f: Dictionary in _feuilles():
 		var img := _image(String(f["feuille"]))

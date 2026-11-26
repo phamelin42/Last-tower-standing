@@ -48,6 +48,8 @@ const STATS_AMELIORATION: Array[String] = [
 	"bonus_elim",
 	"relance_gratuite",
 	"marche_noir",
+	"mana_max",
+	"mana_regen",
 ]
 ## Statistiques dont la valeur est un compteur entier (≥ 0).
 const STATS_ENTIERES: Array[String] = [
@@ -135,13 +137,22 @@ static func depuis_brut(brut: Dictionary) -> Donnees:
 	ids.sort()
 	d.ids_catalogue = PackedStringArray(ids)
 	var ennemis: Dictionary = brut["ennemis.json"]
-	var liste_familles: Array = ennemis["familles"]
-	for entree: Variant in liste_familles:
-		d.familles.append(_normaliser_famille(entree))
+	d.familles = DonneesEnnemis.construire_familles(ennemis)
 	d.convoi = _copie(ennemis["convoi"])
 	d.boss = _copie(ennemis["boss"])
 	d.empreinte = _empreinte(brut)
 	return d
+
+
+## Catégorie d'une offre (`Types.Categorie`) : une arme est toujours `ARME`, une amélioration porte
+## la sienne dans les données ; -1 pour un identifiant inconnu.
+func categorie_de(id: String) -> int:
+	if armes.has(id):
+		return Types.Categorie.ARME
+	if ameliorations.has(id):
+		var amelioration: Dictionary = ameliorations[id]
+		return int(amelioration["categorie"])
+	return -1
 
 
 ## Dernier palier dont `manche` ≤ la manche demandée. Avant le premier palier (la préparation,
@@ -199,7 +210,7 @@ static func valider(brut: Dictionary) -> PackedStringArray:
 	if presents.has("ameliorations.json"):
 		_valider_ameliorations(presents["ameliorations.json"], ids, err)
 	if presents.has("ennemis.json"):
-		_valider_ennemis(presents["ennemis.json"], err)
+		DonneesEnnemis.valider(presents["ennemis.json"], err)
 	return PackedStringArray(err)
 
 
@@ -219,17 +230,27 @@ static func _valider_partie(p: Dictionary, err: Array[String]) -> void:
 		_ent("manche_boss", 1.0),
 		_pos("rayon_spawn"),
 		_nn("spawn_baisse_par_manche"),
-		_ent("emplacements_armes", 1.0),
 		_ent("nb_offres", 1.0),
 		_ratio("vente_ratio"),
 		_nn("gel_max_s"),
 		_pos("esquive_k"),
 	]:
 		_nombre(p, spec, f, "", err)
+	# Plus de plafond d'armes (lot 8) : la clé n'est plus lue, mais une ancienne valeur reste
+	# validée tant que le fichier la porte (T8.21 la supprime).
+	if p.has("emplacements_armes"):
+		_nombre(p, _ent("emplacements_armes", 1.0), f, "", err)
 	var tour_ok := _objet(p, "tour", f, "", err)
 	if tour_ok:
 		var tour: Dictionary = p["tour"]
-		for spec: Dictionary in [_pos("pv"), _nn("armure"), _nn("regen"), _pos("rayon")]:
+		for spec: Dictionary in [
+			_pos("pv"),
+			_nn("armure"),
+			_nn("regen"),
+			_pos("rayon"),
+			_nn("mana_max"),
+			_nn("mana_regen")
+		]:
 			_nombre(tour, spec, f, "tour", err)
 	var givre_ok := _objet(p, "givre", f, "", err)
 	if givre_ok:
@@ -253,11 +274,32 @@ static func _valider_partie(p: Dictionary, err: Array[String]) -> void:
 		_nombre(reseau, _spec("budget_octets_s", 0.0, true, INF, true), f, "reseau", err)
 		if ok_arene and ok_min and float(reseau["hz_min"]) > float(reseau["hz_arene"]):
 			_err(err, f, "reseau.hz_min", "ne peut dépasser reseau.hz_arene")
+		var ok_regardee := _nombre(reseau, _pos("hz_arene_regardee"), f, "reseau", err)
+		var ok_min_regardee := _nombre(reseau, _pos("hz_min_regardee"), f, "reseau", err)
+		if (
+			ok_regardee
+			and ok_min_regardee
+			and float(reseau["hz_min_regardee"]) > float(reseau["hz_arene_regardee"])
+		):
+			_err(err, f, "reseau.hz_min_regardee", "ne peut dépasser reseau.hz_arene_regardee")
 	var convoi_p_ok := _objet(p, "convoi", f, "", err)
 	if convoi_p_ok:
 		var convoi_p: Dictionary = p["convoi"]
 		for spec: Dictionary in [_ratio("probabilite"), _ent("manche_min", 1.0)]:
 			_nombre(convoi_p, spec, f, "convoi", err)
+	if _objet(p, "vagues", f, "", err):
+		var vagues: Dictionary = p["vagues"]
+		var part := _spec("part_majoritaire", 0.0, true, 1.0)
+		_nombre(vagues, part, f, "vagues", err)
+		var ok_min_familles := _nombre(vagues, _ent("familles_min", 1.0), f, "vagues", err)
+		var plafond_familles := _spec("familles_max", 1.0, false, 3.0, true)
+		var ok_max_familles := _nombre(vagues, plafond_familles, f, "vagues", err)
+		if (
+			ok_min_familles
+			and ok_max_familles
+			and float(vagues["familles_max"]) < float(vagues["familles_min"])
+		):
+			_err(err, f, "vagues.familles_max", "ne peut être inférieur à vagues.familles_min")
 	var vitesses_ok := _tableau(p, "vitesses_partie", f, "", err)
 	if vitesses_ok:
 		var vitesses: Array = p["vitesses_partie"]
@@ -357,6 +399,8 @@ static func _valider_armes(liste: Array, ids: Dictionary, err: Array[String]) ->
 		_nombre(a, _pos("degats"), f, ch, err)
 		_nombre(a, _pos("recharge"), f, ch, err)
 		_nom_enum(a, "ciblage", Types.NOMS_CIBLAGES, f, ch, err)
+		if a.has("degats_par_mana_max"):
+			_nombre(a, _nn("degats_par_mana_max"), f, ch, err)
 		if _nombre(a, _ent("portee", 0.0), f, ch, err):
 			var portee: int = int(a["portee"])
 			if not portee in PORTEES:
@@ -444,6 +488,10 @@ static func _valider_ameliorations(liste: Array, ids: Dictionary, err: Array[Str
 		_texte(a, "description", f, ch, err)
 		_nom_enum(a, "rarete", Types.NOMS_RARETES, f, ch, err)
 		_nombre(a, _ent("prix", 0.0), f, ch, err)
+		var categorie := _nom_enum(a, "categorie", Types.NOMS_CATEGORIES, f, ch, err)
+		if categorie == Types.Categorie.ARME:
+			var raison := "« arme » est réservé aux armes : « amelioration » ou « revenu » attendu"
+			_err(err, f, _sous(ch, "categorie"), raison)
 		if not _tableau(a, "effets", f, ch, err):
 			continue
 		var effets: Array = a["effets"]
@@ -481,56 +529,6 @@ static func _valider_effet_amelioration(
 		if not e.has("categorie") or not e["categorie"] in CATEGORIES:
 			var raison := "attendu A, B ou C, reçu %s" % _decrire(e.get("categorie"))
 			_err(err, f, _sous(ch, "categorie"), raison)
-
-
-## `ennemis.json` : soit entièrement vide (familles, convoi et boss vides : dossier de test),
-## soit complet.
-static func _valider_ennemis(e: Dictionary, err: Array[String]) -> void:
-	var f := "ennemis.json"
-	var familles_ok := _tableau(e, "familles", f, "", err)
-	var convoi_ok := _objet(e, "convoi", f, "", err)
-	var boss_ok := _objet(e, "boss", f, "", err)
-	if not (familles_ok and convoi_ok and boss_ok):
-		return
-	var familles_brutes: Array = e["familles"]
-	var convoi_brut: Dictionary = e["convoi"]
-	var boss_brut: Dictionary = e["boss"]
-	if familles_brutes.is_empty() and convoi_brut.is_empty() and boss_brut.is_empty():
-		return
-	var ids: Dictionary = {}
-	if familles_brutes.is_empty():
-		_err(err, f, "familles", "au moins une famille attendue")
-	for i in familles_brutes.size():
-		var ch := "familles[%d]" % i
-		var entree: Variant = familles_brutes[i]
-		if not entree is Dictionary:
-			_err(err, f, ch, "attendu un objet, reçu %s" % _decrire(entree))
-			continue
-		var fam: Dictionary = entree
-		_identifiant(fam, f, ch, err, ids)
-		_texte(fam, "nom", f, ch, err)
-		_nom_enum(fam, "armure", Types.NOMS_ARMURES, f, ch, err)
-		_booleen(fam, "volant", f, ch, err)
-		for spec: Dictionary in [
-			_pos("pv"),
-			_pos("vitesse"),
-			_nn("degats"),
-			_nn("portee_attaque"),
-			_pos("cadence_attaque"),
-			_nn("prime"),
-		]:
-			_nombre(fam, spec, f, ch, err)
-	_identifiant(convoi_brut, f, "convoi", err, ids)
-	_texte(convoi_brut, "nom", f, "convoi", err)
-	for spec: Dictionary in [_pos("pv"), _pos("vitesse"), _nn("prime")]:
-		_nombre(convoi_brut, spec, f, "convoi", err)
-	_identifiant(boss_brut, f, "boss", err, ids)
-	_texte(boss_brut, "nom", f, "boss", err)
-	var champs_boss := [
-		_pos("pv"), _pos("vitesse"), _nn("degats"), _nn("portee_attaque"), _pos("cadence_attaque")
-	]
-	for spec: Dictionary in champs_boss:
-		_nombre(boss_brut, spec, f, "boss", err)
 
 
 # --- Briques de validation ---------------------------------------------------------------------
@@ -822,6 +820,7 @@ static func _normaliser_arme(v: Variant) -> Dictionary:
 		"recharge": float(a["recharge"]),
 		"portee": int(a["portee"]),
 		"ciblage": Types.ciblage_depuis_nom(a["ciblage"]),
+		"degats_par_mana_max": float(a.get("degats_par_mana_max", 0.0)),
 	}
 	var effets: Array = []
 	var effets_bruts: Array = a["effets"]
@@ -860,22 +859,14 @@ static func _normaliser_amelioration(v: Variant) -> Dictionary:
 		"description": a["description"],
 		"rarete": Types.rarete_depuis_nom(a["rarete"]),
 		"prix": int(a["prix"]),
+		"categorie": Types.categorie_depuis_nom(a["categorie"]),
 		"effets": effets,
 	}
 
 
-static func _normaliser_famille(v: Variant) -> Dictionary:
-	var sortie := _copie(v)
-	sortie["armure"] = Types.armure_depuis_nom(sortie["armure"])
-	return sortie
-
-
-# --- Empreinte ---------------------------------------------------------------------------------
-
-
 static func _contenu_vide(nom: String) -> Variant:
 	if nom == "ennemis.json":
-		return {"familles": [], "convoi": {}, "boss": {}}
+		return {"modeles": [], "paliers": [], "convoi": {}, "boss": {}}
 	return []
 
 

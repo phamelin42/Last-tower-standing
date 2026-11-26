@@ -1090,7 +1090,7 @@ func id_regarde() -> int                # -1 si aucune
 
 ### Task 8.1 : Types, vues et schémas de données — `sonnet`
 
-- [ ] **Objectif :** figer en code les interfaces de simulation du lot : énumérations, `StatsTour`, champs de `VueArene` et de `VueGlobale`, schémas validés de `data/` (catégorie, mana, armes de mana, classes de portée, familles), stubs de `SourceVue`. Aucun comportement de jeu ne change encore : les données du jeu restent valides (les 8 familles et leurs portées actuelles sont migrées par T8.4 et T8.5, pas ici ; ici, seules les nouvelles clés facultatives et la catégorie des améliorations entrent).
+- [x] **Objectif :** figer en code les interfaces de simulation du lot : énumérations, `StatsTour`, champs de `VueArene` et de `VueGlobale`, schémas validés de `data/` (catégorie, mana, armes de mana, classes de portée, familles), stubs de `SourceVue`. Aucun comportement de jeu ne change encore : les données du jeu restent valides (les 8 familles et leurs portées actuelles sont migrées par T8.4 et T8.5, pas ici ; ici, seules les nouvelles clés facultatives et la catégorie des améliorations entrent).
 - **Conception :** §6.3, §6.4, §6.7 (catégories), §6.8, §6.11, §7.
 - **Fichiers :** `sim/types.gd`, `sim/stats_tour.gd`, `sim/vue_arene.gd`, `sim/vue_globale.gd`, `sim/donnees.gd` (catégorie, `degats_par_mana_max`, `mana_max`, `mana_regen`, clés `tour` et `vagues` et `reseau` ci-dessus, `emplacements_armes` facultatif), `data/ameliorations.json` (champ `categorie` des 40 améliorations), `data/partie.json`, `app/source_vue.gd` (stubs `regarder`, `id_regarde`, signal), `tests/outils/source_factice.gd` (même API, appels notés).
 - **Lire :** `sim/vue_arene.gd` et `sim/vue_globale.gd` en entier ; `sim/donnees.gd` par `grep -n '_valider_\|_normaliser_'`.
@@ -1108,7 +1108,7 @@ func id_regarde() -> int                # -1 si aucune
 
 ### Task 8.2 : Protocole version 5 — `sonnet`
 
-- [ ] **Objectif :** une seule montée de version pour toutes les nouveautés réseau du lot : 255 armes, mana, familles suivantes, événements `absorption` et `arme`, `dps` et densités dans l'état global, état d'arène regardée, intention `REGARDER`. Décodage défensif et fuzz comme les versions précédentes.
+- [x] **Objectif :** une seule montée de version pour toutes les nouveautés réseau du lot : 255 armes, mana, familles suivantes, événements `absorption` et `arme`, `dps` et densités dans l'état global, état d'arène regardée, intention `REGARDER`. Décodage défensif et fuzz comme les versions précédentes.
 - **Conception :** §6.3, §6.4, §6.8, §6.10, §6.11.
 - **Fichiers :** `reseau/protocole.gd` ; tests `test_protocole.gd`, `test_protocole_resultat.gd`, `test_protocole_jeton.gd` (version).
 - **Lire :** `reseau/protocole.gd` : `grep -n 'static func\|^const'`, puis `encoder_etat_arene` et `decoder_etat_arene` par plage.
@@ -1126,7 +1126,7 @@ func id_regarde() -> int                # -1 si aucune
 
 ### Task 8.3 : Armes illimitées et arme dans les événements — `sonnet`
 
-- [ ] **Objectif :** plus de plafond de huit armes (D2) : `Inventaire.ajouter` n'échoue plus pour cette raison, la boutique non plus ; au-delà de 255 armes l'achat est refusé proprement sans débit (`ARMES_AU_MAXIMUM`). Les événements de tir et d'impact portent l'arme. Le pas reste sous 5 ms avec 40 armes face à 1 000 ennemis. Les tests qui figeaient « la 9e arme refusée » sont inversés, pas supprimés.
+- [x] **Objectif :** plus de plafond de huit armes (D2) : `Inventaire.ajouter` n'échoue plus pour cette raison, la boutique non plus ; au-delà de 255 armes l'achat est refusé proprement sans débit (`ARMES_AU_MAXIMUM`). Les événements de tir et d'impact portent l'arme. Le pas reste sous 5 ms avec 40 armes face à 1 000 ennemis. Les tests qui figeaient « la 9e arme refusée » sont inversés, pas supprimés.
 - **Conception :** §6.3, §6.5 (l'arme dans l'événement), §6.5 bis.
 - **Fichiers :** `sim/inventaire.gd`, `sim/boutique.gd`, `sim/tir.gd`, `sim/arene.gd`, `tests/outils/strategies_joueur.gd` si un robot suppose huit armes ; tests `test_inventaire.gd`, `test_boutique.gd`, `test_arene_boutique.gd`, `test_arene_charge.gd`, `test_tir.gd`, `test_evenements_genre.gd`.
 - **Lire :** `sim/inventaire.gd` (134 lignes), `sim/boutique.gd` `acheter`, `sim/tir.gd` `_evenement` et `_choisir` ; les trois tests cités par `grep -n 'EMPLACEMENTS_PLEINS\|huit'`.
@@ -1143,7 +1143,7 @@ func id_regarde() -> int                # -1 si aucune
 
 ### Task 8.4 : Les 24 ennemis du pack, classes de portée, explosion du Tonneau, retrait du vol — `sonnet`
 
-- [ ] **Objectif :** `data/ennemis.json` passe à 6 modèles × 4 paliers de couleur (24 familles) ; la classe de portée suit le modèle (corps à corps ≤ 60 ; Dynamite 350 ; Archer 650) ; le Tonneau explose au contact (dégâts sur la tour puis disparaît, sans prime) ; le vol (`volant`, mines et pièges qui l'ignorent) disparaît des données et de `sim/`. Vitesses : **les valeurs d'aujourd'hui** (Torche 75, Paysan 60, Guerrier 35, Tonneau 25, Dynamite 65, Archer 50 ; convoi 45, boss 35), T8.5 les multiplie. Valeurs de départ des autres champs : reprendre celles des familles actuelles (Torche ← rôdeur de suie, Paysan ← pillard de brume, Guerrier ← heaume d'argile, Tonneau, Dynamite ← artificier, Archer) ; paliers de départ pv ×1 / 2,5 / 6 / 15, dégâts ×1 / 1,5 / 2,2 / 3, prime ×1 / 1,6 / 2,5 / 4, entrées aux manches 1 / 8 / 16 / 24, Archer `manche_min` 5, les autres 1 : T8.8 et T8.21 les règlent. La brute de forge disparaît (second guerrier).
+- [x] **Objectif :** `data/ennemis.json` passe à 6 modèles × 4 paliers de couleur (24 familles) ; la classe de portée suit le modèle (corps à corps ≤ 60 ; Dynamite 350 ; Archer 650) ; le Tonneau explose au contact (dégâts sur la tour puis disparaît, sans prime) ; le vol (`volant`, mines et pièges qui l'ignorent) disparaît des données et de `sim/`. Vitesses : **les valeurs d'aujourd'hui** (Torche 75, Paysan 60, Guerrier 35, Tonneau 25, Dynamite 65, Archer 50 ; convoi 45, boss 35), T8.5 les multiplie. Valeurs de départ des autres champs : reprendre celles des familles actuelles (Torche ← rôdeur de suie, Paysan ← pillard de brume, Guerrier ← heaume d'argile, Tonneau, Dynamite ← artificier, Archer) ; paliers de départ pv ×1 / 2,5 / 6 / 15, dégâts ×1 / 1,5 / 2,2 / 3, prime ×1 / 1,6 / 2,5 / 4, entrées aux manches 1 / 8 / 16 / 24, Archer `manche_min` 5, les autres 1 : T8.8 et T8.21 les règlent. La brute de forge disparaît (second guerrier).
 - **Conception :** §6.1 (tableau modèle → rôle), §6.2, §6.12 (leviers).
 - **Fichiers :** `data/ennemis.json`, `sim/donnees.gd` (`_valider_ennemis`, construction de `familles`), `sim/ennemis.gd` (`volant` retiré, `explose`), `sim/arene.gd` (`_apparaitre`, explosion), `sim/tir.gd` (plus d'argument `au_sol` ni `volants`) ; tests `test_donnees.gd`, `test_ennemis.gd`, `test_ennemis_statuts.gd`, `test_tir.gd`, `test_tir_effets.gd`, `test_arene.gd`, `test_vues.gd` (familles `% 24`), nouveau `test_ennemis_portee.gd`.
 - **Lire :** `sim/donnees.gd` `_valider_ennemis` et `_normaliser_famille` ; `sim/ennemis.gd` `ajouter`, `avancer` ; `sim/arene.gd` `_apparaitre`, `_pas_tour_et_ennemis` ; `grep -n volant -r sim tests`.
@@ -1278,7 +1278,7 @@ func id_regarde() -> int                # -1 si aucune
 
 ### Task 8.11 : Sprites des 24 ennemis et retrait de la guêpe — `sonnet`
 
-- [ ] **Objectif :** `Apparence.ENTITES` couvre les 24 familles (modèle du pack, couleur du palier : jaune → `Yellow`, rouge → `Red`, violet → `Purple`, bleu → `Blue` ; Torche `torch`, Paysan `pawn`, Guerrier `warrior`, Tonneau `barrel` ×1,5, Dynamite `tnt`, Archer `archer`), le convoi et le boss gardent leurs sprites ; la guêpe maison et tout ce qui vole disparaissent. L'explosion des familles à explosion suit le modèle, plus la liste de 2 ids.
+- [x] **Objectif :** `Apparence.ENTITES` couvre les 24 familles (modèle du pack, couleur du palier : jaune → `Yellow`, rouge → `Red`, violet → `Purple`, bleu → `Blue` ; Torche `torch`, Paysan `pawn`, Guerrier `warrior`, Tonneau `barrel` ×1,5, Dynamite `tnt`, Archer `archer`), le convoi et le boss gardent leurs sprites ; la guêpe maison et tout ce qui vole disparaissent. L'explosion des familles à explosion suit le modèle, plus la liste de 2 ids.
 - **Conception :** §6.1, §4 (aucun sprite d'ennemi dessiné par nous).
 - **Fichiers :** `visuels/apparence.gd` (`MODELES`, `ENTITES`), `visuels/recadrages.gd` (régénéré par `tools/generer_recadrages.gd`), `tools/generer_recadrages.gd`, `visuels/arene_2d.gd` (`VITESSE_VOL`, flottement), `visuels/effets.gd` (`FAMILLES_EXPLOSIVES` dérivée des modèles `barrel` et `tnt`), suppression de `assets/maison/` et de `tools/dessiner_guepe.gd` ; tests `test_apparence.gd`, `test_arene_2d.gd`, `test_effets.gd`, `test_recadrages.gd`, `test_garde_ressources.gd`, suppression de `test_sprite_guepe.gd`. `CREDITS.md` : voir T8.21 (la ligne de la guêpe y est retirée).
 - **Lire :** `grep -n 'guepe\|volant\|flottement' -r visuels tools tests`, `visuels/apparence.gd` `ENTITES` et `entree`.
@@ -1386,8 +1386,8 @@ func id_regarde() -> int                # -1 si aucune
 
 ### Task 8.17 : Police Metamorphous, tailles du thème et taille de l'interface — `sonnet`
 
-- [ ] **Objectif :** Metamorphous (SIL OFL 1.1) remplace Tiny5 partout, DejaVu Sans reste en repli pour les symboles ; les tailles de texte passent par un seul réglage de `ThemeJeu` au lieu des surcharges locales ; réglage « Taille de l'interface » de 75 à 125 % (défaut 100 %), persistant, appliqué à tout l'ATH.
-- **Conception :** §6.6, §6.7 (taille), D9.
+- [x] **Objectif :** Metamorphous (SIL OFL 1.1) remplace Tiny5 partout, DejaVu Sans reste en repli pour les symboles ; les tailles de texte passent par un seul réglage de `ThemeJeu` au lieu des surcharges locales ; réglage « Taille de l'interface » de 75 à 125 % (défaut 100 %), persistant, appliqué à tout l'ATH. **Décision de pilotage du 25/11/2026 :** Metamorphous à 16 px élargit la boutique au-delà de la part permise ; la PR embarque donc la partie « cartes compactes » de T8.19 (image, nom, prix, rareté ; effet entier et description en infobulle, texte à 16 px minimum, bandeau à 45 % au plus) et le test de surface.
+- **Conception :** §6.6, §6.7 (taille), D9, D13.
 - **Fichiers :** `assets/polices/metamorphous/` (fichier woff2 latin du paquet npm `@fontsource/metamorphous`, `OFL.txt`, `.import`), `ui/theme.gd`, `ui/hud.gd`, `ui/boutique_ui.gd`, `ui/scores.gd`, `ui/reglages_ui.gd`, `app/reglages.gd`, `i18n/textes_reglages.csv` ; tests `test_theme_pack.gd`, `test_mise_en_page.gd`, `test_reglages.gd`, `test_reglages_mise_en_page.gd`, `test_garde_ressources.gd` (liste fermée : la police est citée par `ui/theme.gd` seul). `CREDITS.md` : voir T8.21.
 - **Lire :** `ui/theme.gd` (constantes, `_construire`), `app/reglages.gd` en entier, `grep -n 'font_size\|TAILLE_' ui/*.gd`.
 - **Interfaces :** produit `ThemeJeu.taille(role: String) -> int` (rôles `"texte"`, `"petit"`, `"titre"`) multiplié par l'échelle ; `Reglages.ECHELLES = [0.75, 0.875, 1.0, 1.125, 1.25]` (réglage : cinq crans, défaut 1,0), `Reglages.echelle_valide(valeur)` ramène à un cran ; `Reglages.vitesse_camera: float` (0,5 à 2,0, défaut 1,0, lue par T8.20).
@@ -1398,6 +1398,7 @@ func id_regarde() -> int                # -1 si aucune
   - `test_les_cinq_crans_d_echelle_sont_acceptes_et_les_autres_ramenes_au_plus_proche` : en boucle.
   - **Review Focus 4 :** `test_un_ancien_fichier_de_reglages_garde_une_echelle_valide` (1,25 ancien reste 1,25 ; 1,5 ancien devient 1,25) et `test_aucun_texte_ne_deborde_ni_ne_se_coupe_a_75_et_125_pour_cent` : les plus longs libellés réels (24 noms de familles, noms d'armes, descriptions) aux 3 résolutions de `test_mise_en_page.gd`, aux échelles 0,75 et 1,25.
   - `test_la_vitesse_de_camera_est_bornee_et_persistante`.
+  - Cartes compactes (décision de pilotage) : `test_l_infobulle_de_chaque_offre_donne_l_effet_entier_puis_l_ambiance` (toutes les offres des données, en boucle), `test_l_infobulle_se_lit_a_16_px_au_moins`, `test_les_cartes_les_plus_chargees_tiennent_a_chaque_resolution_et_a_75_et_125_pour_cent` et `test_la_boutique_est_au_moins_30_pour_cent_plus_petite_qu_avant` (`SURFACE_AVANT` mesurée sur `c4f37ef`).
 - **Vérif :** `T --filtre test_theme_pack`, `test_reglages`, `test_mise_en_page`, puis `tools/verifier.sh`.
 
 ### Task 8.18 : Barre du haut à icônes et tableau des scores — `sonnet`
@@ -1419,7 +1420,7 @@ func id_regarde() -> int                # -1 si aucune
 
 ### Task 8.19 : Boutique compacte et repliable, catégories, grille des armes — `sonnet`
 
-- [ ] **Objectif :** cartes compactes (image, nom, prix, rareté ; description en infobulle), panneau qui se replie et se déplie (touche B et bouton), raccourcis 1 à 4 et R conservés ; chaque carte porte en tête un ruban du pack de la couleur de sa catégorie (rouge « Arme », bleu « Amélioration », jaune « Revenu »), avec icône et mot écrit ; les mêmes repères dans la grille des armes équipées, la liste des améliorations achetées et le marché noir ; la liste des armes équipées devient une grille compacte d'icônes qui défile (jusqu'à 255), détail en infobulle.
+- [ ] **Objectif :** _(cartes compactes déjà livrées par T8.17, décision de pilotage du 25/11/2026 : image, nom, prix, rareté, effet et description en infobulle)_ panneau qui se replie et se déplie (touche B et bouton), raccourcis 1 à 4 et R conservés ; chaque carte porte en tête un ruban du pack de la couleur de sa catégorie (rouge « Arme », bleu « Amélioration », jaune « Revenu »), avec icône et mot écrit ; les mêmes repères dans la grille des armes équipées, la liste des améliorations achetées et le marché noir ; la liste des armes équipées devient une grille compacte d'icônes qui défile (jusqu'à 255), détail en infobulle.
 - **Conception :** §6.3 (interface), §6.7 (boutique, catégories), D13, D14.
 - **Fichiers :** `ui/boutique_ui.gd`, `ui/categorie_offre.gd` (nouveau : ruban, icône, mot), `ui/theme.gd` (rubans cités ici), `ui/description_offre.gd` si l'infobulle l'exige, `i18n/textes_boutique.csv` ; tests `test_boutique_ui.gd`, `test_boutique_images.gd`, `test_boutique_description.gd`, `test_mise_en_page.gd`, nouveau `test_categorie_offre.gd`. `emplacements_armes` n'est plus lu (`_capacite` supprimée).
 - **Lire :** `ui/boutique_ui.gd` par plage (`_construire_carte`, `_construire_cote`, `_afficher_armes`), `Donnees.categorie_de`, `ui/theme.gd` (`TEX_RUBAN`).
@@ -1428,7 +1429,6 @@ func id_regarde() -> int                # -1 si aucune
   - `test_chaque_categorie_a_un_ruban_une_icone_et_un_mot_et_les_trois_se_distinguent` : couleur, icône et mot distincts deux à deux, en boucle sur `Types.Categorie`.
   - `test_chaque_offre_affiche_sa_categorie_d_apres_les_donnees` : en boucle sur les 70 offres, le mot écrit est « Arme », « Amélioration » ou « Revenu ».
   - `test_le_panneau_se_replie_et_se_deplie_a_la_touche_b_et_au_bouton` ; `test_replie_le_panneau_laisse_le_bouton_pour_le_deplier_et_libere_la_zone` ; `test_les_raccourcis_1_a_4_et_r_restent`.
-  - `test_la_boutique_est_au_moins_30_pour_cent_plus_petite_qu_avant` : surface du bandeau et du côté aux trois résolutions, comparée à la constante `SURFACE_AVANT` du test (mesurée avant la tâche).
   - `test_la_grille_des_armes_defile_et_tient_255_armes_sans_deborder` ; `test_chaque_arme_de_la_grille_a_une_infobulle_et_son_repere_de_categorie`.
   - `test_aucun_libelle_ne_se_coupe_avec_les_plus_longs_noms_reels_a_75_et_125_pour_cent`.
   - `test_la_vente_a_50_pour_cent_depuis_la_grille_envoie_le_bon_index`.

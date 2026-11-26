@@ -37,7 +37,7 @@ func _evenements_de(id: String) -> Array[Dictionary]:
 	var stats := StatsTour.new()
 	var tous: Array[Dictionary] = []
 	for k: int in 12:
-		ennemis.ajouter(0, Vector2(60.0 + 20.0 * k, 10.0 * k), PV, 0.0, 0.0, 40.0, 1.0, 1, false, 4)
+		ennemis.ajouter(0, Vector2(60.0 + 20.0 * k, 10.0 * k), PV, 0.0, 0.0, 40.0, 1.0, 1, 4)
 	for _pas: int in 80:
 		var bilan := Tir.Bilan.new()
 		Tir.avancer_arme(arme, DT, stats, ennemis, Vector2.ZERO, _d, rng, 1.0, bilan)
@@ -169,8 +169,9 @@ func test_le_protocole_transporte_chaque_genre_et_chaque_statut() -> void:
 
 func test_le_protocole_refuse_un_genre_ou_un_statut_hors_bornes() -> void:
 	var b := Protocole.encoder_etat_arene(_vue_reseau(1, 1), _catalogue)
-	# Dernier octet de l'événement unique : il précède eliminations (2), degats (4), manche (2).
-	var pos := b.size() - 8 - 1
+	# Octet de genre et de statut de l'événement unique : il précède l'index d'arme (2), puis
+	# eliminations (2), degats (4) et manche (2).
+	var pos := b.size() - 8 - 2 - 1
 	var hors: Array[int] = []
 	for g: int in range(VueArene.GENRES_ARME.size(), 16):
 		hors.append(g | (1 << 4))
@@ -207,7 +208,7 @@ func test_un_octet_de_plus_par_evenement() -> void:
 	var v := _vue_reseau(1, 1)
 	v.evenements.append(v.evenements[0].duplicate())
 	var deux := Protocole.encoder_etat_arene(v, _catalogue)
-	verifier_egal(deux.size() - un.size(), 12, "12 octets par événement (11 avant)")
+	verifier_egal(deux.size() - un.size(), 14, "14 octets par événement (12 en version 4)")
 
 
 # --- Effets 2D ---------------------------------------------------------------------------------
@@ -265,3 +266,42 @@ func test_les_effets_lisent_le_statut_de_chaque_valeur() -> void:
 		effets.ajouter(_evt({"k": "impact", "statut": s, "genre": 1}))
 		verifier(effets.formes_vivantes().has(String(formes[nom])), "statut %s" % nom)
 		apres_chaque()
+
+
+# --- L'arme dans l'événement (lot 8) ------------------------------------------------------------
+
+
+func test_chaque_tir_et_chaque_impact_portent_l_index_de_leur_arme() -> void:
+	for id: String in _d.armes:
+		var attendu := _catalogue.find(id)
+		verifier(attendu >= 0, "%s est dans le catalogue" % id)
+		var vus := 0
+		for e: Dictionary in _evenements_de(id):
+			var genre := String(e["k"])
+			if genre != "tir" and genre != "impact":
+				continue
+			vus += 1
+			verifier(e.has("arme"), "%s : un %s sans arme" % [id, genre])
+			verifier_egal(e.get("arme"), attendu, "%s : index d'arme" % id)
+		verifier(vus > 0, "%s tire au moins une fois" % id)
+
+
+func test_une_mort_n_a_pas_de_cle_arme() -> void:
+	var a := Arene.new(_d, GRAINE)
+	a.inventaire.ajouter("de_pipe")
+	a.synchroniser()
+	a.demarrer_manche(1, 0, {"pv": 1.0, "degats": 1.0, "vitesse": 1.0, "resistance_controle": 1.0})
+	var morts := 0
+	var tirs := 0
+	for _pas: int in 2400:
+		a.avancer(DT)
+		for e: Dictionary in a.vue(Types.Phase.MANCHE, 1.0, -1, false).evenements:
+			if e["k"] == "mort":
+				morts += 1
+				verifier_faux(e.has("arme"), "une mort n'a pas d'arme")
+			elif e["k"] == "tir":
+				tirs += 1
+				verifier(e.has("arme"))
+		if morts > 0 and tirs > 0:
+			break
+	verifier(morts > 0 and tirs > 0, "une mort et un tir observés (%d, %d)" % [morts, tirs])

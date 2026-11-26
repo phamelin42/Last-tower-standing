@@ -125,7 +125,7 @@ func test_le_banc_montre_exactement_n_ennemis() -> void:
 		_banc = null
 
 
-func test_le_banc_utilise_les_huit_familles() -> void:
+func test_le_banc_utilise_toutes_les_familles() -> void:
 	var banc := _banc_avec(1000)
 	await attendre_images(3)
 	var familles := 0
@@ -133,7 +133,7 @@ func test_le_banc_utilise_les_huit_familles() -> void:
 		if banc.arene.nombre_instances_visibles(f) > 0:
 			familles += 1
 	verifier_egal(familles, _donnees.familles.size(), "toutes les familles sont présentes")
-	verifier_egal(_donnees.familles.size(), 8)
+	verifier_egal(_donnees.familles.size(), 24)
 
 
 func test_les_ennemis_avancent_vers_la_tour() -> void:

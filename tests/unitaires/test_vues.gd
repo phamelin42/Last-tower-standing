@@ -28,6 +28,10 @@ func _vue_pleine() -> VueArene:
 	vue.tour_pv = 812.5
 	vue.tour_pv_max = 1000.0
 	vue.tour_armure = 4.75
+	vue.tour_mana = 40.5
+	vue.tour_mana_max = 120.0
+	vue.prochaines_familles = PackedInt32Array([5, 7])
+	vue.prochaines_armures = PackedByteArray([2, 0])
 	vue.argent = 320
 	vue.revenu = 45
 	vue.revenu_dans = 6.25
@@ -56,10 +60,12 @@ func _vue_pleine() -> VueArene:
 	var familles := PackedByteArray()
 	var pvs := PackedByteArray()
 	var statuts := PackedByteArray()
+	# Toutes les familles du jeu, convoi et boss compris : l'index tient dans un octet.
+	var nb_familles := Donnees.charger().familles.size() + 2
 	for i in 300:
 		ids.append(1000 + i)
 		positions.append(Vector2(float(i) * 3.5 - 500.0, 250.0 - float(i) * 1.25))
-		familles.append(i % 8)
+		familles.append(i % nb_familles)
 		pvs.append((i * 37) % 256)
 		statuts.append(i % 32)
 	vue.ennemis_id = ids
@@ -119,12 +125,15 @@ func _globale(nb: int) -> VueGlobale:
 					"eliminations": 2 * i,
 					"degats": 150.5 + float(i),
 					"revenu": 40 + i,
+					"dps": 12.5 * float(i),
 					"vivant": i % 2 == 0,
 					"victorieux": nb == 8 and i == 0,
 				}
 			)
 		)
 	vue.joueurs = joueurs
+	if nb > 1:
+		vue.densites = {0: _densite(7), 1: _densite(200)}
 	if vue.termine:
 		var classement: Array[int] = []
 		for i in nb:
@@ -132,6 +141,14 @@ func _globale(nb: int) -> VueGlobale:
 		vue.classement = classement
 	vue.dernier_rempart = nb - 1 if nb > 0 else -1
 	return vue
+
+
+## Une carte de densité de 256 octets (16 × 16 cases), remplie d'une valeur reconnaissable.
+func _densite(valeur: int) -> PackedByteArray:
+	var carte := PackedByteArray()
+	carte.resize(VueGlobale.DENSITE_OCTETS)
+	carte.fill(valeur)
+	return carte
 
 
 ## Une valeur d'un type différent de `valeur`. Un entier et un flottant sont distincts
@@ -328,6 +345,9 @@ func test_vue_globale_renvoie_null_si_une_cle_manque_ou_si_le_type_est_faux() ->
 
 func test_vue_globale_refuse_une_entree_de_joueur_malformee() -> void:
 	var d := _globale(3).to_dict()
+	# Le dps est facultatif (un ancien état se relit avec 0.0) : sa mauvaise forme est testée à part.
+	for entree: Dictionary in d["joueurs"]:
+		entree.erase("dps")
 	for copie: Dictionary in _copies_entree_abimee(d, "joueurs"):
 		verifier_nul(VueGlobale.from_dict(copie), "joueur abîmé")
 
@@ -354,3 +374,165 @@ func test_vue_globale_copie_en_profondeur_dans_les_deux_sens() -> void:
 	var classement_sortie: Array = sortie["classement"]
 	classement_sortie.append(99)
 	verifier_egal(vue.to_dict(), reference, "modifier une sortie ne change pas la vue")
+
+
+# --- Lot 8 : mana, familles suivantes, armes illimitées, dps et densités -----------------------
+
+
+func test_vue_arene_aller_retour_avec_mana_et_prochaines_familles() -> void:
+	for nombre in range(0, 4):
+		var vue := VueArene.new()
+		vue.tour_mana = 12.5 * float(nombre)
+		vue.tour_mana_max = 50.0
+		var familles := PackedInt32Array()
+		var armures := PackedByteArray()
+		for i in nombre:
+			familles.append(3 * i + 1)
+			armures.append(i % 4)
+		vue.prochaines_familles = familles
+		vue.prochaines_armures = armures
+		var relue := VueArene.from_dict(vue.to_dict())
+		verifier_non_nul(relue, "%d famille(s) suivante(s) : relecture" % nombre)
+		if relue == null:
+			continue
+		verifier_proche(relue.tour_mana, 12.5 * float(nombre))
+		verifier_proche(relue.tour_mana_max, 50.0)
+		verifier_egal(relue.prochaines_familles, familles)
+		verifier_egal(relue.prochaines_armures, armures)
+
+
+func test_vue_arene_refuse_plus_de_trois_familles_ou_des_armures_de_taille_differente() -> void:
+	var d := _vue_pleine().to_dict()
+	var quatre: Dictionary = d.duplicate(true)
+	quatre["prochaines_familles"] = PackedInt32Array([1, 2, 3, 4])
+	quatre["prochaines_armures"] = PackedByteArray([0, 1, 2, 3])
+	verifier_nul(VueArene.from_dict(quatre), "quatre familles suivantes")
+	var desaccord: Dictionary = d.duplicate(true)
+	desaccord["prochaines_familles"] = PackedInt32Array([1, 2])
+	desaccord["prochaines_armures"] = PackedByteArray([0, 1, 2])
+	verifier_nul(VueArene.from_dict(desaccord), "deux familles pour trois armures")
+
+
+func test_vue_arene_accepte_255_armes_et_les_evenements_absorption_et_arme() -> void:
+	var d := _vue_pleine().to_dict()
+	var armes: Array = []
+	for i in 255:
+		armes.append({"id": "arme_%d" % i, "recharge_ratio": 0.5})
+	d["armes"] = armes
+	d["evenements"] = [
+		{
+			"k": "absorption",
+			"t": 4,
+			"de": Vector2.ZERO,
+			"vers": Vector2.ZERO,
+			"type_degats": 0,
+			"rayon": 0.0
+		},
+		{
+			"k": "tir",
+			"t": 5,
+			"de": Vector2(1, 2),
+			"vers": Vector2(30, 40),
+			"type_degats": 1,
+			"rayon": 0.0,
+			"genre": 1,
+			"statut": 0,
+			"arme": 17,
+		},
+	]
+	var relue := VueArene.from_dict(d)
+	verifier_non_nul(relue, "255 armes, absorption et tir portant l'arme")
+	if relue == null:
+		return
+	verifier_egal(relue.armes.size(), 255)
+	verifier_egal(relue.evenements[1]["arme"], 17)
+	verifier_egal(relue.to_dict(), d, "aller-retour exact")
+	for arme_invalide: Variant in [-1, 1.5, "17"]:
+		var mal: Dictionary = d.duplicate(true)
+		var evenements: Array = mal["evenements"]
+		var tir: Dictionary = evenements[1]
+		tir["arme"] = arme_invalide
+		verifier_nul(VueArene.from_dict(mal), "arme invalide %s" % str(arme_invalide))
+
+
+func test_vue_globale_porte_dps_et_densites() -> void:
+	var d := _globale(3).to_dict()
+	var relue := VueGlobale.from_dict(d)
+	verifier_non_nul(relue, "dps et densités se relisent")
+	if relue == null:
+		return
+	verifier_egal(relue.to_dict(), d, "aller-retour exact")
+	verifier_proche(float(relue.joueurs[2]["dps"]), 25.0)
+	verifier_egal(relue.densites.size(), 2)
+	var carte: PackedByteArray = relue.densites[1]
+	verifier_egal(carte, _densite(200))
+	for mauvaise_taille: int in [0, 255, 257]:
+		var mal: Dictionary = d.duplicate(true)
+		var densites: Dictionary = mal["densites"]
+		var courte := _densite(1)
+		courte.resize(mauvaise_taille)
+		densites[0] = courte
+		verifier_nul(VueGlobale.from_dict(mal), "densité de %d octets" % mauvaise_taille)
+	for cle_invalide: Variant in ["0", 1.5]:
+		var mal: Dictionary = d.duplicate(true)
+		var densites: Dictionary = mal["densites"]
+		densites[cle_invalide] = _densite(1)
+		verifier_nul(VueGlobale.from_dict(mal), "identifiant %s" % str(cle_invalide))
+	var pas_octets: Dictionary = d.duplicate(true)
+	var densites_pas_octets: Dictionary = pas_octets["densites"]
+	densites_pas_octets[0] = [1, 2, 3]
+	verifier_nul(VueGlobale.from_dict(pas_octets), "densité qui n'est pas un tableau d'octets")
+
+
+func test_un_joueur_sans_dps_se_relit_avec_un_dps_nul() -> void:
+	var d := _globale(2).to_dict()
+	for entree: Dictionary in d["joueurs"]:
+		entree.erase("dps")
+	var relue := VueGlobale.from_dict(d)
+	verifier_non_nul(relue, "un état sans dps reste lisible")
+	if relue == null:
+		return
+	for entree: Dictionary in relue.joueurs:
+		verifier_proche(float(entree["dps"]), 0.0)
+	var mal := _globale(2).to_dict()
+	var joueur_mal: Dictionary = mal["joueurs"][0]
+	joueur_mal["dps"] = 3
+	verifier_nul(VueGlobale.from_dict(mal), "dps donné en entier")
+
+
+func test_la_vue_globale_ne_partage_pas_ses_densites() -> void:
+	var source := _globale(2).to_dict()
+	var vue := VueGlobale.from_dict(source)
+	var carte: PackedByteArray = vue.densites[0]
+	carte[0] = 99
+	vue.densites[0] = carte
+	var relue_source: PackedByteArray = source["densites"][0]
+	verifier_egal(relue_source[0], 7, "la source n'est pas modifiée par la vue")
+	var sortie := vue.to_dict()
+	var carte_sortie: PackedByteArray = sortie["densites"][1]
+	carte_sortie[0] = 5
+	var carte_vue: PackedByteArray = vue.densites[1]
+	verifier_egal(carte_vue[0], 200, "modifier une sortie ne change pas la vue")
+
+
+func test_la_source_factice_note_regarder_et_id_regarde() -> void:
+	var source := SourceFactice.new()
+	verifier_egal(source.id_regarde(), -1, "personne n'est regardé au départ")
+	source.regarder(3)
+	verifier_egal(source.id_regarde(), 3)
+	source.regarder(-1)
+	verifier_egal(source.id_regarde(), -1, "-1 cesse de regarder")
+	verifier_egal(source.appels.size(), 2)
+	verifier_egal(source.appels[0]["nom"], "regarder")
+	verifier_egal(source.appels[0]["args"], [3])
+	verifier_egal(source.appels[1]["args"], [-1])
+	var recues: Array[int] = []
+	source.vue_regardee_recue.connect(func(id: int, _vue: VueArene) -> void: recues.append(id))
+	source.emettre_vue_regardee(4, VueArene.new())
+	verifier_egal(recues, [4] as Array[int])
+	source.free()
+	var base := SourceVue.new()
+	verifier_egal(base.id_regarde(), -1, "le stub de SourceVue ne regarde personne")
+	base.regarder(2)
+	verifier_egal(base.id_regarde(), -1, "le stub n'a aucun effet avant T8.10")
+	base.free()

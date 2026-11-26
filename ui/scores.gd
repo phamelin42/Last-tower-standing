@@ -10,7 +10,6 @@ extends Control
 const ACTION_SCORES := "afficher_scores"
 const LARGEUR_MAX := 960.0
 const HAUTEUR_LIGNE := 48.0
-const TAILLE_TEXTE := 16
 const COLONNES := 6
 ## Largeur de chaque colonne : un libellé tronqué ne doit pas se réduire à rien.
 const LARGEURS_COLONNES: Array[float] = [200.0, 88.0, 136.0, 104.0, 88.0, 128.0]
@@ -23,7 +22,6 @@ var _titre: Label
 
 func _init() -> void:
 	ThemeJeu.appliquer(self)
-	add_theme_font_size_override("font_size", TAILLE_TEXTE)
 	visible = false
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -39,7 +37,6 @@ func _init() -> void:
 	panneau.add_child(contenu)
 	_titre = _etiquette(false)
 	_titre.theme_type_variation = "Titre"
-	_titre.add_theme_font_size_override("font_size", ThemeJeu.TAILLE_TITRE)
 	contenu.add_child(_titre)
 	_tableau = GridContainer.new()
 	_tableau.columns = COLONNES

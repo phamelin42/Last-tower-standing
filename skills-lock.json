@@ -1,0 +1,101 @@
+{
+  "version": 2,
+  "skills": {
+    "game-ai": {
+      "source": "gamedev-skills/awesome-gamedev-agent-skills",
+      "commit": "c6ca6c41c839b68319ffc08430b99ab768debc32",
+      "sourceType": "github",
+      "skillPath": "skills/disciplines/game-ai/SKILL.md",
+      "computedHash": "f8e19076e9f79447fc94b553c656d15e8461e21d896e7d22b53c45a18c6e6bc6",
+      "installMode": "copy"
+    },
+    "game-feel": {
+      "source": "gamedev-skills/awesome-gamedev-agent-skills",
+      "commit": "c6ca6c41c839b68319ffc08430b99ab768debc32",
+      "sourceType": "github",
+      "skillPath": "skills/disciplines/game-feel/SKILL.md",
+      "computedHash": "f0a2becd199feabc7e8720f8f5626c84571ef763a0a5edefcdae8a039ce64338",
+      "installMode": "copy"
+    },
+    "godot-animation": {
+      "source": "gamedev-skills/awesome-gamedev-agent-skills",
+      "commit": "c6ca6c41c839b68319ffc08430b99ab768debc32",
+      "sourceType": "github",
+      "skillPath": "skills/godot/godot-animation/SKILL.md",
+      "computedHash": "9fe673dddf0d064639bb698aa8873a8f943f4153a3ed0fe01d14da9722d25efd",
+      "installMode": "copy"
+    },
+    "godot-gdscript": {
+      "source": "gamedev-skills/awesome-gamedev-agent-skills",
+      "commit": "c6ca6c41c839b68319ffc08430b99ab768debc32",
+      "sourceType": "github",
+      "skillPath": "skills/godot/godot-gdscript/SKILL.md",
+      "computedHash": "4115912dba21bd262930ab225979a74757eae97ced609c20d3370ddae61f8eaa",
+      "installMode": "copy"
+    },
+    "godot-gdscript-headless-testing": {
+      "source": "gamedev-skills/awesome-gamedev-agent-skills",
+      "commit": "c6ca6c41c839b68319ffc08430b99ab768debc32",
+      "sourceType": "github",
+      "skillPath": "skills/godot/godot-gdscript-headless-testing/SKILL.md",
+      "computedHash": "9904c82a06e7ca132eb664c8110fa52ed4835ce01f9fe0a5942ee6e23d732d59",
+      "installMode": "copy"
+    },
+    "godot-multiplayer": {
+      "source": "gamedev-skills/awesome-gamedev-agent-skills",
+      "commit": "c6ca6c41c839b68319ffc08430b99ab768debc32",
+      "sourceType": "github",
+      "skillPath": "skills/godot/godot-multiplayer/SKILL.md",
+      "computedHash": "61fb0aa6d65b88a61c94c866b8abf3d0ba4313ef6ad849f75012c73d0967086d",
+      "installMode": "copy"
+    },
+    "godot-shaders": {
+      "source": "gamedev-skills/awesome-gamedev-agent-skills",
+      "commit": "c6ca6c41c839b68319ffc08430b99ab768debc32",
+      "sourceType": "github",
+      "skillPath": "skills/godot/godot-shaders/SKILL.md",
+      "computedHash": "a48e5b6b7506d2de9892d1483b52518efece6768ed9330a66777b4b4ba3e083c",
+      "installMode": "copy"
+    },
+    "godot-signals-groups": {
+      "source": "gamedev-skills/awesome-gamedev-agent-skills",
+      "commit": "c6ca6c41c839b68319ffc08430b99ab768debc32",
+      "sourceType": "github",
+      "skillPath": "skills/godot/godot-signals-groups/SKILL.md",
+      "computedHash": "3d07f3dd6dd7837254a5e7f0e9f0e678da74761c0284e7585c49c839a8e6ee88",
+      "installMode": "copy"
+    },
+    "particles-vfx": {
+      "source": "jame581/GodotPrompter",
+      "commit": "426e8ab597473d1c71a11a04f6f0f2e1182a8e39",
+      "sourceType": "github",
+      "skillPath": "skills/particles-vfx/SKILL.md",
+      "computedHash": "140af8bc14a89d9e9df90e644ba338412df43b2a6f06d9e4740e067034820928",
+      "installMode": "copy"
+    },
+    "performance-optimization": {
+      "source": "gamedev-skills/awesome-gamedev-agent-skills",
+      "commit": "c6ca6c41c839b68319ffc08430b99ab768debc32",
+      "sourceType": "github",
+      "skillPath": "skills/disciplines/performance-optimization/SKILL.md",
+      "computedHash": "a73d59038c278242bef4e1d80c9b1657ac472de3d68db88164e93d5c00f80197",
+      "installMode": "copy"
+    },
+    "shader-programming": {
+      "source": "gamedev-skills/awesome-gamedev-agent-skills",
+      "commit": "c6ca6c41c839b68319ffc08430b99ab768debc32",
+      "sourceType": "github",
+      "skillPath": "skills/disciplines/shader-programming/SKILL.md",
+      "computedHash": "f5722dbca5e9fa6a8954f79e7735ff244c22702f59b0b7c3f9f6bdd5beabba18",
+      "installMode": "copy"
+    },
+    "tower-defense": {
+      "source": "gamedev-skills/awesome-gamedev-agent-skills",
+      "commit": "c6ca6c41c839b68319ffc08430b99ab768debc32",
+      "sourceType": "github",
+      "skillPath": "skills/genres/tower-defense/SKILL.md",
+      "computedHash": "9003b6f88691bebe25d43e0b915adc6b96e30d0b924c6d0afe154f6bf79d0144",
+      "installMode": "copy"
+    }
+  }
+}

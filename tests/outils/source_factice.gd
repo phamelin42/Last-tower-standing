@@ -8,6 +8,7 @@ var appels: Array[Dictionary] = []
 
 var _id_local: int = 1
 var _cible: int = -1
+var _regarde: int = -1
 
 
 ## Règle les valeurs renvoyées par `id_local` et `cible_observee`.
@@ -58,6 +59,19 @@ func choisir_marche_noir(id_amelioration: String) -> void:
 
 func observer(id_joueur: int) -> void:
 	_noter("observer", [id_joueur])
+
+
+func regarder(id_joueur: int) -> void:
+	_regarde = id_joueur
+	_noter("regarder", [id_joueur])
+
+
+func id_regarde() -> int:
+	return _regarde
+
+
+func emettre_vue_regardee(id_joueur: int, vue: VueArene) -> void:
+	vue_regardee_recue.emit(id_joueur, vue)
 
 
 func continuer_sans_fin() -> void:

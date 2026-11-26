@@ -13,9 +13,8 @@ const ACTIONS_OFFRES: Array[String] = [
 const ACTION_RELANCER := "boutique_relancer"
 const NB_OFFRES := 4
 const HAUTEUR_CONTROLE := 48.0
-const TAILLE_TEXTE := 16
-const LARGEUR_CARTE := 200.0
-const LARGEUR_TEXTE := 150.0
+const LARGEUR_CARTE := 180.0
+const LARGEUR_TEXTE := 130.0
 ## Largeur de la colonne d'actions (relance, message) et du panneau des armes.
 const LARGEUR_ACTIONS := 152.0
 const LARGEUR_COTE := 300.0
@@ -23,7 +22,7 @@ const LARGEUR_NOM_ARME := 100.0
 ## Image de l'offre en tête de carte : la plus grande taille qui tient, entre ces bornes. Elle
 ## grandit avec la fenêtre (de 648 à 1080 px de haut) et cède avant le texte quand la place manque.
 const IMAGE_MIN := 64.0
-const IMAGE_MAX := 96.0
+const IMAGE_MAX := 72.0
 const HAUTEUR_IMAGE_MIN := 648.0
 const HAUTEUR_IMAGE_MAX := 1080.0
 ## Ce que la carte prend autour de l'image et du texte : marges du bandeau et de la carte.
@@ -36,33 +35,17 @@ const LARGEUR_MOT_NOM := 48.0
 const IMAGE_ARME := 32.0
 const IMAGE_NOIR := 40.0
 const LARGEUR_VENTE := 140.0
-## L'ambiance est secondaire : deux lignes, le reste en infobulle. L'effet, lui, n'est jamais coupé.
-const LIGNES_AMBIANCE := 2
-## Hauteur d'une ligne de 16 px sans interligne : l'effet et l'ambiance serrent leurs lignes pour
-## que la ligne d'effet la plus longue tienne dans la part de hauteur du bandeau.
+## Hauteur d'une ligne de 16 px sans interligne.
 const HAUTEUR_LIGNE_SERREE := 23.0
-## Sous cette hauteur de fenêtre (la fenêtre par défaut de Godot fait 648), le bandeau n'a plus la
-## place de l'ambiance : l'effet passe avant, l'ambiance reste dans l'infobulle de la carte.
-const HAUTEUR_MIN_AMBIANCE := 700.0
-## Respiration entre la ligne d'effet et l'ambiance, quand celle-ci a sa place.
-const ESPACE_AMBIANCE := 6.0
-const HAUTEUR_NOTE := 24.0
 ## Marges verticales du style des boutons (haut et bas) autour du texte.
 const HAUTEUR_MARGES_BOUTON := 36.0
 ## Interligne du bouton de relance (négatif : resserre les deux lignes dans la plaque du pack).
 const INTERLIGNE_RELANCE := -6
-const MARGE := 8
+const MARGE := 4
 const MARGE_COTE := ThemeJeu.MARGE_PANNEAU
 const OPACITE_VENDUE := 0.45
 const SEPARATEUR_NOTES := " · "
 
-const CLES_TYPE: Dictionary = {
-	Types.TypeDegats.TRANCHANT: "BOUTIQUE_TYPE_TRANCHANT",
-	Types.TypeDegats.PERCANT: "BOUTIQUE_TYPE_PERCANT",
-	Types.TypeDegats.MAGIQUE: "BOUTIQUE_TYPE_MAGIQUE",
-	Types.TypeDegats.SIEGE: "BOUTIQUE_TYPE_SIEGE",
-	Types.TypeDegats.CHAOS: "BOUTIQUE_TYPE_CHAOS",
-}
 const CLES_RESULTAT: Dictionary = {
 	Types.Resultat.OK: "BOUTIQUE_RESULTAT_OK",
 	Types.Resultat.OR_INSUFFISANT: "BOUTIQUE_RESULTAT_OR_INSUFFISANT",
@@ -73,6 +56,7 @@ const CLES_RESULTAT: Dictionary = {
 	Types.Resultat.ARENE_MORTE: "BOUTIQUE_RESULTAT_ARENE_MORTE",
 	Types.Resultat.INDICE_INVALIDE: "BOUTIQUE_RESULTAT_INDICE_INVALIDE",
 	Types.Resultat.NON_DISPONIBLE: "BOUTIQUE_RESULTAT_NON_DISPONIBLE",
+	Types.Resultat.ARMES_AU_MAXIMUM: "BOUTIQUE_RESULTAT_ARMES_AU_MAXIMUM",
 }
 
 var _donnees: Donnees = null
@@ -83,10 +67,6 @@ var _cartes: Array[PanelContainer] = []
 var _raretes: Array[Label] = []
 var _noms: Array[Label] = []
 var _images: Array[TextureRect] = []
-var _types: Array[Label] = []
-var _effets: Array[Label] = []
-var _descriptions: Array[Label] = []
-var _espaces: Array[Control] = []
 var _prix: Array[Label] = []
 var _notes: Array[Label] = []
 var _achats: Array[Button] = []
@@ -134,8 +114,7 @@ func _construire_bandeau() -> void:
 	actions.custom_minimum_size = Vector2(LARGEUR_ACTIONS, 0.0)
 	rangee.add_child(actions)
 	var titre := _etiquette("Titre", "BOUTIQUE_TITRE")
-	titre.theme_type_variation = "Titre"
-	titre.add_theme_font_size_override("font_size", TAILLE_TEXTE)
+	titre.theme_type_variation = "TitrePetit"
 	actions.add_child(titre)
 	_relance = _bouton(Callable(self, "relancer"))
 	# « Relancer » puis le prix : deux lignes de 23 px et les marges du bouton (36 px), sinon la
@@ -229,7 +208,6 @@ func configurer(donnees: Donnees, source: SourceVue) -> void:
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_RESIZED:
-		_regler_ambiance()
 		_regler_images()
 
 
@@ -248,19 +226,6 @@ func _regler_images() -> void:
 	var taille := taille_image(size)
 	for image: TextureRect in _images:
 		ImageOffre.regler_taille(image, taille)
-
-
-## L'ambiance cède la place à l'effet quand la fenêtre est basse. `max_lines_visible = 0` garde le
-## texte (infobulle, lecteurs d'écran) mais ne réserve plus aucune hauteur.
-func _regler_ambiance() -> void:
-	var a_la_place := size.y <= 0.0 or size.y >= HAUTEUR_MIN_AMBIANCE
-	for description: Label in _descriptions:
-		description.max_lines_visible = LIGNES_AMBIANCE if a_la_place else 0
-		description.custom_minimum_size.y = (
-			LIGNES_AMBIANCE * HAUTEUR_LIGNE_SERREE if a_la_place else 0.0
-		)
-	for espace: Control in _espaces:
-		espace.visible = a_la_place
 
 
 func afficher(vue: VueArene) -> void:
@@ -324,14 +289,15 @@ func _construire_carte(i: int) -> PanelContainer:
 	carte.add_child(colonne)
 	var rarete := _etiquette("Rarete%d" % i)
 	var nom := _etiquette("Nom%d" % i)
-	var type_degats := _etiquette("Type%d" % i)
-	var effet := _etiquette("Effet%d" % i)
-	var description := _etiquette("Description%d" % i)
 	var prix := _etiquette("Prix%d" % i)
 	var note := _etiquette("Note%d" % i)
-	for libelle: Label in [rarete, nom, type_degats, effet, description, prix, note]:
+	for libelle: Label in [rarete, nom, prix, note]:
 		libelle.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		libelle.custom_minimum_size = Vector2(LARGEUR_TEXTE, 0.0)
+	# Les détails de la carte sont au rôle « petit » : Metamorphous est plus large que l'ancienne
+	# police et le bandeau doit rester bas (D13).
+	for libelle: Label in [rarete, prix, note]:
+		libelle.theme_type_variation = "Petit"
 	# Rangées : rareté et prix ; nom (à la ligne s'il est très long) ; type de dégâts et notes ;
 	# effet (toujours entier) puis ambiance (atténuée).
 	# En tête : l'image, puis rareté et prix, nom, type et notes en colonne à sa droite.
@@ -346,10 +312,15 @@ func _construire_carte(i: int) -> PanelContainer:
 	entete.add_child(textes)
 	var haut := HBoxContainer.new()
 	haut.add_theme_constant_override("separation", 3)
-	textes.add_child(haut)
-	for libelle: Label in [rarete, prix]:
-		libelle.autowrap_mode = TextServer.AUTOWRAP_OFF
-		libelle.custom_minimum_size.x = 0.0
+	colonne.add_child(haut)
+	colonne.move_child(haut, 0)
+	# Rareté et prix sur la largeur de la carte : Metamorphous est plus large que l'ancienne
+	# police, et dans la colonne à droite de l'image la rareté passait sur cinq lignes.
+	prix.autowrap_mode = TextServer.AUTOWRAP_OFF
+	prix.custom_minimum_size.x = 0.0
+	rarete.custom_minimum_size = Vector2(0.0, _hauteur_ligne())
+	rarete.clip_text = true
+	rarete.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	rarete.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	prix.add_theme_color_override("font_color", ThemeJeu.LAITON_CLAIR)
 	haut.add_child(rarete)
@@ -358,34 +329,14 @@ func _construire_carte(i: int) -> PanelContainer:
 	nom.custom_minimum_size = Vector2(LARGEUR_MOT_NOM, _hauteur_ligne())
 	nom.add_theme_color_override("font_color", ThemeJeu.LAITON_CLAIR)
 	textes.add_child(nom)
-	var bas := HBoxContainer.new()
-	textes.add_child(bas)
-	for libelle: Label in [type_degats, note]:
-		libelle.autowrap_mode = TextServer.AUTOWRAP_OFF
-		libelle.custom_minimum_size.x = 0.0
-		libelle.clip_text = true
-		libelle.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-		libelle.add_theme_color_override("font_color", ThemeJeu.PARCHEMIN_ATTENU)
-	type_degats.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	note.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	note.custom_minimum_size.y = HAUTEUR_NOTE
-	bas.add_child(type_degats)
-	bas.add_child(note)
-	# L'effet prend la hauteur qu'il lui faut et pousse le bouton vers le bas de la carte.
-	effet.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	effet.add_theme_constant_override("line_spacing", 0)
-	description.add_theme_constant_override("line_spacing", 0)
-	colonne.add_child(effet)
-	var espace := Control.new()
-	espace.name = "Espace%d" % i
-	espace.custom_minimum_size = Vector2(0.0, ESPACE_AMBIANCE)
-	colonne.add_child(espace)
-	_espaces.append(espace)
-	description.add_theme_color_override("font_color", ThemeJeu.PARCHEMIN_ATTENU)
-	description.max_lines_visible = LIGNES_AMBIANCE
-	description.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	description.custom_minimum_size.y = LIGNES_AMBIANCE * HAUTEUR_LIGNE_SERREE
-	colonne.add_child(description)
+	# La note (vendu, déjà équipée…) n'occupe de place que lorsqu'elle a un texte.
+	note.autowrap_mode = TextServer.AUTOWRAP_OFF
+	note.custom_minimum_size.x = 0.0
+	note.clip_text = true
+	note.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	note.add_theme_color_override("font_color", ThemeJeu.PARCHEMIN_ATTENU)
+	textes.add_child(note)
+	# Carte compacte (D13) : l'effet entier et l'ambiance se lisent dans l'infobulle de la carte.
 	var achat := _bouton(Callable(self, "acheter_offre").bind(i))
 	achat.text = tr("BOUTIQUE_ACHETER")
 	colonne.add_child(achat)
@@ -393,12 +344,9 @@ func _construire_carte(i: int) -> PanelContainer:
 	_raretes.append(rarete)
 	_noms.append(nom)
 	_images.append(image)
-	_types.append(type_degats)
 	# Les infobulles ne s'ouvrent que sur un contrôle qui reçoit la souris : un `Label` l'ignore
 	# par défaut. La carte entière porte celle de l'offre.
 	carte.mouse_filter = Control.MOUSE_FILTER_STOP
-	_effets.append(effet)
-	_descriptions.append(description)
 	_prix.append(prix)
 	_notes.append(note)
 	_achats.append(achat)
@@ -461,14 +409,12 @@ func _afficher_carte(i: int, offre: Dictionary, vue: VueArene) -> void:
 	_achats[i].disabled = offre.is_empty() or bool(offre["vendu"])
 	_cartes[i].modulate.a = 1.0
 	if offre.is_empty():
-		for libelle: Label in [
-			_raretes[i], _noms[i], _types[i], _effets[i], _descriptions[i], _prix[i]
-		]:
+		for libelle: Label in [_raretes[i], _noms[i], _prix[i]]:
 			libelle.text = ""
 		_images[i].texture = null
 		_notes[i].text = ""
+		_notes[i].visible = false
 		_cartes[i].tooltip_text = ""
-		_types[i].tooltip_text = ""
 		return
 	var genre: int = offre["genre"]
 	var rarete: int = offre["rarete"]
@@ -481,10 +427,6 @@ func _afficher_carte(i: int, offre: Dictionary, vue: VueArene) -> void:
 	)
 	_raretes[i].add_theme_color_override("font_color", Apparence.couleur_rarete(rarete))
 	_noms[i].text = str(entree.get("nom", offre["id"]))
-	_types[i].text = _libelle_type(entree, genre)
-	_types[i].tooltip_text = DescriptionOffre.efficacite(entree, _donnees)
-	_effets[i].text = DescriptionOffre.ligne_effet(entree, genre, _donnees, false)
-	_descriptions[i].text = str(entree.get("description", ""))
 	_cartes[i].tooltip_text = _infobulle(entree, genre)
 	_prix[i].text = tr("BOUTIQUE_PRIX") % Nombres.groupe(prix)
 	var notes: Array[String] = []
@@ -498,6 +440,7 @@ func _afficher_carte(i: int, offre: Dictionary, vue: VueArene) -> void:
 			notes.append(tr("BOUTIQUE_PLEINS"))
 	_notes[i].text = SEPARATEUR_NOTES.join(notes)
 	_notes[i].tooltip_text = _notes[i].text
+	_notes[i].visible = not _notes[i].text.is_empty()
 
 
 ## « Relancer » sur une ligne, le prix sur la suivante : le retour à la ligne est voulu, pour que
@@ -591,18 +534,6 @@ func _infobulle(entree: Dictionary, genre: int) -> String:
 	return "\n".join(morceaux)
 
 
-func _libelle_type(entree: Dictionary, genre: int) -> String:
-	if genre != Types.Genre.ARME:
-		return tr("BOUTIQUE_AMELIORATION")
-	if not entree.has("type_degats"):
-		return ""
-	# `Donnees` a déjà converti le nom en valeur de `Types.TypeDegats`.
-	var type_degats := int(entree["type_degats"])
-	if type_degats < 0:
-		return ""
-	return tr(CLES_TYPE.get(type_degats, "BOUTIQUE_AMELIORATION"))
-
-
 func _capacite() -> int:
 	return int(_donnees.partie["emplacements_armes"]) if _donnees != null else 8
 
@@ -620,7 +551,6 @@ func _prix_vente(entree: Dictionary) -> int:
 func _etiquette(nom: String, cle: String = "") -> Label:
 	var libelle := Label.new()
 	libelle.name = nom
-	libelle.add_theme_font_size_override("font_size", TAILLE_TEXTE)
 	libelle.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	if not cle.is_empty():
 		libelle.text = tr(cle)
@@ -630,7 +560,6 @@ func _etiquette(nom: String, cle: String = "") -> Label:
 func _bouton(action: Callable) -> Button:
 	var bouton := Button.new()
 	bouton.custom_minimum_size = Vector2(0.0, HAUTEUR_CONTROLE)
-	bouton.add_theme_font_size_override("font_size", TAILLE_TEXTE)
 	bouton.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	bouton.pressed.connect(action)
 	return bouton

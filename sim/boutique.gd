@@ -63,8 +63,8 @@ func acheter(index: int, economie: Economie, inventaire: Inventaire) -> int:
 		return Types.Resultat.DEJA_ACHETE
 	var est_arme := int(offre["genre"]) == Types.Genre.ARME
 	# Tout est vérifié avant de payer : un refus ne débite jamais.
-	if est_arme and inventaire.armes.size() >= int(_donnees.partie["emplacements_armes"]):
-		return Types.Resultat.EMPLACEMENTS_PLEINS
+	if est_arme and inventaire.armes.size() >= Inventaire.ARMES_MAX:
+		return Types.Resultat.ARMES_AU_MAXIMUM
 	if not economie.peut_payer(int(offre["prix"])):
 		return Types.Resultat.OR_INSUFFISANT
 	var resultat := inventaire.ajouter(str(offre["id"]))
