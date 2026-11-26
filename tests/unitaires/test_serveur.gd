@@ -410,13 +410,19 @@ func test_observer_suit_les_regles_de_la_partie() -> void:
 	_attendre(s, 1.0)
 	verifier_egal(_intention(s, a, obs, -3), Types.Resultat.INDICE_INVALIDE)
 	# B achète une arme : l'arène de B se reconnaît à ses armes.
-	var vue_b := s.partie.vue_arene(b, b)
+	# Le tirage dépend du catalogue : sans arme abordable au départ, B relance la boutique.
 	var choix := -1
-	for i: int in vue_b.offres.size():
-		var offre: Dictionary = vue_b.offres[i]
-		if int(offre["genre"]) == Types.Genre.ARME and int(offre["prix"]) <= vue_b.argent:
-			choix = i
+	for _essai: int in 12:
+		var vue_b := s.partie.vue_arene(b, b)
+		for i: int in vue_b.offres.size():
+			var offre: Dictionary = vue_b.offres[i]
+			if int(offre["genre"]) == Types.Genre.ARME and int(offre["prix"]) <= vue_b.argent:
+				choix = i
+				break
+		if choix >= 0:
 			break
+		_intention(s, b, Protocole.Intention.RELANCER)
+		_attendre(s, 1.0)
 	verifier(choix >= 0, "une arme abordable est proposée")
 	_attendre(s, 1.0)
 	verifier_egal(_intention(s, b, Protocole.Intention.ACHETER, choix), Types.Resultat.OK)

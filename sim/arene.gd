@@ -33,6 +33,8 @@ const DENSITE_COTE := 16
 
 ## Points de vie de la tour, entre 0 et le maximum.
 var pv: float = 0.0
+## Mana de la tour, entre 0 et `mana_max()` : elle absorbe les coups avant les PV.
+var mana: float = 0.0
 var ennemis: Ennemis
 var economie: Economie
 var inventaire: Inventaire
@@ -60,6 +62,7 @@ var _boss_mort: bool = false
 var _cumul_apparition: float = 0.0
 var _relances_utilisees: int = 0
 var _pv_max_connu: float = 0.0
+var _mana_max_connu: float = 0.0
 var _eliminations: int = 0
 var _degats_infliges: float = 0.0
 var _detruite: bool = false
@@ -98,6 +101,8 @@ func _init(donnees: Donnees, graine: int) -> void:
 	_stats = inventaire.stats()
 	_pv_max_connu = _pv_max()
 	pv = _pv_max_connu
+	_mana_max_connu = mana_max()
+	mana = _mana_max_connu
 
 
 # --- Manches -----------------------------------------------------------------------------------
@@ -285,6 +290,7 @@ func _point_d_apparition() -> Vector2:
 func _pas_tour_et_ennemis(dt: float) -> void:
 	if _stats.regen > 0.0:
 		pv = minf(pv + _stats.regen * dt, _pv_max())
+	mana = minf(mana + _mana_regen() * dt, mana_max())
 	var resultat := ennemis.avancer(dt, Vector2.ZERO, _rayon_tour, 1.0, 1.0)
 	var total: float = resultat["degats_tour"]
 	if not total > 0.0:
@@ -307,7 +313,22 @@ func _pas_tour_et_ennemis(dt: float) -> void:
 	var a_distance := total - total_cac
 	if a_distance > EPSILON_DEGATS and not _esquive(chance):
 		subis += a_distance
-	pv -= Combat.degats_subis(subis, _armure_tour + _stats.armure)
+	var apres_armure := Combat.degats_subis(subis, _armure_tour + _stats.armure)
+	# Ordre : esquive, armure, mana, PV. Un point de mana absorbe un point de dégât.
+	var absorbe := minf(mana, apres_armure)
+	if absorbe > 0.0:
+		mana -= absorbe
+		_ajouter_evenement(
+			{
+				"k": "absorption",
+				"t": _tick,
+				"de": Vector2.ZERO,
+				"vers": Vector2.ZERO,
+				"type_degats": Types.TypeDegats.TRANCHANT,
+				"rayon": 0.0
+			}
+		)
+	pv -= apres_armure - absorbe
 
 
 ## Le hasard n'est consommé que si une chance existe : sans esquive, la suite des tirages ne
@@ -431,6 +452,12 @@ func synchroniser() -> void:
 		pv += nouveau_max - _pv_max_connu
 	_pv_max_connu = nouveau_max
 	pv = minf(pv, nouveau_max)
+	# Un maximum de mana qui monte donne du même montant en mana, comme les PV.
+	var nouvelle_mana_max := mana_max()
+	if nouvelle_mana_max > _mana_max_connu:
+		mana += nouvelle_mana_max - _mana_max_connu
+	_mana_max_connu = nouvelle_mana_max
+	mana = minf(mana, nouvelle_mana_max)
 
 
 # --- Lecture -----------------------------------------------------------------------------------
@@ -465,6 +492,8 @@ func vue(
 	v.sans_fin = sans_fin
 	v.tour_pv = pv
 	v.tour_pv_max = _pv_max()
+	v.tour_mana = mana
+	v.tour_mana_max = mana_max()
 	v.tour_armure = _armure_tour + _stats.armure
 	v.argent = economie.argent
 	v.revenu = economie.revenu_par_periode(_manche, _stats, _temps)
@@ -505,6 +534,16 @@ func tick_courant() -> int:
 
 func _pv_max() -> float:
 	return float(_donnees.partie["tour"]["pv"]) + _stats.pv_max_bonus
+
+
+## Mana maximale : la valeur de départ des données (0) plus les améliorations.
+func mana_max() -> float:
+	return float(_donnees.partie["tour"]["mana_max"]) + _stats.mana_max_bonus
+
+
+## Points de mana par seconde : la valeur de départ des données plus les améliorations.
+func _mana_regen() -> float:
+	return float(_donnees.partie["tour"]["mana_regen"]) + _stats.mana_regen
 
 
 func _relances_gratuites() -> int:

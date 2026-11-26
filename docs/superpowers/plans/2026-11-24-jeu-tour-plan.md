@@ -1202,7 +1202,7 @@ func id_regarde() -> int                # -1 si aucune
 
 ### Task 8.7 : Mana, bouclier de la tour — `sonnet`
 
-- [ ] **Objectif :** la mana absorbe les coups à la place des PV (ordre : esquive, armure, mana, PV ; 1 point absorbe 1 point) et se régénère chaque seconde ; la tour démarre à 0 de mana maximale ; nouvelles améliorations de mana ; 4 armes magiques font des dégâts selon la mana maximale.
+- [x] **Objectif :** la mana absorbe les coups à la place des PV (ordre : esquive, armure, mana, PV ; 1 point absorbe 1 point) et se régénère chaque seconde ; la tour démarre à 0 de mana maximale ; nouvelles améliorations de mana ; 4 armes magiques font des dégâts selon la mana maximale.
 - **Conception :** §6.4.
 - **Fichiers :** `sim/arene.gd`, `sim/inventaire.gd`, `sim/tir.gd`, `data/ameliorations.json` (au moins 2 `mana_max`, 1 `mana_regen`, catégorie `amelioration`), `data/armes.json` (`degats_par_mana_max` sur 4 armes magiques existantes), `data/partie.json` (`tour.mana_regen`) ; tests `test_arene_tour.gd`, `test_inventaire.gd`, `test_tir.gd`, `test_contenu.gd`.
 - **Lire :** `sim/arene.gd` `_pas_tour_et_ennemis`, `synchroniser`, `vue` ; le test de rendement par rareté de `test_contenu.gd` (`grep -n 'rendement'`).

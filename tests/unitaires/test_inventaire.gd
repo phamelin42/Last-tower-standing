@@ -277,3 +277,29 @@ func test_chaque_amelioration_reelle_s_agrege_sans_erreur() -> void:
 		var inv := Inventaire.new(d)
 		verifier_egal(inv.ajouter(id), Types.Resultat.OK, id)
 		verifier_non_nul(inv.stats(), id)
+
+
+func test_les_ameliorations_de_mana_s_additionnent_dans_les_stats() -> void:
+	var d := _donnees_reelles()
+	var par_stat: Dictionary = {"mana_max": [], "mana_regen": []}
+	for id: String in d.ameliorations:
+		var effets: Array = (d.ameliorations[id] as Dictionary)["effets"]
+		for effet: Dictionary in effets:
+			var stat := String(effet["stat"])
+			if par_stat.has(stat):
+				(par_stat[stat] as Array).append([id, float(effet["valeur"])])
+	for stat: String in par_stat:
+		var liste: Array = par_stat[stat]
+		verifier(not liste.is_empty(), "une amélioration de %s existe" % stat)
+		var inv := Inventaire.new(d)
+		var attendu := 0.0
+		for entree: Array in liste:
+			inv.ajouter(String(entree[0]))
+			inv.ajouter(String(entree[0]))
+			attendu += 2.0 * float(entree[1])
+		var s := inv.stats()
+		var recu := s.mana_max_bonus if stat == "mana_max" else s.mana_regen
+		verifier_proche(recu, attendu, 0.0001, "%s : deux exemplaires de chacune" % stat)
+	var vide := Inventaire.new(d).stats()
+	verifier_proche(vide.mana_max_bonus, 0.0, 0.0)
+	verifier_proche(vide.mana_regen, 0.0, 0.0)

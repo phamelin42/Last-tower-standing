@@ -132,7 +132,9 @@ func _chiffres_attendus(entree: Dictionary, genre: int) -> Array[String]:
 
 func test_chaque_offre_a_une_ligne_d_effet_avec_ses_chiffres() -> void:
 	var offres := _offres()
-	verifier_egal(offres.size(), 70, "30 armes et 40 améliorations")
+	verifier_egal(
+		offres.size(), _donnees.armes.size() + _donnees.ameliorations.size(), "une par offre"
+	)
 	for offre: Dictionary in offres:
 		var id: String = offre["id"]
 		var genre: int = offre["genre"]
