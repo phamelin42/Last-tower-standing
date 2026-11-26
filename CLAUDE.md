@@ -53,6 +53,7 @@ Spécification : `docs/superpowers/specs/2026-11-24-jeu-tour-design.md`. Plan :
 - Écrire le test, le voir échouer pour la bonne raison, puis implémenter.
 - Ne toucher qu'aux fichiers de sa tâche. Une interface fausse chez un voisin se signale, elle ne se corrige pas.
 - Avant de rendre une tâche : `tools/verifier.sh` vert, `gdlint` et `gdformat --check` verts sur ce qui a changé.
+- Sons et ressources sonores : l'agent choisit lui-même un pack sous licence CC0, sans attendre Phil, une fois la licence vérifiée à sa source et citée dans `assets/sons/SOURCES.md` (Phil, 26/11/2026).
 
 ## Skills de jeu tiers
 
