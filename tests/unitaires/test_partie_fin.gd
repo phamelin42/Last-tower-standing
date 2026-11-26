@@ -270,7 +270,7 @@ func test_le_classement_suit_manche_puis_degats_puis_id() -> void:
 # --- Observation -------------------------------------------------------------------------------
 
 
-func test_observation_un_mort_voit_tout_un_vivant_seulement_sa_tour() -> void:
+func test_observation_un_mort_voit_tout_un_vivant_voit_aussi_les_autres() -> void:
 	var p := AidesPartie.partie(_donnees_tomber(), GRAINE, 3)
 	_brancher(p)
 	BotAchat.jouer(p, 2, 6)
@@ -282,12 +282,30 @@ func test_observation_un_mort_voit_tout_un_vivant_seulement_sa_tour() -> void:
 	verifier_non_nul(p.vue_arene(1, 2), "le mort observe un vivant")
 	verifier_non_nul(p.vue_arene(1, 3), "le mort observe un autre vivant")
 	verifier_non_nul(p.vue_arene(2, 2), "un vivant voit sa tour")
-	verifier_nul(p.vue_arene(2, 3), "un vivant ne voit pas celle d'un autre vivant")
-	verifier_nul(p.vue_arene(2, 1), "un vivant ne voit pas non plus une arène détruite")
+	verifier_non_nul(p.vue_arene(2, 3), "un vivant voit celle d'un autre vivant (lot 8)")
+	verifier_non_nul(p.vue_arene(2, 1), "un vivant voit aussi une arène détruite")
 	verifier_nul(p.vue_arene(1, 99), "cible inconnue")
 	verifier_nul(p.vue_arene(99, 2), "demandeur inconnu")
 	verifier_nul(p.vue_arene(99, 99), "les deux inconnus")
 	verifier_nul(p.vue_arene(1, -1), "cible -1")
+
+
+func test_un_joueur_vivant_voit_une_autre_arene_mais_ne_peut_pas_l_observer() -> void:
+	var p := AidesPartie.partie(_donnees_tomber(), GRAINE, 3)
+	_brancher(p)
+	verifier_nul(p.vue_arene(1, 99), "cible inconnue")
+	verifier_non_nul(p.vue_arene(1, 2), "un vivant regarde un autre vivant")
+	verifier_non_nul(p.vue_arene(1, 1), "et la sienne")
+	for id: int in [1, 2, 3]:
+		verifier_faux(p.observation_permise(id), "en jeu : observer reste refusé")
+	verifier_faux(p.observation_permise(99), "joueur inconnu")
+	BotAchat.jouer(p, 2, 6)
+	BotAchat.jouer(p, 3, 6)
+	_jouer_jusqu(p, func() -> bool: return elimines.has(1))
+	verifier(p.observation_permise(1), "après élimination")
+	verifier_faux(p.observation_permise(2), "un joueur encore en jeu non")
+	p.retirer_joueur(3)
+	verifier(p.observation_permise(3), "après départ")
 
 
 func test_observation_un_mort_ne_voit_pas_une_arene_retiree() -> void:

@@ -399,6 +399,10 @@ func _options(pair: int, graine: int, texte: String) -> int:
 func _observer(p: _Pair, pair: int, cible: int) -> int:
 	if partie == null:
 		return Types.Resultat.MAUVAISE_PHASE
+	# `vue_arene` rend désormais toute arène : seul un joueur tombé, vainqueur ou parti remplace
+	# sa propre vue (un vivant ne fait que regarder, lot 8).
+	if cible != pair and not partie.observation_permise(pair):
+		return Types.Resultat.INDICE_INVALIDE
 	var vue := _lire_vue(pair, cible)
 	if vue == null:
 		return Types.Resultat.INDICE_INVALIDE

@@ -1238,7 +1238,7 @@ func id_regarde() -> int                # -1 si aucune
 
 ### Task 8.9 : DPS, carte de densité et observation d'une autre arène de son vivant — `sonnet`
 
-- [ ] **Objectif :** côté simulation, les trois données dont l'interface a besoin : dégâts par seconde (moyenne glissante des 10 dernières secondes, épines comprises), carte de densité 16 × 16 des ennemis, et accès à toute arène existante pour un joueur vivant (mais `observer`, qui remplace sa propre vue, reste réservé aux morts).
+- [x] **Objectif :** côté simulation, les trois données dont l'interface a besoin : dégâts par seconde (moyenne glissante des 10 dernières secondes, épines comprises), carte de densité 16 × 16 des ennemis, et accès à toute arène existante pour un joueur vivant (mais `observer`, qui remplace sa propre vue, reste réservé aux morts).
 - **Conception :** §6.8, §6.10.
 - **Fichiers :** `sim/arene.gd`, `sim/partie.gd`, `sim/joueur_partie.gd` ; tests `test_arene.gd`, `test_partie.gd`, `test_vues.gd`, nouveaux `test_dps.gd` et `test_densite.gd`.
 - **Lire :** `sim/arene.gd` (attributs et `avancer`), `sim/partie.gd` `vue_arene`, `vue_globale`, `_enregistrer`.
@@ -1311,7 +1311,7 @@ func id_regarde() -> int                # -1 si aucune
 
 ### Task 8.13 : Caméra libre, dézoom et arène regardée — `sonnet`
 
-- [ ] **Objectif :** déplacement de la vue aux flèches et aux touches physiques W A S D (Z Q S D en AZERTY), **Espace** recentre sur la tour, dézoom jusqu'à deux fois le cercle d'apparition, décalage limité à deux rayons ; `Arene2D` sait afficher l'arène d'un autre joueur (vue regardée), `Espace` y met fin. Déclare aussi l'action `boutique_replier` (B) pour T8.19.
+- [x] **Objectif :** déplacement de la vue aux flèches et aux touches physiques W A S D (Z Q S D en AZERTY), **Espace** recentre sur la tour, dézoom jusqu'à deux fois le cercle d'apparition, décalage limité à deux rayons ; `Arene2D` sait afficher l'arène d'un autre joueur (vue regardée), `Espace` y met fin. Déclare aussi l'action `boutique_replier` (B) pour T8.19.
 - **Conception :** §6.9, §6.10, D3.
 - **Fichiers :** `visuels/camera_arene.gd`, `visuels/arene_2d.gd`, `project.godot` (six actions) ; tests `test_camera_arene.gd`, `test_arene_2d.gd`, `test_configuration_projet.gd`.
 - **Lire :** `visuels/camera_arene.gd` (128 lignes), `visuels/arene_2d.gd` `lier`, `afficher`, `definir_joueur`.
@@ -1680,7 +1680,7 @@ ameliorations.json — champ obligatoire « famille » (Types.FAMILLES_AMELIORAT
 
 ### Task 9.1 : Garde-fou des noms d'origine — `sonnet`
 
-- [ ] **Objectif :** un test lit les noms d'armes et d'améliorations de `docs/tower_survivors.md` (§4.1 et §4.2) et échoue si l'un d'eux apparaît dans `data/`, `i18n/`, `sim/`, `ui/`, `visuels/` (et, par prudence, `app/`, `reseau/`, `sons/`). Il vient **avant** les 45 armes et les 44 améliorations, pour que chaque nom écrit ensuite soit contrôlé. Il complète `test_aucun_nom_de_la_map_d_origine` de `test_contenu.gd`, qui ne regarde que quelques noms et seulement les champs des données : il reste, ce nouveau test est le filet complet.
+- [x] **Objectif :** un test lit les noms d'armes et d'améliorations de `docs/tower_survivors.md` (§4.1 et §4.2) et échoue si l'un d'eux apparaît dans `data/`, `i18n/`, `sim/`, `ui/`, `visuels/` (et, par prudence, `app/`, `reseau/`, `sons/`). Il vient **avant** les 45 armes et les 44 améliorations, pour que chaque nom écrit ensuite soit contrôlé. Il complète `test_aucun_nom_de_la_map_d_origine` de `test_contenu.gd`, qui ne regarde que quelques noms et seulement les champs des données : il reste, ce nouveau test est le filet complet.
 - **Conception :** §6.13 (garde-fou), spec du jeu ligne 10 (noms originaux).
 - **Fichiers :** `tests/outils/noms_origine.gd` (nouveau, `class_name NomsOrigine`), `tests/unitaires/test_noms_origine.gd` (nouveau), `docs/tower_survivors.md` (une seule modification : ajouter un §4.3 « Noms hors boutique » en liste à puces, pour que les noms que le document ne range pas dans un tableau soient lisibles par la machine).
 - **Lire :** `docs/tower_survivors.md` §4.1 et §4.2 (le **format** des tableaux : première colonne, ligne d'en-tête, ligne de séparation ; les phrases « Hors pool » sous les tableaux) ; `tests/unitaires/test_contenu.gd` `INTERDITS` et `test_aucun_nom_de_la_map_d_origine`.
