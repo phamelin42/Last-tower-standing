@@ -200,7 +200,7 @@ func test_une_arme_dit_son_type_ses_degats_sa_recharge_sa_portee_et_sa_cible() -
 	for attendu: String in [
 		"Tranchant",
 		"30,6 dégâts toutes les 0,8 s",
-		"portée 300",
+		"portée 500",
 	]:
 		verifier(ligne.contains(attendu), "« %s » absent de « %s »" % [attendu, ligne])
 	verifier_faux(

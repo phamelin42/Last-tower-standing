@@ -37,7 +37,7 @@ func _armes_valides() -> Array:
 			"type_degats": "perçant",
 			"degats": 12.0,
 			"recharge": 0.8,
-			"portee": 900,
+			"portee": 1000,
 			"ciblage": "plus_faible",
 			"effets": [{"kind": "cible_unique"}],
 		},
@@ -50,7 +50,7 @@ func _armes_valides() -> Array:
 			"type_degats": "siège",
 			"degats": 42.0,
 			"recharge": 1.2,
-			"portee": 600,
+			"portee": 750,
 			"ciblage": "plus_proche",
 			"effets": [{"kind": "rebond", "cibles": 5, "portee_saut": 250, "decroissance": 0.9}],
 			"statuts": [{"kind": "givre"}, {"kind": "vol_de_vie", "ratio": 0.05}],
@@ -367,7 +367,7 @@ func test_les_noms_francais_sont_convertis_en_enums_dans_les_donnees_normalisees
 	verifier_egal(arme["type_degats"], Types.TypeDegats.SIEGE)
 	verifier_egal(arme["rarete"], Types.Rarete.RARE)
 	verifier_egal(arme["ciblage"], Types.Ciblage.PLUS_PROCHE)
-	verifier_egal(arme["portee"], 600)
+	verifier_egal(arme["portee"], 750)
 	verifier_egal(arme["prix"], 900)
 	var percante: Dictionary = d.armes["arbalete_percante"]
 	verifier_egal(percante["type_degats"], Types.TypeDegats.PERCANT)
@@ -627,7 +627,7 @@ func _mutations_armes() -> Array[Array]:
 		["armes : kind de statut inconnu", f, [1, "statuts", 0, "kind"], "malediction", "kind"],
 		["armes : id dupliqué", f, [1, "id"], "arbalete_percante", "id"],
 		["armes : id vide", f, [0, "id"], "", "id"],
-		["armes : portée hors paliers", f, [0, "portee"], 500, "portee"],
+		["armes : portée hors paliers", f, [0, "portee"], 550, "portee"],
 		["armes : portée en chaîne", f, [0, "portee"], "600", "portee"],
 		["armes : rebond < 4", f, [1, "effets", 0, "cibles"], 3, "cibles"],
 		["armes : rebond > 8", f, [1, "effets", 0, "cibles"], 9, "cibles"],

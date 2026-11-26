@@ -24,7 +24,7 @@ const FICHIERS_LISTE: Array[String] = ["armes.json", "ameliorations.json"]
 const FICHIERS_OPTIONNELS_EN_TEST: Array[String] = [
 	"armes.json", "ameliorations.json", "ennemis.json"
 ]
-const PORTEES: Array[int] = [300, 600, 900, 1200]
+const PORTEES: Array[int] = [500, 750, 1000, 1250]
 const CATEGORIES: Array[String] = ["A", "B", "C"]
 const STATS_AMELIORATION: Array[String] = [
 	"degats_type",
@@ -404,7 +404,7 @@ static func _valider_armes(liste: Array, ids: Dictionary, err: Array[String]) ->
 		if _nombre(a, _ent("portee", 0.0), f, ch, err):
 			var portee: int = int(a["portee"])
 			if not portee in PORTEES:
-				_err(err, f, _sous(ch, "portee"), "doit valoir 300, 600, 900 ou 1200")
+				_err(err, f, _sous(ch, "portee"), "doit valoir 500, 750, 1000 ou 1250")
 		var effets_ok := _tableau(a, "effets", f, ch, err)
 		if effets_ok:
 			var effets: Array = a["effets"]

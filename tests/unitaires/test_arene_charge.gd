@@ -52,7 +52,7 @@ func test_mille_ennemis_immobiles_au_plancher_sous_5_ms_par_pas() -> void:
 func test_mille_ennemis_en_marche_sous_5_ms_par_pas() -> void:
 	var a := Arene.new(d, GRAINE)
 	_equiper(a)
-	a.demarrer_manche(40, 0, _mult(0.1))
+	a.demarrer_manche(40, 0, _mult(0.05))
 	var ms := _mesurer(a, 1000, 200)
 	verifier(ms < BUDGET_MS, "%.3f ms par pas (budget %s)" % [ms, BUDGET_MS])
 

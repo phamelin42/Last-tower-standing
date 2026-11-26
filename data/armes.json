@@ -8,7 +8,7 @@
   "type_degats": "tranchant",
   "degats": 30.6,
   "recharge": 0.8,
-  "portee": 300,
+  "portee": 500,
   "ciblage": "plus_proche",
   "effets": [
    {
@@ -26,7 +26,7 @@
   "type_degats": "tranchant",
   "degats": 24.3,
   "recharge": 1.4,
-  "portee": 300,
+  "portee": 500,
   "ciblage": "plus_proche",
   "effets": [
    {
@@ -45,7 +45,7 @@
   "type_degats": "tranchant",
   "degats": 90.0,
   "recharge": 1.2,
-  "portee": 600,
+  "portee": 750,
   "ciblage": "plus_proche",
   "effets": [
    {
@@ -72,7 +72,7 @@
   "type_degats": "tranchant",
   "degats": 28.8,
   "recharge": 0.5,
-  "portee": 300,
+  "portee": 500,
   "ciblage": "plus_proche",
   "effets": [
    {
@@ -92,7 +92,7 @@
   "type_degats": "tranchant",
   "degats": 183.4,
   "recharge": 2.0,
-  "portee": 600,
+  "portee": 750,
   "ciblage": "plus_fort",
   "effets": [
    {
@@ -112,7 +112,7 @@
   "type_degats": "tranchant",
   "degats": 291.5,
   "recharge": 1.5,
-  "portee": 900,
+  "portee": 1000,
   "ciblage": "plus_proche",
   "effets": [
    {
@@ -139,7 +139,7 @@
   "type_degats": "perçant",
   "degats": 43.2,
   "recharge": 1.0,
-  "portee": 900,
+  "portee": 1000,
   "ciblage": "plus_proche",
   "effets": [
    {
@@ -157,7 +157,7 @@
   "type_degats": "perçant",
   "degats": 71.4,
   "recharge": 3.0,
-  "portee": 300,
+  "portee": 500,
   "ciblage": "plus_proche",
   "effets": [
    {
@@ -177,7 +177,7 @@
   "type_degats": "perçant",
   "degats": 77.1,
   "recharge": 1.6,
-  "portee": 900,
+  "portee": 1000,
   "ciblage": "plus_faible",
   "effets": [
    {
@@ -198,7 +198,7 @@
   "type_degats": "perçant",
   "degats": 116.4,
   "recharge": 1.8,
-  "portee": 600,
+  "portee": 750,
   "ciblage": "plus_proche",
   "effets": [
    {
@@ -224,7 +224,7 @@
   "type_degats": "perçant",
   "degats": 838.3,
   "recharge": 2.2,
-  "portee": 1200,
+  "portee": 1250,
   "ciblage": "plus_fort",
   "effets": [
    {
@@ -248,7 +248,7 @@
   "type_degats": "perçant",
   "degats": 410.3,
   "recharge": 2.4,
-  "portee": 1200,
+  "portee": 1250,
   "ciblage": "plus_proche",
   "effets": [
    {
@@ -269,7 +269,7 @@
   "type_degats": "magique",
   "degats": 30.3,
   "recharge": 0.9,
-  "portee": 600,
+  "portee": 750,
   "ciblage": "plus_proche",
   "effets": [
    {
@@ -287,7 +287,7 @@
   "type_degats": "magique",
   "degats": 33.6,
   "recharge": 1.8,
-  "portee": 600,
+  "portee": 750,
   "ciblage": "plus_proche",
   "effets": [
    {
@@ -310,7 +310,7 @@
   "type_degats": "magique",
   "degats": 77.7,
   "recharge": 1.4,
-  "portee": 900,
+  "portee": 1000,
   "ciblage": "plus_proche",
   "effets": [
    {
@@ -331,7 +331,7 @@
   "type_degats": "magique",
   "degats": 59.7,
   "recharge": 1.0,
-  "portee": 300,
+  "portee": 500,
   "ciblage": "plus_proche",
   "effets": [
    {
@@ -355,7 +355,7 @@
   "type_degats": "magique",
   "degats": 247.0,
   "recharge": 2.5,
-  "portee": 600,
+  "portee": 750,
   "ciblage": "plus_proche",
   "effets": [
    {
@@ -381,7 +381,7 @@
   "type_degats": "magique",
   "degats": 372.3,
   "recharge": 2.0,
-  "portee": 1200,
+  "portee": 1250,
   "ciblage": "plus_fort",
   "effets": [
    {
@@ -407,7 +407,7 @@
   "type_degats": "siège",
   "degats": 48.0,
   "recharge": 2.5,
-  "portee": 900,
+  "portee": 1000,
   "ciblage": "plus_proche",
   "effets": [
    {
@@ -426,7 +426,7 @@
   "type_degats": "siège",
   "degats": 64.8,
   "recharge": 3.0,
-  "portee": 300,
+  "portee": 500,
   "ciblage": "plus_proche",
   "effets": [
    {
@@ -446,7 +446,7 @@
   "type_degats": "siège",
   "degats": 207.0,
   "recharge": 3.2,
-  "portee": 1200,
+  "portee": 1250,
   "ciblage": "plus_fort",
   "effets": [
    {
@@ -465,7 +465,7 @@
   "type_degats": "siège",
   "degats": 194.4,
   "recharge": 2.5,
-  "portee": 600,
+  "portee": 750,
   "ciblage": "plus_proche",
   "effets": [
    {
@@ -485,7 +485,7 @@
   "type_degats": "siège",
   "degats": 529.2,
   "recharge": 3.0,
-  "portee": 900,
+  "portee": 1000,
   "ciblage": "plus_proche",
   "effets": [
    {
@@ -512,7 +512,7 @@
   "type_degats": "siège",
   "degats": 1087.8,
   "recharge": 4.0,
-  "portee": 1200,
+  "portee": 1250,
   "ciblage": "plus_fort",
   "effets": [
    {
@@ -536,7 +536,7 @@
   "type_degats": "chaos",
   "degats": 23.4,
   "recharge": 0.7,
-  "portee": 600,
+  "portee": 750,
   "ciblage": "plus_proche",
   "effets": [
    {
@@ -560,7 +560,7 @@
   "type_degats": "chaos",
   "degats": 59.4,
   "recharge": 2.5,
-  "portee": 300,
+  "portee": 500,
   "ciblage": "plus_proche",
   "effets": [
    {
@@ -580,7 +580,7 @@
   "type_degats": "chaos",
   "degats": 103.8,
   "recharge": 1.8,
-  "portee": 900,
+  "portee": 1000,
   "ciblage": "plus_proche",
   "effets": [
    {
@@ -605,7 +605,7 @@
   "type_degats": "chaos",
   "degats": 87.6,
   "recharge": 1.3,
-  "portee": 600,
+  "portee": 750,
   "ciblage": "plus_proche",
   "effets": [
    {
@@ -626,7 +626,7 @@
   "type_degats": "chaos",
   "degats": 205.7,
   "recharge": 2.2,
-  "portee": 900,
+  "portee": 1000,
   "ciblage": "plus_proche",
   "effets": [
    {
@@ -652,7 +652,7 @@
   "type_degats": "chaos",
   "degats": 379.7,
   "recharge": 1.8,
-  "portee": 1200,
+  "portee": 1250,
   "ciblage": "plus_proche",
   "effets": [
    {
