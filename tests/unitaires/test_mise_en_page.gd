@@ -520,6 +520,76 @@ func test_la_note_or_insuffisant_tient_entiere_sans_depasser_les_seuils() -> voi
 			_liberer(jeu)
 
 
+## S15 : le pire cas de la boutique (les quatre offres aux plus longs noms réels, or à zéro donc la
+## note « Or insuffisant » sur chaque carte) tient dans la part maximale de la hauteur, aux quatre
+## résolutions et aux crans extrêmes de l'interface. Les noms viennent de `data/`, pas du test.
+func test_le_pire_cas_de_la_boutique_tient_dans_la_part_maximale_a_125_pour_cent() -> void:
+	_donnees = AidesPartie.donnees()
+	var police := ThemeJeu.police()
+	var taille := ThemeJeu.taille("texte")
+	var entrees: Array[Dictionary] = []
+	for id: String in _donnees.armes:
+		entrees.append({"id": id, "genre": Types.Genre.ARME})
+	for id: String in _donnees.ameliorations:
+		entrees.append({"id": id, "genre": Types.Genre.AMELIORATION})
+	var table_de := func(e: Dictionary) -> Dictionary:
+		return _donnees.armes if e["genre"] == Types.Genre.ARME else _donnees.ameliorations
+	var nom_de := func(e: Dictionary) -> String:
+		return String(((table_de.call(e) as Dictionary)[e["id"]] as Dictionary)["nom"])
+	entrees.sort_custom(
+		func(a: Dictionary, b: Dictionary) -> bool:
+			return (
+				police.get_string_size(nom_de.call(a), 0, -1, taille).x
+				> police.get_string_size(nom_de.call(b), 0, -1, taille).x
+			)
+	)
+	var plus_longues := entrees.slice(0, BoutiqueUi.NB_OFFRES)
+	verifier_egal(plus_longues.size(), BoutiqueUi.NB_OFFRES, "assez d'offres réelles")
+	for echelle: float in ECHELLES_EXTREMES:
+		for resolution: Vector2 in RESOLUTIONS:
+			var zone := resolution / echelle
+			var jeu := await _jeu_a(zone)
+			jeu.source.set_process(false)
+			var vue := VueArene.new()
+			vue.argent = 0
+			for i: int in plus_longues.size():
+				var e: Dictionary = plus_longues[i]
+				var entree: Dictionary = (table_de.call(e) as Dictionary)[e["id"]]
+				(
+					vue
+					. offres
+					. append(
+						{
+							"id": e["id"],
+							"genre": e["genre"],
+							"rarete": i % 4,
+							"prix": int(entree["prix"]),
+							"vendu": false,
+						}
+					)
+				)
+			jeu.boutique.afficher(vue)
+			await attendre_images(3)
+			var ou := "à %s, échelle %s" % [resolution, echelle]
+			var notes_or := 0
+			for i: int in BoutiqueUi.NB_OFFRES:
+				var note := jeu.boutique.find_child("Note%d" % i, true, false) as Label
+				if note != null and note.visible and note.text == tr("BOUTIQUE_OR_INSUFFISANT"):
+					notes_or += 1
+			verifier_egal(
+				notes_or, BoutiqueUi.NB_OFFRES, "« Or insuffisant » sur chaque carte %s" % ou
+			)
+			var hauteur := jeu.boutique.rect_bandeau_minimal().y
+			verifier(
+				hauteur <= zone.y * MiseEnPage.PART_MAX_BOUTIQUE + 0.5,
+				(
+					"pire cas : bandeau de %.1f px, limite %.1f px %s"
+					% [hauteur, zone.y * MiseEnPage.PART_MAX_BOUTIQUE, ou]
+				)
+			)
+			_liberer(jeu)
+
+
 ## T8.19 et T8.20 : replier la boutique libère la zone, que `Jeu` recalcule dès le signal
 ## `repli_change` ; la déplier la lui rend.
 func test_le_repli_de_la_boutique_libere_la_zone() -> void:

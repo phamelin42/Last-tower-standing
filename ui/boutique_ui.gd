@@ -456,7 +456,7 @@ func _construire_carte(i: int) -> PanelContainer:
 	# police, et dans la colonne à droite de l'image la rareté passait sur cinq lignes.
 	prix.autowrap_mode = TextServer.AUTOWRAP_OFF
 	prix.custom_minimum_size.x = 0.0
-	rarete.custom_minimum_size = Vector2(0.0, _hauteur_ligne())
+	rarete.custom_minimum_size = Vector2(0.0, HAUTEUR_LIGNE_SERREE)
 	# Jamais à la ligne ni rognée : un mot de rareté coupé en deux (« Peu » / « commune ») serait
 	# masqué par la hauteur d'une seule ligne.
 	rarete.autowrap_mode = TextServer.AUTOWRAP_OFF
@@ -465,6 +465,8 @@ func _construire_carte(i: int) -> PanelContainer:
 	# La colonne de texte n'a plus que la largeur laissée par l'image : le nom passe à la ligne.
 	nom.custom_minimum_size = Vector2(LARGEUR_MOT_NOM, _hauteur_ligne())
 	nom.add_theme_color_override("font_color", ThemeJeu.LAITON_CLAIR)
+	# Un nom long passe sur trois lignes : l'interligne du thème (3 px) coûterait 6 px au bandeau.
+	nom.add_theme_constant_override("line_spacing", 0)
 	textes.add_child(nom)
 	# Le prix se range sous le nom, dans la colonne à droite de l'image : la rangée de la rareté
 	# ne le fait plus passer à la ligne, et la note « Or insuffisant » trouve sa place sous
@@ -480,6 +482,7 @@ func _construire_carte(i: int) -> PanelContainer:
 	# Carte compacte (D13) : l'effet entier et l'ambiance se lisent dans l'infobulle de la carte.
 	var achat := _bouton(Callable(self, "acheter_offre").bind(i))
 	achat.text = tr("BOUTIQUE_ACHETER")
+	achat.theme_type_variation = ThemeJeu.TYPE_ACHAT
 	colonne.add_child(achat)
 	_cartes.append(carte)
 	_raretes.append(rarete)
