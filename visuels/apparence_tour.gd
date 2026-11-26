@@ -9,6 +9,8 @@ extends RefCounted
 const STATS: Array[String] = DonneesApparence.STATS
 const SUPERPOSITIONS: Array[String] = DonneesApparence.SUPERPOSITIONS
 const PALIERS_MAX := 3
+## Opacité d'une superposition quand les six sont actives : le plancher de la règle de cumul.
+const OPACITE_MIN := 0.3
 ## Agrandissement maximal, même si les données en demandaient plus (A3).
 const ECHELLE_MAX := 1.25
 ## Champ de la vue qui porte chaque statistique.
@@ -58,3 +60,17 @@ static func remplissage_mana(vue: VueArene) -> float:
 	if vue.tour_mana_max <= 0.0:
 		return 0.0
 	return clampf(vue.tour_mana / vue.tour_mana_max, 0.0, 1.0)
+
+
+## Facteur d'opacité de chaque superposition : 1,0 seule, puis de moins en moins à mesure que
+## d'autres s'ajoutent (linéaire jusqu'au plancher `OPACITE_MIN` quand toutes sont actives), pour
+## que la tour reste lisible. Seules comptent celles qui ont une image (`pv_max` n'en a pas).
+static func opacite_cumul(paliers_tour: Dictionary) -> float:
+	var actives := 0
+	for stat: String in SUPERPOSITIONS:
+		if int(paliers_tour.get(stat, 0)) > 0:
+			actives += 1
+	if actives <= 1:
+		return 1.0
+	var pas := (1.0 - OPACITE_MIN) / float(SUPERPOSITIONS.size() - 1)
+	return maxf(1.0 - pas * float(actives - 1), OPACITE_MIN)

@@ -27,6 +27,7 @@ const SANG_FONCE := Color("6a0e1c")
 const SPECTRE := Color("cfe8ff")
 const GRAINE := 24
 const IMAGES_ANIMEES := 4
+const COUCHES: Array[String] = ["arriere", "avant"]
 
 var _rng := RandomNumberGenerator.new()
 
@@ -91,6 +92,22 @@ func _contour(img: Image) -> void:
 						break
 
 
+## Fin liseré sombre translucide autour d'une silhouette, pour la garder nette.
+func _contour_clair(img: Image) -> void:
+	var copie := img.duplicate() as Image
+	for y: int in img.get_height():
+		for x: int in img.get_width():
+			if copie.get_pixel(x, y).a > 0.0:
+				continue
+			for d: Vector2i in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+				var nx := x + d.x
+				var ny := y + d.y
+				if nx >= 0 and ny >= 0 and nx < img.get_width() and ny < img.get_height():
+					if copie.get_pixel(nx, ny).a > 0.0:
+						img.set_pixel(x, y, Color(ENCRE, 0.55))
+						break
+
+
 func _triangle(img: Image, a: Vector2, b: Vector2, c: Vector2, couleur: Color) -> void:
 	var x0 := int(floorf(minf(a.x, minf(b.x, c.x))))
 	var x1 := int(ceilf(maxf(a.x, maxf(b.x, c.x))))
@@ -123,24 +140,24 @@ func _fer(lumiere: float) -> Color:
 ## Ceinture de piques autour du bas de la cuvette : longueurs, épaisseurs et angles varient ; plus
 ## courtes et plus pentues sur les côtés, à peine visibles derrière. `tour` : quart de pas tourné.
 func _epines(palier: int, tour: int) -> Dictionary:
-	var c := _couches(128, 84)
+	var c := _couches(128, 96)
 	_rng.seed = GRAINE + palier
-	var nombre: int = [9, 13, 17][palier - 1]
-	var base: float = [13.0, 17.0, 21.0][palier - 1]
+	var nombre: int = [8, 12, 16][palier - 1]
+	var base: float = [20.0, 25.0, 30.0][palier - 1]
 	var rangees: int = 1 if palier == 1 else 2
 	for r: int in rangees:
 		var n := nombre - 3 * r
 		var pas := TAU / float(n)
-		var cy := 32.0 + 13.0 * r
+		var cy := 36.0 + 15.0 * r
 		for i: int in n:
 			var theta := pas * (float(i) + _rng.randf_range(-0.25, 0.25) + 0.5 * r)
 			theta += pas * float(tour) / float(IMAGES_ANIMEES)
 			var s := sin(theta)
 			var co := cos(theta)
 			var longueur := base * _rng.randf_range(0.65, 1.35) * (1.0 - 0.3 * absf(co))
-			var demi := _rng.randf_range(2.6, 5.0)
+			var demi := _rng.randf_range(3.6, 6.4)
 			var inclinaison := _rng.randf_range(-0.25, 0.25)
-			var pied := Vector2(64.0 + 42.0 * co, cy + 12.0 * s)
+			var pied := Vector2(64.0 + 40.0 * co, cy + 13.0 * s)
 			var dir := Vector2(co * 0.9, s * 0.35 + 0.4 + 0.35 * absf(co))
 			if s <= 0.0:
 				longueur *= 0.6
@@ -207,30 +224,32 @@ func _mana(palier: int) -> Dictionary:
 	return c
 
 
-## Plaques d'acier qui suivent la courbure du fût : des blocs de largeurs, de hauteurs et de
-## travers variés aux joints irréguliers, plus étroits et plus sombres sur les bords.
+## Plaques d'acier en anneaux autour du fût : des blocs de largeurs, de hauteurs et de travers
+## variés aux joints irréguliers, qui suivent la courbure (plus étroits et plus sombres vers les
+## bords, où ils dépassent de la silhouette). Les anneaux se recouvrent comme des écailles.
 func _armure(palier: int) -> Dictionary:
-	var c := _couches(96, 72)
+	var c := _couches(116, 84)
 	_rng.seed = GRAINE + 10 + palier
-	var rayon := 38.0
+	var rayon := 49.0
 	for r: int in palier:
-		var yc := 18.0 + 15.0 * r
-		var ry := 9.0
+		var yc := 24.0 + 13.0 * r
+		var ry := 13.0
 		var phi := _rng.randf_range(-PI, -PI + 0.5)
 		var fin := phi + TAU
 		while phi < fin - 0.2:
-			var delta := minf(_rng.randf_range(0.4, 0.95), fin - phi)
-			var haut := _rng.randf_range(8.0, 13.0)
-			var travers := _rng.randf_range(-2.0, 2.0)
-			var jeu := _rng.randf_range(0.03, 0.09)
+			var delta := minf(_rng.randf_range(0.4, 0.9), fin - phi)
+			var haut := _rng.randf_range(15.0, 21.0)
+			var travers := _rng.randf_range(-2.5, 2.5)
+			var jeu := _rng.randf_range(0.03, 0.08)
 			var p1 := phi + jeu
 			var p2 := phi + delta - jeu
 			var mi := (p1 + p2) / 2.0
 			var devant := cos(mi) > 0.0
-			var lumiere := 0.25 + 0.6 * cos(mi) if devant else 0.15
+			var bord := absf(sin(mi))
+			var lumiere := (0.7 - 0.62 * bord + _rng.randf_range(-0.08, 0.08)) if devant else 0.1
 			var cible: Image = c["avant"] if devant else c["arriere"]
-			var g := Vector2(48.0 + rayon * sin(p1), yc + ry * cos(p1))
-			var d := Vector2(48.0 + rayon * sin(p2), yc + ry * cos(p2))
+			var g := Vector2(58.0 + rayon * sin(p1), yc + ry * cos(p1))
+			var d := Vector2(58.0 + rayon * sin(p2), yc + ry * cos(p2))
 			var moitie := haut / 2.0
 			_quad(
 				cible,
@@ -240,14 +259,15 @@ func _armure(palier: int) -> Dictionary:
 				g + Vector2(0, moitie + travers),
 				_fer(lumiere)
 			)
-			if devant and absf(d.x - g.x) > 4.0:
+			if devant and absf(d.x - g.x) > 5.0:
+				var bande := int(absf(d.x - g.x)) - 2
 				_rect(
 					cible,
-					int(g.x) + 1,
+					int(minf(g.x, d.x)) + 1,
 					int(g.y - moitie + travers) + 1,
-					int(absf(d.x - g.x)) - 2,
+					bande,
 					1,
-					_fer(lumiere + 0.3)
+					_fer(lumiere + 0.25)
 				)
 				if palier == 3:
 					_px(cible, int((g.x + d.x) / 2.0), int((g.y + d.y) / 2.0), OR)
@@ -257,36 +277,27 @@ func _armure(palier: int) -> Dictionary:
 	return c
 
 
-## Images rémanentes : des copies pâles de la tour décalées de part et d'autre (derrière elle),
-## et des traînées de vitesse sur les côtés (devant). Image de 208 de large, tour à (40, 0).
+## Esquive : deux silhouettes nettes de la tour, légèrement décalées à gauche et à droite et
+## transparentes ; l'écart et l'opacité croissent avec le palier. Derrière la tour, plus pâles
+## devant. Image de 176 de large, tour à (24, 0).
 func _esquive(palier: int, tour: Image) -> Dictionary:
-	var c := _couches(208, 256)
-	var arriere: Image = c["arriere"]
-	var avant: Image = c["avant"]
-	var decalages: Array[int] = []
-	for k: int in palier:
-		decalages.append(14 * (k + 1))
-	for k: int in range(palier - 1, -1, -1):
-		var alpha: float = [0.34, 0.24, 0.15][k]
-		for signe: int in [-1, 1]:
-			var dx: int = decalages[k] * signe
-			for y: int in 256:
-				for x: int in 128:
-					var p := tour.get_pixel(x, y)
-					if p.a < 0.5:
-						continue
-					var teinte := Color(p.r, p.g, p.b).lerp(SPECTRE, 0.55)
-					var dest := Vector2i(40 + x + dx, y)
-					if dest.x >= 0 and dest.x < 208 and arriere.get_pixel(dest.x, dest.y).a < alpha:
-						arriere.set_pixel(dest.x, dest.y, Color(teinte, alpha))
-	_rng.seed = GRAINE + 20 + palier
-	for cote: int in [-1, 1]:
-		for k: int in palier + 1:
-			var y := _rng.randi_range(95, 205)
-			var longueur := _rng.randi_range(8, 22)
-			var x0 := 104 + cote * _rng.randi_range(52, 60)
-			var x1 := x0 + cote * longueur
-			_rect(avant, mini(x0, x1), y, longueur, 1, Color(SPECTRE, 0.7))
+	var c := _couches(176, 256)
+	var ecart: int = [12, 16, 20][palier - 1]
+	var alpha: float = [0.34, 0.44, 0.54][palier - 1]
+	for signe: int in [-1, 1]:
+		for y: int in 256:
+			for x: int in 128:
+				var p := tour.get_pixel(x, y)
+				if p.a < 0.5:
+					continue
+				var teinte := Color(p.r, p.g, p.b).lerp(SPECTRE, 0.7)
+				var xd := 24 + x + ecart * signe
+				var arriere: Image = c["arriere"]
+				var avant: Image = c["avant"]
+				arriere.set_pixel(xd, y, Color(teinte, alpha))
+				avant.set_pixel(xd, y, Color(teinte, alpha * 0.4))
+	for nom: String in COUCHES:
+		_contour_clair(c[nom])
 	return c
 
 

@@ -133,3 +133,30 @@ func test_un_skin_sans_ancrage_pour_une_superposition_est_refuse() -> void:
 	s4["autre"] = s4["defaut"]
 	s4.erase("defaut")
 	verifier(not Donnees.valider(sans_defaut).is_empty(), "le skin « defaut » est obligatoire")
+
+
+func test_chaque_effet_devient_plus_transparent_quand_les_autres_s_ajoutent() -> void:
+	verifier_egal(ApparenceTour.opacite_cumul({}), 1.0, "aucun effet")
+	var precedente := 1.0
+	var actifs := {}
+	for stat: String in ApparenceTour.SUPERPOSITIONS:
+		actifs[stat] = 3
+		var o := ApparenceTour.opacite_cumul(actifs)
+		verifier(o <= precedente, "%s : l'opacité ne remonte pas" % stat)
+		verifier(o >= ApparenceTour.OPACITE_MIN and o <= 1.0, "%s : bornée (%s)" % [stat, o])
+		precedente = o
+	verifier_egal(ApparenceTour.opacite_cumul({"armure": 3}), 1.0, "un seul effet : pleine")
+	verifier(precedente < 1.0, "six effets : allégés")
+	verifier_proche(precedente, ApparenceTour.OPACITE_MIN, 0.0001, "six effets : au plancher")
+	verifier_egal(
+		ApparenceTour.opacite_cumul({"armure": 0, "mana": 0, "pv_max": 3}),
+		1.0,
+		"palier 0 ne compte pas"
+	)
+	var avec_pv := {"armure": 2, "mana": 1, "pv_max": 3}
+	var sans_pv := {"armure": 2, "mana": 1}
+	verifier_egal(
+		ApparenceTour.opacite_cumul(avec_pv),
+		ApparenceTour.opacite_cumul(sans_pv),
+		"pv_max n'a pas d'image"
+	)

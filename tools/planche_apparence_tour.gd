@@ -214,7 +214,8 @@ func _poser_couche(
 		nom += "_a%d" % animation
 	var skin: Dictionary = _donnees.skins_tour["defaut"]
 	var ancrages: Dictionary = skin["ancrages"]
-	_poser(composite, _images[nom], ancrages[stat])
+	var opacite := ApparenceTour.opacite_cumul(paliers)
+	_poser(composite, _images[nom], ancrages[stat], opacite)
 
 
 func _poser_tour(dest: Image, tour: Image) -> void:
@@ -226,7 +227,7 @@ func _poser_tour(dest: Image, tour: Image) -> void:
 
 
 ## Pose `img` par son centre sur l'ancrage `{x, y}`, en gardant l'alpha accumulé.
-func _poser(dest: Image, img: Image, ancrage: Dictionary) -> void:
+func _poser(dest: Image, img: Image, ancrage: Dictionary, opacite: float = 1.0) -> void:
 	var haut_gauche := (
 		DECALAGE_TOUR
 		+ Vector2i(
@@ -238,7 +239,7 @@ func _poser(dest: Image, img: Image, ancrage: Dictionary) -> void:
 		for x: int in img.get_width():
 			var c: Color = img.get_pixel(x, y)
 			if c.a > 0.0:
-				_melanger_alpha(dest, haut_gauche + Vector2i(x, y), c)
+				_melanger_alpha(dest, haut_gauche + Vector2i(x, y), Color(c, c.a * opacite))
 
 
 ## Même règle que `teinte_tour.gdshader` : seules les pierres bleu-vert bougent.

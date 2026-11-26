@@ -31,12 +31,12 @@ l’identique. Points de pose : `data/skins_tour.json`.
 | `armure_2_avant.png`          | blocs de plaques irréguliers qui suivent le fût, palier 2, couche avant                                                | Godot 4.7.2, `Image` (MIT) | CC0 1.0 |
 | `armure_3_arriere.png`        | blocs de plaques irréguliers qui suivent le fût, palier 3, couche arriere                                              | Godot 4.7.2, `Image` (MIT) | CC0 1.0 |
 | `armure_3_avant.png`          | blocs de plaques irréguliers qui suivent le fût, palier 3, couche avant                                                | Godot 4.7.2, `Image` (MIT) | CC0 1.0 |
-| `esquive_1_arriere.png`       | images rémanentes pâles de part et d’autre (silhouette de `Tower_Blue.png`, CC0) et traînées, palier 1, couche arriere | Godot 4.7.2, `Image` (MIT) | CC0 1.0 |
-| `esquive_1_avant.png`         | images rémanentes pâles de part et d’autre (silhouette de `Tower_Blue.png`, CC0) et traînées, palier 1, couche avant   | Godot 4.7.2, `Image` (MIT) | CC0 1.0 |
-| `esquive_2_arriere.png`       | images rémanentes pâles de part et d’autre (silhouette de `Tower_Blue.png`, CC0) et traînées, palier 2, couche arriere | Godot 4.7.2, `Image` (MIT) | CC0 1.0 |
-| `esquive_2_avant.png`         | images rémanentes pâles de part et d’autre (silhouette de `Tower_Blue.png`, CC0) et traînées, palier 2, couche avant   | Godot 4.7.2, `Image` (MIT) | CC0 1.0 |
-| `esquive_3_arriere.png`       | images rémanentes pâles de part et d’autre (silhouette de `Tower_Blue.png`, CC0) et traînées, palier 3, couche arriere | Godot 4.7.2, `Image` (MIT) | CC0 1.0 |
-| `esquive_3_avant.png`         | images rémanentes pâles de part et d’autre (silhouette de `Tower_Blue.png`, CC0) et traînées, palier 3, couche avant   | Godot 4.7.2, `Image` (MIT) | CC0 1.0 |
+| `esquive_1_arriere.png`       | deux silhouettes nettes et transparentes de part et d’autre (silhouette de `Tower_Blue.png`, CC0), palier 1, couche arriere | Godot 4.7.2, `Image` (MIT) | CC0 1.0 |
+| `esquive_1_avant.png`         | deux silhouettes nettes et transparentes de part et d’autre (silhouette de `Tower_Blue.png`, CC0), palier 1, couche avant   | Godot 4.7.2, `Image` (MIT) | CC0 1.0 |
+| `esquive_2_arriere.png`       | deux silhouettes nettes et transparentes de part et d’autre (silhouette de `Tower_Blue.png`, CC0), palier 2, couche arriere | Godot 4.7.2, `Image` (MIT) | CC0 1.0 |
+| `esquive_2_avant.png`         | deux silhouettes nettes et transparentes de part et d’autre (silhouette de `Tower_Blue.png`, CC0), palier 2, couche avant   | Godot 4.7.2, `Image` (MIT) | CC0 1.0 |
+| `esquive_3_arriere.png`       | deux silhouettes nettes et transparentes de part et d’autre (silhouette de `Tower_Blue.png`, CC0), palier 3, couche arriere | Godot 4.7.2, `Image` (MIT) | CC0 1.0 |
+| `esquive_3_avant.png`         | deux silhouettes nettes et transparentes de part et d’autre (silhouette de `Tower_Blue.png`, CC0), palier 3, couche avant   | Godot 4.7.2, `Image` (MIT) | CC0 1.0 |
 | `regen_1_arriere.png`         | halo pâle derrière, lueur et étincelles devant, palier 1, couche arriere                                               | Godot 4.7.2, `Image` (MIT) | CC0 1.0 |
 | `regen_1_avant.png`           | halo pâle derrière, lueur et étincelles devant, palier 1, couche avant                                                 | Godot 4.7.2, `Image` (MIT) | CC0 1.0 |
 | `regen_2_arriere.png`         | halo pâle derrière, lueur et étincelles devant, palier 2, couche arriere                                               | Godot 4.7.2, `Image` (MIT) | CC0 1.0 |
