@@ -1121,7 +1121,7 @@ func id_regarde() -> int                # -1 si aucune
   - `test_l_etat_global_porte_dps_et_densites` ; `test_un_etat_global_sans_densites_les_decode_vides`.
   - `test_etat_arene_regardee_aller_retour` et `test_intention_regarder_aller_retour_avec_moins_un`.
   - `test_un_etat_de_mille_ennemis_255_armes_et_40_ameliorations_tient_sous_max_taille`.
-  - **Review Focus 3 :** `test_aucun_paquet_v5_forge_ne_leve_d_exception` : pour chaque décodeur de v5, tous les préfixes d'un paquet valide, puis 2 000 tableaux d'octets tirés d'une graine fixe, rendent `null` ou `{}` ; plus de 3 familles, densité de 255 octets, index d'arme hors catalogue, type d'événement inconnu, id de joueur regardé hors 0 à 255.
+  - **Review Focus 3 :** `test_aucun_paquet_v5_forge_ne_leve_d_exception` : pour chaque décodeur de v5, tous les préfixes d'un paquet valide, puis 2 000 tableaux d'octets tirés d'une graine fixe, rendent `null` ou `{}` ; plus de 3 familles, densité de 255 octets, index d'arme hors catalogue, type d'événement inconnu, id de joueur regardé négatif (T8.10 : l’identifiant est celui du pair ENet, sur 32 bits).
 - **Vérif :** `T --filtre test_protocole`, puis `tools/verifier.sh`.
 
 ### Task 8.3 : Armes illimitées et arme dans les événements — `sonnet`
@@ -1256,7 +1256,7 @@ func id_regarde() -> int                # -1 si aucune
 
 ### Task 8.10 : Réseau : arène regardée, densités, `SourceVue` réelle, budget — `sonnet`
 
-- [ ] **Objectif :** le serveur envoie, sur demande (`REGARDER`), l'arène d'un autre joueur à 5 Hz en plus de la sienne (15 Hz), et les densités à 1 Hz ; le client et la source locale exposent `regarder`, `id_regarde` et `vue_regardee_recue` ; la mesure de T3.3 est refaite à 8 clients et 1 000 ennemis, en regardant : **50 000 o/s par client** tenus, sinon la fréquence de l'arène regardée baisse (plancher 1 Hz).
+- [x] **Objectif :** le serveur envoie, sur demande (`REGARDER`), l'arène d'un autre joueur à 5 Hz en plus de la sienne (15 Hz), et les densités à 1 Hz ; le client et la source locale exposent `regarder`, `id_regarde` et `vue_regardee_recue` ; la mesure de T3.3 est refaite à 8 clients et 1 000 ennemis, en regardant : **50 000 o/s par client** tenus, sinon la fréquence de l'arène regardée baisse (plancher 1 Hz).
 - **Conception :** §6.10 (réseau), §6.11, §3 (budget).
 - **Fichiers :** `reseau/serveur.gd`, `reseau/client.gd`, `reseau/canal.gd` (RPC `rpc_etat_arene_regardee`, non fiable), `app/source_locale.gd`, `tests/outils/source_factice.gd` ; tests `test_serveur.gd`, `test_client.gd`, `test_serveur_debit.gd`, `test_source_locale.gd`, `tests/integration/test_multijoueur.gd`.
 - **Lire :** `reseau/serveur.gd` `_envoyer_etats`, `_frequence`, `_observer`, `frequence_arene` ; `reseau/client.gd` réception des états ; `tests/unitaires/test_serveur_debit.gd`.
@@ -2041,3 +2041,34 @@ Tests du gabarit (écrits par T9.13, étendus par chaque tâche en ajoutant son 
   - `test_le_rendement_des_armes_croit_avec_la_rarete_dans_chaque_type_catalogue_complet` (les tests de `test_contenu.gd`, sur les 75 armes) ; `test_la_cible_d18_est_toujours_tenue` (75 armes, 1 / 6 / 6 / 2 par type, 87 améliorations, en boucle).
   - `test_chaque_arme_du_catalogue_a_une_signature_un_son_une_image_et_une_description` : en boucle, les quatre fichiers existent.
 - **Vérif :** `godot --headless --path . --script res://tools/equilibrage.gd -- --graines 50 --strategie toutes`, `npx -y prettier@3.9.10 --check` sur les Markdown touchés, puis `tools/verifier.sh` complet. Rapport : ce qui reste à Phil (planche validée ? sons manquants ? règle de la commune promue ?).
+
+# Lot 10 — Revue finale par les skills de game development (demandé par Phil le 26/11/2026)
+
+> Phil : « Une fois tous les lots terminés, utilise les skills de game development pour faire des
+> reviews de ce qu'on a actuellement. Utilise aussi les bonnes pratiques de développement et les
+> tendances jeu vidéo trouvées en ligne pour peaufiner un peu plus le jeu. Si pas d'amélioration
+> trouvable, si tout est déjà conforme, n'en invente pas ! »
+
+**Démarrage :** quand les lots 8 et 9 sont fusionnés (T8.21 et T9.22 cochées). Ce lot est un
+squelette : T10.4 et la suite se détaillent par `superpowers:writing-plans` une fois la synthèse
+faite.
+
+**Règle qui prime sur tout le lot :** un constat n'existe que s'il est prouvé (fichier et ligne,
+mesure, capture ou sortie de test) et rattaché à la règle d'un skill ou à une source citée. Une
+revue qui ne trouve rien écrit « conforme », avec ce qu'elle a vérifié ; **aucune amélioration
+inventée** pour remplir un rapport. Un constat qui contredit une décision écrite de Phil (D1 à D18,
+§6.13) n'est qu'une proposition, soumise à Phil ; le reste (défauts, finitions dans le cadre des
+décisions) se corrige sans attendre.
+
+### Task 10.1 : Revues par domaine, une par skill — `sonnet` (en parallèle)
+
+- [ ] **Objectif :** une revue par domaine, chacune menée avec son skill du dépôt (`.claude/skills/`), sur `main` à jour : `game-feel` (retour des coups, tremblement, gel d'impact, poids des actions) ; `tower-defense` (rythme des vagues, économie, ciblage, contre-mesures d'armure) ; `game-ai` (déplacement et ciblage des ennemis, alliés) ; `performance-optimization` (mesure avant tout : 1 000 ennemis, 255 armes, réseau) ; `particles-vfx`, `godot-shaders`, `shader-programming` et `animer-attaques-sorts` (lisibilité des 75 signatures et des effets) ; `godot-multiplayer` (robustesse du réseau, triche côté client) ; `godot-gdscript`, `godot-signals-groups` et `godot-animation` (qualité du code) ; `godot-gdscript-headless-testing` (tests et CI) ; `code-review` et `improve-codebase-architecture` (architecture, dépendances `sim/` → `data/`).
+- **Livrable :** un rapport par revue (dans le rapport de l'agent, pas dans le dépôt) : constats prouvés, classés « défaut », « amélioration » ou « conforme », chacun avec sa preuve, la règle du skill et un coût estimé.
+
+### Task 10.2 : Veille sur les bonnes pratiques et les tendances — `sonnet`
+
+- [ ] **Objectif :** bonnes pratiques de développement Godot et tendances des jeux du genre (survie à vagues, « survivors-like », tower defense multijoueur), sources fiables citées, au plus 30 recherches web (plafond partagé de la session). Ne garder que ce qui s'applique à ce jeu et respecte les décisions de Phil (mécaniques de la map, rien de copié d'un autre jeu : noms, textes, chiffres et graphismes restent originaux).
+
+### Task 10.3 : Synthèse et propositions à Phil — `sonnet`
+
+- [ ] **Objectif :** fusionner les rapports de T10.1 et T10.2 dans `docs/revue_finale.md` : constats dédoublonnés, classés par gain pour le joueur et par coût, chacun avec sa preuve et sa source ; une section « conforme » qui dit ce qui a été vérifié sans rien trouver ; une section « à soumettre à Phil » pour ce qui toucherait à une de ses décisions. Puis plan des corrections (T10.4 et suivantes) par `superpowers:writing-plans`.
