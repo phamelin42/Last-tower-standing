@@ -20,6 +20,15 @@ const ACTIONS_ATTENDUES: Array[String] = [
 	"observation_precedent",
 	"menu_jeu",
 ]
+## Actions de la caméra libre (T8.13) et de la boutique repliable (T8.19) : action → touches.
+const TOUCHES_CAMERA: Dictionary = {
+	"camera_gauche": [KEY_LEFT, KEY_A],
+	"camera_droite": [KEY_RIGHT, KEY_D],
+	"camera_haut": [KEY_UP, KEY_W],
+	"camera_bas": [KEY_DOWN, KEY_S],
+	"camera_recentrer": [KEY_SPACE],
+	"boutique_replier": [KEY_B],
+}
 
 
 func _fichiers(dossier: String, suffixe: String) -> Array[String]:
@@ -104,3 +113,17 @@ func test_chaque_cle_des_csv_est_traduite_en_francais() -> void:
 			var attendu: String = textes[cle]
 			verifier_egal(String(TranslationServer.translate(cle)), attendu, "%s : %s" % [nom, cle])
 	TranslationServer.set_locale(locale_avant)
+
+
+func test_les_six_actions_existent_avec_leurs_touches() -> void:
+	for action: String in TOUCHES_CAMERA:
+		verifier(InputMap.has_action(action), "action absente : " + action)
+		var presentes: Array[int] = []
+		for evenement: InputEvent in InputMap.action_get_events(action):
+			var cle := evenement as InputEventKey
+			if cle != null:
+				presentes.append(cle.physical_keycode)
+		var attendues: Array = TOUCHES_CAMERA[action]
+		for touche: int in attendues:
+			verifier(presentes.has(touche), "%s : touche %d absente" % [action, touche])
+		verifier_egal(presentes.size(), attendues.size(), "%s : touches en trop" % action)

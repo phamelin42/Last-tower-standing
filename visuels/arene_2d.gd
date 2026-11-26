@@ -9,6 +9,10 @@ extends Node2D
 ## `afficher_courant`.
 
 ## Sprites gardés d'avance au-delà du besoin : évite de créer et libérer à chaque apparition.
+## Fin du regard sur l'arène d'un autre (Espace) : l'Interface répond en appelant
+## `SourceVue.regarder(-1)`.
+signal arene_regardee_quittee
+
 const RESERVE_POOL: int = 16
 ## Morts affichées en même temps au plus ; les suivantes de la même vue sont ignorées.
 const PLAFOND_MORTS: int = 64
@@ -82,6 +86,11 @@ var _morts_debut: PackedFloat64Array = PackedFloat64Array()
 var _texture_mort: Texture2D = null
 var _effets: Effets = null
 var _barres: BarresArene = null
+## Joueur dont on regarde l'arène (-1 : la sienne) ; la couleur de tour et le nom du joueur local
+## sont gardés pour y revenir.
+var _regarde: int = -1
+var _numero_propre: int = 1
+var _nom_propre: String = ""
 ## Vue reçue avant la courante : on y retrouve la famille d'un ennemi qui vient de mourir.
 var _vue_precedente: VueArene = null
 
@@ -151,9 +160,12 @@ func lier(source: SourceVue) -> void:
 	_assurer_construite()
 	if _source != null and _source.vue_arene_recue.is_connected(_sur_vue):
 		_source.vue_arene_recue.disconnect(_sur_vue)
+	if _source != null and _source.vue_regardee_recue.is_connected(_sur_vue_regardee):
+		_source.vue_regardee_recue.disconnect(_sur_vue_regardee)
 	_source = source
 	if _source != null:
 		_source.vue_arene_recue.connect(_sur_vue)
+		_source.vue_regardee_recue.connect(_sur_vue_regardee)
 
 
 ## Oublie les vues reçues : à appeler quand une autre partie commence (les ticks repartent de 0).
@@ -186,10 +198,17 @@ func afficher_courant(temps_rendu: float) -> void:
 	_afficher_echantillon()
 
 
-## Joueur dont on regarde l'arène : sa couleur de tour (1 à 8) et son nom écrit sous la tour. Un
-## nom vide n'écrit rien.
+## Joueur local : sa couleur de tour (1 à 8) et son nom écrit sous la tour. Un nom vide n'écrit
+## rien. Pendant le regard sur l'arène d'un autre, ils sont gardés pour le retour.
 func definir_joueur(numero: int, nom: String) -> void:
 	_assurer_construite()
+	_numero_propre = numero
+	_nom_propre = nom
+	if _regarde < 0:
+		_poser_joueur(numero, nom)
+
+
+func _poser_joueur(numero: int, nom: String) -> void:
 	if numero != _numero or _tour.texture == null:
 		_numero = numero
 		_poser_le_decor()
@@ -197,6 +216,57 @@ func definir_joueur(numero: int, nom: String) -> void:
 		_tour.texture = load(String(t["fichier"])) as Texture2D
 		_tour.material = Apparence.materiau_tour(numero)
 	_nom.text = "%d. %s" % [Apparence.numero_valide(numero), nom] if nom != "" else ""
+
+
+## Affiche l'arène du joueur `id_joueur` (sa tour, son nom, ses vues `vue_regardee_recue`) à la
+## place de la sienne, tant qu'on ne revient pas ; `-1` revient à sa propre arène. Les vues
+## propres sont ignorées pendant le regard.
+func montrer_arene(id_joueur: int, nom: String, numero: int) -> void:
+	_assurer_construite()
+	var voulu: int = id_joueur if id_joueur >= 0 else -1
+	if voulu == _regarde:
+		return
+	_regarde = voulu
+	_vider_les_vues()
+	if _regarde >= 0:
+		_poser_joueur(numero, nom)
+	else:
+		_poser_joueur(_numero_propre, _nom_propre)
+
+
+func regarde_un_autre() -> bool:
+	return _regarde >= 0
+
+
+func camera() -> CameraArene:
+	_assurer_construite()
+	return _camera
+
+
+## Espace : la vue revient sur la tour ; si on regarde l'arène d'un autre, on la quitte aussi.
+func recentrer_ou_quitter() -> void:
+	_assurer_construite()
+	if _camera != null:
+		_camera.recentrer()
+	if _regarde >= 0:
+		montrer_arene(-1, "", 0)
+		arene_regardee_quittee.emit()
+
+
+## Les ticks, les positions et les effets d'une arène n'ont rien à voir avec ceux d'une autre.
+func _vider_les_vues() -> void:
+	_interpolation.reinitialiser()
+	_dernier_tick = -1
+	_vue_precedente = null
+	_effets.vider()
+	_barres.reinitialiser()
+	_afficher_echantillon()
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("camera_recentrer") and not event.is_echo():
+		recentrer_ou_quitter()
+		get_viewport().set_input_as_handled()
 
 
 ## Graine de la partie : change la disposition du décor de tous les joueurs, pas leur différence.
@@ -269,6 +339,14 @@ func _process(delta: float) -> void:
 
 
 func _sur_vue(vue: VueArene) -> void:
+	if _regarde >= 0:
+		return
+	_recevoir(vue, _horloge)
+
+
+func _sur_vue_regardee(id_joueur: int, vue: VueArene) -> void:
+	if _regarde < 0 or id_joueur != _regarde:
+		return
 	_recevoir(vue, _horloge)
 
 

@@ -1311,7 +1311,7 @@ func id_regarde() -> int                # -1 si aucune
 
 ### Task 8.13 : Caméra libre, dézoom et arène regardée — `sonnet`
 
-- [ ] **Objectif :** déplacement de la vue aux flèches et aux touches physiques W A S D (Z Q S D en AZERTY), **Espace** recentre sur la tour, dézoom jusqu'à deux fois le cercle d'apparition, décalage limité à deux rayons ; `Arene2D` sait afficher l'arène d'un autre joueur (vue regardée), `Espace` y met fin. Déclare aussi l'action `boutique_replier` (B) pour T8.19.
+- [x] **Objectif :** déplacement de la vue aux flèches et aux touches physiques W A S D (Z Q S D en AZERTY), **Espace** recentre sur la tour, dézoom jusqu'à deux fois le cercle d'apparition, décalage limité à deux rayons ; `Arene2D` sait afficher l'arène d'un autre joueur (vue regardée), `Espace` y met fin. Déclare aussi l'action `boutique_replier` (B) pour T8.19.
 - **Conception :** §6.9, §6.10, D3.
 - **Fichiers :** `visuels/camera_arene.gd`, `visuels/arene_2d.gd`, `project.godot` (six actions) ; tests `test_camera_arene.gd`, `test_arene_2d.gd`, `test_configuration_projet.gd`.
 - **Lire :** `visuels/camera_arene.gd` (128 lignes), `visuels/arene_2d.gd` `lier`, `afficher`, `definir_joueur`.
