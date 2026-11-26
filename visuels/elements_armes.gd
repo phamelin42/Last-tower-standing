@@ -30,6 +30,7 @@ const TABLE: Dictionary = {
 	"chaine_d_arcanes": FOUDRE,
 	"etincelle_runique": ARCANE,
 	"lame_de_fil": LAME,
+	"faucille_a_ressort": FAUCILLE,
 }
 
 

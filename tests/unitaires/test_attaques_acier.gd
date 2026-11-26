@@ -77,3 +77,51 @@ func test_mouvement_reduit_la_lame_ne_tourne_pas_et_sans_eclat() -> void:
 	verifier_egal(_a.etats("lame_croissant")[0]["image"], avant, "ne tourne pas")
 	_a.impacter("lame", CIBLE, 0.0)
 	verifier_egal(_a.particules_actives(), 0)
+
+
+# --- Faucille à ressort : zone ------------------------------------------------------------------
+
+
+func test_la_faucille_est_une_zone() -> void:
+	_verifier_arme("faucille_a_ressort", "faucille", "zone")
+
+
+func test_la_faucille_dure_quatorze_images_et_passe_au_dessus_de_la_ligne() -> void:
+	verifier_proche(_a.tirer("faucille", TOUR, CIBLE) / IMAGE, 14.0, 0.01)
+	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 5)
+	var faucille: Dictionary = _a.etats("faucille")[0]
+	verifier(faucille["visible"], "elle vole")
+	verifier(faucille["position"].y < CIBLE.y - 10.0, "en léger arc, au-dessus de la ligne")
+	var avant: float = faucille["rotation"]
+	_avancer(2)
+	verifier(absf(_a.etats("faucille")[0]["rotation"] - avant) > 0.1, "elle tourne en volant")
+	verifier_egal(_a.etats("ombre").size(), 1, "son ombre reste au sol")
+
+
+func test_le_balayage_a_le_rayon_reel_de_la_zone() -> void:
+	var rayon_px: float = float(_effet("faucille_a_ressort")["rayon"]) * Apparence.PX_PAR_UNITE
+	_a.impacter("faucille", CIBLE, rayon_px)
+	var balayage: Array[Dictionary] = _a.etats("balayage")
+	verifier_egal(balayage.size(), 1, "un seul arc")
+	verifier_proche(balayage[0]["diametre"], rayon_px * 2.0, rayon_px * 2.0 * 0.1, "au rayon réel")
+	verifier_proche(_a.diametre_max(), rayon_px * 2.0, rayon_px * 2.0 * 0.1)
+
+
+func test_le_balayage_tourne_sur_trois_cent_degres_en_six_images_puis_se_dissipe() -> void:
+	_a.impacter("faucille", CIBLE, 55.0)
+	_avancer(6)
+	var image: int = _a.etats("balayage")[0]["image"]
+	verifier(image >= 2, "l'arc est complet au bout de 6 images")
+	_avancer(60)
+	verifier_egal(_a.nombre_vivants(), 0)
+	verifier_egal(_a.particules_actives(), 0)
+
+
+func test_mouvement_reduit_la_faucille_ne_tourne_pas_et_sans_eclat() -> void:
+	_a.mouvement_reduit = true
+	_a.tirer("faucille", TOUR, CIBLE)
+	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 5)
+	verifier_proche(_a.etats("faucille")[0]["rotation"], 0.0, 0.0001, "pas de rotation")
+	_a.impacter("faucille", CIBLE, 55.0)
+	verifier_egal(_a.particules_actives(), 0)
+	verifier_egal(_a.etats("balayage").size(), 1, "l'arc reste")
