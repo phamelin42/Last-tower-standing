@@ -419,9 +419,13 @@ func test_les_unites_sont_triees_et_indexees() -> void:
 	verifier_egal(d.ids_unites, PackedStringArray(["a0", "u1"]))
 	verifier_egal(d.unites.size(), 2)
 	verifier(Donnees.FICHIERS_LISTE.has("unites.json"))
-	verifier_egal(
-		AidesPartie.donnees().ids_unites.size(), 0, "aucune unité dans les données livrées"
-	)
+	# Les données livrées ont au moins une unité par modèle de combat (T9.8).
+	var livrees := AidesPartie.donnees()
+	var modeles: Array[String] = []
+	for id: String in livrees.ids_unites:
+		modeles.append(String((livrees.unites[id] as Dictionary)["modele"]))
+	verifier_contient(modeles, "guerrier")
+	verifier_contient(modeles, "archer")
 
 
 # --- Stats d'amélioration ------------------------------------------------------------------------
