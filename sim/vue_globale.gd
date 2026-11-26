@@ -32,6 +32,10 @@ const CHAMPS_JOUEUR_FACULTATIFS: Dictionary = {
 	"dps": TYPE_FLOAT, "pv": TYPE_FLOAT, "pv_max": TYPE_FLOAT
 }
 
+## Index du skin de tour (un octet sur le réseau), absent : le skin par défaut, 0.
+const CHAMPS_JOUEUR_ENTIERS_FACULTATIFS: Dictionary = {"skin": TYPE_INT}
+const SKIN_MAX := 255
+
 ## Carte de densité d'une arène : 16 × 16 cases, ligne par ligne, un octet par case.
 const DENSITE_OCTETS := 256
 
@@ -126,6 +130,9 @@ static func _copie_joueurs(valeur: Variant) -> Array[Dictionary]:
 		for cle: String in CHAMPS_JOUEUR_FACULTATIFS:
 			if not joueur.has(cle):
 				joueur[cle] = 0.0
+		for cle: String in CHAMPS_JOUEUR_ENTIERS_FACULTATIFS:
+			if not joueur.has(cle):
+				joueur[cle] = 0
 		copie.append(joueur)
 	return copie
 
@@ -137,6 +144,13 @@ static func _champs_facultatifs_conformes(valeur: Variant) -> bool:
 		var entree: Dictionary = item
 		for cle: String in CHAMPS_JOUEUR_FACULTATIFS:
 			if entree.has(cle) and typeof(entree[cle]) != int(CHAMPS_JOUEUR_FACULTATIFS[cle]):
+				return false
+		if entree.has("skin"):
+			if (
+				typeof(entree["skin"]) != TYPE_INT
+				or int(entree["skin"]) < 0
+				or int(entree["skin"]) > SKIN_MAX
+			):
 				return false
 	return true
 

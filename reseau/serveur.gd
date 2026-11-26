@@ -368,6 +368,8 @@ func traiter_intention(pair: int, octets: PackedByteArray) -> int:
 		resultat = _pret(pair, arg)
 	elif genre == Protocole.Intention.OPTIONS:
 		resultat = _options(pair, arg, String(i["texte"]))
+	elif genre == Protocole.Intention.SKIN:
+		resultat = _skin(pair, arg)
 	elif genre == Protocole.Intention.OBSERVER:
 		resultat = _observer(p, pair, arg)
 	elif genre == Protocole.Intention.REGARDER:
@@ -427,6 +429,14 @@ func _pret(pair: int, arg: int) -> int:
 	else:
 		_diffuser_salon()
 	return Types.Resultat.OK
+
+
+## Le skin choisi au salon : hors catalogue (négatif, trop grand), c'est le skin par défaut.
+func _skin(pair: int, index: int) -> int:
+	if partie != null:
+		return Types.Resultat.MAUVAISE_PHASE
+	var borne := index if index >= 0 and index < _donnees.skins_tour.size() else 0
+	return Types.Resultat.OK if salon.definir_skin(pair, borne) else Types.Resultat.NON_DISPONIBLE
 
 
 func _options(pair: int, graine: int, texte: String) -> int:
@@ -492,6 +502,7 @@ func _lancer_partie() -> void:
 	partie = Partie.new(_donnees, config)
 	for id: int in salon.joueurs:
 		partie.ajouter_joueur(id, String((salon.joueurs[id] as Dictionary)["nom"]))
+		partie.definir_skin(id, int((salon.joueurs[id] as Dictionary).get("skin", 0)))
 	partie.demarrer()
 	_diffuser_salon()
 

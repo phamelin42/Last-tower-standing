@@ -84,6 +84,17 @@ func ajouter_joueur(id: int, nom: String) -> bool:
 	return true
 
 
+## Range le skin de tour du joueur (un entier opaque) ; hors catalogue, c'est le skin par défaut
+## (index 0). Seulement au salon : `false` pour un joueur inconnu ou une partie lancée.
+func definir_skin(id: int, index: int) -> bool:
+	var j := _joueur(id)
+	if j == null or _demarree:
+		return false
+	var nombre := maxi(_donnees.skins_tour.size(), 1)
+	j.skin = index if index >= 0 and index < nombre else 0
+	return true
+
+
 ## Au salon : le joueur disparaît. En partie : il est éliminé et son arène retirée.
 func retirer_joueur(id: int) -> void:
 	var j := _joueur(id)
@@ -394,6 +405,7 @@ func vue_globale(avec_densites: bool = false) -> VueGlobale:
 			"revenu": j.revenu,
 			"vivant": j.en_jeu(),
 			"victorieux": j.victorieux,
+			"skin": j.skin,
 			"dps": j.arene.dps() if j.arene != null and not j.fige else 0.0,
 			"pv": j.arene.pv if j.arene != null else 0.0,
 			"pv_max": j.arene.tour_pv_max() if j.arene != null else 0.0,

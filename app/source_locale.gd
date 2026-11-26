@@ -16,6 +16,9 @@ var _attente_arene: float = 0.0
 var _attente_globale: float = 0.0
 var _dernier_bilan: Dictionary = {}
 
+## Skin de tour choisi avant le démarrage (0 : le skin par défaut).
+var _skin_choisi: int = 0
+
 
 func _init() -> void:
 	set_process(false)
@@ -23,11 +26,19 @@ func _init() -> void:
 
 ## Crée la partie, y ajoute le joueur local et la démarre. Faux (sans exception) si les données
 ## manquent, si une partie tourne déjà ou si la partie refuse de démarrer.
+## Le skin choisi avant `demarrer` (index du catalogue) ; la simulation le borne.
+func definir_skin(index: int) -> void:
+	_skin_choisi = index
+
+
 func demarrer(donnees: Donnees, config: Partie.Config, nom_joueur: String) -> bool:
 	if donnees == null or _partie != null:
 		return false
 	var partie := Partie.new(donnees, config)
-	if not partie.ajouter_joueur(ID_LOCAL, nom_joueur) or not partie.demarrer():
+	if not partie.ajouter_joueur(ID_LOCAL, nom_joueur):
+		return false
+	partie.definir_skin(ID_LOCAL, _skin_choisi)
+	if not partie.demarrer():
 		return false
 	_partie = partie
 	_dernier_bilan = {}
