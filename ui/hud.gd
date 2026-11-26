@@ -1,31 +1,37 @@
 class_name Hud
 extends Control
-## HUD de l'arène, en barre en haut de l'écran : PV de la tour (jauge), or, revenu, manche, temps,
-## prochaine famille et armure, armes. Il lit une `VueArene` et ne calcule rien. Chaque ligne est
-## une étiquette et sa valeur, à 48 px de haut, en 16 px au moins. L'armure garde son symbole et
-## son nom : la couleur ne la porte jamais seule.
+## HUD de l'arène, en barre d'environ 40 px en haut de l'écran : une icône par information (or,
+## revenu, manche, temps, armures de la prochaine manche, nombre d'armes), sans PV (ils sont sur
+## la tour). Il lit une `VueArene` et ne calcule rien. L'information ne repose jamais sur l'icône
+## ou la couleur seule : chaque case porte un nom accessible et une infobulle (« Or : 1 500 »),
+## et chaque armure garde son symbole et son nom.
 
-const HAUTEUR_LIGNE := 48.0
-const MARGE_BARRE := 6
-const LARGEUR_JAUGE := 160.0
-const SEUIL_PV_BAS := 0.3
+const HAUTEUR_LIGNE := 32.0
+const MARGE_BARRE := 4
+const COTE_ICONE := 28.0
 
-const LIGNE_PV := 0
-const LIGNE_OR := 1
-const LIGNE_REVENU := 2
-const LIGNE_MANCHE := 3
-const LIGNE_TEMPS := 4
-const LIGNE_PROCHAINE := 5
-const LIGNE_ARMES := 6
-const NB_LIGNES := 7
+const LIGNE_OR := 0
+const LIGNE_REVENU := 1
+const LIGNE_MANCHE := 2
+const LIGNE_TEMPS := 3
+const LIGNE_PROCHAINE := 4
+const LIGNE_ARMES := 5
+const NB_LIGNES := 6
 
-## Largeur minimale de la valeur de chaque ligne (0 : celle du texte).
-const LARGEURS_VALEUR: Array[float] = [0.0, 64.0, 44.0, 24.0, 44.0, 150.0, 44.0]
+## Clé du nom de chaque information (accessibilité et infobulle) et clé de son icône du thème.
+const CLES_NOMS: Array[String] = [
+	"HUD_OR", "HUD_REVENU", "HUD_MANCHE", "HUD_TEMPS", "HUD_PROCHAINE", "HUD_ARMES"
+]
+const NOMS_ICONES: Array[String] = ["or", "revenu", "manche", "temps", "armure", "armes"]
+## Largeur minimale de la valeur de chaque information (0 : celle du texte).
+const LARGEURS_VALEUR: Array[float] = [64.0, 44.0, 24.0, 44.0, 0.0, 28.0]
+## Armures de la prochaine manche : une par famille, deux ou trois familles au plus.
+const SEPARATEUR_ARMURES := " · "
 
-var _cles: Array[Label] = []
+var _cellules: Array[HBoxContainer] = []
+var _icones: Array[TextureRect] = []
 var _valeurs: Array[Label] = []
 var _donnees: Donnees = null
-var _jauge: ProgressBar = null
 var _barre: PanelContainer = null
 
 
@@ -36,36 +42,39 @@ func _init() -> void:
 	_barre.add_theme_stylebox_override("panel", _style_barre())
 	add_child(_barre)
 	var rangee := HBoxContainer.new()
-	rangee.add_theme_constant_override("separation", 10)
+	rangee.add_theme_constant_override("separation", 16)
 	_barre.add_child(rangee)
 	for i: int in NB_LIGNES:
-		var cle := _etiquette()
+		var cellule := HBoxContainer.new()
+		cellule.name = "Ligne%d" % i
+		cellule.add_theme_constant_override("separation", 6)
+		# La case reçoit la souris : c'est elle qui porte l'infobulle de l'information.
+		cellule.mouse_filter = Control.MOUSE_FILTER_STOP
+		var icone := TextureRect.new()
+		icone.name = "Icone%d" % i
+		icone.texture = ThemeJeu.icone_hud(NOMS_ICONES[i])
+		icone.custom_minimum_size = Vector2(COTE_ICONE, COTE_ICONE)
+		icone.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icone.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icone.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		icone.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		var valeur := _etiquette()
-		cle.clip_text = false
-		cle.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
-		cle.add_theme_color_override("font_color", ThemeJeu.PARCHEMIN_ATTENU)
+		valeur.name = "Valeur%d" % i
 		valeur.custom_minimum_size.x = LARGEURS_VALEUR[i]
-		if i == LIGNE_MANCHE:
-			# « Préparation » est plus long que tout numéro de manche : il s'étend, jamais tronqué.
+		valeur.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		if i == LIGNE_MANCHE or i == LIGNE_PROCHAINE:
+			# « Préparation » et trois armures sont plus longs que tout nombre : jamais tronqués.
 			valeur.clip_text = false
 			valeur.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
-		_cles.append(cle)
-		_valeurs.append(valeur)
-		var cellule := HBoxContainer.new()
-		cellule.add_theme_constant_override("separation", 6)
-		cellule.add_child(cle)
-		if i == LIGNE_PV:
-			cellule.add_child(_construire_jauge(valeur))
-		else:
-			cellule.add_child(valeur)
-		if i == LIGNE_PROCHAINE:
-			cellule.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			cellule.size_flags_stretch_ratio = 2.0
-			valeur.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		cellule.add_child(icone)
+		cellule.add_child(valeur)
 		rangee.add_child(cellule)
+		_cellules.append(cellule)
+		_icones.append(icone)
+		_valeurs.append(valeur)
 
 
-## Hauteur de la barre : celle de son contenu (une ligne de 48 px et ses marges).
+## Hauteur de la barre : celle de son contenu (une ligne et ses marges), environ 40 px.
 func hauteur_barre() -> float:
 	return _barre.get_combined_minimum_size().y
 
@@ -75,43 +84,34 @@ func rect_barre() -> Rect2:
 	return _barre.get_global_rect()
 
 
-## Fournit les noms des familles et la capacité d'armes. Sans cet appel, le HUD reste lisible
-## (armure seule, nombre d'armes) et ne signale aucune erreur.
+## Fournit les noms des familles. Sans cet appel, le HUD reste lisible (armures seules) et ne
+## signale aucune erreur.
 func configurer(donnees: Donnees) -> void:
 	_donnees = donnees
 
 
+## Texte de la valeur d'une information (`LIGNE_*`), tel qu'affiché.
+func valeur(ligne: int) -> String:
+	return _valeurs[ligne].text
+
+
 func afficher(vue: VueArene) -> void:
-	_definir(
-		LIGNE_PV,
-		tr("HUD_PV"),
-		(
-			tr("HUD_PV_VALEUR")
-			% [Nombres.groupe(roundi(vue.tour_pv)), Nombres.groupe(roundi(vue.tour_pv_max))]
-		)
-	)
-	_jauge.max_value = maxf(vue.tour_pv_max, 1.0)
-	_jauge.value = clampf(vue.tour_pv, 0.0, _jauge.max_value)
-	var bas := vue.tour_pv < vue.tour_pv_max * SEUIL_PV_BAS
-	var remplissage := ThemeJeu.JAUGE_BASSE if bas else ThemeJeu.JAUGE_PLEINE
-	_jauge.add_theme_stylebox_override("fill", ThemeJeu.boite(remplissage, remplissage, 0))
-	_definir(LIGNE_OR, tr("HUD_OR"), Nombres.groupe(vue.argent))
-	_definir(LIGNE_REVENU, tr("HUD_REVENU"), "+" + Nombres.groupe(vue.revenu))
+	_definir(LIGNE_OR, Nombres.groupe(vue.argent))
+	_definir(LIGNE_REVENU, "+" + Nombres.groupe(vue.revenu))
 	var manche := tr("HUD_PREPARATION") if vue.manche == 0 else Nombres.groupe(vue.manche)
 	if vue.sans_fin:
 		manche = tr("HUD_MANCHE_SANS_FIN") % manche
-	_definir(LIGNE_MANCHE, tr("HUD_MANCHE"), manche)
+	_definir(LIGNE_MANCHE, manche)
+	_definir(LIGNE_TEMPS, tr("HUD_SECONDES") % Nombres.groupe(ceili(vue.temps_restant)))
+	var armures := armures_a_venir(vue)
+	var texte_armures := SEPARATEUR_ARMURES.join(_libelles_armures(armures))
 	_definir(
-		LIGNE_TEMPS, tr("HUD_TEMPS"), tr("HUD_SECONDES") % Nombres.groupe(ceili(vue.temps_restant))
+		LIGNE_PROCHAINE,
+		tr("HUD_AUCUNE") if armures.is_empty() else texte_armures,
+		_detail_prochaine(vue)
 	)
-	_definir(LIGNE_PROCHAINE, tr("HUD_PROCHAINE"), _prochaine(vue))
-	var couleur := (
-		ThemeJeu.PARCHEMIN
-		if vue.prochaine_famille < 0
-		else Apparence.couleur_texte_armure(vue.prochaine_armure)
-	)
-	_valeurs[LIGNE_PROCHAINE].add_theme_color_override("font_color", couleur)
-	_definir(LIGNE_ARMES, tr("HUD_ARMES"), _armes(vue))
+	_valeurs[LIGNE_PROCHAINE].add_theme_color_override("font_color", ThemeJeu.PARCHEMIN)
+	_definir(LIGNE_ARMES, Nombres.groupe(vue.armes.size()))
 
 
 ## Le libellé d'une armure porte son symbole et son nom : jamais la couleur seule.
@@ -125,14 +125,38 @@ static func libelle_armure(a: int) -> String:
 	)
 
 
-func _prochaine(vue: VueArene) -> String:
-	if vue.prochaine_famille < 0:
-		return tr("HUD_AUCUNE")
-	var armure := libelle_armure(vue.prochaine_armure)
-	var nom := _nom_prochaine(vue.prochaine_famille)
-	if nom.is_empty():
-		return armure
-	return "%s (%s)" % [nom, armure]
+## Armures des familles de la prochaine manche, dans l'ordre de la vue : vide sans famille. Une
+## vue qui ne porte que la famille majoritaire (`prochaine_famille`) donne sa seule armure.
+static func armures_a_venir(vue: VueArene) -> Array[int]:
+	var sortie: Array[int] = []
+	for armure: int in vue.prochaines_armures:
+		sortie.append(armure)
+	if sortie.is_empty() and vue.prochaine_famille >= 0:
+		sortie.append(vue.prochaine_armure)
+	return sortie
+
+
+static func _libelles_armures(armures: Array[int]) -> PackedStringArray:
+	var sortie := PackedStringArray()
+	for armure: int in armures:
+		sortie.append(libelle_armure(armure))
+	return sortie
+
+
+## Une ligne par famille à venir : son nom puis son armure (l'infobulle de l'annonce).
+func _detail_prochaine(vue: VueArene) -> String:
+	var lignes := PackedStringArray()
+	var familles: Array[int] = []
+	for famille: int in vue.prochaines_familles:
+		familles.append(famille)
+	if familles.is_empty() and vue.prochaine_famille >= 0:
+		familles.append(vue.prochaine_famille)
+	var armures := armures_a_venir(vue)
+	for i: int in familles.size():
+		var armure := libelle_armure(armures[i]) if i < armures.size() else ""
+		var nom := _nom_prochaine(familles[i])
+		lignes.append(armure if nom.is_empty() else "%s (%s)" % [nom, armure])
+	return "\n".join(lignes)
 
 
 ## Index 0 à n-1 : une famille ; n : le convoi ; n+1 : le boss (convention de `Apparence`).
@@ -153,42 +177,16 @@ func _nom_prochaine(index: int) -> String:
 	return ""
 
 
-func _armes(vue: VueArene) -> String:
-	var equipees := Nombres.groupe(vue.armes.size())
-	if _donnees == null:
-		return equipees
-	var capacite: int = int(_donnees.partie["emplacements_armes"])
-	return tr("HUD_ARMES_VALEUR") % [equipees, Nombres.groupe(capacite)]
-
-
-func _definir(ligne: int, cle: String, valeur: String) -> void:
-	_cles[ligne].text = cle
+## Pose la valeur, puis le nom accessible et l'infobulle de la case : « Nom : valeur », ou le
+## détail donné pour l'annonce des armures.
+func _definir(ligne: int, valeur: String, detail: String = "") -> void:
 	_valeurs[ligne].text = valeur
-	_valeurs[ligne].tooltip_text = valeur
-
-
-## La valeur des PV se pose sur la jauge ; l'étiquette garde sa place dans l'ordre des lignes.
-func _construire_jauge(valeur: Label) -> Control:
-	var pile := Control.new()
-	pile.name = "Jauge"
-	pile.custom_minimum_size = Vector2(LARGEUR_JAUGE, HAUTEUR_LIGNE)
-	_jauge = ProgressBar.new()
-	_jauge.show_percentage = false
-	_jauge.set_anchors_preset(Control.PRESET_FULL_RECT)
-	_jauge.max_value = 1.0
-	_jauge.value = 1.0
-	_jauge.add_theme_stylebox_override(
-		"background", ThemeJeu.boite(ThemeJeu.JAUGE_FOND, ThemeJeu.LAITON, 2)
-	)
-	_jauge.add_theme_stylebox_override(
-		"fill", ThemeJeu.boite(ThemeJeu.JAUGE_PLEINE, ThemeJeu.JAUGE_PLEINE, 0)
-	)
-	pile.add_child(_jauge)
-	valeur.set_anchors_preset(Control.PRESET_FULL_RECT)
-	valeur.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	valeur.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	pile.add_child(valeur)
-	return pile
+	var nom := tr(CLES_NOMS[ligne])
+	var contenu := valeur if detail.is_empty() else detail
+	var infobulle := "%s : %s" % [nom, contenu]
+	_cellules[ligne].tooltip_text = infobulle
+	_cellules[ligne].accessibility_name = infobulle
+	_icones[ligne].accessibility_name = nom
 
 
 func _style_barre() -> StyleBoxFlat:
@@ -205,7 +203,6 @@ func _style_barre() -> StyleBoxFlat:
 
 func _etiquette() -> Label:
 	var libelle := Label.new()
-	# Metamorphous est plus large que l'ancienne police : la barre ne tient sinon pas à 1 152 px.
 	libelle.theme_type_variation = "Petit"
 	libelle.custom_minimum_size = Vector2(0.0, HAUTEUR_LIGNE)
 	libelle.vertical_alignment = VERTICAL_ALIGNMENT_CENTER

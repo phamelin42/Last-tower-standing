@@ -84,8 +84,7 @@ func _avancer_jusqua(jeu: Jeu, condition: Callable) -> bool:
 
 
 func _or_affiche(jeu: Jeu) -> int:
-	var etiquettes := jeu.hud.find_children("*", "Label", true, false)
-	var valeur := (etiquettes[2 * Hud.LIGNE_OR + 1] as Label).text
+	var valeur := jeu.hud.valeur(Hud.LIGNE_OR)
 	return int(valeur.replace(Nombres.SEPARATEUR_MILLIERS, "").replace(" ", ""))
 
 

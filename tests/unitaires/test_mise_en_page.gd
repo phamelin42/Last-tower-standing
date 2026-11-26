@@ -20,10 +20,6 @@ const OPACITE_MIN := 0.9
 ## la création du test, aux résolutions de `RESOLUTIONS`, même partie solo, avant tout achat.
 const SURFACE_AVANT: Array[float] = [328080.0, 427280.0, 454456.0, 585360.0]
 const ECHELLES_EXTREMES: Array[float] = [0.75, 1.25]
-## À 125 %, la barre du HUD actuelle (largeur minimale d'environ 1 000 px) ne tient que dans la
-## plus grande résolution ; la boutique compacte tient partout. T8.18 (barre à icônes) refait la
-## barre : elle doit ajouter ici toutes les résolutions.
-const RESOLUTIONS_A_125: Array[Vector2] = [Vector2(1920.0, 1080.0)]
 
 var _donnees: Donnees
 var _locale_avant: String = ""
@@ -165,7 +161,8 @@ func test_le_hud_est_une_barre_visible_au_dessus_de_la_boutique() -> void:
 		var bandeau := jeu.boutique.rect_bandeau()
 		verifier(jeu.hud.is_visible_in_tree(), "le HUD est visible à %s" % zone)
 		verifier(barre.size.x >= zone.x - 1.0, "la barre prend toute la largeur à %s" % zone)
-		verifier(barre.size.y >= 48.0, "la barre est lisible (≥ 48 px) à %s" % zone)
+		verifier(barre.size.y >= 32.0, "la barre est lisible (≥ 32 px) à %s" % zone)
+		verifier(barre.size.y <= 44.0, "la barre fait au plus 44 px à %s" % zone)
 		verifier(ecran.encloses(barre), "la barre est dans la fenêtre à %s : %s" % [zone, barre])
 		verifier(
 			ecran.encloses(bandeau), "le bandeau est dans la fenêtre à %s : %s" % [zone, bandeau]
@@ -340,8 +337,6 @@ func test_aucun_texte_ne_deborde_ni_ne_se_coupe_a_75_et_125_pour_cent() -> void:
 		# dans une fenêtre logique plus petite ou plus grande.
 		var taille := ThemeJeu.taille("texte")
 		for resolution: Vector2 in RESOLUTIONS:
-			if echelle > 1.0 and not RESOLUTIONS_A_125.has(resolution):
-				continue
 			var zone := resolution / echelle
 			var jeu := await _jeu_a(zone)
 			var ecran := Rect2(Vector2.ZERO, zone)

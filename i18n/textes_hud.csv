@@ -1,6 +1,4 @@
 keys,fr
-HUD_PV,PV
-HUD_PV_VALEUR,%s / %s
 HUD_OR,Or
 HUD_REVENU,Revenu
 HUD_MANCHE,Manche
@@ -8,20 +6,20 @@ HUD_PREPARATION,Préparation
 HUD_MANCHE_SANS_FIN,%s ∞
 HUD_TEMPS,Temps
 HUD_SECONDES,%s s
-HUD_PROCHAINE,Prochaine
+HUD_PROCHAINE,Armures de la prochaine manche
 HUD_AUCUNE,Aucune
 HUD_ARMES,Armes
 SCORES_TITRE,Tableau des scores
 SCORES_JOUEUR,Joueur
 SCORES_MANCHE,Manche
 SCORES_ELIMINATIONS,Éliminations
-SCORES_DEGATS,Dégâts
-SCORES_REVENU,Revenu
+SCORES_DEGATS,Dégâts totaux
+SCORES_REVENU,Revenu / 10 s
+SCORES_DPS,Dégâts par seconde
 SCORES_ETAT,État
 SCORES_EN_VIE,En vie
 SCORES_ELIMINE,Éliminé
 SCORES_VOUS,vous
-HUD_ARMES_VALEUR,%s / %s
 IPS_COMPTEUR,%s img/s · min. 5 s : %s · ennemis : %s
 IPS_BANC_EN_COURS,"Banc d’essai : %s ennemis, mesure en cours (Échap pour quitter)"
 IPS_BANC_RESUME,"Banc d’essai terminé : moyenne %s img/s · minimum %s img/s · ennemis : %s (%s s, sans les %s premières secondes)"
