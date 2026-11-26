@@ -1537,11 +1537,11 @@ Session « animations » (`session_01FhwUocJCCBccFbTwV9Fk1k`). Décision de Ph
 
 # Suivis relevés en cours de route
 
-- **Équilibrage** : **clos par T8.21 (26/11/2026)**, chiffres dans `docs/equilibrage.md`. Rampe de
-  dégâts adoucie et primes revues ; la cible « manche 20 pour toutes les graines » n'est pas tenue
-  (minimum 17, médiane 31 sur les graines 1 à 10), seuil posé à la médiane 20 et au minimum 12.
-  Restent ouverts : puissance du joueur sans plafond après la manche 20 (le mur vient de
-  `apres_table`), boss retenu par les gels.
+- **Équilibrage** : **clos par T8.21 et T9.26 (26/11/2026)**, chiffres dans `docs/equilibrage.md`. Sur
+  le catalogue final (75 armes, 87 améliorations), le robot « bonne » atteint la manche 20 sur les
+  graines 1 à 10 et bat le boss sur 2 graines sur 10 ; la médiane de « raisonnable » (31) dépasse la
+  cible de 18 à 25. Restent ouverts : mesure à 50 graines après T9.22, puissance du joueur sans
+  plafond après la manche 20 (le mur vient de `apres_table`).
 - **Caméra** : vue lointaine pour cadrer le cercle d'apparition ; régler le zoom par défaut à
   l'usage.
 - **Réglages** : vérifier sous Windows que le renommage écrase bien l'ancien fichier.
