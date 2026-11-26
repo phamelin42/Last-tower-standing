@@ -11,6 +11,7 @@ const ARMES: Dictionary = {
 	"petard_de_rempart": ["petard", "mine"],
 	"mine_de_forge": ["mine_forge", "mine"],
 	"trebuchet_de_chambre": ["trebuchet", "zone"],
+	"grande_bombarde": ["grande_bombe", "zone"],
 }
 
 var _a: AttaquesElementaires = null
@@ -177,7 +178,7 @@ func test_la_mine_de_forge_est_lancee_puis_reste_posee_et_sa_rune_rougeoie() -> 
 
 
 func test_la_forge_explose_comme_le_pack_et_la_bombe_mais_pas_le_petard() -> void:
-	for element: String in ["mine_forge", "bombe"]:
+	for element: String in ["mine_forge", "grande_bombe", "bombe"]:
 		verifier(
 			AttaquesElementaires.explosion_du_pack(element), "%s : explosion du pack" % element
 		)
@@ -259,4 +260,50 @@ func test_le_trebuchet_dans_effets_lance_le_rocher_et_l_impact_attend_son_arrive
 	for _i: int in 14:
 		effets.avancer(IMAGE)
 	verifier_egal(effets.elementaires().etats("cratere").size(), 1, "il tombe à l'arrivée")
+	effets.free()
+
+
+# --- Grande bombarde : zone et étourdissement --------------------------------------------------
+
+
+func test_la_grande_bombe_est_une_fois_et_demie_plus_grosse_que_la_bombe_et_dure_quatorze_images(
+) -> void:
+	verifier_proche(_a.tirer("grande_bombe", TOUR, CIBLE) / IMAGE, 14.0, 0.01)
+	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 1)
+	var grosse: float = (_a.etats("bombe")[0]["echelle"] as Vector2).x
+	_a.vider()
+	_a.tirer("bombe", TOUR, CIBLE)
+	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 1)
+	var petite: float = (_a.etats("bombe")[0]["echelle"] as Vector2).x
+	verifier_proche(grosse / petite, 1.5, 0.02, "×1,5")
+
+
+func test_la_grande_bombe_passe_au_dessus_de_la_ligne_droite_et_son_ombre_reste_au_sol() -> void:
+	_a.tirer("grande_bombe", TOUR, CIBLE)
+	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 5)
+	var monte: float = TOUR.y - float(_a.etats("bombe")[0]["position"].y)
+	verifier(monte >= 0.9 * 0.35 * TOUR.distance_to(CIBLE), "en cloche")
+	verifier_proche(_a.etats("ombre")[0]["position"].y, TOUR.y, 0.01, "ombre sur la ligne droite")
+
+
+func test_l_impact_de_la_grande_bombe_lance_une_salve_de_debris_sauf_en_mouvement_reduit() -> void:
+	verifier(_a.impacter("grande_bombe", CIBLE, _rayon_px("grande_bombarde"), true))
+	verifier_egal(_a.particules_actives(), 1, "une salve")
+	_a.vider()
+	_a.mouvement_reduit = true
+	_a.impacter("grande_bombe", CIBLE, _rayon_px("grande_bombarde"), true)
+	verifier_egal(_a.particules_actives(), 0, "pas de débris en mouvement réduit")
+
+
+func test_la_grande_bombarde_dans_effets_explose_comme_le_pack_au_rayon_exact() -> void:
+	var effets: Effets = _effets()
+	for evenement: Dictionary in _evenements("grande_bombarde"):
+		effets.ajouter(evenement)
+	for _i: int in 15:
+		effets.avancer(IMAGE)
+	verifier_contient(effets.formes_vivantes(), "explosion")
+	var rayon: float = _rayon_px("grande_bombarde")
+	var diametre: float = effets.echelle_de("explosion") * Effets.DIAMETRE_EXPLOSION
+	verifier_proche(diametre, rayon * 2.0, rayon * 0.2, "diamètre = 2 × rayon")
+	verifier(effets.gel_restant() > 0.0, "gel d'un coup de siège")
 	effets.free()

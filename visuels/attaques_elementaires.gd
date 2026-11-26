@@ -145,6 +145,7 @@ static func _scripts() -> Array[GDScript]:
 		AttaquePetard,
 		AttaqueMineForge,
 		AttaqueTrebuchet,
+		AttaqueGrandeBombe,
 	]
 
 
