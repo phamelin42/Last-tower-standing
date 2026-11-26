@@ -26,6 +26,6 @@
 		{"temps_s": 600, "pv": 1.3, "degats": 1.2, "vitesse": 1.05},
 		{"temps_s": 900, "pv": 1.3, "degats": 1.2, "vitesse": 1.05}
 	],
-	"apres_table": {"pv": 4.0, "degats": 1.06, "vitesse": 1.01, "resistance_controle": 0.97},
+	"apres_table": {"pv": 3.4, "degats": 1.06, "vitesse": 1.01, "resistance_controle": 0.97},
 	"resistance_plancher": 0.1
 }
