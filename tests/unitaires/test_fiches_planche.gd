@@ -1,14 +1,9 @@
 extends CasDeTest
 ## Les fiches de `tools/dessin/fiches_planche.gd` disent quels sprites la planche des signatures
-## montre pour chaque arme : tout ce qu'elles citent existe, et chaque arme tranchante, perçante ou
-## magique signée a la sienne (celles de siège et de chaos du lot 9 l'auront avec leurs dessins ;
-## d'ici là la planche les montre par les formes de leur signature).
+## montre pour chaque arme : tout ce qu'elles citent existe, et chaque arme signée a la sienne.
 
 const Fiches := preload("res://tools/dessin/fiches_planche.gd")
 const Dessin := preload("res://tools/dessiner_effets_attaques.gd")
-## Rang des types de dégâts dans `data/armes.json` qui ont toutes leurs fiches : tranchant,
-## perçant, magique.
-const TYPES_AVEC_FICHES: Array[int] = [0, 1, 2]
 
 var _donnees: Donnees = null
 
@@ -35,11 +30,9 @@ func test_chaque_fiche_designe_une_arme_et_des_planches_qui_existent() -> void:
 			verifier(teinte.v >= 0.6, "%s : teinte trop sombre" % id)
 
 
-func test_chaque_arme_signee_des_trois_premiers_types_a_une_fiche() -> void:
+func test_chaque_arme_signee_a_une_fiche() -> void:
 	for id: String in SignaturesArmes.ids():
-		var rang: int = int((_donnees.armes[id] as Dictionary)["type_degats"])
-		if TYPES_AVEC_FICHES.has(rang):
-			verifier(not Fiches.de(id).is_empty(), "%s n'a pas de fiche" % id)
+		verifier(not Fiches.de(id).is_empty(), "%s n'a pas de fiche" % id)
 
 
 func test_une_arme_a_disque_au_sol_a_la_planche_de_son_disque() -> void:
@@ -71,3 +64,15 @@ func test_les_rayons_couvrent_le_nombre_de_branches_de_chaque_tir_tournant() -> 
 			verifier(branches >= 2 and branches - 2 < images, "%s : %d branches" % [id, branches])
 			vues += 1
 	verifier(vues > 0, "aucun tir tournant")
+
+
+func test_une_arme_a_marque_bombe_ou_allie_a_la_planche_de_sa_marque() -> void:
+	var vues: Dictionary = {}
+	for id: String in SignaturesArmes.ids():
+		var marque: String = SignaturesArmes.de(id)["marque"]
+		if marque == "bombe" or marque == "allie":
+			vues[marque] = true
+	for marque: String in ["bombe", "allie"]:
+		verifier(vues.has(marque), "aucune arme à marque %s" % marque)
+		var nom: String = "bombe_meche" if marque == "bombe" else "allie"
+		verifier(Dessin.PLANCHES.has(nom), "planche %s" % nom)

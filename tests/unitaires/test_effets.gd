@@ -3,7 +3,7 @@ extends CasDeTest
 ## effet reconnaissable à sa forme et pas seulement à sa couleur, la rafale ne dépasse jamais le
 ## plafond, et tout s'éteint sans laisser de nœud actif.
 
-const ArmesLot8 := preload("res://tests/unitaires/armes_lot_8.gd")
+const SignaturesLot8 := preload("res://tests/unitaires/signatures_lot_8.gd")
 const SCENE := "res://scenes/arene_2d.tscn"
 const TYPES: Array[int] = [
 	Types.TypeDegats.TRANCHANT,
@@ -436,12 +436,13 @@ func _rendu_de(evenement: Dictionary) -> String:
 	return "%s|%s|%.1f" % [",".join(formes), couleur.to_html(false), _effets.taille_du_premier()]
 
 
-func test_les_trente_signatures_du_lot_8_sont_en_jeu() -> void:
+func test_les_signatures_validees_du_lot_8_sont_en_jeu_et_seules_elles() -> void:
 	var vues: int = 0
-	for id: String in ArmesLot8.IDS:
-		verifier(SignaturesArmes.en_jeu(id), "%s : signature en jeu" % id)
-		vues += 1
-	verifier_egal(vues, 30)
+	for id: String in SignaturesArmes.ids():
+		if SignaturesArmes.en_jeu(id):
+			verifier(SignaturesLot8.LIGNES.has(id), "%s : en jeu sans validation" % id)
+			vues += 1
+	verifier_egal(vues, SignaturesLot8.LIGNES.size())
 	verifier(not SignaturesArmes.en_jeu("arme_qui_n_existe_pas"))
 
 
@@ -459,7 +460,7 @@ func test_une_signature_proposee_ne_change_pas_le_rendu_en_jeu() -> void:
 			var sans: Dictionary = avec.duplicate()
 			sans.erase("arme")
 			verifier_egal(_rendu_de(avec), _rendu_de(sans), "%s : %s par type" % [id, k])
-	verifier(vues >= 27, "les 27 signatures proposées : %d" % vues)
+	verifier(vues >= 45, "les 45 signatures proposées : %d" % vues)
 
 
 func _sans_alpha(c: Color) -> Color:
