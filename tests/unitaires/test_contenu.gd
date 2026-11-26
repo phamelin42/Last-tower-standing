@@ -297,16 +297,19 @@ func _familles() -> Array[Dictionary]:
 		var noms: Array = m["noms"]
 		for k: int in paliers.size():
 			var p: Dictionary = paliers[k]
-			familles.append(
-				{
-					"id": "%s_%s" % [m["id"], p["id"]],
-					"nom": noms[k],
-					"armure": m["armure"],
-					"portee_attaque": m["portee_attaque"],
-					"vitesse": m["vitesse"],
-					"pv": float(m["pv"]) * float(p["pv"]),
-					"prime": float(m["prime"]) * float(p["prime"]),
-				}
+			(
+				familles
+				. append(
+					{
+						"id": "%s_%s" % [m["id"], p["id"]],
+						"nom": noms[k],
+						"armure": m["armure"],
+						"portee_attaque": m["portee_attaque"],
+						"vitesse": m["vitesse"],
+						"pv": float(m["pv"]) * float(p["pv"]),
+						"prime": float(m["prime"]) * float(p["prime"]),
+					}
+				)
 			)
 	return familles
 
@@ -322,8 +325,7 @@ func test_les_familles_couvrent_chaque_armure_et_comptent_des_modeles_a_distance
 		verifier(trouvee, "aucun modèle d’armure %s" % armure)
 	for modele: Dictionary in modeles:
 		verifier(
-			String(modele["armure"]) in ARMURES,
-			"%s : armure %s" % [modele["id"], modele["armure"]]
+			String(modele["armure"]) in ARMURES, "%s : armure %s" % [modele["id"], modele["armure"]]
 		)
 	var a_distance := modeles.filter(func(m: Dictionary) -> bool: return m["portee_attaque"] > 60)
 	verifier(a_distance.size() >= 1, "aucun modèle à distance")

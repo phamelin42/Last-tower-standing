@@ -18,6 +18,9 @@ const EPSILON_TEMPS := 0.0001
 const DEGATS_MAX := 1e12
 ## Tolérance pour dire qu'un ennemi est arrivé à son point d'arrêt.
 const TOLERANCE_ARRET := 0.01
+## Bits réservés au rang de retrait dans la clé de tri de `purger` (16 millions de retraits).
+const RANG_BITS := 24
+const RANG_MASQUE := (1 << RANG_BITS) - 1
 
 ## Vivants uniquement ; les morts en attente de purge ne sont pas comptés.
 var taille: int = 0
@@ -403,33 +406,52 @@ func choisir(centre: Vector2, portee_max: float, mode: int) -> int:
 ## suit ses propres données). Rend `[{id, famille, prime, pos, sans_prime}]` par identifiant croissant.
 func purger() -> Array[Dictionary]:
 	var retires: Array[Dictionary] = []
+	# Clé de tri native : l'identifiant dans les bits de poids fort, le rang de retrait dessous.
+	var cles := PackedInt64Array()
 	_d2_min = -1.0
 	var i := 0
 	while i < _n:
 		if mort[i] == 0:
 			i += 1
 			continue
-		(
-			retires
-			. append(
-				{
-					"id": ids[i],
-					"famille": int(famille[i]),
-					"prime": prime[i],
-					"pos": pos[i],
-					"sans_prime": sans_prime[i] != 0,
-				}
-			)
-		)
-		_indice_par_id.erase(ids[i])
 		var dernier := _n - 1
-		if i != dernier:
-			_copier(dernier, i)
-			_indice_par_id[ids[i]] = i
-		_redimensionner(dernier)
+		if mort[dernier] != 0:
+			# Un mort en queue part sans copie (1 000 Tonneaux qui explosent ensemble : aucune).
+			_noter_retrait(dernier, retires, cles)
+			_n = dernier
+			continue
+		_noter_retrait(i, retires, cles)
+		_copier(dernier, i)
+		_indice_par_id[ids[i]] = i
 		_n = dernier
-	retires.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a["id"] < b["id"])
-	return retires
+	# Une seule réduction des tableaux, après le balayage : la refaire à chaque retrait coûtait
+	# vingt-quatre `resize` par ennemi retiré.
+	_redimensionner(_n)
+	# Un tri par comparateur GDScript coûtait 5 ms pour 1 000 retraits : le tri natif des clés
+	# donne le même ordre (identifiants uniques).
+	cles.sort()
+	var tries: Array[Dictionary] = []
+	tries.resize(retires.size())
+	for rang: int in cles.size():
+		tries[rang] = retires[cles[rang] & RANG_MASQUE]
+	return tries
+
+
+func _noter_retrait(i: int, retires: Array[Dictionary], cles: PackedInt64Array) -> void:
+	cles.append((ids[i] << RANG_BITS) | retires.size())
+	(
+		retires
+		. append(
+			{
+				"id": ids[i],
+				"famille": int(famille[i]),
+				"prime": prime[i],
+				"pos": pos[i],
+				"sans_prime": sans_prime[i] != 0,
+			}
+		)
+	)
+	_indice_par_id.erase(ids[i])
 
 
 func _copier(de: int, vers: int) -> void:

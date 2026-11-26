@@ -349,7 +349,9 @@ func test_choisir_les_trois_modes() -> void:
 	var c := _ajouter(Vector2(200, 0), 20.0, Types.Armure.LEGERE)
 	verifier_egal(e.choisir(CENTRE, 1000.0, Types.Ciblage.PLUS_PROCHE), _i(b))
 	verifier_egal(e.choisir(CENTRE, 1000.0, Types.Ciblage.PLUS_FORT), _i(b))
-	verifier_egal(e.choisir(CENTRE, 1000.0, Types.Ciblage.PLUS_FAIBLE), _i(c), "le plus faible est choisi")
+	verifier_egal(
+		e.choisir(CENTRE, 1000.0, Types.Ciblage.PLUS_FAIBLE), _i(c), "le plus faible est choisi"
+	)
 	verifier_egal(e.choisir(CENTRE, 150.0, Types.Ciblage.PLUS_FAIBLE), _i(b), "c hors portée")
 	verifier(a >= 0)
 

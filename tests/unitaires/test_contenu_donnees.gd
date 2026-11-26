@@ -23,7 +23,9 @@ func test_le_contenu_charge_est_complet() -> void:
 	verifier(donnees.armes.size() >= 25, "%d armes chargées" % donnees.armes.size())
 	verifier(donnees.ameliorations.size() >= 30, "%d améliorations" % donnees.ameliorations.size())
 	# Une famille par modèle et par palier de couleur, lus dans le fichier et non écrits en dur.
-	var brut: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/ennemis.json"))
+	var brut: Dictionary = JSON.parse_string(
+		FileAccess.get_file_as_string("res://data/ennemis.json")
+	)
 	var nb_modeles: int = (brut["modeles"] as Array).size()
 	var nb_paliers: int = (brut["paliers"] as Array).size()
 	verifier(nb_modeles > 0 and nb_paliers > 0, "ni modèle ni palier dans ennemis.json")

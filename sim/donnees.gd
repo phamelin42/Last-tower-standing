@@ -665,7 +665,7 @@ static func _valider_modele(
 				% [Types.NOMS_CLASSES_PORTEE[classe], Ennemis.PORTEE_CORPS_A_CORPS]
 			)
 			_err(err, f, _sous(ch, "portee_attaque"), raison)
-		if m.get("explose") == true and classe != Types.ClassePortee.CORPS_A_CORPS:
+		if m.get("explose") is bool and m["explose"] and classe != Types.ClassePortee.CORPS_A_CORPS:
 			_err(err, f, _sous(ch, "explose"), "seul un corps à corps explose au contact")
 
 

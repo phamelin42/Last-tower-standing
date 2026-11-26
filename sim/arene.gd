@@ -129,7 +129,6 @@ func demarrer_boss(mult: Dictionary) -> void:
 		float(b["portee_attaque"]),
 		float(b["cadence_attaque"]),
 		int(b.get("prime", 0)),
-		false,
 		Types.Armure.BOSS
 	)
 
