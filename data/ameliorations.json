@@ -666,5 +666,709 @@
     "valeur": 1.5
    }
   ]
+ },
+ {
+  "id": "meule_des_lames",
+  "nom": "Meule des lames",
+  "description": "La meule tourne sans cesse, et chaque lame commune y gagne son fil.",
+  "rarete": "epique",
+  "prix": 920,
+  "categorie": "amelioration",
+  "famille": "degats_type",
+  "effets": [
+   {
+    "stat": "degats_type",
+    "type_degats": "tranchant",
+    "valeur": 0.35,
+    "categorie": "C",
+    "par_arme_commune": 0.05
+   }
+  ]
+ },
+ {
+  "id": "carquois_des_siecles",
+  "nom": "Carquois des siècles",
+  "description": "Chaque flèche commune de plus alourdit le carquois.",
+  "rarete": "epique",
+  "prix": 940,
+  "categorie": "amelioration",
+  "famille": "degats_type",
+  "effets": [
+   {
+    "stat": "degats_type",
+    "type_degats": "perçant",
+    "valeur": 0.35,
+    "categorie": "C",
+    "par_arme_commune": 0.05
+   }
+  ]
+ },
+ {
+  "id": "chaire_des_arcanes",
+  "nom": "Chaire des arcanes",
+  "description": "Du haut de sa chaire, le mage éclaire les sortilèges simples.",
+  "rarete": "epique",
+  "prix": 960,
+  "categorie": "amelioration",
+  "famille": "degats_type",
+  "effets": [
+   {
+    "stat": "degats_type",
+    "type_degats": "magique",
+    "valeur": 0.35,
+    "categorie": "C",
+    "par_arme_commune": 0.05
+   }
+  ]
+ },
+ {
+  "id": "arsenal_des_remparts",
+  "nom": "Arsenal des remparts",
+  "description": "Chaque machine commune du rempart ajoute sa poudre à la réserve.",
+  "rarete": "epique",
+  "prix": 960,
+  "categorie": "amelioration",
+  "famille": "degats_type",
+  "effets": [
+   {
+    "stat": "degats_type",
+    "type_degats": "siège",
+    "valeur": 0.35,
+    "categorie": "C",
+    "par_arme_commune": 0.05
+   }
+  ]
+ },
+ {
+  "id": "fracas_du_desordre",
+  "nom": "Fracas du désordre",
+  "description": "Chaque bricole chaotique de plus ajoute au vacarme.",
+  "rarete": "epique",
+  "prix": 930,
+  "categorie": "amelioration",
+  "famille": "degats_type",
+  "effets": [
+   {
+    "stat": "degats_type",
+    "type_degats": "chaos",
+    "valeur": 0.35,
+    "categorie": "C",
+    "par_arme_commune": 0.05
+   }
+  ]
+ },
+ {
+  "id": "metronome_patient",
+  "nom": "Métronome patient",
+  "description": "Plus la partie dure, plus ses rouages frappent juste.",
+  "rarete": "rare",
+  "prix": 480,
+  "categorie": "amelioration",
+  "famille": "degats_global",
+  "effets": [
+   {
+    "stat": "degats_global",
+    "valeur": 0.05,
+    "categorie": "B",
+    "croissance": 0.02,
+    "croissance_max": 0.3
+   }
+  ]
+ },
+ {
+  "id": "caisse_d_echo",
+  "nom": "Caisse d’écho",
+  "description": "Chaque onde repart avec l’écho de la précédente.",
+  "rarete": "rare",
+  "prix": 470,
+  "categorie": "amelioration",
+  "famille": "degats_classe",
+  "effets": [
+   {
+    "stat": "degats_classe",
+    "classe": "onde",
+    "valeur": 0.35
+   }
+  ]
+ },
+ {
+  "id": "garde_rapprochee",
+  "nom": "Garde rapprochée",
+  "description": "Au pied des remparts, les armes proches frappent plus fort.",
+  "rarete": "rare",
+  "prix": 460,
+  "categorie": "amelioration",
+  "famille": "degats_classe",
+  "effets": [
+   {
+    "stat": "degats_classe",
+    "classe": "portee_courte",
+    "valeur": 0.3
+   }
+  ]
+ },
+ {
+  "id": "longue_vue",
+  "nom": "Longue-vue",
+  "description": "Une lunette qui pardonne la distance aux armes de longue portée.",
+  "rarete": "rare",
+  "prix": 460,
+  "categorie": "amelioration",
+  "famille": "degats_classe",
+  "effets": [
+   {
+    "stat": "degats_classe",
+    "classe": "portee_longue",
+    "valeur": 0.3
+   }
+  ]
+ },
+ {
+  "id": "fierte_du_rang",
+  "nom": "Fierté du rang",
+  "description": "Les armes les plus modestes se battent comme si on les regardait.",
+  "rarete": "commune",
+  "prix": 110,
+  "categorie": "amelioration",
+  "famille": "degats_classe",
+  "effets": [
+   {
+    "stat": "degats_classe",
+    "classe": "commune",
+    "valeur": 0.25
+   }
+  ]
+ },
+ {
+  "id": "venin_concentre",
+  "nom": "Venin concentré",
+  "description": "Une goutte de plus par fiole, et le poison mord plus profond.",
+  "rarete": "rare",
+  "prix": 440,
+  "categorie": "amelioration",
+  "famille": "etats",
+  "effets": [
+   {
+    "stat": "etat_degats",
+    "etat": "poison",
+    "valeur": 0.4
+   }
+  ]
+ },
+ {
+  "id": "charbon_ardent",
+  "nom": "Charbon ardent",
+  "description": "Les brûlures couvent plus fort sous la peau.",
+  "rarete": "rare",
+  "prix": 440,
+  "categorie": "amelioration",
+  "famille": "etats",
+  "effets": [
+   {
+    "stat": "etat_degats",
+    "etat": "brulure",
+    "valeur": 0.4
+   }
+  ]
+ },
+ {
+  "id": "ampoule_tenace",
+  "nom": "Ampoule tenace",
+  "description": "Le poison met longtemps à quitter l’ennemi.",
+  "rarete": "rare",
+  "prix": 450,
+  "categorie": "amelioration",
+  "famille": "etats",
+  "effets": [
+   {
+    "stat": "etat_duree",
+    "etat": "poison",
+    "valeur": 0.5
+   }
+  ]
+ },
+ {
+  "id": "braises_couvees",
+  "nom": "Braises couvées",
+  "description": "Les flammes s’attardent longtemps après le coup.",
+  "rarete": "rare",
+  "prix": 450,
+  "categorie": "amelioration",
+  "famille": "etats",
+  "effets": [
+   {
+    "stat": "etat_duree",
+    "etat": "brulure",
+    "valeur": 0.5
+   }
+  ]
+ },
+ {
+  "id": "maillet_de_plomb",
+  "nom": "Maillet de plomb",
+  "description": "Un coup bien placé laisse l’ennemi assommé plus longtemps.",
+  "rarete": "rare",
+  "prix": 450,
+  "categorie": "amelioration",
+  "famille": "etats",
+  "effets": [
+   {
+    "stat": "etat_duree",
+    "etat": "etourdissement",
+    "valeur": 0.3
+   }
+  ]
+ },
+ {
+  "id": "frappe_du_vertige",
+  "nom": "Frappe du vertige",
+  "description": "Un ennemi qui titube est une cible qu’on ne manque pas.",
+  "rarete": "rare",
+  "prix": 460,
+  "categorie": "amelioration",
+  "famille": "etats",
+  "effets": [
+   {
+    "stat": "degats_contre_etat",
+    "etat": "etourdi",
+    "valeur": 0.3
+   }
+  ]
+ },
+ {
+  "id": "dard_du_fievreux",
+  "nom": "Dard du fiévreux",
+  "description": "Les ennemis malades sentent chaque coup deux fois.",
+  "rarete": "rare",
+  "prix": 440,
+  "categorie": "amelioration",
+  "famille": "etats",
+  "effets": [
+   {
+    "stat": "degats_contre_etat",
+    "etat": "empoisonne",
+    "valeur": 0.25
+   }
+  ]
+ },
+ {
+  "id": "proie_a_la_traine",
+  "nom": "Proie à la traîne",
+  "description": "Celui qui ralentit finit toujours par se prendre le coup.",
+  "rarete": "rare",
+  "prix": 440,
+  "categorie": "amelioration",
+  "famille": "etats",
+  "effets": [
+   {
+    "stat": "degats_contre_etat",
+    "etat": "ralenti",
+    "valeur": 0.25
+   }
+  ]
+ },
+ {
+  "id": "piquants_affutes",
+  "nom": "Piquants affûtés",
+  "description": "Chaque pointe est limée : les épines renvoient davantage.",
+  "rarete": "rare",
+  "prix": 440,
+  "categorie": "amelioration",
+  "famille": "epines",
+  "effets": [
+   {
+    "stat": "epines_degats",
+    "valeur": 0.5
+   }
+  ]
+ },
+ {
+  "id": "ronce_vorace",
+  "nom": "Ronce vorace",
+  "description": "La ronce grandit à mesure que le siège s’éternise.",
+  "rarete": "rare",
+  "prix": 450,
+  "categorie": "amelioration",
+  "famille": "epines",
+  "effets": [
+   {
+    "stat": "epines_croissantes",
+    "valeur": 0.1,
+    "max": 1.0
+   }
+  ]
+ },
+ {
+  "id": "piege_d_accueil",
+  "nom": "Piège d’accueil",
+  "description": "Le premier assaillant à toucher le mur en garde un souvenir cuisant.",
+  "rarete": "rare",
+  "prix": 440,
+  "categorie": "amelioration",
+  "famille": "epines",
+  "effets": [
+   {
+    "stat": "epines_premier_coup",
+    "valeur": 1.5
+   }
+  ]
+ },
+ {
+  "id": "rosee_des_ronces",
+  "nom": "Rosée des ronces",
+  "description": "Le sang versé sur les épines nourrit la tour.",
+  "rarete": "rare",
+  "prix": 450,
+  "categorie": "amelioration",
+  "famille": "epines",
+  "effets": [
+   {
+    "stat": "epines_soin",
+    "valeur": 0.25
+   }
+  ]
+ },
+ {
+  "id": "gambison_hirsute",
+  "nom": "Gambison hirsute",
+  "description": "Un rembourrage hérissé amortit les coups au corps à corps.",
+  "rarete": "rare",
+  "prix": 460,
+  "categorie": "amelioration",
+  "famille": "epines",
+  "effets": [
+   {
+    "stat": "epines_reduction",
+    "valeur": 0.2
+   }
+  ]
+ },
+ {
+  "id": "epines_venimeuses",
+  "nom": "Épines venimeuses",
+  "description": "Les pointes sont enduites : qui frappe s’empoisonne.",
+  "rarete": "rare",
+  "prix": 440,
+  "categorie": "amelioration",
+  "famille": "epines",
+  "effets": [
+   {
+    "stat": "epines_statut",
+    "statut": "poison",
+    "valeur": 4.0
+   }
+  ]
+ },
+ {
+  "id": "piquants_incandescents",
+  "nom": "Piquants incandescents",
+  "description": "Des pointes chauffées à blanc embrasent l’assaillant.",
+  "rarete": "rare",
+  "prix": 450,
+  "categorie": "amelioration",
+  "famille": "epines",
+  "effets": [
+   {
+    "stat": "epines_statut",
+    "statut": "brulure",
+    "valeur": 4.0
+   }
+  ]
+ },
+ {
+  "id": "givre_des_ronces",
+  "nom": "Givre des ronces",
+  "description": "Un givre mordant gagne l’assaillant à chaque contact.",
+  "rarete": "rare",
+  "prix": 440,
+  "categorie": "amelioration",
+  "famille": "epines",
+  "effets": [
+   {
+    "stat": "epines_statut",
+    "statut": "givre",
+    "valeur": 1.0
+   }
+  ]
+ },
+ {
+  "id": "pointes_assommantes",
+  "nom": "Pointes assommantes",
+  "description": "Un contact avec le mur laisse l’assaillant hébété.",
+  "rarete": "rare",
+  "prix": 470,
+  "categorie": "amelioration",
+  "famille": "epines",
+  "effets": [
+   {
+    "stat": "epines_statut",
+    "statut": "etourdissement",
+    "valeur": 1.5
+   }
+  ]
+ },
+ {
+  "id": "armature_massive",
+  "nom": "Armature massive",
+  "description": "Des poutres plus épaisses portent la tour plus haut.",
+  "rarete": "rare",
+  "prix": 460,
+  "categorie": "amelioration",
+  "famille": "pv_max",
+  "effets": [
+   {
+    "stat": "pv_max_mult",
+    "valeur": 0.3
+   }
+  ]
+ },
+ {
+  "id": "rempart_colossal",
+  "nom": "Rempart colossal",
+  "description": "Un rempart doublé de pierre, presque une seconde tour.",
+  "rarete": "epique",
+  "prix": 920,
+  "categorie": "amelioration",
+  "famille": "pv_max",
+  "effets": [
+   {
+    "stat": "pv_max_mult",
+    "valeur": 0.8
+   }
+  ]
+ },
+ {
+  "id": "onguent_de_manche",
+  "nom": "Onguent de manche",
+  "description": "Entre deux manches, la tour referme une partie de ses plaies.",
+  "rarete": "rare",
+  "prix": 450,
+  "categorie": "amelioration",
+  "famille": "pv_max",
+  "effets": [
+   {
+    "stat": "soin_pv_manquants",
+    "valeur": 0.3
+   }
+  ]
+ },
+ {
+  "id": "puissance_de_la_pierre",
+  "nom": "Puissance de la pierre",
+  "description": "Plus la tour est massive, plus ses armes frappent fort.",
+  "rarete": "rare",
+  "prix": 480,
+  "categorie": "amelioration",
+  "famille": "pv_max",
+  "effets": [
+   {
+    "stat": "degats_par_pv_max",
+    "valeur": 0.1
+   }
+  ]
+ },
+ {
+  "id": "braise_de_phenix",
+  "nom": "Braise de phénix",
+  "description": "Une fois par partie, la tour se relève de ses cendres.",
+  "rarete": "epique",
+  "prix": 950,
+  "categorie": "amelioration",
+  "famille": "pv_max",
+  "effets": [
+   {
+    "stat": "resurrection",
+    "valeur": 50
+   }
+  ]
+ },
+ {
+  "id": "racines_patientes",
+  "nom": "Racines patientes",
+  "description": "Les racines s’enfoncent : la guérison s’accélère avec le temps.",
+  "rarete": "rare",
+  "prix": 470,
+  "categorie": "amelioration",
+  "famille": "regeneration",
+  "effets": [
+   {
+    "stat": "regen_croissante",
+    "valeur": 0.2,
+    "max": 6.0
+   }
+  ]
+ },
+ {
+  "id": "pouls_du_rempart",
+  "nom": "Pouls du rempart",
+  "description": "À intervalles réguliers, la tour reprend son souffle.",
+  "rarete": "rare",
+  "prix": 460,
+  "categorie": "amelioration",
+  "famille": "regeneration",
+  "effets": [
+   {
+    "stat": "soin_periodique",
+    "ratio": 0.03,
+    "tous_les": 5.0
+   }
+  ]
+ },
+ {
+  "id": "patine_du_temps",
+  "nom": "Patine du temps",
+  "description": "Le métal se durcit au fil du siège.",
+  "rarete": "rare",
+  "prix": 450,
+  "categorie": "amelioration",
+  "famille": "armure",
+  "effets": [
+   {
+    "stat": "armure_croissante",
+    "valeur": 1.0,
+    "max": 12.0
+   }
+  ]
+ },
+ {
+  "id": "cuirasse_de_givre",
+  "nom": "Cuirasse de givre",
+  "description": "Chaque coup reçu glace un peu plus l’agresseur.",
+  "rarete": "rare",
+  "prix": 460,
+  "categorie": "amelioration",
+  "famille": "armure",
+  "effets": [
+   {
+    "stat": "riposte_statut",
+    "statut": "givre",
+    "valeur": 1.0
+   }
+  ]
+ },
+ {
+  "id": "cotte_de_venin",
+  "nom": "Cotte de venin",
+  "description": "Une cotte enduite de poison : toucher la tour coûte cher.",
+  "rarete": "rare",
+  "prix": 460,
+  "categorie": "amelioration",
+  "famille": "armure",
+  "effets": [
+   {
+    "stat": "riposte_statut",
+    "statut": "poison",
+    "valeur": 4.0
+   }
+  ]
+ },
+ {
+  "id": "citerne_d_arcanes",
+  "nom": "Citerne d’arcanes",
+  "description": "Une citerne plus vaste pour la mana que la tour garde en réserve.",
+  "rarete": "rare",
+  "prix": 450,
+  "categorie": "amelioration",
+  "famille": "mana",
+  "effets": [
+   {
+    "stat": "mana_max_mult",
+    "valeur": 0.25
+   }
+  ]
+ },
+ {
+  "id": "bouclier_en_eclats",
+  "nom": "Bouclier en éclats",
+  "description": "Quand la réserve cède, l’onde fige les assaillants proches.",
+  "rarete": "rare",
+  "prix": 470,
+  "categorie": "amelioration",
+  "famille": "mana",
+  "effets": [
+   {
+    "stat": "mana_rupture_etourdit",
+    "rayon": 300.0,
+    "duree": 2.0
+   }
+  ]
+ },
+ {
+  "id": "grimoire_de_surcharge",
+  "nom": "Grimoire de surcharge",
+  "description": "Tant que la réserve n’est pas vide, chaque coup tombe plus lourd.",
+  "rarete": "rare",
+  "prix": 460,
+  "categorie": "amelioration",
+  "famille": "mana",
+  "effets": [
+   {
+    "stat": "degats_tant_que_mana",
+    "valeur": 0.2
+   }
+  ]
+ },
+ {
+  "id": "voile_de_brume",
+  "nom": "Voile de brume",
+  "description": "Une brume nacrée amortit les coups tant que la réserve de mana tient.",
+  "rarete": "rare",
+  "prix": 450,
+  "categorie": "amelioration",
+  "famille": "mana",
+  "effets": [
+   {
+    "stat": "reduction_tant_que_mana",
+    "valeur": 0.15
+   }
+  ]
+ },
+ {
+  "id": "commerce_a_credit",
+  "nom": "Commerce à crédit",
+  "description": "La tour s’endette en solidité pour des versements plus gras.",
+  "rarete": "rare",
+  "prix": 480,
+  "categorie": "revenu",
+  "famille": "revenu",
+  "effets": [
+   {
+    "stat": "revenu_contre_pv",
+    "pv": 150.0,
+    "or": 14
+   }
+  ]
+ },
+ {
+  "id": "echo_de_l_aubaine",
+  "nom": "Écho de l’aubaine",
+  "description": "La prochaine affaire modeste se présente à nouveau, sans supplément.",
+  "rarete": "rare",
+  "prix": 430,
+  "categorie": "amelioration",
+  "famille": "boutique",
+  "effets": [
+   {
+    "stat": "copie_prochaine_offre",
+    "raretes_max": "peu_commune"
+   }
+  ]
+ },
+ {
+  "id": "brume_de_vie",
+  "nom": "Brume de vie",
+  "description": "Un nuage mordant ronge les assaillants et ranime la tour.",
+  "rarete": "rare",
+  "prix": 470,
+  "categorie": "amelioration",
+  "famille": "aura_mixte",
+  "effets": [
+   {
+    "stat": "aura_mixte",
+    "rayon": 220.0,
+    "poison": 40.0,
+    "regen": 6.0
+   }
+  ]
  }
 ]

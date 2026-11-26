@@ -156,7 +156,11 @@ static func valider_effet_amelioration(
 		if stat == "copie_prochaine_offre":
 			Donnees._nom_enum(e, "raretes_max", Types.NOMS_RARETES, f, ch, err)
 		return
-	if stat in Donnees.STATS_ENTIERES:
+	if stat == "resurrection":
+		# Un pourcentage entier de PV maximum (50 : la tour est relevée à 50 %), cumulé entre
+		# exemplaires puis borné à 100 par `Arene`.
+		Donnees._nombre(e, Donnees._spec("valeur", 1.0, false, 100.0, true), f, ch, err)
+	elif stat in Donnees.STATS_ENTIERES:
 		Donnees._nombre(e, Donnees._ent("valeur", 0.0), f, ch, err)
 	else:
 		Donnees._nombre(e, Donnees._spec("valeur", -INF), f, ch, err)

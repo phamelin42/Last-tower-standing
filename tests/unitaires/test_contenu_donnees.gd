@@ -80,7 +80,12 @@ func test_la_categorie_revenu_regroupe_exactement_les_stats_economiques() -> voi
 	if donnees == null:
 		return
 	var economiques: Array[String] = [
-		"revenu_fixe", "revenu_croissant", "revenu_mult", "prime_mult", "bonus_elim"
+		"revenu_fixe",
+		"revenu_croissant",
+		"revenu_mult",
+		"prime_mult",
+		"bonus_elim",
+		"revenu_contre_pv",
 	]
 	var nb_revenu := 0
 	for id: String in donnees.ameliorations:
@@ -94,7 +99,10 @@ func test_la_categorie_revenu_regroupe_exactement_les_stats_economiques() -> voi
 		verifier_egal(est_revenu, tous_economiques, "%s : catégorie et effets" % id)
 		nb_revenu += 1 if est_revenu else 0
 	verifier(nb_revenu > 0, "au moins une offre de revenu")
-	for id: String in ["bourse_de_rebut", "jeton_de_l_arriere_boutique"]:
+	verifier_egal(
+		donnees.categorie_de("commerce_a_credit"), Types.Categorie.REVENU, "revenu contre des PV"
+	)
+	for id: String in ["bourse_de_rebut", "jeton_de_l_arriere_boutique", "echo_de_l_aubaine"]:
 		verifier_egal(
 			donnees.categorie_de(id), Types.Categorie.AMELIORATION, "%s n'est pas un revenu" % id
 		)

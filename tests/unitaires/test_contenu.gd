@@ -34,6 +34,34 @@ const STATS: Array[String] = [
 	"marche_noir",
 	"mana_max",
 	"mana_regen",
+	# Lot 9 : classes d'arme et états.
+	"degats_classe",
+	"etat_degats",
+	"etat_duree",
+	"degats_contre_etat",
+	# Lot 9 : épines, PV maximum, régénération et armure.
+	"epines_degats",
+	"epines_croissantes",
+	"epines_premier_coup",
+	"epines_soin",
+	"epines_reduction",
+	"epines_statut",
+	"pv_max_mult",
+	"soin_pv_manquants",
+	"degats_par_pv_max",
+	"resurrection",
+	"regen_croissante",
+	"soin_periodique",
+	"armure_croissante",
+	"riposte_statut",
+	# Lot 9 : mana, revenu contre des PV, copie d'offre, aura mixte.
+	"mana_max_mult",
+	"mana_rupture_etourdit",
+	"degats_tant_que_mana",
+	"reduction_tant_que_mana",
+	"revenu_contre_pv",
+	"copie_prochaine_offre",
+	"aura_mixte",
 ]
 ## Mana maximale de référence pour comparer le rendement des armes de mana aux autres (D12).
 const MANA_MAX_REFERENCE := 100.0
