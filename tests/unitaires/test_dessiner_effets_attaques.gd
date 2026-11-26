@@ -10,7 +10,17 @@ const TEINTES_MAX: int = 6
 const COTE_SILHOUETTE: int = 16
 ## Part minimale de pixels qui diffèrent entre deux silhouettes ramenées à la même taille.
 const DIFFERENCE_MIN: float = 0.08
-const PROJECTILES: PackedStringArray = ["boule_feu", "eclat_glace", "bombe", "fiole", "rune"]
+const PROJECTILES: PackedStringArray = [
+	"boule_feu",
+	"eclat_glace",
+	"bombe",
+	"fiole",
+	"rune",
+	"lame_croissant",
+	"faucille",
+	"disque_scie",
+	"lame_tournante",
+]
 
 
 func _charger(nom: String) -> Image:
@@ -28,8 +38,8 @@ func _images(nom: String) -> int:
 	return Dessin.PLANCHES[nom]["images"]
 
 
-func test_la_liste_des_planches_compte_les_quinze_effets() -> void:
-	verifier_egal(Dessin.PLANCHES.size(), 15, "planches")
+func test_la_liste_des_planches_compte_les_vingt_cinq_effets() -> void:
+	verifier_egal(Dessin.PLANCHES.size(), 25, "planches")
 
 
 func test_chaque_planche_existe_a_la_taille_taille_fois_nombre_d_images() -> void:

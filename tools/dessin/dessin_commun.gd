@@ -39,6 +39,16 @@ const BOMBE_CORPS := Color("3b404d")
 const BOMBE_REFLET := Color("7d8599")
 const BOMBE_CONTOUR := Color("0f1117")
 const BOMBE_MECHE := Color("8b5a2b")
+## Acier, cuivre, vapeur.
+const ACIER_BLANC := Color("ffffff")
+const ACIER_CLAIR := Color("cfd8e6")
+const ACIER := Color("8896ad")
+const ACIER_CONTOUR := Color("1c2233")
+const CUIVRE_CLAIR := Color("f0b070")
+const CUIVRE := Color("d9843b")
+const CUIVRE_BRUN := Color("7a431f")
+const VAPEUR_CLAIR := Color("f2f4f8")
+const VAPEUR := Color("aab2c0")
 ## Éclair de départ, teinté par élément dans le jeu.
 const GRIS_CLAIR := Color("d5dae3")
 
@@ -59,6 +69,16 @@ const PLANCHES: Dictionary = {
 	"eclat_rune": {"taille": Vector2i(24, 24), "images": 5},
 	"etincelle": {"taille": Vector2i(8, 8), "images": 4},
 	"depart": {"taille": Vector2i(12, 12), "images": 3},
+	"lame_croissant": {"taille": Vector2i(16, 16), "images": 4},
+	"entaille": {"taille": Vector2i(24, 24), "images": 4},
+	"faucille": {"taille": Vector2i(16, 16), "images": 1},
+	"balayage": {"taille": Vector2i(32, 32), "images": 6},
+	"disque_scie": {"taille": Vector2i(14, 14), "images": 2},
+	"lame_cuivre": {"taille": Vector2i(16, 8), "images": 1},
+	"lame_tournante": {"taille": Vector2i(12, 12), "images": 2},
+	"arc_lame": {"taille": Vector2i(12, 32), "images": 1},
+	"vapeur": {"taille": Vector2i(16, 16), "images": 3},
+	"eclat_acier": {"taille": Vector2i(24, 24), "images": 4},
 }
 
 
