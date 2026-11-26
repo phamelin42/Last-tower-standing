@@ -83,3 +83,18 @@ func test_rarete_et_armure_gardent_leur_symbole_et_leur_libelle() -> void:
 	for a: int in range(NB_ARMURES):
 		verifier(not Apparence.symbole_armure(a).is_empty(), "armure %d : symbole" % a)
 		verifier(not Apparence.cle_libelle_armure(a).is_empty(), "armure %d : libellé" % a)
+
+
+## T8.18 : les valeurs de la barre du haut (texte de base) et les chiffres du tableau des scores
+## (panneau) gardent le contraste AA ; les en-têtes du tableau sont des titres de panneau.
+func test_les_textes_de_la_barre_et_du_tableau_gardent_un_contraste_aa() -> void:
+	var textes: Dictionary = {
+		"valeur de la barre": ThemeJeu.PARCHEMIN,
+		"chiffre du tableau": ThemeJeu.PARCHEMIN,
+		"en-tête secondaire": ThemeJeu.PARCHEMIN_ATTENU,
+	}
+	var fonds: Dictionary = {"barre": ThemeJeu.ENCRE, "panneau": ThemeJeu.ENCRE}
+	for nom: String in textes:
+		for fond: String in fonds:
+			var c := ThemeJeu.contraste(textes[nom], fonds[fond])
+			verifier(c >= SEUIL, "%s sur le fond de la %s : %.2f:1" % [nom, fond, c])

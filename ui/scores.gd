@@ -10,9 +10,10 @@ extends Control
 const ACTION_SCORES := "afficher_scores"
 const LARGEUR_MAX := 960.0
 const HAUTEUR_LIGNE := 48.0
-const COLONNES := 6
+## Joueur, manche, éliminations, revenu par 10 s, dégâts par seconde, dégâts totaux, état.
+const COLONNES := 7
 ## Largeur de chaque colonne : un libellé tronqué ne doit pas se réduire à rien.
-const LARGEURS_COLONNES: Array[float] = [200.0, 88.0, 136.0, 104.0, 88.0, 128.0]
+const LARGEURS_COLONNES: Array[float] = [190.0, 96.0, 150.0, 120.0, 150.0, 110.0, 120.0]
 
 ## Panneau opaque du tableau (le fond ne laisse rien lire derrière lui).
 var panneau: PanelContainer
@@ -63,11 +64,14 @@ func afficher(vue: VueGlobale, id_local: int) -> void:
 		"SCORES_JOUEUR",
 		"SCORES_MANCHE",
 		"SCORES_ELIMINATIONS",
-		"SCORES_DEGATS",
 		"SCORES_REVENU",
+		"SCORES_DPS",
+		"SCORES_DEGATS",
 		"SCORES_ETAT",
 	]:
 		var titre := _etiquette(false, tr(entete))
+		# Un intitulé long (« Dégâts par seconde ») passe à la ligne : jamais coupé.
+		titre.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		titre.custom_minimum_size.x = LARGEURS_COLONNES[colonne]
 		_tableau.add_child(titre)
 		colonne += 1
@@ -83,12 +87,14 @@ func _ajouter_ligne(joueur: Dictionary, id_local: int) -> void:
 	var vivant: bool = joueur["vivant"]
 	var etat := "● " + tr("SCORES_EN_VIE") if vivant else "× " + tr("SCORES_ELIMINE")
 	var degats: float = joueur["degats"]
+	var dps: float = joueur.get("dps", 0.0)
 	var cellules: Array[String] = [
 		nom,
 		Nombres.groupe(joueur["manche"]),
 		Nombres.groupe(joueur["eliminations"]),
-		Nombres.groupe(roundi(degats)),
 		Nombres.groupe(joueur["revenu"]),
+		Nombres.groupe(roundi(dps)),
+		Nombres.groupe(roundi(degats)),
 		etat,
 	]
 	for i: int in cellules.size():
