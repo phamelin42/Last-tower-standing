@@ -81,6 +81,7 @@ var _morts: Array[Sprite2D] = []
 var _morts_debut: PackedFloat64Array = PackedFloat64Array()
 var _texture_mort: Texture2D = null
 var _effets: Effets = null
+var _barres: BarresArene = null
 ## Vue reçue avant la courante : on y retrouve la famille d'un ennemi qui vient de mourir.
 var _vue_precedente: VueArene = null
 
@@ -121,9 +122,13 @@ func _assurer_construite() -> void:
 	_effets.parent_sol = _ennemis
 	add_child(_effets)
 	_construire_tour()
+	_barres = BarresArene.new()
+	_barres.name = "Barres"
+	add_child(_barres)
 	_construire_nom()
 	if donnees != null:
 		_preparer_entites()
+		_barres.indice_boss = _pools.size() - 1
 	_texture_mort = load(String(Apparence.MORT["feuille"])) as Texture2D
 	var mort: Dictionary = Apparence.MORT
 	for image: int in int(mort["images"]):
@@ -158,6 +163,7 @@ func reinitialiser() -> void:
 	_dernier_tick = -1
 	_vue_precedente = null
 	_effets.vider()
+	_barres.reinitialiser()
 	_afficher_echantillon()
 
 
@@ -287,8 +293,9 @@ func _recevoir(vue: VueArene, temps: float) -> void:
 					_effets.exploser(ou)
 				else:
 					_ajouter_mort(ou)
-			"tir", "impact":
+			"tir", "impact", "absorption":
 				_effets.ajouter(evenement)
+	_barres.afficher(vue)
 	_vue_precedente = vue
 
 
@@ -492,6 +499,7 @@ func _ajuster_nom() -> void:
 	if is_equal_approx(grossissement, _zoom_vu) or grossissement <= 0.0:
 		return
 	_zoom_vu = grossissement
+	_barres.zoom = grossissement
 	_noms.scale = Vector2.ONE / grossissement
 	_noms.position = Vector2(0.0, NOM_ECART / grossissement)
 

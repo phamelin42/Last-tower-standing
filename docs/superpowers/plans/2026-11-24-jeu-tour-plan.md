@@ -1294,7 +1294,7 @@ func id_regarde() -> int                # -1 si aucune
 
 ### Task 8.12 : Barres de PV et de mana au-dessus de la tour, barre du boss, éclat d'absorption — `sonnet`
 
-- [ ] **Objectif :** une barre de PV (vert, rouge sous 30 %) avec « x / y » au-dessus de la tour, une barre de mana bleue dessous (cachée tant que la mana maximale est nulle), une barre de PV au-dessus du boss, un éclat bleu sur la tour quand la mana absorbe un coup. Lisibles au zoom le plus lointain.
+- [x] **Objectif :** une barre de PV (vert, rouge sous 30 %) avec « x / y » au-dessus de la tour, une barre de mana bleue dessous (cachée tant que la mana maximale est nulle), une barre de PV au-dessus du boss, un éclat bleu sur la tour quand la mana absorbe un coup. Lisibles au zoom le plus lointain.
 - **Conception :** §6.4 (rendu), §6.7 (barres), D11.
 - **Fichiers :** `visuels/barres.gd` (nouveau, `class_name BarresArene`, dessin par code, aucune image), `visuels/arene_2d.gd`, `visuels/effets.gd` (effet `absorption`) ; tests nouveau `test_barres.gd`, `test_arene_2d.gd`, `test_effets.gd`.
 - **Lire :** `visuels/arene_2d.gd` `_assurer_construite`, `afficher`, `_afficher_echantillon` (par plage) ; `visuels/effets.gd` `ajouter`, `_statut`.
