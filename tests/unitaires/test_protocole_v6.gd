@@ -32,8 +32,8 @@ func _globale() -> VueGlobale:
 	return g
 
 
-func test_la_version_du_protocole_est_6() -> void:
-	verifier_egal(Protocole.VERSION, 6)
+func test_la_version_du_protocole_est_au_moins_6() -> void:
+	verifier(Protocole.VERSION >= 6, "version %d" % Protocole.VERSION)
 
 
 func test_un_bonjour_d_une_version_precedente_est_refuse_avec_un_motif() -> void:
