@@ -445,7 +445,7 @@ func _plus_proche(positions: Array[Vector2], ou: Vector2) -> int:
 
 
 func _afficher_echantillon() -> void:
-	var echantillon: Dictionary = _interpolation.echantillon(_horloge + Interpolation.DELAI_S)
+	var echantillon: Dictionary = _interpolation.echantillon(_horloge)
 	var vue: VueArene = echantillon["vue"] as VueArene
 	var positions: PackedVector2Array = echantillon["pos"]
 	var ids: PackedInt32Array = echantillon["ids"]
