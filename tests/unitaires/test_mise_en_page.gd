@@ -19,6 +19,8 @@ const OPACITE_MIN := 0.9
 ## Surface (px²) du bandeau et du côté de la boutique avant T8.17, mesurée sur `main` (c4f37ef) à
 ## la création du test, aux résolutions de `RESOLUTIONS`, même partie solo, avant tout achat.
 const SURFACE_AVANT: Array[float] = [328080.0, 427280.0, 454456.0, 585360.0]
+## Avance exigée sur la part maximale dans le cas pire de la boutique (suivi S15).
+const MARGE_PIRE_CAS := 2.0
 const ECHELLES_EXTREMES: Array[float] = [0.75, 1.25]
 
 var _donnees: Donnees
@@ -580,11 +582,12 @@ func test_le_pire_cas_de_la_boutique_tient_dans_la_part_maximale_a_125_pour_cent
 				notes_or, BoutiqueUi.NB_OFFRES, "« Or insuffisant » sur chaque carte %s" % ou
 			)
 			var hauteur := jeu.boutique.rect_bandeau_minimal().y
+			# Une vraie marge : un libellé un peu plus long ne doit pas faire déborder le cas pire.
 			verifier(
-				hauteur <= zone.y * MiseEnPage.PART_MAX_BOUTIQUE + 0.5,
+				hauteur <= zone.y * MiseEnPage.PART_MAX_BOUTIQUE - MARGE_PIRE_CAS,
 				(
-					"pire cas : bandeau de %.1f px, limite %.1f px %s"
-					% [hauteur, zone.y * MiseEnPage.PART_MAX_BOUTIQUE, ou]
+					"pire cas : bandeau de %.1f px, limite %.1f px moins %.0f px de marge %s"
+					% [hauteur, zone.y * MiseEnPage.PART_MAX_BOUTIQUE, MARGE_PIRE_CAS, ou]
 				)
 			)
 			_liberer(jeu)

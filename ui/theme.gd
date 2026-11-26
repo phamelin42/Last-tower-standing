@@ -123,7 +123,7 @@ const TYPE_ACHAT := "BoutonAchat"
 ## marges, que la hauteur minimale des contrôles porte à 48 px.
 const MARGE_HAUT_ACHAT := 8.0
 const MARGE_BAS_ACHAT := 16.0
-const MARGE_VERTICALE_CARTE := 6.0
+const MARGE_VERTICALE_CARTE := 4.0
 const TYPE_CELLULE := "CelluleIcone"
 const TYPE_CELLULE_FIXE := "CelluleFixe"
 const TYPE_RUBAN := "TitreRuban"
