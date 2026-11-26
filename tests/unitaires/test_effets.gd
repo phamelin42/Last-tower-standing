@@ -195,7 +195,11 @@ func test_le_pool_revient_a_zero_noeud_actif_et_ne_fuit_pas() -> void:
 		verifier_egal(_effets.nombre_vivants(), 0, "plus rien de vivant (tour %d)" % tour)
 		verifier_egal(_effets.nombre_visibles(), 0, "plus aucun nœud visible (tour %d)" % tour)
 	verifier(_effets.taille_pool() <= Effets.PLAFOND, "pool %d" % _effets.taille_pool())
-	verifier_egal(_effets.get_child_count(), _effets.taille_pool(), "aucun nœud perdu")
+	verifier_egal(
+		_effets.get_child_count(),
+		_effets.taille_pool() + _effets.emetteurs_etincelles().size(),
+		"aucun nœud perdu"
+	)
 
 
 func test_chaque_texture_citee_existe() -> void:
@@ -223,7 +227,9 @@ func test_un_effet_ne_cache_jamais_la_tour_durablement() -> void:
 			verifier(
 				_effets.opacite_max() <= Effets.ALPHA_MAX + 0.001, "opacité bornée pour %s" % genre
 			)
-			_effets.avancer(Effets.DUREE_MAX + 0.01)
+			# Un impact attend son projectile, et un saut de rebond le saut d'avant.
+			var attente: float = Effets.DUREE_TIR + 2.0 * Effets.DECALAGE_SAUT
+			_effets.avancer(attente + Effets.DUREE_MAX + 0.01)
 			verifier_egal(_effets.nombre_vivants(), 0, "%d/%s s'éteint" % [type_degats, genre])
 
 

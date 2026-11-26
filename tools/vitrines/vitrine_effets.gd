@@ -10,7 +10,9 @@ extends Node2D
 ## - la dernière ligne, de gauche à droite : les statuts poison, brûlure, givre, étourdissement et
 ##   vol de vie (`VueArene.STATUTS_ARME`, sans « aucun »), puis une explosion de mort et
 ##   l'absorption par la mana.
-## Chaque cycle (`PERIODE`) tire les cellules, puis déclenche les impacts `DELAI_IMPACT` plus tard.
+## Chaque cycle (`PERIODE`) envoie le tir et l'impact de chaque cellule dans la même image, comme la
+## simulation : c'est `Effets` qui fait attendre l'impact jusqu'à l'arrivée du projectile. Les
+## cibles réagissent aux coups comme les ennemis de l'arène (`ReactionsCoups`).
 ## Le temps ne vient que de `_process(delta)` : à cadence fixe, deux captures sont identiques.
 
 const FOND := Color(0.24, 0.38, 0.27)
@@ -38,14 +40,20 @@ const COLONNE_EXPLOSION: int = 5
 const COLONNE_ABSORPTION: int = 6
 
 const PERIODE: float = 1.5
-const DELAI_IMPACT: float = 0.25
 const GRAINE: int = 20261126
+## Les sauts suivants d'un rebond, depuis la cible, en pixels : la chaîne se propage de saut en
+## saut dans la cellule.
+const SAUTS_REBOND: Array[Vector2] = [Vector2(-30.0, -34.0), Vector2(-56.0, 18.0)]
 
 const CLE_EXPLOSION := "explosion"
 const CLE_ABSORPTION := "absorption"
 
-## Nombre d'effets créés par cellule depuis le début (clés de `cle_genre`, `cle_statut`, etc.).
+## Nombre d'effets créés par cellule depuis le début (clés de `cle_genre`, `cle_statut`, etc.) ;
+## un impact qui attend son projectile compte dès qu'il est en attente.
 var crees: Dictionary = {}
+## Les cellules dont la cible a réagi à un coup : clé de cellule vers nombre de réactions.
+var reactions_par_cellule: Dictionary = {}
+var reactions: ReactionsCoups = ReactionsCoups.new()
 ## Cycles entièrement rejoués (le tir et l'impact ont eu lieu).
 var cycles: int = 0
 ## Plus grand nombre d'effets vivants vu depuis le début.
@@ -53,8 +61,11 @@ var pic_vivants: int = 0
 var effets: Effets = null
 
 var _temps: float = 0.0
-var _impacts_faits: bool = false
 var _premier: bool = true
+var _cibles: Array[Sprite2D] = []
+var _ids_cibles: PackedInt32Array = PackedInt32Array()
+var _positions_cibles: PackedVector2Array = PackedVector2Array()
+var _cle_par_cellule: Dictionary = {}
 
 
 ## Clé de la cellule du type de dégâts `type_degats` et du genre d'index `genre`.
@@ -83,6 +94,9 @@ func _ready() -> void:
 	effets = Effets.new()
 	effets.name = "Effets"
 	add_child(effets)
+	effets.impact_visible.connect(_sur_impact_visible)
+	for cellule: Dictionary in _cellules():
+		_cle_par_cellule[Vector2i(int(cellule["colonne"]), int(cellule["ligne"]))] = cellule["cle"]
 	_poser_cibles()
 
 
@@ -94,21 +108,17 @@ func _process(delta: float) -> void:
 func avancer(delta: float) -> void:
 	if _premier:
 		_premier = false
-		_tirer()
+		_jouer_cycle()
 	_temps += delta
-	if not _impacts_faits and _temps >= DELAI_IMPACT:
-		_impacts_faits = true
-		_declencher_impacts()
 	if _temps >= PERIODE:
 		_temps -= PERIODE
 		cycles += 1
-		_impacts_faits = false
 		effets.vider()
-		_tirer()
-		if _temps >= DELAI_IMPACT:
-			_impacts_faits = true
-			_declencher_impacts()
+		reactions.reinitialiser()
+		_jouer_cycle()
 	effets.avancer(delta)
+	reactions.avancer(delta)
+	_animer_cibles()
 	pic_vivants = maxi(pic_vivants, effets.nombre_vivants())
 
 
@@ -140,6 +150,9 @@ func _poser_cibles() -> void:
 			sprite.position = coin(colonne, ligne) + CIBLE_DANS_CELLULE
 			add_child(sprite)
 			move_child(sprite, 0)
+			_cibles.append(sprite)
+			_ids_cibles.append(_cibles.size())
+			_positions_cibles.append(en_unites(sprite.position))
 
 
 ## Les cellules dans l'ordre de la disposition : `[cle, colonne, ligne, genre, statut, type]`.
@@ -194,28 +207,68 @@ func _evenement(k: String, cellule: Dictionary) -> Dictionary:
 
 
 func _compter(cle: String, avant: int) -> void:
-	crees[cle] = int(crees.get(cle, 0)) + effets.nombre_vivants() - avant
+	crees[cle] = int(crees.get(cle, 0)) + _en_jeu() - avant
 
 
-func _tirer() -> void:
+## Ce que `Effets` tient en jeu : les effets vivants et les impacts qui attendent leur projectile.
+func _en_jeu() -> int:
+	return effets.nombre_vivants() + effets.impacts_en_attente()
+
+
+## La cible de la cellule touchée réagit, comme un ennemi de l'arène : elle recule à l'opposé de la
+## tour de sa cellule.
+func _sur_impact_visible(ou: Vector2, rayon: float) -> void:
+	var pixels: Vector2 = ou * Apparence.PX_PAR_UNITE
+	var cellule := Vector2i(int(pixels.x / LARGEUR_CELLULE), int(pixels.y / HAUTEUR_CELLULE))
+	var tour: Vector2 = en_unites(coin(cellule.x, cellule.y) + TOUR_DANS_CELLULE)
+	var n: int = reactions.toucher(ou, rayon, _ids_cibles, _positions_cibles, tour)
+	if n > 0 and _cle_par_cellule.has(cellule):
+		var cle: String = _cle_par_cellule[cellule]
+		reactions_par_cellule[cle] = int(reactions_par_cellule.get(cle, 0)) + n
+
+
+## Les identifiants des cibles, dans l'ordre des cellules.
+func ids_cibles() -> PackedInt32Array:
+	return _ids_cibles
+
+
+func _animer_cibles() -> void:
+	for i: int in _cibles.size():
+		var id: int = _ids_cibles[i]
+		var base: Vector2 = _positions_cibles[i] * Apparence.PX_PAR_UNITE
+		_cibles[i].position = base + reactions.recul(id)
+		var eclat: float = reactions.eclat(id)
+		_cibles[i].modulate = Color(eclat, eclat, eclat)
+
+
+## Le tir et l'impact de chaque cellule partent ensemble, puis l'explosion de mort et l'absorption.
+func _jouer_cycle() -> void:
 	for cellule: Dictionary in _cellules():
-		if int(cellule["statut"]) != 0:
-			continue
-		var avant: int = effets.nombre_vivants()
-		effets.ajouter(_evenement("tir", cellule))
-		_compter(String(cellule["cle"]), avant)
-
-
-func _declencher_impacts() -> void:
-	for cellule: Dictionary in _cellules():
-		var avant: int = effets.nombre_vivants()
+		var avant: int = _en_jeu()
+		if int(cellule["statut"]) == 0:
+			effets.ajouter(_evenement("tir", cellule))
 		effets.ajouter(_evenement("impact", cellule))
+		_sauter(cellule)
 		_compter(String(cellule["cle"]), avant)
 	var cible_explosion: Vector2 = coin(COLONNE_EXPLOSION, LIGNE_SPECIALE) + CIBLE_DANS_CELLULE
-	var avant: int = effets.nombre_vivants()
+	var avant: int = _en_jeu()
 	effets.exploser(en_unites(cible_explosion))
 	_compter(CLE_EXPLOSION, avant)
-	avant = effets.nombre_vivants()
+	avant = _en_jeu()
 	var cible_absorption: Vector2 = coin(COLONNE_ABSORPTION, LIGNE_SPECIALE) + TOUR_DANS_CELLULE
 	effets.ajouter({"k": "absorption", "t": 0, "de": en_unites(cible_absorption)})
 	_compter(CLE_ABSORPTION, avant)
+
+
+## Un rebond continue de la cible vers deux autres points : chaque saut part du précédent.
+func _sauter(cellule: Dictionary) -> void:
+	if VueArene.GENRES_ARME[int(cellule["genre"])] != "rebond":
+		return
+	var coin_cellule: Vector2 = coin(int(cellule["colonne"]), int(cellule["ligne"]))
+	var depart: Vector2 = coin_cellule + CIBLE_DANS_CELLULE
+	for decalage: Vector2 in SAUTS_REBOND:
+		var evenement: Dictionary = _evenement("impact", cellule)
+		evenement["de"] = en_unites(depart)
+		depart = coin_cellule + CIBLE_DANS_CELLULE + decalage
+		evenement["vers"] = en_unites(depart)
+		effets.ajouter(evenement)
