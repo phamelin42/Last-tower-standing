@@ -68,7 +68,7 @@ génériques et en anglais : ce fichier et les règles de dépendance l'emporten
   chiffrés, capture avant et après par `tools/capturer.sh`, outils libres).
 - Hit-stop, ralenti, gel d'impact : purement visuels, en suspendant l'animation et l'interpolation dans
   `visuels/` ; la simulation à 20 Hz et le réseau gardent le temps réel. `game-feel` passe par
-  `Engine.time_scale` : remplacer ce passage par le gel visuel.
+  `Engine.time_scale` : remplacer ce passage par le gel visuel. **Aucune secousse de caméra, quel que soit le réglage** (D21, Phil, 26/11/2026) : le « screen shake » de `game-feel` est écarté ; la case « mouvement réduit » des réglages coupe le gel d'impact, le recul et le rebond d'échelle (T8.22, T8.23).
 - `godot-multiplayer`, `godot-signals-groups` et `game-ai` servent pour l'API et les pièges (ENet,
   `@rpc`, A\*) ; l'architecture reste `sim/` pure et `reseau/` qui n'appelle que `sim/partie.gd`.
 - `godot-gdscript-headless-testing` : ses pièges de code de sortie et d'`await` valent pour
