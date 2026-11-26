@@ -331,27 +331,10 @@ func _image_marque(s: Dictionary, fiche: Dictionary, arme: Dictionary) -> Image:
 		"vulnerabilite":
 			return Outils.agrandir(Outils.image_de("vulnerable", 1), 4)
 		"bombe":
-			return Outils.agrandir(Outils.image_de("bombe", 0), 4)
+			return Outils.agrandir(Outils.image_de("bombe_meche", 2), 3)
 		"allie":
-			return _image_allie(teinte)
+			return Outils.agrandir(Outils.teinter(Outils.image_de("allie", 0), teinte), 2)
 	return null
-
-
-## Un allié invoqué : une silhouette teintée dans un anneau au sol qu'aucun ennemi n'a.
-func _image_allie(teinte: Color) -> Image:
-	var img: Image = Image.create_empty(CASE, CASE, false, Image.FORMAT_RGBA8)
-	for y: int in CASE:
-		for x: int in CASE:
-			var u: float = (x + 0.5 - 32.0) / 26.0
-			var v: float = (y + 0.5 - 44.0) / 10.0
-			var d: float = u * u + v * v
-			if d <= 1.0 and d > 0.6:
-				img.set_pixel(x, y, teinte)
-			var corps: bool = absf(x + 0.5 - 32.0) < 8.0 and y >= 22 and y < 42
-			var tete: bool = Vector2(x + 0.5 - 32.0, y + 0.5 - 15.0).length() < 8.0
-			if corps or tete:
-				img.set_pixel(x, y, teinte.darkened(0.15))
-	return img
 
 
 ## Le paramètre `cle` de l'effet `kind` de l'arme, `defaut` s'il manque.

@@ -28,6 +28,8 @@ const DESSINS: Array[GDScript] = [
 	preload("res://tools/dessin/dessins_lot9_percant.gd"),
 	preload("res://tools/dessin/dessins_lot9_magique.gd"),
 	preload("res://tools/dessin/dessins_lot9_marques.gd"),
+	preload("res://tools/dessin/dessins_lot9_siege.gd"),
+	preload("res://tools/dessin/dessins_lot9_chaos.gd"),
 	preload("res://tools/dessin/dessins_partages.gd"),
 ]
 const ECHELLE_CONTACT: int = 4
@@ -71,6 +73,23 @@ const PROJECTILES: PackedStringArray = [
 	"prisme",
 	"lueur",
 	"vasque",
+	"baril",
+	"maillet",
+	"pierre_lestee",
+	"obus",
+	"brasero",
+	"creneau",
+	"gravats",
+	"bloc_colosse",
+	"urne",
+	"goutte_sang",
+	"engrenage_double",
+	"serment",
+	"fleche_spectre",
+	"eclat_discorde",
+	"coupe",
+	"cendre",
+	"malefice",
 ]
 
 
