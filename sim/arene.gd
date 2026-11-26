@@ -303,7 +303,7 @@ func _pas_tour_et_ennemis(dt: float) -> void:
 	# touche). `Ennemis.avancer` ne rend que la somme des attaques à distance : elles forment un
 	# seul tirage par pas.
 	for i: int in attaquants:
-		var coup: float = ennemis.degats[i]
+		var coup: float = ennemis.degats_effectifs(i)
 		total_cac += coup
 		if _esquive(chance):
 			continue
