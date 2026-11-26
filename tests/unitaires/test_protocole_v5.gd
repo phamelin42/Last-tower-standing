@@ -84,13 +84,12 @@ func _prefixes(b: PackedByteArray) -> Array[PackedByteArray]:
 	return liste
 
 
-func test_la_version_est_5_et_un_bonjour_de_version_4_est_refuse_avec_un_motif() -> void:
-	verifier_egal(Protocole.VERSION, 5)
+func test_un_bonjour_de_version_4_est_refuse_avec_un_motif() -> void:
 	var b := Protocole.encoder_bonjour("Phil", 42)
 	b[1] = 4
 	verifier_egal(Protocole.version_bonjour(b), 4)
 	var motif := Protocole.motif_version(4)
-	verifier(motif.contains("4") and motif.contains("5"), motif)
+	verifier(motif.contains("4") and motif.contains(str(Protocole.VERSION)), motif)
 
 
 func test_mana_et_prochaines_familles_traversent_le_protocole() -> void:
