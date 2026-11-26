@@ -30,6 +30,7 @@ var nom: LineEdit
 var adresse: LineEdit
 var annuaire: LineEdit
 var afficher_ips: CheckButton
+var mouvement_reduit: CheckButton
 
 var _r: Reglages = Reglages.new()
 var _taille_texte: int = Reglages.taille_texte_pour(1.0)
@@ -97,6 +98,11 @@ func _init() -> void:
 	_ajouter_sans_libelle(colonne, afficher_ips)
 	afficher_ips.toggled.connect(_sur_afficher_ips)
 
+	mouvement_reduit = CheckButton.new()
+	mouvement_reduit.text = tr("REGLAGES_MOUVEMENT_REDUIT")
+	_ajouter_sans_libelle(colonne, mouvement_reduit)
+	mouvement_reduit.toggled.connect(_sur_mouvement_reduit)
+
 	_etat = Label.new()
 	colonne.add_child(_etat)
 	appliquer_echelle(1.0)
@@ -120,6 +126,7 @@ func configurer(r: Reglages) -> void:
 	adresse.text = r.derniere_adresse
 	annuaire.text = r.annuaire_adresse
 	afficher_ips.set_pressed_no_signal(r.afficher_ips)
+	mouvement_reduit.set_pressed_no_signal(r.mouvement_reduit)
 	appliquer_echelle(echelle)
 
 
@@ -142,6 +149,7 @@ func controles() -> Array[Control]:
 	liste.append(adresse)
 	liste.append(annuaire)
 	liste.append(afficher_ips)
+	liste.append(mouvement_reduit)
 	return liste
 
 
@@ -170,6 +178,11 @@ func _sur_plein_ecran(actif: bool) -> void:
 
 func _sur_afficher_ips(actif: bool) -> void:
 	_r.afficher_ips = actif
+	_enregistrer()
+
+
+func _sur_mouvement_reduit(actif: bool) -> void:
+	_r.mouvement_reduit = actif
 	_enregistrer()
 
 

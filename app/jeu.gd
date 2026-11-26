@@ -34,6 +34,7 @@ var _donnees: Donnees = null
 var _facteur: float = 1.0
 var _sensibilite: float = 1.0
 var _vitesse_camera: float = 1.0
+var _mouvement_reduit: bool = false
 ## Dernière vue de l'arène qu'on regarde (celle d'un autre joueur), `null` sur la sienne.
 var _vue_regardee: VueArene = null
 var _cadre_minicarte: Rect2 = Rect2()
@@ -166,6 +167,7 @@ func _monter() -> void:
 		arene.lier(source)
 		arene.arene_regardee_quittee.connect(_sur_arene_quittee)
 	camera.vitesse_relative = _vitesse_camera
+	arene.mouvement_reduit = _mouvement_reduit
 	arene.reinitialiser()
 	arene.montrer_arene(-1, "", 0)
 	minicarte.configurer(_donnees)
@@ -174,12 +176,21 @@ func _monter() -> void:
 	observation.configurer(source)
 
 
+## Mouvement réduit de l'arène : retenu pour les prochaines parties, appliqué tout de suite à celle
+## qui est affichée.
+func appliquer_mouvement_reduit(actif: bool) -> void:
+	_mouvement_reduit = actif
+	if arene != null:
+		arene.mouvement_reduit = actif
+
+
 func _appliquer_reglages() -> void:
 	var r := Reglages.charger(chemin_reglages)
 	_sensibilite = r.sensibilite_zoom
 	_vitesse_camera = r.vitesse_camera
 	if camera != null:
 		camera.vitesse_relative = _vitesse_camera
+	appliquer_mouvement_reduit(r.mouvement_reduit)
 	appliquer_fenetre(get_window(), r)
 	BusAudio.appliquer_volume(r.volume_general)
 
