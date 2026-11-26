@@ -295,7 +295,7 @@ func test_les_armes_equipees_montrent_leur_effet_en_infobulle() -> void:
 			vue.armes.append({"id": id, "recharge_ratio": 0.0})
 	_ui.afficher(vue)
 	for i: int in vue.armes.size():
-		var nom := _ui.find_child("NomArme%d" % i, true, false) as Label
+		var nom := _ui.find_child("Arme%d" % i, true, false) as Button
 		var id: String = vue.armes[i]["id"]
 		var entree := _entree(id, Types.Genre.ARME)
 		verifier(nom.tooltip_text.contains(str(entree["nom"])), "%s : le nom" % id)

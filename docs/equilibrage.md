@@ -37,15 +37,16 @@ spécialisation : sa différence avec « raisonnable » y était nulle).
 - `data/armes.json` : dégâts de toutes les armes ×3 ; puis ×0,8 pour les rares et ×0,7 pour
   les épiques (le rendement moyen reste croissant : 0,46 / 0,64 / 0,71 / 0,78).
 - `data/difficulte.json` :
-  - dégâts ennemis ×0,03 aux manches 1 à 4, puis 0,1 / 0,2 / 0,35 / 0,5 / 0,7 / 1,0 aux manches 5 à 10 ;
-  - manches 11 à 20 : table explicite, PV ×1,08 par manche (×2,16 à la manche 20), dégâts ×1,06, vitesse ×1,01, résistance ×0,97 ;
+  - T8.8 : une ligne par manche de 1 à 20, strictement croissante (D17) : PV ×1 à ×2,16
+    (progression géométrique, ×1,0413 par manche), dégâts ×0,2 à ×1,79 (×1,0975 par manche),
+    vitesse ×1,01 par manche dès la 11 et résistance ×0,97 environ par manche dès la 11 ;
   - `apres_table` : PV ×2,2 par manche (dégâts ×1,06, vitesse ×1,01, résistance ×0,97) ;
   - accélérations temporelles inchangées.
 - `data/ennemis.json`, `data/economie.json`, `data/boutique.json`, `data/partie.json` : inchangés.
 
 ## Causes de mort
 
-- Passive : les premiers ennemis atteignent la tour vers la manche 2, elle tombe aux manches 4 à 5 (dégâts ×0,03 puis ×0,1).
+- Passive : sans achat, la tour tombe au plus tard à la fin de la manche 3 sur les graines 1 à 10 (D16, dégâts ×0,2 à la manche 1).
 - Raisonnable : les manches 11 à 25, quand les PV ennemis dépassent ce que quatre à six armes
   communes et peu communes tuent avant qu'ils n'arrivent ; les archers (portée 450) et les
   spectres (portée 250) frappent hors de portée des armes de 300.
@@ -54,9 +55,8 @@ spécialisation : sa différence avec « raisonnable » y était nulle).
 
 ## Points douteux
 
-- La fenêtre entre manche 5 et manche 10 est une rampe de dégâts très raide (×0,03 à ×1) : un
-  début de partie quasi inoffensif. C'est ce qui fait tomber le passif à 4–5, au prix d'un
-  tutoriel presque sans danger.
+- T8.8 : robots `raisonnable` et `bonne` sur les graines 1 à 10, médianes 12 à 14 et minimum 6 ;
+  la cible « un robot qui achète ne tombe pas avant la manche 20 » reste à la passe finale (T8.21).
 - Le mur de PV (×2,2 par manche) est démesuré (×2 000 à la manche 31) : le joueur bien
   construit dépasse déjà 10⁵ dégâts par seconde. Le vrai problème est la croissance de la
   puissance du joueur : améliorations de dégâts multiplicatives, or inutilisé (plusieurs

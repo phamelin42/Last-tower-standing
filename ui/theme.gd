@@ -47,6 +47,8 @@ const TEX_DANGER := DOSSIER_UI + "Buttons/Button_Red_3Slides.png"
 const TEX_DANGER_APPUI := DOSSIER_UI + "Buttons/Button_Red_3Slides_Pressed.png"
 const TEX_PANNEAU := DOSSIER_UI + "Banners/Carved_9Slides.png"
 const TEX_RUBAN := DOSSIER_UI + "Ribbons/Ribbon_Yellow_3Slides.png"
+const TEX_RUBAN_ROUGE := DOSSIER_UI + "Ribbons/Ribbon_Red_3Slides.png"
+const TEX_RUBAN_BLEU := DOSSIER_UI + "Ribbons/Ribbon_Blue_3Slides.png"
 const TEX_POINTEUR := DOSSIER_UI + "Pointers/01.png"
 const ICONES := {
 	"fermer": DOSSIER_UI + "Icons/Regular_01.png",
@@ -63,6 +65,23 @@ const ICONES_HUD := {
 	"armure": "res://assets/icones/ravenmore/shield.png",
 	"armes": "res://assets/icones/ravenmore/sword.png",
 }
+
+## Repères de catégorie d'une offre (`CategorieOffre`), dans l'ordre de `Types.Categorie` : ruban du
+## pack (rouge pour l'arme, bleu pour l'amélioration, jaune pour le revenu), icône et type de
+## thème du ruban. Le mot écrit accompagne toujours la couleur.
+const TEXTURES_RUBAN_CATEGORIE: Array[String] = [TEX_RUBAN_ROUGE, TEX_RUBAN_BLEU, TEX_RUBAN]
+const ICONES_CATEGORIE: Array[String] = [
+	"res://assets/icones/ravenmore/sword.png",
+	"res://assets/icones/ravenmore/gemBlue.png",
+	"res://assets/icones/ravenmore/coin.png",
+]
+const TYPES_RUBAN_CATEGORIE: Array[String] = ["RubanArme", "RubanAmelioration", "RubanRevenu"]
+## Texte du ruban de catégorie : une encre plus sombre que celle des boutons, pour atteindre 4,5:1
+## sur le rouge du ruban (vérifié par `test_theme_pack`).
+const ENCRE_RUBAN_CATEGORIE := Color("#050708")
+## Le ruban de catégorie n'utilise que le corps du ruban du pack (sans ses queues) : une bande
+## qui s'allonge avec le mot et tient sur une seule ligne basse.
+const CORPS_RUBAN := Rect2(64.0, 0.0, 64.0, 52.0)
 ## Toutes les textures citées par le thème (le test vérifie qu'elles existent).
 const TEXTURES: Array[String] = [
 	TEX_BOUTON,
@@ -73,6 +92,8 @@ const TEXTURES: Array[String] = [
 	TEX_DANGER_APPUI,
 	TEX_PANNEAU,
 	TEX_RUBAN,
+	TEX_RUBAN_ROUGE,
+	TEX_RUBAN_BLEU,
 	TEX_POINTEUR,
 	DOSSIER_UI + "Icons/Regular_01.png",
 	DOSSIER_UI + "Icons/Regular_02.png",
@@ -94,6 +115,9 @@ const TEINTE_CARTE := Color(0.188, 0.294, 0.411)
 const TEINTE_DANGER_APPUI := Color(1.25, 1.25, 1.25)
 
 const TYPE_DANGER := "BoutonDanger"
+## Case d'une grille d'icônes : un bouton (choisir une arme) ou un cadre fixe (amélioration).
+const TYPE_CELLULE := "CelluleIcone"
+const TYPE_CELLULE_FIXE := "CelluleFixe"
 const TYPE_RUBAN := "TitreRuban"
 
 static var _cache: Theme = null
@@ -214,6 +238,18 @@ static func couples_de_texte() -> Array[Dictionary]:
 			}
 		)
 	)
+	for c: int in TYPES_RUBAN_CATEGORIE.size():
+		var bande := t.get_stylebox("panel", TYPES_RUBAN_CATEGORIE[c]) as StyleBoxTexture
+		(
+			liste
+			. append(
+				{
+					"nom": "mot du ruban %s" % TYPES_RUBAN_CATEGORIE[c],
+					"texte": ENCRE_RUBAN_CATEGORIE,
+					"fond": fond_moyen(bande),
+				}
+			)
+		)
 	return liste
 
 
@@ -230,6 +266,13 @@ static func appliquer(racine: Control) -> void:
 ## Icône de la barre du haut (`ICONES_HUD`), entière.
 static func icone_hud(nom: String) -> Texture2D:
 	return load(str(ICONES_HUD[nom])) as Texture2D
+
+
+## Icône d'une catégorie d'offre (`ICONES_CATEGORIE`), `null` pour une catégorie inconnue.
+static func icone_categorie(categorie: int) -> Texture2D:
+	if categorie < 0 or categorie >= ICONES_CATEGORIE.size():
+		return null
+	return load(ICONES_CATEGORIE[categorie]) as Texture2D
 
 
 ## Icône du pack pour une action (`ICONES`), rognée à son glyphe.
@@ -285,6 +328,7 @@ static func _construire() -> Theme:
 	t.set_stylebox("panel", "PanelContainer", boite_panneau())
 	t.set_stylebox("panel", "Panel", boite_panneau())
 	_boutons(t)
+	_cellules(t)
 	_champs(t)
 	t.set_constant("separation", "VBoxContainer", 6)
 	t.set_constant("separation", "HBoxContainer", 8)
@@ -307,9 +351,27 @@ static func _construire() -> Theme:
 	ruban.content_margin_top = 10.0
 	ruban.content_margin_bottom = 20.0
 	t.set_stylebox("normal", TYPE_RUBAN, ruban)
+	for c: int in TYPES_RUBAN_CATEGORIE.size():
+		t.set_type_variation(TYPES_RUBAN_CATEGORIE[c], "PanelContainer")
+		t.set_stylebox("panel", TYPES_RUBAN_CATEGORIE[c], _bande_ruban(TEXTURES_RUBAN_CATEGORIE[c]))
 	t.set_type_variation("Carte", "PanelContainer")
 	t.set_stylebox("panel", "Carte", _tranches(TEX_PANNEAU, 16, 16, 16, 16, 8, TEINTE_CARTE))
 	return t
+
+
+## Corps d'un ruban (`CORPS_RUBAN`) en bande : répété en largeur, étiré en hauteur, sans marge
+## verticale pour que le ruban reste bas.
+static func _bande_ruban(chemin: String) -> StyleBoxTexture:
+	var b := StyleBoxTexture.new()
+	b.texture = load(chemin) as Texture2D
+	b.region_rect = CORPS_RUBAN
+	b.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_TILE_FIT
+	b.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
+	b.content_margin_left = 6.0
+	b.content_margin_right = 6.0
+	b.content_margin_top = 0.0
+	b.content_margin_bottom = 0.0
+	return b
 
 
 static func _style_bouton(chemin: String, teinte: Color = Color.WHITE) -> StyleBoxTexture:
@@ -327,6 +389,27 @@ static func _style_bouton(chemin: String, teinte: Color = Color.WHITE) -> StyleB
 
 ## Boutons du pack : bleu pour l'ordinaire, rouge pour ce qui détruit ou quitte. Le texte est
 ## d'encre foncée (les textures sont claires) ; l'état se lit aussi à la forme du bouton.
+## Cases des grilles d'icônes : aplat d'encre et filet de laiton, filet clair au survol et à la
+## sélection ; le focus clavier garde son filet épais. L'icône prend toute la case.
+static func _cellules(t: Theme) -> void:
+	var normal := boite(ENCRE_CARTE, LAITON, FILET, 4)
+	var survol := boite(ENCRE_SURVOL, LAITON_CLAIR, FILET, 4)
+	var choisie := boite(ENCRE_APPUI, LAITON_CLAIR, FILET_FOCUS, 4)
+	var focus := boite(Color(0.0, 0.0, 0.0, 0.0), LAITON_CLAIR, FILET_FOCUS, 4)
+	for b: StyleBoxFlat in [normal, survol, choisie, focus]:
+		b.set_content_margin_all(4.0)
+	t.set_type_variation(TYPE_CELLULE, "Button")
+	t.set_stylebox("normal", TYPE_CELLULE, normal)
+	t.set_stylebox("hover", TYPE_CELLULE, survol)
+	t.set_stylebox("pressed", TYPE_CELLULE, choisie)
+	t.set_stylebox("hover_pressed", TYPE_CELLULE, choisie)
+	t.set_stylebox("disabled", TYPE_CELLULE, normal)
+	t.set_stylebox("focus", TYPE_CELLULE, focus)
+	t.set_constant("icon_max_width", TYPE_CELLULE, 36)
+	t.set_type_variation(TYPE_CELLULE_FIXE, "PanelContainer")
+	t.set_stylebox("panel", TYPE_CELLULE_FIXE, normal)
+
+
 static func _boutons(t: Theme) -> void:
 	var focus := boite(Color(0.0, 0.0, 0.0, 0.0), LAITON_CLAIR, FILET_FOCUS, 0)
 	focus.expand_margin_left = 3.0

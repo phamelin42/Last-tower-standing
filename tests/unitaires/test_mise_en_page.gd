@@ -370,6 +370,109 @@ func test_aucun_texte_ne_deborde_ni_ne_se_coupe_a_75_et_125_pour_cent() -> void:
 			)
 
 
+## T8.19 : les quatre plus longs noms réels (armes et améliorations), avec leur ruban de
+## catégorie, la grille des armes et le marché noir ouvert, tiennent à 75 % et à 125 % aux quatre
+## résolutions : aucun libellé n'est plus large que sa case, aucune ligne n'est masquée, aucun
+## bouton n'est plus petit que son texte.
+func test_aucun_libelle_ne_se_coupe_avec_les_plus_longs_noms_reels_a_75_et_125_pour_cent() -> void:
+	_donnees = AidesPartie.donnees()
+	var police := ThemeJeu.police()
+	var taille := ThemeJeu.taille("texte")
+	var entrees: Array[Dictionary] = []
+	for id: String in _donnees.armes:
+		entrees.append({"id": id, "genre": Types.Genre.ARME})
+	for id: String in _donnees.ameliorations:
+		entrees.append({"id": id, "genre": Types.Genre.AMELIORATION})
+	var nom_de := func(e: Dictionary) -> String:
+		var table: Dictionary = (
+			_donnees.armes if e["genre"] == Types.Genre.ARME else _donnees.ameliorations
+		)
+		return String((table[e["id"]] as Dictionary)["nom"])
+	entrees.sort_custom(
+		func(a: Dictionary, b: Dictionary) -> bool:
+			return (
+				police.get_string_size(nom_de.call(a), 0, -1, taille).x
+				> police.get_string_size(nom_de.call(b), 0, -1, taille).x
+			)
+	)
+	# Le prix le plus long du catalogue : un prix inventé plus long ne dirait rien du jeu.
+	var prix_max := 0
+	for e: Dictionary in entrees:
+		var table: Dictionary = (
+			_donnees.armes if e["genre"] == Types.Genre.ARME else _donnees.ameliorations
+		)
+		prix_max = maxi(prix_max, int((table[e["id"]] as Dictionary)["prix"]))
+	var plus_longues := entrees.slice(0, BoutiqueUi.NB_OFFRES)
+	verifier_egal(plus_longues.size(), BoutiqueUi.NB_OFFRES, "assez d'offres réelles")
+	for echelle: float in ECHELLES_EXTREMES:
+		for resolution: Vector2 in RESOLUTIONS:
+			var zone := resolution / echelle
+			var jeu := await _jeu_a(zone)
+			var vue := VueArene.new()
+			vue.argent = OR_ABONDANT
+			vue.cout_relance = prix_max
+			vue.marche_noir_ouvert = true
+			for i: int in plus_longues.size():
+				var e: Dictionary = plus_longues[i]
+				(
+					vue
+					. offres
+					. append(
+						{
+							"id": e["id"],
+							"genre": e["genre"],
+							"rarete": i % 4,
+							"prix": prix_max,
+							"vendu": i == 0,
+						}
+					)
+				)
+				if e["genre"] == Types.Genre.ARME:
+					vue.armes.append({"id": e["id"], "recharge_ratio": 0.0})
+				else:
+					vue.ameliorations[e["id"]] = 12
+			jeu.boutique.afficher(vue)
+			await attendre_images(3)
+			var ou := "à %s, échelle %s" % [resolution, echelle]
+			for noeud: Node in jeu.boutique.find_children("*", "Label", true, false):
+				var libelle := noeud as Label
+				if not libelle.is_visible_in_tree() or libelle.text.is_empty():
+					continue
+				var largeur := (
+					police
+					. get_string_size(libelle.text, 0, -1, libelle.get_theme_font_size("font_size"))
+					. x
+				)
+				if libelle.autowrap_mode == TextServer.AUTOWRAP_OFF:
+					verifier(
+						largeur <= libelle.size.x + 1.0, "« %s » coupé %s" % [libelle.text, ou]
+					)
+				else:
+					verifier_egal(
+						libelle.get_visible_line_count(),
+						libelle.get_line_count(),
+						"« %s » : ligne masquée %s" % [libelle.text, ou]
+					)
+					verifier(
+						libelle.get_line_count() <= 3,
+						"« %s » : trop de lignes %s" % [libelle.text, ou]
+					)
+			for noeud: Node in jeu.boutique.find_children("*", "Button", true, false):
+				var bouton := noeud as Button
+				if bouton.is_visible_in_tree():
+					var minimum := bouton.get_minimum_size()
+					verifier(
+						minimum.x <= bouton.size.x + 1.0 and minimum.y <= bouton.size.y + 1.0,
+						"bouton « %s » trop petit pour son texte %s" % [bouton.text, ou]
+					)
+			var ecran := Rect2(Vector2.ZERO, zone)
+			for panneau: PanelContainer in jeu.boutique.panneaux():
+				verifier(
+					ecran.encloses(panneau.get_global_rect()), "panneau dans la fenêtre %s" % ou
+				)
+			_liberer(jeu)
+
+
 func _noms_les_plus_longs() -> Array[String]:
 	var noms: Array[String] = []
 	for id: Variant in _donnees.armes:
