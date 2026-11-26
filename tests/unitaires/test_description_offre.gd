@@ -92,8 +92,11 @@ func _chiffres_attendus(entree: Dictionary, genre: int) -> Array[String]:
 				if (
 					cle != "kind"
 					and cle not in ["decroissance", "vitesse", "dispersion_deg", "portee_saut"]
+					and (effet[cle] is float or effet[cle] is int)
 				):
-					attendus.append(_fr(float(effet[cle])))
+					# Un ratio se lit en pourcentage (« 30 % »), pas en fraction (« 0,3 »).
+					var facteur := 100.0 if cle in ["ratio", "ratio_degats"] else 1.0
+					attendus.append(_fr(float(effet[cle]) * facteur))
 		var statuts: Array = entree["statuts"]
 		for brut: Variant in statuts:
 			var statut: Dictionary = brut
@@ -717,3 +720,48 @@ func test_les_cles_de_textes_boutique_ont_toutes_une_valeur_francaise() -> void:
 		verifier_faux(String(textes[cle]).strip_edges().is_empty(), "%s : valeur vide" % cle)
 	for stat: String in Donnees.STATS_AMELIORATION:
 		verifier(textes.has("BOUTIQUE_STAT_" + stat.to_upper()), "nom court de la stat %s" % stat)
+
+
+func test_les_armes_zone_posee_bombe_et_invocation_disent_degats_de_base_et_portee() -> void:
+	# Les vraies armes de ces genres n'existent pas toutes : on lit des armes fictives, en boucle.
+	var effets: Array[Dictionary] = [
+		{
+			"kind": "zone_posee",
+			"rayon": 200.0,
+			"duree": 5.0,
+			"periode": 1.5,
+			"ratio": 0.3,
+			"max_actives": 4
+		},
+		{"kind": "bombe", "delai": 2.5, "rayon": 150.0, "ratio": 0.8, "max_actives": 3},
+		{
+			"kind": "invocation",
+			"unite": "inconnue",
+			"duree": 12.0,
+			"ratio_degats": 0.6,
+			"max_actives": 5
+		},
+	]
+	for effet: Dictionary in effets:
+		var kind := String(effet["kind"])
+		for degats: float in [12.0, 37.0, 480.0]:
+			for portee: int in Donnees.PORTEES:
+				var arme := _arme_factice([effet])
+				arme["degats"] = degats
+				arme["recharge"] = 3.5
+				arme["portee"] = portee
+				var ligne := DescriptionOffre.ligne_effet(arme, Types.Genre.ARME, _donnees)
+				var plat := _sans_milliers(ligne)
+				var contexte := "%s, %s dégâts, portée %d : « %s »" % [kind, degats, portee, ligne]
+				verifier(
+					plat.contains(_fr(degats) + " dégâts de base"), "dégâts de base : " + contexte
+				)
+				verifier(plat.contains("portée " + str(portee)), "portée : " + contexte)
+				verifier(plat.contains("3,5"), "recharge : " + contexte)
+				verifier(
+					plat.contains("30" + NBSP + "%") or kind != "zone_posee",
+					"ratio en % : " + contexte
+				)
+				for attendu: String in _chiffres_attendus(arme, Types.Genre.ARME):
+					verifier(plat.contains(attendu), "« %s » absent : %s" % [attendu, contexte])
+				verifier_faux(plat.contains("BOUTIQUE_"), "clé brute : " + contexte)
