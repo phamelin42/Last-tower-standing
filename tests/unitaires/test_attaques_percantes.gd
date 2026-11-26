@@ -11,6 +11,7 @@ const ARMES: Dictionary = {
 	"chausse_trape": ["chausse_trape", "piege"],
 	"carreau_ricochet": ["ricochet", "rebond"],
 	"herse_de_ressorts": ["herse", "barrage"],
+	"baliste_de_guet": ["baliste", "cible_unique"],
 }
 
 var _a: AttaquesElementaires = null
@@ -204,5 +205,30 @@ func test_un_seul_anneau_au_rayon_reel_pour_toute_la_herse() -> void:
 	_a.zone("herse", CIBLE, rayon)
 	verifier_egal(_a.etats("").size(), 1, "un anneau pour le tir")
 	verifier_proche(_a.diametre_max(), rayon * 2.0, rayon * 2.0 * 0.1, "au rayon réel")
+
+
+# --- Baliste de guet : cible unique et poison --------------------------------------------------
+
+
+func test_la_baliste_tire_un_gros_carreau_a_longue_trainee_et_impacte_lourd() -> void:
+	verifier_egal(AttaquesElementaires.planche_projectile("baliste"), "carreau_baliste")
+	verifier_proche(_a.tirer("baliste", TOUR, CIBLE) / IMAGE, 10.0, 0.01)
+	verifier(_a.particules_actives() >= 1, "une traînée")
+	_a.impacter("baliste", CIBLE, 0.0)
+	var gerbe: float = _a.etats("gerbe")[0]["diametre"]
+	_a.vider()
+	_a.impacter("arbalete", CIBLE, 0.0)
+	verifier(gerbe > _a.etats("gerbe")[0]["diametre"], "plus lourd que l'arbalète")
+	verifier(gerbe <= 60.0, "mais cible unique : au plus 60 px")
+
+
+func test_l_impact_de_la_baliste_ajoute_des_gouttes_vertes_sans_depasser_huit_particules() -> void:
+	_a.impacter("baliste", CIBLE, 0.0)
+	verifier(_a.particules_actives() >= 2, "éclats et gouttes")
+	var total: int = 0
+	for e: Dictionary in _a._emetteurs:
+		if float(e["reste"]) > 0.0:
+			total += int((e["n"] as CPUParticles2D).amount)
+	verifier(total <= 8, "au plus 8 particules : %d" % total)
 
 
