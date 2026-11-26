@@ -326,3 +326,136 @@ func test_exemplaires_et_comptes_d_ameliorations() -> void:
 	)
 	verifier_egal(inv.compter_stat("cadence"), 1)
 	verifier_egal(inv.compter_stat("esquive"), 0)
+
+
+# --- Lot 9, T9.10 : croissance, armes communes, classes, états -----------------------------------
+
+const PAS_S := 30.0
+
+
+func _stats_avec(effets: Array, exemplaires: int = 1) -> StatsTour:
+	var d := _donnees_avec([_arme("a", 10)], [_amelio("x", effets)])
+	var inv := Inventaire.new(d)
+	for _i: int in exemplaires:
+		inv.ajouter("x")
+	return inv.stats()
+
+
+func test_la_croissance_ajoute_sa_valeur_a_chaque_tranche_de_temps_et_s_arrete_a_son_max() -> void:
+	var effet := _degats("tranchant", 0.1, "A")
+	effet["croissance"] = 0.02
+	effet["croissance_max"] = 0.1
+	var s := _stats_avec([effet])
+	var tranchant := Types.TypeDegats.TRANCHANT
+	# 0 tranche : la valeur de base seule ; 1 tranche : +0,02 ; 10 tranches : borné à +0,1.
+	verifier_proche(s.facteur_degats_type(tranchant, 0.0, 0), 1.10, 0.0001, "0 tranche")
+	verifier_proche(s.facteur_degats_type(tranchant, PAS_S - 0.1, 0), 1.10, 0.0001, "presque 1")
+	verifier_proche(s.facteur_degats_type(tranchant, PAS_S, 0), 1.12, 0.0001, "1 tranche")
+	verifier_proche(s.facteur_degats_type(tranchant, 10.0 * PAS_S, 0), 1.20, 0.0001, "10 tranches")
+	# Mode sans fin, manche 60 : une heure de partie et au-delà, le bonus reste à son maximum.
+	for temps: float in [3600.0, 86400.0, 1.0e9]:
+		verifier_proche(s.facteur_degats_type(tranchant, temps, 0), 1.20, 0.0001, str(temps))
+	verifier_proche(s.facteur_degats_type(Types.TypeDegats.CHAOS, 600.0, 0), 1.0, 0.0001, "autre")
+	verifier_proche(s.facteur_degats_type(tranchant, -50.0, 0), 1.10, 0.0001, "temps négatif")
+
+
+func test_la_croissance_se_borne_par_exemplaire_et_s_additionne_dans_sa_categorie() -> void:
+	var effet := _degats("tranchant", 0.0, "B")
+	effet["valeur"] = 0.1
+	effet["croissance"] = 0.05
+	effet["croissance_max"] = 0.1
+	var s := _stats_avec([effet], 2)
+	var tranchant := Types.TypeDegats.TRANCHANT
+	# Deux exemplaires : chacun apporte +0,1 et croît de 0,05 jusqu'à +0,1.
+	verifier_proche(s.facteur_degats_type(tranchant, 0.0, 0), 1.2, 0.0001)
+	verifier_proche(s.facteur_degats_type(tranchant, PAS_S, 0), 1.3, 0.0001)
+	verifier_proche(s.facteur_degats_type(tranchant, 100.0 * PAS_S, 0), 1.4, 0.0001)
+
+
+func test_la_croissance_du_global_suit_le_temps_de_partie_sans_toucher_aux_types() -> void:
+	var effet := {
+		"stat": "degats_global",
+		"valeur": 0.05,
+		"categorie": "B",
+		"croissance": 0.01,
+		"croissance_max": 0.03,
+	}
+	var s := _stats_avec([effet])
+	verifier_proche(s.facteur_degats_global(0.0, 0), 1.05, 0.0001)
+	verifier_proche(s.facteur_degats_global(2.0 * PAS_S, 0), 1.07, 0.0001)
+	verifier_proche(s.facteur_degats_global(1.0e6, 0), 1.08, 0.0001)
+	for t: int in 5:
+		verifier_proche(s.facteur_degats_type(t, 1.0e6, 0), 1.0, 0.0001, "type %d" % t)
+
+
+func test_par_arme_commune_compte_les_armes_communes_du_type_possedees() -> void:
+	var effet := _degats("perçant", 0.0, "C")
+	effet["valeur"] = 0.2
+	effet["par_arme_commune"] = 0.05
+	var s := _stats_avec([effet])
+	var percant := Types.TypeDegats.PERCANT
+	verifier_proche(s.facteur_degats_type(percant, 0.0, 0), 1.2, 0.0001, "aucune commune")
+	verifier_proche(s.facteur_degats_type(percant, 0.0, 1), 1.25, 0.0001)
+	verifier_proche(s.facteur_degats_type(percant, 0.0, 4), 1.4, 0.0001)
+	verifier_proche(
+		s.facteur_degats_type(Types.TypeDegats.CHAOS, 0.0, 4), 1.0, 0.0001, "autre type"
+	)
+	verifier_proche(s.facteur_degats_global(0.0, 4), 1.0, 0.0001, "pas le global")
+
+
+func test_par_arme_commune_du_global_compte_les_communes_de_tous_les_types() -> void:
+	var effet := {
+		"stat": "degats_global", "valeur": 0.1, "categorie": "A", "par_arme_commune": 0.02
+	}
+	var s := _stats_avec([effet])
+	verifier_proche(s.facteur_degats_global(0.0, 0), 1.1, 0.0001)
+	verifier_proche(s.facteur_degats_global(0.0, 5), 1.2, 0.0001)
+
+
+func test_sans_croissance_ni_arme_commune_les_facteurs_sont_ceux_d_avant() -> void:
+	var s := _stats_avec([_degats("magique", 0.1, "A"), _degats("magique", 0.25, "B")])
+	var magique := Types.TypeDegats.MAGIQUE
+	verifier_proche(s.facteur_degats_type(magique, 0.0, 0), s.degats_type[magique], 0.0001)
+	verifier_proche(s.facteur_degats_type(magique, 9999.0, 7), 1.1 * 1.25, 0.0001)
+	verifier_proche(s.facteur_degats_global(9999.0, 7), s.degats_global, 0.0001)
+
+
+func test_les_stats_de_classe_et_d_etat_s_additionnent_par_cle() -> void:
+	var inv := (
+		Inventaire
+		. new(
+			_donnees_avec(
+				[_arme("a", 10)],
+				[
+					_amelio("c", [{"stat": "degats_classe", "classe": "onde", "valeur": 0.25}]),
+					_amelio("p", [{"stat": "etat_degats", "etat": "poison", "valeur": 0.2}]),
+					_amelio("q", [{"stat": "etat_duree", "etat": "poison", "valeur": 0.3}]),
+					_amelio(
+						"r", [{"stat": "degats_contre_etat", "etat": "ralenti", "valeur": 0.4}]
+					),
+				]
+			)
+		)
+	)
+	for id: String in ["c", "c", "p", "q", "q", "r"]:
+		inv.ajouter(id)
+	var s := inv.stats()
+	verifier_proche(float(s.degats_classe["onde"]), 0.5, 0.0001)
+	verifier_proche(float(s.etat_degats["poison"]), 0.2, 0.0001)
+	verifier_proche(float(s.etat_duree["poison"]), 0.6, 0.0001)
+	verifier_proche(float(s.degats_contre_etat["ralenti"]), 0.4, 0.0001)
+	verifier_faux(s.etat_degats.has("brulure"), "un état non acheté reste absent")
+
+
+func test_facteur_contre_etat_ne_vaut_que_pour_les_bits_de_l_ennemi() -> void:
+	var s := StatsTour.new()
+	s.degats_contre_etat = {"etourdi": 0.5, "empoisonne": 0.25, "ralenti": 0.1}
+	verifier_proche(s.facteur_contre_etat(0), 1.0, 0.0001, "aucun état")
+	verifier_proche(s.facteur_contre_etat(Types.STATUT_ETOURDI), 1.5, 0.0001)
+	verifier_proche(s.facteur_contre_etat(Types.STATUT_EMPOISONNE), 1.25, 0.0001)
+	verifier_proche(s.facteur_contre_etat(Types.STATUT_RALENTI), 1.1, 0.0001)
+	verifier_proche(s.facteur_contre_etat(Types.STATUT_BRULE), 1.0, 0.0001, "brûlé : pas listé")
+	verifier_proche(s.facteur_contre_etat(Types.STATUT_GELE), 1.0, 0.0001, "gelé : pas ralenti")
+	verifier_proche(
+		s.facteur_contre_etat(Types.STATUT_ETOURDI | Types.STATUT_EMPOISONNE), 1.5 * 1.25, 0.0001
+	)

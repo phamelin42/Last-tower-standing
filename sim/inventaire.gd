@@ -108,7 +108,9 @@ func stats() -> StatsTour:
 			_appliquer(s, e, n, par_type, global)
 	for t: int in 5:
 		s.degats_type[t] = _produit(par_type[t])
+		s.sommes_type[t] = par_type[t]
 	s.degats_global = _produit(global)
+	s.sommes_global = global
 	return s
 
 
@@ -130,9 +132,11 @@ func _appliquer(
 			var cumul: Dictionary = par_type[int(e["type_degats"])]
 			var cat: String = e["categorie"]
 			cumul[cat] = float(cumul.get(cat, 0.0)) + v
+			_noter_dynamique(s, int(e["type_degats"]), e, n)
 		"degats_global":
 			var cat: String = e["categorie"]
 			global[cat] = float(global.get(cat, 0.0)) + v
+			_noter_dynamique(s, -1, e, n)
 		"pv_max":
 			s.pv_max_bonus += v
 		"regen":
@@ -244,6 +248,26 @@ func _appliquer_composite(s: StatsTour, e: Dictionary, stat: String, n: int) -> 
 		_:
 			return false
 	return true
+
+
+## Garde la part d'un bonus de dégâts qui suit la partie (croissance, armes communes).
+static func _noter_dynamique(s: StatsTour, type_degats: int, e: Dictionary, n: int) -> void:
+	if not e.has("croissance") and not e.has("par_arme_commune"):
+		return
+	(
+		s
+		. degats_dynamiques
+		. append(
+			{
+				"type": type_degats,
+				"categorie": String(e["categorie"]),
+				"croissance": float(e.get("croissance", 0.0)),
+				"croissance_max": float(e.get("croissance_max", 0.0)),
+				"par_arme_commune": float(e.get("par_arme_commune", 0.0)),
+				"n": n,
+			}
+		)
+	)
 
 
 static func _ajouter(cumul: Dictionary, cle: String, valeur: float) -> void:

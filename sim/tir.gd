@@ -60,6 +60,11 @@ class Contexte:
 	## événements pour que le rendu choisisse l'effet et le son propres à l'arme.
 	var index_arme: int = -1
 	var degats_base: float
+	## Produit des facteurs de dégâts qui ne dépendent pas de la cible (type, global, classe) et
+	## plafond du produit complet (`partie.json` `ameliorations.facteur_degats_max`) : voir
+	## `facteur_degats`.
+	var facteur_fixe: float = 1.0
+	var facteur_max: float = INF
 	var statuts: Array
 	var palier: float
 	var puissance_base: float
@@ -161,7 +166,20 @@ static func _creer(
 		mana_max,
 		plafond
 	)
-	ctx.degats_base = brut * stats.degats_type[ctx.type_degats] * stats.degats_global
+	var reglages: Dictionary = donnees.partie.get("ameliorations", {})
+	ctx.facteur_max = float(reglages.get("facteur_degats_max", INF))
+	var communes := PackedInt32Array([0, 0, 0, 0, 0])
+	if stats.a_des_degats_dynamiques():
+		communes = communes_par_type(vue_tour.exemplaires, donnees)
+	var temps_s := vue_tour.temps_s
+	ctx.facteur_fixe = (
+		stats.facteur_degats_type(ctx.type_degats, temps_s, communes[ctx.type_degats])
+		* stats.facteur_degats_global(
+			temps_s, communes[0] + communes[1] + communes[2] + communes[3] + communes[4]
+		)
+		* stats.facteur_classe(arme.def)
+	)
+	ctx.degats_base = brut * facteur_degats(ctx, 0)
 	ctx.statuts = arme.def.get("statuts", [])
 	ctx.statut = _statut_principal(ctx.statuts)
 	ctx.index_arme = donnees.ids_catalogue.find(arme.id)
@@ -175,6 +193,27 @@ static func _creer(
 
 
 # --- Aides communes ----------------------------------------------------------------------------
+
+
+## Multiplicateur de dégâts d'un coup sur un ennemi dont `Ennemis.statuts` vaut `bits_ennemi` :
+## type × global × classe × contre-état, borné par `partie.json` `ameliorations.facteur_degats_max`.
+## C'est le seul endroit où ce produit est plafonné ; chaque stat reste son propre facteur.
+static func facteur_degats(ctx: Contexte, bits_ennemi: int) -> float:
+	return minf(ctx.facteur_fixe * ctx.stats.facteur_contre_etat(bits_ennemi), ctx.facteur_max)
+
+
+## Armes communes équipées, par `Types.TypeDegats` : de quoi nourrir `par_arme_commune`. Chaque
+## exemplaire compte ; un id inconnu est ignoré.
+static func communes_par_type(exemplaires: Dictionary, donnees: Donnees) -> PackedInt32Array:
+	var comptes := PackedInt32Array([0, 0, 0, 0, 0])
+	for id: Variant in exemplaires:
+		var arme: Dictionary = donnees.armes.get(id, {})
+		if arme.is_empty() or int(arme["rarete"]) != Types.Rarete.COMMUNE:
+			continue
+		var type_degats := int(arme["type_degats"])
+		if type_degats >= 0 and type_degats < comptes.size():
+			comptes[type_degats] += maxi(int(exemplaires[id]), 0)
+	return comptes
 
 
 ## Dégâts de base d'une arme avant les bonus de type et global : ses dégâts, plus `ratio × mana
@@ -260,6 +299,12 @@ static func _evenement(
 
 ## Un coup sur un ennemi : dégâts, vol de vie, mort ou statuts. Rend les dégâts réels.
 static func _frapper(ctx: Contexte, i: int, degats: float) -> float:
+	if not ctx.stats.degats_contre_etat.is_empty():
+		# Le coup est déjà au facteur sans contre-état : on y ajoute celui de l'état de la cible,
+		# le produit total restant sous le plafond.
+		var sans_etat := facteur_degats(ctx, 0)
+		if sans_etat > 0.0:
+			degats *= facteur_degats(ctx, int(ctx.ennemis.statuts[i])) / sans_etat
 	var reels := ctx.ennemis.infliger(i, degats, ctx.type_degats)
 	if reels <= 0.0:
 		return 0.0
@@ -284,15 +329,41 @@ static func _frapper(ctx: Contexte, i: int, degats: float) -> float:
 		var statut: Dictionary = brut
 		match String(statut["kind"]):
 			"poison":
-				ctx.ennemis.empoisonner(
-					i, float(statut["total_ratio"]) * reels, float(statut["duree"])
+				(
+					ctx
+					. ennemis
+					. empoisonner(
+						i,
+						(
+							float(statut["total_ratio"])
+							* reels
+							* (1.0 + _bonus_etat(ctx, "etat_degats", "poison"))
+						),
+						float(statut["duree"]) * (1.0 + _bonus_etat(ctx, "etat_duree", "poison")),
+					)
 				)
 			"brulure":
-				ctx.ennemis.bruler(i, float(statut["ratio"]), reels, float(statut["duree"]))
+				(
+					ctx
+					. ennemis
+					. bruler(
+						i,
+						float(statut["ratio"]) * (1.0 + _bonus_etat(ctx, "etat_degats", "brulure")),
+						reels,
+						float(statut["duree"]) * (1.0 + _bonus_etat(ctx, "etat_duree", "brulure")),
+					)
+				)
 			"givre":
 				ctx.ennemis.givrer(i, ctx.resistance)
 			"etourdissement":
-				ctx.ennemis.etourdir(i, float(statut["duree"]), ctx.resistance)
+				ctx.ennemis.etourdir(
+					i,
+					(
+						float(statut["duree"])
+						* (1.0 + _bonus_etat(ctx, "etat_duree", "etourdissement"))
+					),
+					ctx.resistance
+				)
 			"vulnerabilite":
 				var type_vulnerable := int(statut.get("type_degats", -1))
 				if type_vulnerable < 0:
@@ -320,6 +391,12 @@ static func _frapper(ctx: Contexte, i: int, degats: float) -> float:
 
 ## Meilleur vivant à portée du centre selon le ciblage de l'arme, hors `exclus` (identifiants) ;
 ## égalité parfaite : plus petit identifiant. -1 si aucun.
+## Bonus d'`etat_degats` ou d'`etat_duree` pour l'état `etat`, 0 s'il n'y en a pas.
+static func _bonus_etat(ctx: Contexte, stat: String, etat: String) -> float:
+	var table: Dictionary = ctx.stats.get(stat)
+	return maxf(float(table.get(etat, 0.0)), 0.0)
+
+
 static func _choisir(ctx: Contexte, portee: float, exclus: Array[int]) -> int:
 	var ennemis := ctx.ennemis
 	var mode := int(ctx.arme.def["ciblage"])
@@ -424,6 +501,8 @@ static func _poser(ctx: Contexte, kind: String, effet: Dictionary) -> bool:
 		"statut": ctx.statut,
 		"arme": maxi(ctx.index_arme, 0),
 		"proprietaire": ctx.proprietaire,
+		"facteur_fixe": ctx.facteur_fixe,
+		"facteur_max": ctx.facteur_max,
 	}
 	if kind == "zone_posee":
 		pose["duree"] = float(effet["duree"])
@@ -485,6 +564,8 @@ static func contexte_pose(
 	ctx.statut = int(pose["statut"])
 	ctx.genre = genre
 	ctx.index_arme = int(pose["arme"])
+	ctx.facteur_fixe = float(pose.get("facteur_fixe", 1.0))
+	ctx.facteur_max = float(pose.get("facteur_max", INF))
 	var repousse: Dictionary = donnees.partie["repoussement"]
 	ctx.facteur_boss_repoussement = float(repousse["facteur_boss"])
 	return ctx
