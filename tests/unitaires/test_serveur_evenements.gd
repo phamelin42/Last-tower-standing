@@ -105,7 +105,12 @@ func test_un_observateur_qui_change_d_arene_ne_recoit_pas_les_anciens_evenements
 	BotAchat.jouer(s.partie, ids[1], 4)
 	_intention(s, ids[2], Protocole.Intention.QUITTER)
 	_intention(s, ids[2], Protocole.Intention.OBSERVER, ids[0])
-	_jouer_secondes(s, 12.0)
+	# Les premières familles marchent lentement : on laisse la manche avancer jusqu'au premier
+	# événement plutôt que de supposer qu'un ennemi arrive à portée en 12 s.
+	var ecoule := 0.0
+	while s.evenements_lus(ids[1]) == 0 and ecoule < 60.0:
+		_jouer_secondes(s, 3.0)
+		ecoule += 3.0
 	verifier(s.evenements_lus(ids[1]) > 0, "l'arène suivante produit des événements")
 	var lus_avant := s.evenements_lus(ids[1])
 	verifier_egal(_intention(s, ids[2], Protocole.Intention.OBSERVER, ids[1]), Types.Resultat.OK)

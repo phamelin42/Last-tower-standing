@@ -37,7 +37,7 @@ func _evenements_de(id: String) -> Array[Dictionary]:
 	var stats := StatsTour.new()
 	var tous: Array[Dictionary] = []
 	for k: int in 12:
-		ennemis.ajouter(0, Vector2(60.0 + 20.0 * k, 10.0 * k), PV, 0.0, 0.0, 40.0, 1.0, 1, false, 4)
+		ennemis.ajouter(0, Vector2(60.0 + 20.0 * k, 10.0 * k), PV, 0.0, 0.0, 40.0, 1.0, 1, 4)
 	for _pas: int in 80:
 		var bilan := Tir.Bilan.new()
 		Tir.avancer_arme(arme, DT, stats, ennemis, Vector2.ZERO, _d, rng, 1.0, bilan)

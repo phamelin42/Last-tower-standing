@@ -16,7 +16,6 @@ const PLAFOND_MORTS: int = 64
 const MARGE_CONTACT: float = 10.0
 const POINTS_CERCLE: int = 96
 const LARGEUR_CERCLE: float = 4.0
-const VITESSE_VOL: float = 3.0
 ## Écart maximal (unités) entre une mort et la dernière position connue de l'ennemi mort : il a
 ## pu avancer entre deux vues.
 const PORTEE_MORT: float = 40.0
@@ -71,7 +70,6 @@ var _images: PackedInt32Array = PackedInt32Array()
 var _arrets: PackedFloat32Array = PackedFloat32Array()
 var _a_distance: PackedByteArray = PackedByteArray()
 var _combat: PackedByteArray = PackedByteArray()
-var _flottements: PackedFloat32Array = PackedFloat32Array()
 var _explosives: PackedByteArray = PackedByteArray()
 var _regions: Array[PackedFloat32Array] = []
 var _decalages: Array[PackedFloat32Array] = []
@@ -364,8 +362,6 @@ func _afficher_echantillon() -> void:
 			lutin.miroir = miroir
 			sprite.flip_h = miroir
 			_poser_image(sprite, _regions[f], _decalages[f], image, miroir)
-		if _flottements[f] > 0.0:
-			_faire_flotter(sprite, f, image, ids[i])
 		var couvre: bool = p.y >= 0.0 and absf(p.x) < _couvre_x[f] and p.y < _couvre_h[f]
 		var alpha: float = ALPHA_RECOUVRE if couvre else 1.0
 		if sprite.modulate.a != alpha:
@@ -400,13 +396,6 @@ func _poser_image(
 	)
 	var dx: float = decalages[image * 2]
 	sprite.offset = Vector2(-dx if miroir else dx, decalages[image * 2 + 1])
-
-
-## Le volant monte et descend doucement ; chaque volant a sa phase.
-func _faire_flotter(sprite: Sprite2D, f: int, image: int, id: int) -> void:
-	sprite.offset.y = (
-		_decalages[f][image * 2 + 1] - sin(_horloge * VITESSE_VOL + float(id)) * _flottements[f]
-	)
 
 
 ## N'agrandit que si le nombre demandé dépasse ce qui existe ; masque le surplus et ne libère que
@@ -528,8 +517,7 @@ func _preparer_entites() -> void:
 		elif f == nb_familles + 1:
 			portee = float(donnees.boss["portee_attaque"])
 		_arrets.append(Apparence.distance_arret(portee, rayon_tour))
-		_flottements.append(float(e["flottement"]))
-		_explosives.append(1 if Effets.FAMILLES_EXPLOSIVES.has(ids[f]) else 0)
+		_explosives.append(1 if Effets.famille_explosive(ids[f]) else 0)
 		_preparer_images(e)
 		_a_distance.append(1 if portee > Apparence.PORTEE_CORPS_A_CORPS else 0)
 		# Le convoi (index n) ne combat pas.

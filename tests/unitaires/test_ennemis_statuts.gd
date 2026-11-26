@@ -16,7 +16,7 @@ func avant_chaque() -> void:
 		brut[nom] = JSON.parse_string(FileAccess.get_file_as_string("res://data/" + nom))
 	brut["armes.json"] = []
 	brut["ameliorations.json"] = []
-	brut["ennemis.json"] = {"familles": [], "convoi": {}, "boss": {}}
+	brut["ennemis.json"] = {"modeles": [], "paliers": [], "convoi": {}, "boss": {}}
 	e = Ennemis.new(Donnees.depuis_brut(brut))
 
 
@@ -28,14 +28,13 @@ func _ajouter(
 	pos: Vector2 = Vector2(500, 0),
 	pv: float = 100.0,
 	armure: int = Types.Armure.LEGERE,
-	volant: bool = false,
 	portee: float = 40.0,
 	degats: float = 4.0,
 	cadence: float = 1.0,
 	prime: int = 2,
 	vitesse: float = 60.0
 ) -> int:
-	return e.ajouter(0, pos, pv, vitesse, degats, portee, cadence, prime, volant, armure)
+	return e.ajouter(0, pos, pv, vitesse, degats, portee, cadence, prime, armure)
 
 
 ## Avance de `n` pas et cumule les indices tués par statut, lus avant la purge.

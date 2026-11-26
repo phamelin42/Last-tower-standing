@@ -227,6 +227,45 @@ func test_un_effet_ne_cache_jamais_la_tour_durablement() -> void:
 			verifier_egal(_effets.nombre_vivants(), 0, "%d/%s s'éteint" % [type_degats, genre])
 
 
+func test_un_tonneau_qui_explose_au_contact_declenche_l_explosion_et_une_dynamite_aussi() -> void:
+	var arene := _arene_avec_effets()
+	var ids: PackedStringArray = Apparence.ids_entites(_donnees)
+	var explosifs: Array[int] = []
+	var autres: Array[int] = []
+	for f: int in _donnees.familles.size():
+		var famille: Dictionary = _donnees.familles[f]
+		if famille["modele"] == "tonneau" or famille["modele"] == "dynamite":
+			explosifs.append(f)
+		else:
+			autres.append(f)
+	verifier_egal(explosifs.size(), 8, "quatre tonneaux et quatre dynamites")
+	verifier(Effets.famille_explosive(ids[explosifs[0]]), "un tonneau explose")
+	for f: int in autres:
+		verifier_faux(Effets.famille_explosive(ids[f]), "%s n'explose pas" % ids[f])
+	verifier_faux(Effets.famille_explosive(String(_donnees.convoi["id"])), "le convoi")
+	verifier_faux(Effets.famille_explosive(String(_donnees.boss["id"])), "le boss")
+	var tick: int = 1
+	var places: Array[int] = explosifs.duplicate()
+	places.append(autres[0])
+	arene.afficher(_vue_avec(tick, places, []), 1.0)
+	# Les explosifs meurent (ils quittent la vue), pas l'autre, avec leurs événements de mort.
+	var morts: Array[Dictionary] = []
+	for i: int in explosifs.size():
+		var pos := Vector2(200 + i * 50, 100)
+		morts.append(_evenement("mort", 4, pos, pos, 0.0))
+	tick += 1
+	var restant := _vue_avec(tick, [autres[0]], morts)
+	restant.ennemis_id[0] = places.size()
+	restant.ennemis_pos[0] = Vector2(200 + explosifs.size() * 50, 100)
+	arene.afficher(restant, 1.1)
+	var effets := arene.get_node("Effets") as Effets
+	verifier_egal(
+		effets.formes_vivantes().count("explosion"), explosifs.size(), "une explosion par explosif"
+	)
+	arene.get_parent().remove_child(arene)
+	arene.free()
+
+
 func test_la_mort_d_un_tonneau_ou_d_un_artificier_prend_l_explosion_du_pack() -> void:
 	_effets.exploser(Vector2(120, 40))
 	verifier_egal(_effets.formes_vivantes(), PackedStringArray(["explosion"]))
@@ -288,9 +327,9 @@ func _vue_avec(tick: int, familles: Array[int], evenements: Array[Dictionary]) -
 func test_l_arene_envoie_ses_evenements_aux_effets_et_explose_les_tonneaux() -> void:
 	var arene := _arene_avec_effets()
 	var ids: PackedStringArray = Apparence.ids_entites(_donnees)
-	var tonneau: int = ids.find("tonneau_de_poudre")
-	var artificier: int = ids.find("artificier_de_fumee")
-	var autre: int = ids.find("rodeur_de_suie")
+	var tonneau: int = ids.find("tonneau_jaune")
+	var artificier: int = ids.find("dynamite_rouge")
+	var autre: int = ids.find("torche_jaune")
 	verifier(tonneau >= 0 and artificier >= 0 and autre >= 0)
 	arene.afficher(_vue_avec(1, [tonneau, artificier, autre], []), 1.0)
 	var morts: Array[Dictionary] = [

@@ -78,7 +78,7 @@ func test_mille_attaquants_au_corps_a_corps_avec_epines_sous_5_ms_par_pas() -> v
 	for k: int in 1200:
 		var angle := TAU * float(k) / 1200.0
 		var p := Vector2.from_angle(angle) * 100.0
-		a.ennemis.ajouter(0, p, 1e7, 0.0, 5.0, 40.0, 4.0, 1, false, Types.Armure.AUCUNE)
+		a.ennemis.ajouter(0, p, 1e7, 0.0, 5.0, 40.0, 4.0, 1, Types.Armure.AUCUNE)
 	var debut := Time.get_ticks_usec()
 	for _i: int in 200:
 		a.avancer(DT)

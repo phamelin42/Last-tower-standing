@@ -24,7 +24,7 @@ func _donnees(economie: Dictionary) -> Donnees:
 	brut["economie.json"] = economie
 	brut["armes.json"] = []
 	brut["ameliorations.json"] = []
-	brut["ennemis.json"] = {"familles": [], "convoi": {}, "boss": {}}
+	brut["ennemis.json"] = {"modeles": [], "paliers": [], "convoi": {}, "boss": {}}
 	return Donnees.depuis_brut(brut)
 
 

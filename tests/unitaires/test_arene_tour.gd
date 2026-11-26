@@ -35,7 +35,7 @@ func _vue(a: Arene) -> VueArene:
 func _ennemi(
 	a: Arene, position: Vector2, degats: float, portee: float, cadence: float, pv: float = PV
 ) -> int:
-	return a.ennemis.ajouter(0, position, pv, 0.0, degats, portee, cadence, 0, false, 4)
+	return a.ennemis.ajouter(0, position, pv, 0.0, degats, portee, cadence, 0, 4)
 
 
 func _avec_amelioration(a: Arene, id: String, nombre: int) -> void:
@@ -277,12 +277,12 @@ func test_un_ennemi_tue_par_epines_poison_ou_arme_ne_verse_qu_une_prime() -> voi
 	a.synchroniser()
 	var argent := a.economie.argent
 	# Mort par épines : au corps à corps, 5 PV, dégâts 10 → renvoie 10.
-	a.ennemis.ajouter(0, Vector2(100, 0), 5.0, 0.0, 10.0, 40.0, 0.01, 7, false, 4)
+	a.ennemis.ajouter(0, Vector2(100, 0), 5.0, 0.0, 10.0, 40.0, 0.01, 7, 4)
 	# Mort par poison : loin, hors de portée.
-	var p := a.ennemis.ajouter(0, Vector2(1300, 0), 100.0, 0.0, 0.0, 30.0, 1.0, 7, false, 4)
+	var p := a.ennemis.ajouter(0, Vector2(1300, 0), 100.0, 0.0, 0.0, 30.0, 1.0, 7, 4)
 	a.ennemis.empoisonner(a.ennemis.indice_de(p), 100.0, 0.5)
 	# Mort par l'arme : à portée, 1 PV.
-	a.ennemis.ajouter(0, Vector2(0, 400), 1.0, 0.0, 0.0, 30.0, 1.0, 7, false, 4)
+	a.ennemis.ajouter(0, Vector2(0, 400), 1.0, 0.0, 0.0, 30.0, 1.0, 7, 4)
 	_avancer(a, 30)
 	verifier_egal(a.nombre_ennemis(), 0, "les trois sont morts")
 	verifier_egal(_vue(a).eliminations, 3, "trois éliminations, pas une de plus")

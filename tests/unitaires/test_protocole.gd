@@ -72,21 +72,25 @@ func _brut_catalogue() -> Dictionary:
 	brut["armes.json"] = armes
 	brut["ameliorations.json"] = amelios
 	brut["ennemis.json"] = {
-		"familles":
+		"modeles":
 		[
 			{
 				"id": "rampant",
-				"nom": "Rampant",
+				"noms": ["Rampant"],
 				"armure": "légère",
-				"volant": false,
+				"classe_portee": "corps_a_corps",
 				"pv": 40,
 				"vitesse": 60,
 				"degats": 4,
 				"portee_attaque": 40,
 				"cadence_attaque": 1.0,
 				"prime": 2,
+				"manche_min": 1,
+				"explose": false,
+				"raison_lenteur": "",
 			},
 		],
+		"paliers": [{"id": "jaune", "manche_entree": 1, "pv": 1.0, "degats": 1.0, "prime": 1.0}],
 		"convoi": {"id": "convoi", "nom": "Convoi", "pv": 400, "vitesse": 45, "prime": 120},
 		"boss":
 		{
