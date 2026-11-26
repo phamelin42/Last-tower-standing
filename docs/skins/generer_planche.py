@@ -75,14 +75,9 @@ CHOIX = {
     "tour_eternelle": ("S2a2", "R"),
     "tour_de_la_table_ronde": ("kn_construction", "P"),
     "tour_du_dernier_rempart": ("S4b3", "R"),
-    "tour_zone_posee": ("S4a2", "R"),
-    "tour_bombe": ("S2b3", "R"),
+    "tour_cratere": ("S4a2", "R"),
+    "tour_artificier": ("S2b3", "R"),
 }
-# Skins dont le défi n'est pas encore dans docs/defis.md (PR #85) : identifiants provisoires.
-PROVISOIRES = [
-    ("seul_zone_posee", "tour_zone_posee", "disque de zone posé au pied (provisoire)"),
-    ("seul_bombe", "tour_bombe", "bombes rondes à mèche (provisoire)"),
-]
 COUL = {"B": (60, 160, 80), "P": (220, 170, 40), "R": (210, 110, 40)}
 LIB = {"B": "bon", "P": "partiel", "R": "rapproché"}
 
@@ -93,7 +88,7 @@ def lire_skins() -> list[tuple[str, str, str]]:
     return [
         (m[0], m[1], m[2].strip())
         for m in re.findall(r"^\| `(\w+)`\s*\| `(\w+)`\s*\| (.+?)\s*\|$", section, re.M)
-    ] + PROVISOIRES
+    ]
 
 
 def image(cle: str) -> Image.Image:
