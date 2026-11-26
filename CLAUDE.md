@@ -129,3 +129,9 @@ privé, lu en direct). Ses lignes vivent dans sa base, pas dans la page :
 - Le « 400 Sounds Pack » compte environ 314 fichiers, dont 111 jingles musicaux, et une cinquantaine de tirs ou d'impacts nettement distincts : le lot 9 complète avec les packs CC0 de Kenney (T9.20).
 - Écrire du texte dans une `Image` sans écran (planche, capture) : passer par les glyphes du `TextServer`, le rendu de `Label` n'existe pas en `--headless`.
 - Après un `git commit` enchaîné à d'autres commandes, relire `git log -1` : un commit raté ne se voit pas toujours dans la sortie.
+- Une douzaine de fichiers de test lisent le catalogue (signatures, sons, effets, défis, événements, descriptions) : un ajout dans `data/armes.json` ou `data/ameliorations.json` passe par `tools/verifier.sh --etape tests` avant de pousser. L'ordre des armes dans `armes.json` fixe les tirages de la boutique : un test d'équilibrage ne repose jamais sur une seule graine.
+- Une mutation (casser le code pour voir un test échouer) se fait après un commit et par `Edit`, jamais défaite par `git checkout` : celui-ci efface aussi le travail non commité.
+- Un budget de temps par pas se mesure au 10e centile de plusieurs pas (`MesurePas`, PR #71) : une mesure seule échoue sous la charge d'autres agents.
+- Lire un fichier de l'utilisateur : `JSON.new().parse` (code de retour), pas `JSON.parse_string`, qui imprime une erreur du moteur sur un fichier abîmé et fait échouer le test.
+- Après un changement de police, relancer `test_mise_en_page` : les largeurs du HUD et de la boutique en dépendent. Une image ou une icône se charge par `ui/theme.gd`, sinon `test_garde_ressources` (liste fermée) échoue.
+- Une session écrit à la pilote par l'outil `mcp__claude-code-remote__send_message`, pas par `SendMessage` (erreur 401 vers une session cloud).
