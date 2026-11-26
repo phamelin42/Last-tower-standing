@@ -262,6 +262,7 @@ static func _construire() -> Theme:
 	t.default_font = police()
 	t.default_font_size = taille("texte")
 	t.set_font_size("font_size", "Label", taille("texte"))
+	t.set_font_size("font_size", "TooltipLabel", taille("texte"))
 	t.set_color("font_color", "Label", PARCHEMIN)
 	t.set_font_size("font_size", "Button", taille("texte"))
 	t.set_font_size("font_size", "LineEdit", taille("texte"))
@@ -292,7 +293,7 @@ static func _construire() -> Theme:
 	ruban.content_margin_bottom = 20.0
 	t.set_stylebox("normal", TYPE_RUBAN, ruban)
 	t.set_type_variation("Carte", "PanelContainer")
-	t.set_stylebox("panel", "Carte", _tranches(TEX_PANNEAU, 16, 16, 16, 16, 12, TEINTE_CARTE))
+	t.set_stylebox("panel", "Carte", _tranches(TEX_PANNEAU, 16, 16, 16, 16, 8, TEINTE_CARTE))
 	return t
 
 

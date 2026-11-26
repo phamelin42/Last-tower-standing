@@ -16,10 +16,13 @@ const PART_ARENE_MIN := 0.4
 const OPACITE_MIN := 0.9
 ## Crans extrêmes de « Taille de l'interface » (T8.17) : la fenêtre logique mesure la résolution
 ## divisée par l'échelle, comme avec `content_scale_factor`.
+## Surface (px²) du bandeau et du côté de la boutique avant T8.17, mesurée sur `main` (c4f37ef) à
+## la création du test, aux résolutions de `RESOLUTIONS`, même partie solo, avant tout achat.
+const SURFACE_AVANT: Array[float] = [328080.0, 427280.0, 454456.0, 585360.0]
 const ECHELLES_EXTREMES: Array[float] = [0.75, 1.25]
-## À 125 %, la barre du HUD et le bandeau de la boutique actuels (largeur minimale d'environ
-## 1 000 px) ne tiennent que dans la plus grande résolution. T8.18 (barre à icônes) et T8.19
-## (boutique compacte) les refont : elles doivent ajouter ici toutes les résolutions.
+## À 125 %, la barre du HUD actuelle (largeur minimale d'environ 1 000 px) ne tient que dans la
+## plus grande résolution ; la boutique compacte tient partout. T8.18 (barre à icônes) refait la
+## barre : elle doit ajouter ici toutes les résolutions.
 const RESOLUTIONS_A_125: Array[Vector2] = [Vector2(1920.0, 1080.0)]
 
 var _donnees: Donnees
@@ -381,3 +384,21 @@ func _noms_les_plus_longs() -> Array[String]:
 	for famille: Dictionary in _donnees.familles:
 		noms.append(String(famille["nom"]))
 	return noms
+
+
+## D13 : la boutique prenait trop de place, elle doit perdre au moins 30 % de sa surface.
+func test_la_boutique_est_au_moins_30_pour_cent_plus_petite_qu_avant() -> void:
+	_donnees = AidesPartie.donnees()
+	verifier_egal(SURFACE_AVANT.size(), RESOLUTIONS.size())
+	for i: int in RESOLUTIONS.size():
+		var jeu := await _jeu_a(RESOLUTIONS[i])
+		var surface := 0.0
+		for panneau: PanelContainer in jeu.boutique.panneaux():
+			if panneau.is_visible_in_tree():
+				var rect := panneau.get_global_rect()
+				surface += rect.size.x * rect.size.y
+		verifier(
+			surface <= 0.7 * SURFACE_AVANT[i],
+			"à %s : %.0f px² pour %.0f avant" % [RESOLUTIONS[i], surface, SURFACE_AVANT[i]]
+		)
+		_liberer(jeu)
