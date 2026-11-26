@@ -6,6 +6,8 @@ extends RefCounted
 ## Portée d'une arme « à courte portée » (au plus) et « à longue portée » (au moins).
 const PORTEE_COURTE_MAX := 750.0
 const PORTEE_LONGUE_MIN := 1000.0
+## Tranche de PV maximum de `degats_par_pv_max`.
+const TRANCHE_PV_MAX := 1000.0
 ## État que lit `degats_contre_etat` → bit de `Ennemis.statuts`.
 const BITS_ETATS: Dictionary = {
 	"etourdi": Types.STATUT_ETOURDI,
@@ -97,6 +99,36 @@ func facteur_epines(temps_s: float) -> float:
 	var tranches := floorf(maxf(temps_s, 0.0) / maxf(pas_croissance_s, 0.001))
 	var croissance := minf(epines_croissantes * tranches, epines_croissantes_max)
 	return 1.0 + epines_degats + croissance
+
+
+## Ratio de la part des dégâts d'un coup que les épines renvoient à l'instant `temps_s` : la valeur
+## des épines d'origine plus `epines_degats` et la croissance (`facteur_epines` moins 1). Chaque
+## amélioration d'épines compte donc seule, sans exiger de base.
+func ratio_epines(temps_s: float) -> float:
+	return epines + facteur_epines(temps_s) - 1.0
+
+
+## PV par seconde de la régénération à l'instant `temps_s` : celle d'origine plus la part
+## croissante, bornée par `regen_croissante_max`.
+func regen_totale(temps_s: float) -> float:
+	return regen + minf(regen_croissante * _tranches(temps_s), regen_croissante_max)
+
+
+## Armure ajoutée par les améliorations à l'instant `temps_s` (la part croissante est bornée).
+func armure_totale(temps_s: float) -> float:
+	return armure + minf(armure_croissante * _tranches(temps_s), armure_croissante_max)
+
+
+## Facteur de dégâts de `degats_par_pv_max` : `1 + valeur × PV maximum / 1 000`. Fini et sans
+## effet pour un maximum nul ou non fini.
+func facteur_pv_max(pv_max_tour: float) -> float:
+	if degats_par_pv_max <= 0.0 or not pv_max_tour > 0.0 or not is_finite(pv_max_tour):
+		return 1.0
+	return 1.0 + degats_par_pv_max * pv_max_tour / TRANCHE_PV_MAX
+
+
+func _tranches(temps_s: float) -> float:
+	return floorf(maxf(temps_s, 0.0) / maxf(pas_croissance_s, 0.001))
 
 
 ## Multiplicateur de dégâts du type `type_degats` à l'instant `temps_s` de la partie, avec

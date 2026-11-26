@@ -30,6 +30,12 @@ const EPSILON_DEGATS := 1e-6
 const FENETRE_DPS_S := 10.0
 ## Côté de la carte de densité, en cases.
 const DENSITE_COTE := 16
+## Plafond de `epines_reduction` : au plus la moitié des coups de corps à corps est retirée.
+const REDUCTION_CAC_MAX := 0.5
+## Part du coup reçu que posent le poison et la brûlure des épines et de la riposte, répartie sur
+## leur durée (la valeur de la statistique).
+const STATUT_RIPOSTE_RATIO := 0.5
+const STATUTS_RIPOSTE: Array[String] = ["poison", "brulure", "givre", "etourdissement"]
 
 ## Points de vie de la tour, entre 0 et le maximum.
 var pv: float = 0.0
@@ -72,6 +78,10 @@ var _mana_max_connu: float = 0.0
 var _eliminations: int = 0
 var _degats_infliges: float = 0.0
 var _detruite: bool = false
+## La résurrection ne joue qu'une fois par partie.
+var _ressuscitee: bool = false
+## Temps écoulé depuis le dernier soin périodique.
+var _soin_cumul: float = 0.0
 ## Dégâts infligés par pas, pour `dps` : seuls les pas où la tour a infligé quelque chose y sont
 ## notés (instant du pas, dégâts), les plus anciens en tête.
 var _histo_temps: PackedFloat64Array = PackedFloat64Array()
@@ -134,6 +144,7 @@ func demarrer_manche(numero: int, composition: Composition, mult: Dictionary) ->
 	if composition != null:
 		_rng_familles.seed = composition.graine
 	_lire_mult(mult)
+	_soin_debut_de_manche()
 	_boss_en_cours = false
 	# Sans fin : le boss tombé ne doit pas redonner la victoire à chaque pas.
 	_boss_mort = false
@@ -153,6 +164,7 @@ func demarrer_boss(mult: Dictionary) -> void:
 	poses.vider()
 	allies.vider()
 	_lire_mult(mult)
+	_soin_debut_de_manche()
 	_boss_en_cours = true
 	_composition = null
 	_cumul_apparition = 0.0
@@ -208,6 +220,10 @@ func avancer(dt: float) -> void:
 	bilan_partie.pas(
 		maxf(pv, 0.0), _pv_max(), economie.argent, armes.size(), _eliminations - eliminations_avant
 	)
+	if pv <= 0.0 and _stats.resurrection > 0 and not _ressuscitee:
+		# Une seule fois par partie : relevée à ce pourcentage (borné à 100) du maximum de PV.
+		_ressuscitee = true
+		pv = _pv_max() * float(clampi(_stats.resurrection, 1, 100)) / 100.0
 	if pv <= 0.0:
 		pv = 0.0
 		_detruite = true
@@ -319,8 +335,10 @@ func _point_d_apparition() -> Vector2:
 
 
 func _pas_tour_et_ennemis(dt: float) -> void:
-	if _stats.regen > 0.0:
-		_soigner(_stats.regen * dt)
+	var regen := _stats.regen_totale(_temps)
+	if regen > 0.0:
+		_soigner(regen * dt)
+	_soin_periodique(dt)
 	mana = minf(mana + _mana_regen() * dt, mana_max())
 	var resultat := ennemis.avancer(dt, Vector2.ZERO, _rayon_tour, 1.0, 1.0)
 	mana_gagnee(float(resultat["siphon_mana"]))
@@ -330,8 +348,11 @@ func _pas_tour_et_ennemis(dt: float) -> void:
 		return
 	var attaquants: PackedInt32Array = resultat["attaquants_cac"]
 	var chance := Combat.chance_esquive(_stats.esquive, _esquive_k)
+	var passe := 1.0 - minf(_stats.epines_reduction, REDUCTION_CAC_MAX)
+	var ratio_epines := _stats.ratio_epines(_temps)
 	var subis := 0.0
 	var total_cac := 0.0
+	var soin_epines := 0.0
 	# Au corps à corps, chaque attaque est esquivée ou non (et ne déclenche les épines que si elle
 	# touche). `Ennemis.avancer` ne rend que la somme des attaques à distance : elles forment un
 	# seul tirage par pas.
@@ -340,16 +361,15 @@ func _pas_tour_et_ennemis(dt: float) -> void:
 		total_cac += coup
 		if _esquive(chance):
 			continue
-		subis += coup
-		if _stats.epines > 0.0:
-			var renvoyes := ennemis.infliger(i, _stats.epines * coup, Types.TypeDegats.CHAOS)
-			_degats_infliges += renvoyes
-			bilan_partie.epines(renvoyes)
+		subis += coup * passe
+		soin_epines += _renvoyer(i, coup, ratio_epines)
+		_poser_statuts(i, coup)
 	var a_distance := total - total_cac
 	if a_distance > EPSILON_DEGATS and not _esquive(chance):
 		subis += a_distance
-	var apres_armure := Combat.degats_subis(subis, _armure_tour + _stats.armure)
-	# Ordre : esquive, armure, mana, PV. Un point de mana absorbe un point de dégât.
+	var apres_armure := Combat.degats_subis(subis, _armure_tour + _stats.armure_totale(_temps))
+	# Ordre : esquive, réduction des épines, armure, mana, PV. Un point de mana absorbe un point de
+	# dégât.
 	var absorbe := minf(mana, apres_armure)
 	if absorbe > 0.0:
 		if mana - absorbe <= 0.0:
@@ -368,6 +388,66 @@ func _pas_tour_et_ennemis(dt: float) -> void:
 	if apres_armure - absorbe > 0.0:
 		bilan_partie.perte_pv()
 	pv -= apres_armure - absorbe
+	_soigner(soin_epines)
+
+
+## Les épines frappent l'attaquant `i` de `ratio` fois son coup, plus `epines_premier_coup` la
+## première fois ; rend les PV que `epines_soin` en tire.
+func _renvoyer(i: int, coup: float, ratio: float) -> float:
+	var total := ratio
+	var premier := ennemis.renvoye[i] == 0
+	if premier:
+		total += _stats.epines_premier_coup
+	if not total > 0.0:
+		return 0.0
+	ennemis.renvoye[i] = 1
+	var renvoyes := ennemis.infliger(i, total * coup, Types.TypeDegats.CHAOS)
+	_degats_infliges += renvoyes
+	bilan_partie.epines(renvoyes)
+	return renvoyes * _stats.epines_soin
+
+
+## Poison, brûlure, givre et étourdissement que les épines et la riposte posent sur l'attaquant
+## qui a touché : la valeur de la statistique est la durée en secondes (le givre se cumule d'un
+## cran par coup).
+func _poser_statuts(i: int, coup: float) -> void:
+	if _stats.epines_statut.is_empty() and _stats.riposte_statut.is_empty():
+		return
+	for statut: String in STATUTS_RIPOSTE:
+		var duree := (
+			float(_stats.epines_statut.get(statut, 0.0))
+			+ float(_stats.riposte_statut.get(statut, 0.0))
+		)
+		if not duree > 0.0:
+			continue
+		match statut:
+			"poison":
+				ennemis.empoisonner(i, coup * STATUT_RIPOSTE_RATIO, duree)
+			"brulure":
+				ennemis.bruler(i, STATUT_RIPOSTE_RATIO, coup, duree)
+			"givre":
+				ennemis.givrer(i, _resistance)
+			"etourdissement":
+				ennemis.etourdir(i, duree, _resistance)
+
+
+## `soin_periodique` : `ratio × PV maximum` tous les `tous_les` secondes de partie.
+func _soin_periodique(dt: float) -> void:
+	var tous_les := float(_stats.soin_periodique["tous_les"])
+	var ratio := float(_stats.soin_periodique["ratio"])
+	if not tous_les > 0.0 or not ratio > 0.0:
+		return
+	_soin_cumul += dt
+	while _soin_cumul + EPSILON_TEMPS >= tous_les:
+		_soin_cumul = maxf(_soin_cumul - tous_les, 0.0)
+		_soigner(ratio * _pv_max())
+
+
+## `soin_pv_manquants` : au début de chaque manche, ce ratio des PV manquants.
+func _soin_debut_de_manche() -> void:
+	var ratio := clampf(_stats.soin_pv_manquants, 0.0, 1.0)
+	if ratio > 0.0 and pv < _pv_max():
+		_soigner((_pv_max() - pv) * ratio)
 
 
 ## Le hasard n'est consommé que si une chance existe : sans esquive, la suite des tirages ne
@@ -598,7 +678,7 @@ func vue(
 	v.tour_pv_max = _pv_max()
 	v.tour_mana = mana
 	v.tour_mana_max = mana_max()
-	v.tour_armure = _armure_tour + _stats.armure
+	v.tour_armure = _armure_tour + _stats.armure_totale(_temps)
 	v.argent = economie.argent
 	v.revenu = economie.revenu_par_periode(_manche, _stats, _temps)
 	v.revenu_dans = economie.temps_avant_versement()
@@ -639,7 +719,8 @@ func tick_courant() -> int:
 
 
 func _pv_max() -> float:
-	return float(_donnees.partie["tour"]["pv"]) + _stats.pv_max_bonus
+	var base := float(_donnees.partie["tour"]["pv"]) + _stats.pv_max_bonus
+	return maxf(base * _stats.pv_max_mult, 1.0)
 
 
 ## Mana maximale : la valeur de départ des données (0) plus les améliorations.

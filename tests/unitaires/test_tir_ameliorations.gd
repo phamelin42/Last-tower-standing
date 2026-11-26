@@ -346,3 +346,29 @@ func test_un_produit_sous_le_plafond_n_est_pas_tronque() -> void:
 	stats.degats_classe = {"portee_courte": 0.5}
 	var def := _arme_de_classe("portee_courte")
 	_p(_degats_du_tir(def), 10.0 * 1.5 * 1.2 * 1.5, "produit exact")
+
+
+# --- Dégâts selon les PV maximum de la tour (T9.11) --------------------------------------------
+
+
+func test_degats_par_pv_max_ajoute_son_ratio_par_tranche_de_mille_pv() -> void:
+	stats.degats_par_pv_max = 0.1
+	var def := _arme_de_classe("aucune")
+	for cas: Array in [[0.0, 10.0], [1000.0, 11.0], [2500.0, 12.5], [5000.0, 15.0]]:
+		var lecture := Tir.Lecture.new()
+		lecture.pv_max_tour = float(cas[0])
+		_p(_degats_du_tir(def, lecture), float(cas[1]), "%s PV max" % cas[0])
+	stats.degats_par_pv_max = 0.0
+	var lecture_neutre := Tir.Lecture.new()
+	lecture_neutre.pv_max_tour = 5000.0
+	_p(_degats_du_tir(def, lecture_neutre), 10.0, "sans l'amélioration : neutre")
+
+
+func test_degats_par_pv_max_reste_sous_le_plafond_du_produit() -> void:
+	var plafond := float((d.partie["ameliorations"] as Dictionary)["facteur_degats_max"])
+	stats.degats_par_pv_max = 1.0
+	stats.degats_global = 3.0
+	var def := _arme_de_classe("aucune")
+	var lecture := Tir.Lecture.new()
+	lecture.pv_max_tour = 100000.0
+	_p(_degats_du_tir(def, lecture), 10.0 * plafond, "borné à ×plafond")

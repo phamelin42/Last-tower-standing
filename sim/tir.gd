@@ -178,6 +178,7 @@ static func _creer(
 			temps_s, communes[0] + communes[1] + communes[2] + communes[3] + communes[4]
 		)
 		* stats.facteur_classe(arme.def)
+		* stats.facteur_pv_max(vue_tour.pv_max_tour)
 	)
 	ctx.degats_base = brut * facteur_degats(ctx, 0)
 	ctx.statuts = arme.def.get("statuts", [])
