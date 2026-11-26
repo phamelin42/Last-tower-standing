@@ -66,6 +66,15 @@ const BOIS := Color("a8743b")
 const BOIS_SOMBRE := Color("5c3a1e")
 const PLUME := Color("d24a43")
 
+## Chaos : violet, magenta, or et verre bleuté.
+const CHAOS_VIOLET := Color("8a3fd0")
+const CHAOS_MAGENTA := Color("e0409a")
+const CHAOS_NUIT := Color("2a1245")
+const CHAOS_OR := Color("ffd24a")
+const CHAOS_OR_BRUN := Color("a8631a")
+const VERRE_PALE := Color("d9f2ff")
+const VERRE_BLEU := Color("7fb8e0")
+
 ## Nom de la planche : taille d'une image et nombre d'images.
 const PLANCHES: Dictionary = {
 	"boule_feu": {"taille": Vector2i(16, 16), "images": 4},
@@ -110,6 +119,16 @@ const PLANCHES: Dictionary = {
 	"rocher": {"taille": Vector2i(14, 12), "images": 1},
 	"cratere": {"taille": Vector2i(32, 32), "images": 6},
 	"mine_forge": {"taille": Vector2i(16, 12), "images": 2},
+	"de_pipe": {"taille": Vector2i(12, 12), "images": 4},
+	"eclat_des": {"taille": Vector2i(24, 24), "images": 4},
+	"sablier": {"taille": Vector2i(10, 16), "images": 2},
+	"tourbillon_sable": {"taille": Vector2i(32, 32), "images": 6},
+	"eclat_miroir": {"taille": Vector2i(12, 12), "images": 4},
+	"gerbe_verre": {"taille": Vector2i(24, 24), "images": 5},
+	"vague_verre": {"taille": Vector2i(16, 32), "images": 1},
+	"eclat_verre": {"taille": Vector2i(4, 4), "images": 2},
+	"engrenage": {"taille": Vector2i(12, 12), "images": 2},
+	"eclat_engrenage": {"taille": Vector2i(24, 24), "images": 4},
 }
 
 
