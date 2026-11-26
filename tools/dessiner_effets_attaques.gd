@@ -20,6 +20,7 @@ const DESSINS: Array[GDScript] = [
 	preload("res://tools/dessin/dessins_poison.gd"),
 	preload("res://tools/dessin/dessins_arcane.gd"),
 	preload("res://tools/dessin/dessins_acier.gd"),
+	preload("res://tools/dessin/dessins_carreau.gd"),
 	preload("res://tools/dessin/dessins_partages.gd"),
 ]
 const ECHELLE_CONTACT: int = 4
@@ -39,6 +40,11 @@ const PROJECTILES: PackedStringArray = [
 	"faucille",
 	"disque_scie",
 	"lame_tournante",
+	"carreau",
+	"carreau_baliste",
+	"chausse_trape",
+	"pique",
+	"aiguille",
 ]
 
 

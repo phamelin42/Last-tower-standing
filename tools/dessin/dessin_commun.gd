@@ -52,6 +52,11 @@ const VAPEUR := Color("aab2c0")
 ## Éclair de départ, teinté par élément dans le jeu.
 const GRIS_CLAIR := Color("d5dae3")
 
+## La famille du carreau (armes perçantes) : bois brun, acier, plume rouge.
+const BOIS := Color("a8743b")
+const BOIS_SOMBRE := Color("5c3a1e")
+const PLUME := Color("d24a43")
+
 ## Nom de la planche : taille d'une image et nombre d'images.
 const PLANCHES: Dictionary = {
 	"boule_feu": {"taille": Vector2i(16, 16), "images": 4},
@@ -79,6 +84,14 @@ const PLANCHES: Dictionary = {
 	"arc_lame": {"taille": Vector2i(12, 32), "images": 1},
 	"vapeur": {"taille": Vector2i(16, 16), "images": 3},
 	"eclat_acier": {"taille": Vector2i(24, 24), "images": 4},
+	"carreau": {"taille": Vector2i(16, 8), "images": 1},
+	"carreau_baliste": {"taille": Vector2i(24, 10), "images": 1},
+	"chausse_trape": {"taille": Vector2i(12, 12), "images": 1},
+	"pique": {"taille": Vector2i(12, 10), "images": 1},
+	"aiguille": {"taille": Vector2i(14, 4), "images": 1},
+	"plante": {"taille": Vector2i(12, 12), "images": 2},
+	"gerbe": {"taille": Vector2i(24, 24), "images": 4},
+	"pointes_sol": {"taille": Vector2i(32, 32), "images": 6},
 }
 
 
