@@ -25,9 +25,12 @@ const SCHEMA_JOUEUR: Dictionary = {
 	"victorieux": TYPE_BOOL,
 }
 
-## Champ facultatif d'un joueur : les dégâts par seconde (flottant). Un état qui ne l'a pas se relit
-## avec 0.0, pour que les lecteurs n'aient pas à tester sa présence.
-const CHAMPS_JOUEUR_FACULTATIFS: Dictionary = {"dps": TYPE_FLOAT}
+## Champs facultatifs d'un joueur : les dégâts par seconde, les PV et les PV max de sa tour
+## (flottants). Un état qui ne les a pas se relit avec 0.0, pour que les lecteurs n'aient pas à
+## tester leur présence.
+const CHAMPS_JOUEUR_FACULTATIFS: Dictionary = {
+	"dps": TYPE_FLOAT, "pv": TYPE_FLOAT, "pv_max": TYPE_FLOAT
+}
 
 ## Carte de densité d'une arène : 16 × 16 cases, ligne par ligne, un octet par case.
 const DENSITE_OCTETS := 256
@@ -120,8 +123,9 @@ static func _copie_joueurs(valeur: Variant) -> Array[Dictionary]:
 	for item: Variant in liste:
 		var entree: Dictionary = item
 		var joueur: Dictionary = entree.duplicate(true)
-		if not joueur.has("dps"):
-			joueur["dps"] = 0.0
+		for cle: String in CHAMPS_JOUEUR_FACULTATIFS:
+			if not joueur.has(cle):
+				joueur[cle] = 0.0
 		copie.append(joueur)
 	return copie
 

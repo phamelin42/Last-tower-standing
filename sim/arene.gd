@@ -36,6 +36,8 @@ var pv: float = 0.0
 ## Mana de la tour, entre 0 et `mana_max()` : elle absorbe les coups avant les PV.
 var mana: float = 0.0
 var ennemis: Ennemis
+## Zones posées et bombes : elles disparaissent avec la manche et la tour.
+var poses: Poses
 var economie: Economie
 var inventaire: Inventaire
 var boutique: Boutique
@@ -94,6 +96,7 @@ func _init(donnees: Donnees, graine: int) -> void:
 	_baisse_par_manche = float(partie["spawn_baisse_par_manche"])
 	_plancher = float(partie["spawn_plancher"])
 	ennemis = Ennemis.new(donnees)
+	poses = Poses.new(donnees)
 	economie = Economie.new(donnees)
 	inventaire = Inventaire.new(donnees)
 	boutique = Boutique.new(donnees, _rng)
@@ -117,6 +120,7 @@ func demarrer_manche(numero: int, composition: Composition, mult: Dictionary) ->
 	_manche = maxi(numero, 0)
 	_manche_max = maxi(_manche_max, _manche)
 	_composition = composition
+	poses.vider()
 	if composition != null:
 		_rng_familles.seed = composition.graine
 	_lire_mult(mult)
@@ -134,6 +138,7 @@ func demarrer_boss(mult: Dictionary) -> void:
 		return
 	_manche = maxi(_manche, int(_donnees.partie["manche_boss"]))
 	_manche_max = maxi(_manche_max, _manche)
+	poses.vider()
 	_lire_mult(mult)
 	_boss_en_cours = true
 	_composition = null
@@ -181,12 +186,14 @@ func avancer(dt: float) -> void:
 	_faire_apparaitre(dt)
 	_pas_tour_et_ennemis(dt)
 	_pas_armes(dt)
+	_pas_poses(dt)
 	_noter_degats(_degats_infliges - degats_avant)
 	_purger()
 	_pv_borne()
 	if pv <= 0.0:
 		pv = 0.0
 		_detruite = true
+		poses.vider()
 		tour_detruite.emit()
 
 
@@ -201,6 +208,11 @@ func _noter_degats(degats: float) -> void:
 	if perimes > 0:
 		_histo_temps = _histo_temps.slice(perimes)
 		_histo_degats = _histo_degats.slice(perimes)
+
+
+## PV maximum de la tour au moment de l'appel (lu par la vue globale).
+func tour_pv_max() -> float:
+	return _pv_max()
 
 
 ## Dégâts infligés par seconde sur les `FENETRE_DPS_S` dernières secondes, épines comprises ;
@@ -348,10 +360,24 @@ func _pas_armes(dt: float) -> void:
 	lecture.temps_s = _temps
 	lecture.exemplaires = inventaire.comptes_armes()
 	lecture.ameliorations_par_stat = inventaire.comptes_stats()
+	lecture.poses = poses
 	for arme: ArmeEquipee in armes:
 		Tir.avancer_arme(
 			arme, dt, _stats, ennemis, Vector2.ZERO, _donnees, _rng, _resistance, bilan, lecture
 		)
+	_degats_infliges += bilan.degats
+	pv = minf(pv + bilan.soin, _pv_max())
+	mana_gagnee(bilan.mana)
+	for e: Dictionary in bilan.evenements:
+		e["t"] = _tick
+		_ajouter_evenement(e)
+
+
+## Les impulsions des zones et l'explosion des bombes, sur les ennemis de l'arène.
+func _pas_poses(dt: float) -> void:
+	if poses.zones.is_empty() and poses.bombes.is_empty():
+		return
+	var bilan := poses.avancer(dt, ennemis, _stats, Vector2.ZERO, _donnees, _resistance)
 	_degats_infliges += bilan.degats
 	pv = minf(pv + bilan.soin, _pv_max())
 	mana_gagnee(bilan.mana)
@@ -515,6 +541,7 @@ func vue(
 	v.ameliorations = inventaire.ameliorations.duplicate(true)
 	v.marche_noir_ouvert = _stats.marche_noir - inventaire.jetons_marche_noir_utilises > 0
 	ennemis.vers_vue(v)
+	poses.vers_vue(v)
 	v.evenements = _evenements
 	_evenements = []
 	v.eliminations = _eliminations
