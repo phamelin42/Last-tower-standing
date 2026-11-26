@@ -22,6 +22,7 @@ Spécification : `docs/superpowers/specs/2026-11-24-jeu-tour-design.md`. Plan :
 | `tools/install-gdtoolkit.sh`                                   | Installe gdlint et gdformat 4.x dans un venv                               |
 | `godot --headless --path . --script res://tests/lanceur.gd --` | Lanceur de tests (`-- --filtre test_<fichier>` pour un test ciblé)         |
 | `tools/stress-import-csv.sh [--threads]`                       | Imports à froid en boucle, 400 CSV : rejoue le plantage de godot#125712    |
+| `tools/capturer.sh res://<scène>`                              | Rend une scène sans écran en images PNG et en planche-contact, à regarder  |
 
 ## Structure
 
@@ -53,6 +54,8 @@ Spécification : `docs/superpowers/specs/2026-11-24-jeu-tour-design.md`. Plan :
 - Écrire le test, le voir échouer pour la bonne raison, puis implémenter.
 - Ne toucher qu'aux fichiers de sa tâche. Une interface fausse chez un voisin se signale, elle ne se corrige pas.
 - Avant de rendre une tâche : `tools/verifier.sh` vert, `gdlint` et `gdformat --check` verts sur ce qui a changé.
+- Outils de dessin, d'animation et bibliothèques : gratuits et open source seulement (licence OSI) ;
+  Aseprite et les générateurs d'images par IA sont exclus (Phil, 26/11/2026).
 - Sons et ressources sonores : l'agent choisit lui-même un pack sous licence CC0, sans attendre Phil, une fois la licence vérifiée à sa source et citée dans `assets/sons/SOURCES.md` (Phil, 26/11/2026).
 
 ## Skills de jeu tiers
@@ -61,8 +64,8 @@ Douze skills de `.claude/skills/` viennent de dépôts tiers (source et commit d
 relus fichier par fichier avant d'entrer ; le choix est expliqué dans `docs/skills-claude/`. Ils sont
 génériques et en anglais : ce fichier et les règles de dépendance l'emportent.
 
-- Améliorer une animation d'attaque ou de sort : lire d'abord `docs/skills-claude/animation-et-vfx.md`
-  (phases, nombres d'images, lisibilité, limites de flash, avec leurs sources) ; aucun skill ne le couvre.
+- Animation d'attaque, de tir, d'impact ou de sort : skill local `animer-attaques-sorts` (principes
+  chiffrés, capture avant et après par `tools/capturer.sh`, outils libres).
 - Hit-stop, ralenti, gel d'impact : purement visuels, en suspendant l'animation et l'interpolation dans
   `visuels/` ; la simulation à 20 Hz et le réseau gardent le temps réel. `game-feel` passe par
   `Engine.time_scale` : remplacer ce passage par le gel visuel.
@@ -71,8 +74,6 @@ génériques et en anglais : ce fichier et les règles de dépendance l'emporten
 - `godot-gdscript-headless-testing` : ses pièges de code de sortie et d'`await` valent pour
   `tests/lanceur.gd`, qui reste le seul lanceur.
 - Leurs exemples ne sont pas tous typés : typer en recopiant.
-- Le projet rend en Forward+ ; une capture sous Xvfb (`--rendering-driver opengl3`) rend en
-  Compatibility, qui n'affiche pas les traînées de particules : le rendu final se juge sur un vrai écran.
 - Ajouter ou mettre à jour un skill tiers : le lire en entier, scripts compris, puis
   `DISABLE_TELEMETRY=1 DO_NOT_TRACK=1 npx -y skills@1.9.0 add <source> --skill <nom> -a claude-code --copy -y`
   (sans ces variables, l'outil envoie un événement à skills.sh), relire le `git diff`, passer Prettier
