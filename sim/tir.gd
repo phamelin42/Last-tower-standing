@@ -11,6 +11,10 @@ extends RefCounted
 ## Rayon de l'éclaboussure autour de la cible d'un tir à cible unique.
 const RAYON_ECLABOUSSURE := 80.0
 
+## Plafond des bonus « selon » (en multiple des dégâts de base) quand l'appelant n'en donne pas : la
+## valeur de départ de `partie.json` `armes.bonus_selon_stat_max`.
+const BONUS_SELON_STAT_MAX_DEFAUT := 4.0
+
 
 ## Ce qu'un pas a produit, pour l'arène : dégâts réellement infligés, ennemis tués par un coup
 ## de l'arme, soin de la tour, évènements de rendu (le tick est posé par l'arène).
@@ -21,6 +25,17 @@ class Bilan:
 	## Mana gagnée par le pas (`mana_au_coup`), à verser à la tour par `Arene.mana_gagnee`.
 	var mana: float = 0.0
 	var evenements: Array[Dictionary] = []
+
+
+## Ce que la tour sait de son inventaire et de la partie, lu une fois par pas par l'arène : sans lui
+## (les tests de tir), une arme n'a ni PV maximum, ni exemplaires, ni améliorations à compter.
+class Lecture:
+	var pv_max_tour: float = 0.0
+	var temps_s: float = 0.0
+	## id d'arme → nombre d'exemplaires équipés.
+	var exemplaires: Dictionary = {}
+	## stat d'amélioration → nombre d'améliorations possédées qui la portent (chaque achat compte).
+	var ameliorations_par_stat: Dictionary = {}
 
 
 ## Ce qui est commun à toutes les résolutions d'un même pas.
@@ -47,6 +62,7 @@ class Contexte:
 	var coef_exces: float
 	## Part du repoussement qui s'applique au boss (`partie.json` `repoussement.facteur_boss`).
 	var facteur_boss_repoussement: float
+	var pv_max_tour: float = 0.0
 
 
 static func avancer_arme(
@@ -58,11 +74,12 @@ static func avancer_arme(
 	donnees: Donnees,
 	rng: RandomNumberGenerator,
 	resistance: float,
-	bilan: Bilan
+	bilan: Bilan,
+	lecture: Lecture = null
 ) -> void:
 	if not dt > 0.0 or not is_finite(dt):
 		return
-	var ctx := _creer(arme, stats, ennemis, centre, donnees, rng, resistance, bilan)
+	var ctx := _creer(arme, stats, ennemis, centre, donnees, rng, resistance, bilan, lecture)
 	var effets: Array = arme.def["effets"]
 	_avancer_ondes(ctx, effets, dt)
 	_declencher_mines(ctx, effets)
@@ -94,7 +111,8 @@ static func _creer(
 	donnees: Donnees,
 	rng: RandomNumberGenerator,
 	resistance: float,
-	bilan: Bilan
+	bilan: Bilan,
+	lecture: Lecture
 ) -> Contexte:
 	var ctx := Contexte.new()
 	ctx.arme = arme
@@ -105,10 +123,19 @@ static func _creer(
 	ctx.resistance = resistance
 	ctx.bilan = bilan
 	ctx.type_degats = int(arme.def["type_degats"])
-	# Une arme de mana ajoute `ratio × mana maximale` aux dégâts de base, avant les multiplicateurs.
 	var mana_max := float(donnees.partie["tour"]["mana_max"]) + stats.mana_max_bonus
-	var brut := (
-		float(arme.def["degats"]) + float(arme.def.get("degats_par_mana_max", 0.0)) * mana_max
+	var vue_tour := lecture if lecture != null else Lecture.new()
+	ctx.pv_max_tour = vue_tour.pv_max_tour
+	var plafond: float = float(donnees.partie["armes"]["bonus_selon_stat_max"])
+	var brut := degats_de_base(
+		arme.def,
+		stats,
+		vue_tour.pv_max_tour,
+		int(vue_tour.exemplaires.get(arme.id, 1)),
+		vue_tour.ameliorations_par_stat,
+		vue_tour.temps_s,
+		mana_max,
+		plafond
 	)
 	ctx.degats_base = brut * stats.degats_type[ctx.type_degats] * stats.degats_global
 	ctx.statuts = arme.def.get("statuts", [])
@@ -124,6 +151,46 @@ static func _creer(
 
 
 # --- Aides communes ----------------------------------------------------------------------------
+
+
+## Dégâts de base d'une arme avant les bonus de type et global : ses dégâts, plus `ratio × mana
+## maximale` (T8.7), plus la somme des trois bonus « selon » (`degats_par_pv_max × PV maximum de la
+## tour`, `degats_par_exemplaire × (exemplaires − 1) × dégâts`, `ratio × améliorations possédées
+## portant la stat × dégâts`) bornée à `bonus_max × dégâts` ; le tout multiplié par le facteur
+## d'épines pour une arme dont `type_secondaire` est « epines ». Fonction pure : un champ absent ou
+## nul ne change rien, un nombre non fini est ignoré.
+static func degats_de_base(
+	arme: Dictionary,
+	stats: StatsTour,
+	pv_max_tour: float,
+	exemplaires: int,
+	ameliorations_par_stat: Dictionary,
+	temps_s: float,
+	mana_max: float = 0.0,
+	bonus_max: float = BONUS_SELON_STAT_MAX_DEFAUT
+) -> float:
+	var base := float(arme.get("degats", 0.0))
+	var total := base
+	total += _positif(float(arme.get("degats_par_mana_max", 0.0))) * _positif(mana_max)
+	var selon := _positif(float(arme.get("degats_par_pv_max", 0.0))) * _positif(pv_max_tour)
+	selon += (
+		_positif(float(arme.get("degats_par_exemplaire", 0.0)))
+		* float(maxi(exemplaires - 1, 0))
+		* base
+	)
+	var par_amelioration: Dictionary = arme.get("degats_par_amelioration", {})
+	if not par_amelioration.is_empty():
+		var nombre := int(ameliorations_par_stat.get(String(par_amelioration.get("stat", "")), 0))
+		selon += _positif(float(par_amelioration.get("ratio", 0.0))) * float(maxi(nombre, 0)) * base
+	total += minf(selon, _positif(bonus_max) * base)
+	if String(arme.get("type_secondaire", "")) == "epines":
+		total *= stats.facteur_epines(temps_s)
+	return total
+
+
+## `x` s'il est fini et positif, sinon 0 : un ratio aberrant ne retire ni n'ajoute rien.
+static func _positif(x: float) -> float:
+	return x if x > 0.0 and is_finite(x) else 0.0
 
 
 ## Le premier statut qui se voit ; le vol de vie, invisible, ne passe qu'en dernier recours.

@@ -6,6 +6,13 @@ extends RefCounted
 ## Planchers qui évitent une division par zéro sur une donnée aberrante.
 const RECHARGE_MIN := 0.01
 const PRIX_MIN := 1
+## Valeurs de référence des armes « selon » : PV maximum de la tour, exemplaires équipés et
+## améliorations possédées qu'une partie type a à mi-course (comme la mana de référence du lot 8).
+const REFERENCE_PV_MAX_TOUR := 1000.0
+const REFERENCE_EXEMPLAIRES := 3
+const REFERENCE_AMELIORATIONS := 3
+## Plafond des bonus « selon », en multiple des dégâts de base (`partie.json` `armes`).
+const BONUS_SELON_STAT_MAX := 4.0
 
 
 static func tirs_par_seconde(arme: Dictionary) -> float:
@@ -26,14 +33,30 @@ static func cibles_estimees(arme: Dictionary) -> float:
 ## `mana_max` : la mana maximale de la tour, dont les armes de mana (`degats_par_mana_max`) tirent
 ## des dégâts en plus.
 static func dps_estime(arme: Dictionary, mana_max: float = 0.0) -> float:
-	var degats: float = arme.get("degats", 0.0)
-	degats += float(arme.get("degats_par_mana_max", 0.0)) * maxf(mana_max, 0.0)
+	var base: float = arme.get("degats", 0.0)
+	var degats := base + float(arme.get("degats_par_mana_max", 0.0)) * maxf(mana_max, 0.0)
+	degats += minf(_bonus_selon(arme, base), BONUS_SELON_STAT_MAX * base)
 	return degats * tirs_par_seconde(arme) * cibles_estimees(arme)
 
 
 static func rendement(arme: Dictionary, mana_max: float = 0.0) -> float:
 	var prix: int = arme.get("prix", PRIX_MIN)
 	return dps_estime(arme, mana_max) / float(maxi(prix, PRIX_MIN))
+
+
+## Les trois bonus « selon » aux valeurs de référence ; zéro pour une arme qui n'en a pas.
+static func _bonus_selon(arme: Dictionary, base: float) -> float:
+	var selon := maxf(float(arme.get("degats_par_pv_max", 0.0)), 0.0) * REFERENCE_PV_MAX_TOUR
+	selon += (
+		maxf(float(arme.get("degats_par_exemplaire", 0.0)), 0.0)
+		* float(REFERENCE_EXEMPLAIRES - 1)
+		* base
+	)
+	var par_amelioration: Dictionary = arme.get("degats_par_amelioration", {})
+	if not par_amelioration.is_empty():
+		var ratio := maxf(float(par_amelioration.get("ratio", 0.0)), 0.0)
+		selon += ratio * float(REFERENCE_AMELIORATIONS) * base
+	return selon
 
 
 static func _cibles_effet(effet: Dictionary) -> float:
