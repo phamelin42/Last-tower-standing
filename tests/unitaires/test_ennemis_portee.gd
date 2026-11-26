@@ -244,7 +244,7 @@ func test_mille_tonneaux_au_contact_sous_5_ms_par_pas() -> void:
 	# rapides mesurent le coût du code ; une vraie régression, elle, ralentit chacun d'eux.
 	var triees := durees.duplicate()
 	triees.sort()
-	var rapide_ms := float(triees[pas / 10]) / 1000.0
+	var rapide_ms := MesurePas.centile_bas_ms(durees)
 	var mediane_ms := float(triees[pas / 2]) / 1000.0
 	var total := 0
 	for duree: int in durees:
