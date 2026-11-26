@@ -400,7 +400,7 @@ func avancer(delta: float) -> void:
 		if age >= float(effet["duree"]):
 			_liberer(i)
 		else:
-			_poser(effet)
+			PoseEffets.poser(effet)
 	_avancer_attentes(delta)
 	_etincelles.avancer(delta)
 	_elementaires.avancer(delta)
@@ -480,7 +480,7 @@ func _tir(
 			return false
 		objet["depart"] = arrivee
 		objet["taille"] = TAILLE_PROJECTILE * 1.4
-		_poser(objet)
+		PoseEffets.poser(objet)
 		return true
 	var forme: String = rendu_arme["projectile"]
 	if forme == "":
@@ -495,7 +495,7 @@ func _tir(
 	effet["depart"] = depart
 	effet["arrivee"] = arrivee
 	effet["taille"] = taille
-	_poser(effet)
+	PoseEffets.poser(effet)
 	if _tirs_en_vol.size() < PLAFOND:
 		(
 			_tirs_en_vol
@@ -554,7 +554,7 @@ func _trainee(forme: String, depart: Vector2, arrivee: Vector2, couleur: Color) 
 		return
 	effet["depart"] = depart
 	effet["arrivee"] = arrivee
-	_poser(effet)
+	PoseEffets.poser(effet)
 
 
 ## Un impact qui répond à un tir du même lot attend l'arrivée du projectile ; un saut de rebond
@@ -657,7 +657,7 @@ func _impact_maintenant(
 		if not effet.is_empty():
 			effet["depart"] = arrivee
 			effet["taille"] = maxf(rayon * Apparence.PX_PAR_UNITE * 2.0, TAILLE_IMPACT)
-			_poser(effet)
+			PoseEffets.poser(effet)
 			cree = true
 	elif saut:
 		# Le premier saut part de la tour, que le tir a déjà tracée : seul le trait des suivants.
@@ -731,7 +731,7 @@ func _burst(
 			effet["taille"] = taille if not explose else minf(taille, TAILLE_IMPACT)
 			if explose:
 				_geler(effet, CourbesEffets.IMAGES_MONTEE_IMPACT * IMAGE)
-			_poser(effet)
+			PoseEffets.poser(effet)
 			cree = true
 	return cree
 
@@ -747,7 +747,7 @@ func _trait(
 		return false
 	effet["depart"] = depart
 	effet["arrivee"] = arrivee
-	_poser(effet)
+	PoseEffets.poser(effet)
 	return true
 
 
@@ -763,7 +763,7 @@ func _absorption(ou: Vector2) -> bool:
 	_pause_absorption = INTERVALLE_ABSORPTION
 	effet["depart"] = ou
 	effet["taille"] = TAILLE_ABSORPTION
-	_poser(effet)
+	PoseEffets.poser(effet)
 	return true
 
 
@@ -777,7 +777,7 @@ func _statut(statut: String, ou: Vector2) -> bool:
 		soin["depart"] = ou
 		soin["arrivee"] = Vector2.ZERO
 		soin["taille"] = TAILLE_IMPACT * 0.6
-		_poser(soin)
+		PoseEffets.poser(soin)
 		return true
 	if statut == "brulure":
 		var feu: Dictionary = _creer("feu", "image", DUREE_FEU, Color.WHITE, COUCHE_DESSUS)
@@ -785,7 +785,7 @@ func _statut(statut: String, ou: Vector2) -> bool:
 			return false
 		feu["depart"] = ou
 		feu["taille"] = TAILLE_IMPACT
-		_poser(feu)
+		PoseEffets.poser(feu)
 		return true
 	var couleur: Color = couleur_statut(statut)
 	var effet: Dictionary = _creer(forme, "statut", DUREE_STATUT, couleur, COUCHE_DESSUS)
@@ -793,7 +793,7 @@ func _statut(statut: String, ou: Vector2) -> bool:
 		return false
 	effet["depart"] = ou
 	effet["taille"] = TAILLE_IMPACT
-	_poser(effet)
+	PoseEffets.poser(effet)
 	return true
 
 
@@ -807,7 +807,7 @@ func _explosion(ou: Vector2, rayon: float) -> Dictionary:
 	effet["depart"] = ou
 	effet["taille"] = rayon * Apparence.PX_PAR_UNITE * 2.0
 	_geler(effet, AGE_PIC_EXPLOSION)
-	_poser(effet)
+	PoseEffets.poser(effet)
 	return effet
 
 
@@ -846,125 +846,6 @@ func _creer(forme: String, anim: String, duree: float, couleur: Color, couche: i
 	}
 	_vivants.append(effet)
 	return effet
-
-
-# --- Mouvement ---------------------------------------------------------------------------------
-
-
-func _poser(effet: Dictionary) -> void:
-	var noeud: Sprite2D = effet["n"]
-	var age: float = effet["age"]
-	var t: float = clampf(age / float(effet["duree"]), 0.0, 1.0)
-	var depart: Vector2 = effet["depart"]
-	var arrivee: Vector2 = effet["arrivee"]
-	var taille: float = effet["taille"]
-	var forme: String = effet["forme"]
-	var couleur: Color = effet["couleur"]
-	var alpha: float = ALPHA_MAX
-	var reduit: bool = effet["reduit"]
-	var gele: bool = float(effet["gel"]) > 0.0
-	match String(effet["anim"]):
-		"vol":
-			noeud.position = depart.lerp(arrivee, t)
-			var sens: Vector2 = arrivee - depart
-			_orienter_vol(noeud, forme, sens, t, taille)
-			noeud.scale *= CourbesEffets.echelle_apparition_tir(age)
-		"burst", "absorption":
-			noeud.position = depart
-			var grandeur: float = CourbesEffets.echelle_impact(age, reduit)
-			noeud.scale = Vector2.ONE * _echelle(forme, taille) * grandeur
-			if String(effet["anim"]) == "burst":
-				couleur = couleur.lerp(Color.WHITE, CourbesEffets.blanc_impact(age, reduit, gele))
-			alpha = CourbesEffets.alpha_impact(age)
-		"statut":
-			noeud.position = depart
-			var tourne: bool = forme == "croix_plus" or forme == "flocon"
-			noeud.rotation = t * 0.8 if tourne and not reduit else 0.0
-			noeud.scale = (
-				Vector2.ONE * _echelle(forme, taille) * (1.0 if reduit else lerpf(0.3, 1.0, t))
-			)
-			noeud.scale *= CourbesEffets.echelle_apparition_statut(age, reduit)
-			alpha = lerpf(ALPHA_MAX, 0.0, t)
-		"anneau":
-			noeud.position = depart
-			var ouverture: float = CourbesEffets.echelle_anneau(t, reduit)
-			noeud.scale = Vector2.ONE * _echelle("anneau", taille) * ouverture
-			alpha = CourbesEffets.alpha_anneau(t)
-		"trait", "saut":
-			var sens: Vector2 = arrivee - depart
-			noeud.position = depart.lerp(arrivee, 0.5)
-			noeud.rotation = sens.angle()
-			var epaisseur: float = 1.0
-			if FORMES_PROPRES.has(forme):
-				epaisseur = EPAISSEUR_TRAIT / 8.0
-			else:
-				epaisseur = ECHELLE_TRAINEE
-			noeud.scale = Vector2(maxf(sens.length(), 1.0) / 64.0, epaisseur)
-			alpha = lerpf(ALPHA_MAX, 0.0, t)
-			if String(effet["anim"]) == "saut":
-				# Allumé blanc la première image, puis la couleur de l'arme qui s'éteint en t².
-				if age < IMAGE:
-					couleur = Color.WHITE
-				alpha = lerpf(ALPHA_MAX, 0.0, t * t)
-		"image":
-			noeud.position = depart
-			_image(effet, noeud, forme, t, taille)
-			if forme == "feu":
-				noeud.scale *= CourbesEffets.echelle_apparition_statut(age, reduit)
-		"sol":
-			noeud.position = depart
-			noeud.rotation = 0.0
-			noeud.scale = Vector2.ONE * _echelle(forme, taille)
-			var pouls: float = 0.5 + 0.5 * sin(age * 4.0)
-			alpha = lerpf(ALPHA_MAX * 0.6, ALPHA_MAX, pouls)
-	var voulue := Color(couleur, alpha)
-	if noeud.modulate != voulue:
-		noeud.modulate = voulue
-
-
-func _orienter_vol(noeud: Sprite2D, forme: String, sens: Vector2, t: float, taille: float) -> void:
-	var angle: float = sens.angle() if sens.length() > 0.001 else 0.0
-	match forme:
-		"fleche":
-			noeud.rotation = angle
-			noeud.scale = Vector2.ONE * ECHELLE_FLECHE
-		"dynamite":
-			noeud.position.y -= sin(t * PI) * ARC_DYNAMITE
-			noeud.rotation = t * TAU * 2.0
-			noeud.scale = Vector2.ONE * ECHELLE_DYNAMITE
-		"trait":
-			noeud.rotation = angle
-			noeud.scale = Vector2(taille * 2.2 / 64.0, EPAISSEUR_TRAIT / 8.0)
-		"losange", "shuriken", "spirale":
-			noeud.rotation = t * TAU * 2.0
-			noeud.scale = Vector2.ONE * _echelle(forme, taille)
-		_:
-			var pouls: float = 1.0 + 0.3 * sin(t * TAU * 2.0)
-			noeud.scale = Vector2.ONE * _echelle(forme, taille) * pouls
-
-
-## Images du pack lues d'un bout à l'autre sur la durée de l'effet.
-func _image(effet: Dictionary, noeud: Sprite2D, forme: String, t: float, taille: float) -> void:
-	var nb: int = IMAGES_EXPLOSION if forme == "explosion" else IMAGES_FEU
-	var case_px: int = CASE_EXPLOSION if forme == "explosion" else CASE_FEU
-	var image: int = mini(int(t * nb), nb - 1)
-	if image != int(effet["image"]):
-		effet["image"] = image
-		noeud.region_rect = Rect2(image * case_px, 0.0, case_px, case_px)
-	var visible_px: float = DIAMETRE_EXPLOSION if forme == "explosion" else float(case_px) * 0.6
-	noeud.scale = Vector2.ONE * taille / visible_px
-
-
-## Échelle qui donne à une forme (texture de 32 px, 64 px pour l'anneau) la taille voulue en pixels.
-func _echelle(forme: String, taille: float) -> float:
-	match forme:
-		"anneau":
-			return taille / 64.0
-		"mine", "dynamite":
-			return taille / REGION_DYNAMITE.size.y
-	if not FORMES_PROPRES.has(forme) and forme != "fleche" and forme != "explosion":
-		return taille / float(FormesSignatures.TAILLE)
-	return taille / 32.0
 
 
 # --- Pool --------------------------------------------------------------------------------------
