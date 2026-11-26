@@ -30,6 +30,9 @@ const COUCHE_SOL: int = 1
 const TAILLE_IMPACT: float = 90.0
 const TAILLE_PROJECTILE: float = 40.0
 const EPAISSEUR_TRAIT: float = 8.0
+## Les traînées de signature sont des bandeaux de 16 px aux traits fins : épaissies pour se lire
+## au dézoom maximal.
+const ECHELLE_TRAINEE: float = 3.0
 const ARC_DYNAMITE: float = 70.0
 const ECHELLE_FLECHE: float = 2.0
 const ECHELLE_DYNAMITE: float = 1.3
@@ -73,15 +76,44 @@ const COULEURS: Array[Color] = [
 	Color(0.72, 0.4, 0.88),
 ]
 ## L'éclat de l'absorption par la mana : bleu, plus large qu'un impact pour couvrir la tour.
+## Le soin du vol de vie : il remonte de l'ennemi vers la tour, vert menthe pour ne pas se
+## confondre avec le poison.
+const COULEUR_SOIN := Color(0.35, 1.0, 0.6)
+const DUREE_SOIN: float = 0.45
+## Taille d'un projectile à signature d'arme : plus large qu'un tir par type, pour se lire de loin.
+const TAILLE_SIGNATURE: float = 56.0
+## Formes que `Effets` dessine lui-même ; toutes les autres viennent de `FormesSignatures`.
+const FORMES_PROPRES: Array[String] = [
+	"trait",
+	"disque",
+	"halo",
+	"anneau",
+	"losange",
+	"entaille",
+	"pointes",
+	"etoile",
+	"flocon",
+	"croix_plus",
+	"bulles",
+	"piege",
+	"trait_ondule",
+	"trait_zigzag",
+]  # gdlint: ignore=max-line-length
 const COULEUR_ABSORPTION := Color(0.3, 0.6, 1.0)
 const TAILLE_ABSORPTION: float = 260.0
 const COULEURS_STATUT: Dictionary = {
 	"givre": Color(0.7, 0.9, 1.0),
 	"poison": Color(0.5, 0.82, 0.35),
 	"etourdissement": Color(1.0, 0.88, 0.35),
+	"brulure": Color(1.0, 0.55, 0.2),
+	"vol_de_vie": COULEUR_SOIN,
 }
 const FORMES_STATUT: Dictionary = {
-	"givre": "flocon", "poison": "bulles", "etourdissement": "croix_plus", "brulure": "feu"
+	"givre": "flocon",
+	"poison": "bulles",
+	"etourdissement": "croix_plus",
+	"brulure": "feu",
+	"vol_de_vie": "soin"
 }
 
 ## Textures de formes simples, dessinées une fois pour toutes (blanches : `modulate` les teinte).
@@ -89,6 +121,9 @@ static var _formes: Dictionary = {}
 
 ## Où poser les objets au sol (mines, pièges, flammes). Sans valeur : sous les autres effets.
 var parent_sol: Node2D = null
+## `Donnees.ids_catalogue` (posé par `Arene2D`) : traduit l'index `arme` d'un événement en arme,
+## donc en signature. Vide ou index inconnu : le rendu par type de dégâts.
+var catalogue: PackedStringArray = PackedStringArray()
 
 var _libres: Array = [[], []]
 var _vivants: Array[Dictionary] = []
@@ -191,6 +226,40 @@ func couleur_du_premier() -> Color:
 	return (_vivants[0]["n"] as Sprite2D).modulate
 
 
+## Départ et arrivée (pixels du monde) du premier effet vivant de cette forme ; vide sans elle.
+func trajet_de(forme: String) -> Array[Vector2]:
+	var trajet: Array[Vector2] = []
+	for e: Dictionary in _vivants:
+		if String(e["forme"]) == forme:
+			trajet.append(e["depart"])
+			trajet.append(e["arrivee"])
+			break
+	return trajet
+
+
+func couleur_de(forme: String) -> Color:
+	for e: Dictionary in _vivants:
+		if String(e["forme"]) == forme:
+			return (e["n"] as Sprite2D).modulate
+	return Color.BLACK
+
+
+## La couleur d'un statut (marque sur l'ennemi touché), `Color.WHITE` pour un statut inconnu.
+static func couleur_statut(statut: String) -> Color:
+	return COULEURS_STATUT.get(statut, Color.WHITE)
+
+
+## La signature de l'arme de l'événement, `{}` sans arme ou avec un index hors du catalogue.
+func _signature(evenement: Dictionary) -> Dictionary:
+	var index: Variant = evenement.get("arme")
+	if typeof(index) != TYPE_INT:
+		return {}
+	var rang: int = index
+	if rang < 0 or rang >= catalogue.size():
+		return {}
+	return SignaturesArmes.de(catalogue[rang])
+
+
 func taille_du_premier() -> float:
 	if _vivants.is_empty():
 		return 0.0
@@ -220,9 +289,10 @@ func ajouter(evenement: Dictionary) -> bool:
 	var statut: String = _nom_champ(evenement.get("statut", ""), VueArene.STATUTS_ARME)
 	if type_degats < 0 or type_degats >= PROJECTILES.size():
 		return false
+	var signature: Dictionary = _signature(evenement)
 	if k == "tir":
-		return _tir(type_degats, genre, de, vers)
-	return _impact(type_degats, genre, de, vers, rayon, statut)
+		return _tir(type_degats, genre, de, vers, signature)
+	return _impact(type_degats, genre, de, vers, rayon, statut, signature)
 
 
 ## Le genre et le statut arrivent en index (simulation, réseau) ; un nom est accepté tel quel. Une
@@ -262,9 +332,13 @@ func avancer(delta: float) -> void:
 # --- Création ----------------------------------------------------------------------------------
 
 
-func _tir(type_degats: int, genre: String, de: Vector2, vers: Vector2) -> bool:
+func _tir(
+	type_degats: int, genre: String, de: Vector2, vers: Vector2, signature: Dictionary = {}
+) -> bool:
 	var rendu_arme: Dictionary = rendu(type_degats, genre)
 	var couleur: Color = COULEURS[type_degats]
+	if not signature.is_empty():
+		couleur = signature["couleur"]
 	var depart: Vector2 = Apparence.vers_pixels(de)
 	var arrivee: Vector2 = Apparence.vers_pixels(vers)
 	var sol: String = rendu_arme["sol"]
@@ -279,20 +353,44 @@ func _tir(type_degats: int, genre: String, de: Vector2, vers: Vector2) -> bool:
 	var forme: String = rendu_arme["projectile"]
 	if forme == "":
 		return false
+	var taille: float = TAILLE_PROJECTILE
+	if not signature.is_empty():
+		forme = signature["projectile"]
+		taille = TAILLE_SIGNATURE
 	var effet: Dictionary = _creer(forme, "vol", DUREE_TIR, couleur, COUCHE_DESSUS)
 	if effet.is_empty():
 		return false
 	effet["depart"] = depart
 	effet["arrivee"] = arrivee
-	effet["taille"] = TAILLE_PROJECTILE
+	effet["taille"] = taille
 	_poser(effet)
+	if not signature.is_empty():
+		_trainee(String(signature["trainee"]), depart, arrivee, couleur)
 	return true
 
 
+## La traînée de la signature : un bandeau tendu du départ à l'arrivée, qui s'efface.
+func _trainee(forme: String, depart: Vector2, arrivee: Vector2, couleur: Color) -> void:
+	var effet: Dictionary = _creer(forme, "trait", DUREE_TIR, couleur, COUCHE_DESSUS)
+	if effet.is_empty():
+		return
+	effet["depart"] = depart
+	effet["arrivee"] = arrivee
+	_poser(effet)
+
+
 func _impact(
-	type_degats: int, genre: String, de: Vector2, vers: Vector2, rayon: float, statut: String
+	type_degats: int,
+	genre: String,
+	de: Vector2,
+	vers: Vector2,
+	rayon: float,
+	statut: String,
+	signature: Dictionary = {}
 ) -> bool:
 	var couleur: Color = COULEURS[type_degats]
+	if not signature.is_empty():
+		couleur = signature["couleur"]
 	var depart: Vector2 = Apparence.vers_pixels(de)
 	var arrivee: Vector2 = Apparence.vers_pixels(vers)
 	var cree: bool = false
@@ -311,24 +409,41 @@ func _impact(
 	elif saut:
 		# Le premier saut part de la tour, que le tir a déjà tracée : seul le trait des suivants.
 		if de.length() >= 1.0:
-			cree = _trait(type_degats, depart, arrivee, couleur)
+			cree = _trait(type_degats, depart, arrivee, couleur, signature)
 	else:
-		cree = _burst(type_degats, genre, arrivee, rayon, couleur)
+		cree = _burst(type_degats, genre, arrivee, rayon, couleur, signature)
 	if statut != "" and FORMES_STATUT.has(statut):
 		cree = _statut(statut, arrivee) or cree
 	return cree
 
 
-func _burst(type_degats: int, genre: String, ou: Vector2, rayon: float, couleur: Color) -> bool:
+func _burst(
+	type_degats: int,
+	genre: String,
+	ou: Vector2,
+	rayon: float,
+	couleur: Color,
+	signature: Dictionary = {}
+) -> bool:
 	var taille: float = rayon * Apparence.PX_PAR_UNITE * 2.0 if rayon > 0.0 else TAILLE_IMPACT
-	var explose: bool = type_degats == Types.TypeDegats.SIEGE or genre == "zone" or rayon > 0.0
+	var forme: String = IMPACTS[type_degats]
+	if not signature.is_empty():
+		forme = signature["impact"]
+	var explose: bool = (
+		type_degats == Types.TypeDegats.SIEGE
+		or genre == "zone"
+		or rayon > 0.0
+		or forme == "explosion"
+	)
 	var cree: bool = false
 	if explose:
 		cree = not _explosion(ou, taille * 0.5 / Apparence.PX_PAR_UNITE).is_empty()
-	if type_degats != Types.TypeDegats.SIEGE:
-		var effet: Dictionary = _creer(
-			IMPACTS[type_degats], "burst", DUREE_IMPACT, couleur, COUCHE_DESSUS
-		)
+	# Le siège garde l'explosion du pack seule, sauf si sa signature a une autre forme d'impact.
+	var dessine_forme: bool = type_degats != Types.TypeDegats.SIEGE
+	if not signature.is_empty():
+		dessine_forme = forme != "explosion"
+	if dessine_forme:
+		var effet: Dictionary = _creer(forme, "burst", DUREE_IMPACT, couleur, COUCHE_DESSUS)
 		if not effet.is_empty():
 			effet["depart"] = ou
 			effet["taille"] = taille if not explose else minf(taille, TAILLE_IMPACT)
@@ -337,10 +452,13 @@ func _burst(type_degats: int, genre: String, ou: Vector2, rayon: float, couleur:
 	return cree
 
 
-func _trait(type_degats: int, depart: Vector2, arrivee: Vector2, couleur: Color) -> bool:
-	var effet: Dictionary = _creer(
-		TRAITS[type_degats], "trait", DUREE_TRAIT, couleur, COUCHE_DESSUS
-	)
+func _trait(
+	type_degats: int, depart: Vector2, arrivee: Vector2, couleur: Color, signature: Dictionary = {}
+) -> bool:
+	var forme: String = TRAITS[type_degats]
+	if not signature.is_empty():
+		forme = signature["trainee"]
+	var effet: Dictionary = _creer(forme, "trait", DUREE_TRAIT, couleur, COUCHE_DESSUS)
 	if effet.is_empty():
 		return false
 	effet["depart"] = depart
@@ -362,6 +480,16 @@ func _absorption(ou: Vector2) -> bool:
 
 func _statut(statut: String, ou: Vector2) -> bool:
 	var forme: String = FORMES_STATUT[statut]
+	if statut == "vol_de_vie":
+		# Le soin remonte de l'ennemi touché vers la tour, à l'origine du monde.
+		var soin: Dictionary = _creer(forme, "vol", DUREE_SOIN, COULEUR_SOIN, COUCHE_DESSUS)
+		if soin.is_empty():
+			return false
+		soin["depart"] = ou
+		soin["arrivee"] = Vector2.ZERO
+		soin["taille"] = TAILLE_IMPACT * 0.6
+		_poser(soin)
+		return true
 	if statut == "brulure":
 		var feu: Dictionary = _creer("feu", "image", DUREE_FEU, Color.WHITE, COUCHE_DESSUS)
 		if feu.is_empty():
@@ -370,7 +498,7 @@ func _statut(statut: String, ou: Vector2) -> bool:
 		feu["taille"] = TAILLE_IMPACT
 		_poser(feu)
 		return true
-	var couleur: Color = COULEURS_STATUT[statut]
+	var couleur: Color = couleur_statut(statut)
 	var effet: Dictionary = _creer(forme, "burst", DUREE_IMPACT, couleur, COUCHE_DESSUS)
 	if effet.is_empty():
 		return false
@@ -493,7 +621,12 @@ func _poser(effet: Dictionary) -> void:
 			var sens: Vector2 = arrivee - depart
 			noeud.position = depart.lerp(arrivee, 0.5)
 			noeud.rotation = sens.angle()
-			noeud.scale = Vector2(maxf(sens.length(), 1.0) / 64.0, EPAISSEUR_TRAIT / 8.0)
+			var epaisseur: float = 1.0
+			if FORMES_PROPRES.has(forme):
+				epaisseur = EPAISSEUR_TRAIT / 8.0
+			else:
+				epaisseur = ECHELLE_TRAINEE
+			noeud.scale = Vector2(maxf(sens.length(), 1.0) / 64.0, epaisseur)
 			alpha = lerpf(ALPHA_MAX, 0.0, t)
 		"image":
 			noeud.position = depart
@@ -521,7 +654,7 @@ func _orienter_vol(noeud: Sprite2D, forme: String, sens: Vector2, t: float, tail
 		"trait":
 			noeud.rotation = angle
 			noeud.scale = Vector2(taille * 2.2 / 64.0, EPAISSEUR_TRAIT / 8.0)
-		"losange":
+		"losange", "shuriken", "spirale":
 			noeud.rotation = t * TAU * 2.0
 			noeud.scale = Vector2.ONE * _echelle(forme, taille)
 		_:
@@ -548,6 +681,8 @@ func _echelle(forme: String, taille: float) -> float:
 			return taille / 64.0
 		"mine", "dynamite":
 			return taille / REGION_DYNAMITE.size.y
+	if not FORMES_PROPRES.has(forme) and forme != "fleche" and forme != "explosion":
+		return taille / float(FormesSignatures.TAILLE)
 	return taille / 32.0
 
 
@@ -580,7 +715,10 @@ func _liberer(i: int) -> void:
 
 func _forme(nom: String) -> Texture2D:
 	if not _formes.has(nom):
-		_formes[nom] = ImageTexture.create_from_image(_dessiner(nom))
+		var image: Image = (
+			_dessiner(nom) if FORMES_PROPRES.has(nom) else FormesSignatures.image(nom)
+		)
+		_formes[nom] = ImageTexture.create_from_image(image)
 	return _formes[nom]
 
 

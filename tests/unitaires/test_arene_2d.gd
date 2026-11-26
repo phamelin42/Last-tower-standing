@@ -510,3 +510,44 @@ func test_l_espace_met_fin_a_l_arene_regardee_et_recentre() -> void:
 
 func test_la_camera_de_l_arene_est_accessible() -> void:
 	verifier_non_nul(_arene.camera(), "Arene2D.camera()")
+
+
+func test_un_ennemi_a_statut_est_teinte_et_cinq_statuts_donnent_cinq_teintes() -> void:
+	var f: int = _donnees.familles.size() - 1
+	var bits: Array[int] = [
+		Types.STATUT_GELE,
+		Types.STATUT_RALENTI,
+		Types.STATUT_EMPOISONNE,
+		Types.STATUT_BRULE,
+		Types.STATUT_ETOURDI,
+	]
+	var vue := _vue({f: 1})
+	_arene.afficher(vue, 1.0)
+	verifier_egal(_arene.teinte_instance(f, 0), Color.WHITE, "sans statut : blanc")
+	var vues: Dictionary = {}
+	for bit: int in bits:
+		var v := _vue({f: 1})
+		v.ennemis_statuts[0] = bit
+		_arene.afficher(v, 1.0)
+		var teinte: Color = _arene.teinte_instance(f, 0)
+		verifier(teinte != Color.WHITE, "statut %d teinté" % bit)
+		verifier(not vues.has(teinte), "statut %d : teinte déjà prise" % bit)
+		vues[teinte] = bit
+		var sprite: Sprite2D = _arene.sprite_instance(f, 0)
+		verifier(sprite.modulate != Color(_entree(f)["couleur"]), "le sprite porte la teinte")
+	verifier_egal(vues.size(), 5, "cinq statuts, cinq teintes")
+	_arene.afficher(_vue({f: 1}), 1.1)
+	verifier_egal(_arene.teinte_instance(f, 0), Color.WHITE, "le statut passé, le blanc revient")
+
+
+func test_l_arene_donne_le_catalogue_aux_effets_et_un_tir_suit_la_signature_de_l_arme() -> void:
+	var effets := _arene.get_node("Effets") as Effets
+	verifier_egal(effets.catalogue, _donnees.ids_catalogue)
+	var id: String = SignaturesArmes.ids()[0]
+	var tir: Dictionary = _evenement("tir")
+	tir["type_degats"] = (_donnees.armes[id] as Dictionary)["type_degats"]
+	tir["arme"] = _donnees.ids_catalogue.find(id)
+	_arene.afficher(_vue({}, [tir] as Array[Dictionary]), 1.0)
+	verifier_contient(
+		effets.formes_vivantes(), SignaturesArmes.de(id)["projectile"], "la forme de la signature"
+	)

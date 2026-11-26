@@ -86,6 +86,8 @@ var _morts_debut: PackedFloat64Array = PackedFloat64Array()
 var _texture_mort: Texture2D = null
 var _effets: Effets = null
 var _barres: BarresArene = null
+## Teinte posée sur chaque ennemi affiché, par famille puis par rang dans la famille.
+var _teintes: Array[PackedColorArray] = []
 ## Joueur dont on regarde l'arène (-1 : la sienne) ; la couleur de tour et le nom du joueur local
 ## sont gardés pour y revenir.
 var _regarde: int = -1
@@ -129,6 +131,8 @@ func _assurer_construite() -> void:
 	_effets = Effets.new()
 	_effets.name = "Effets"
 	_effets.parent_sol = _ennemis
+	if donnees != null:
+		_effets.catalogue = donnees.ids_catalogue
 	add_child(_effets)
 	_construire_tour()
 	_barres = BarresArene.new()
@@ -329,6 +333,37 @@ func sprite_mort(i: int) -> Sprite2D:
 	return _morts[i] if i >= 0 and i < _morts.size() else null
 
 
+## La teinte posée sur le rang `i` de la famille `famille` à la dernière image : `Color.WHITE` sans
+## statut, ou pour un ennemi qui n'existe pas.
+func teinte_instance(famille: int, i: int) -> Color:
+	_assurer_construite()
+	if (
+		famille < 0
+		or famille >= _teintes.size()
+		or i < 0
+		or i >= nombre_instances_visibles(famille)
+	):
+		return Color.WHITE
+	var teintes: PackedColorArray = _teintes[famille]
+	return teintes[i] if i < teintes.size() else Color.WHITE
+
+
+## La teinte d'un octet de statuts (`Types.STATUT_*`) : un seul statut se lit, le plus gênant
+## d'abord (étourdi, brûlé, empoisonné, gelé, ralenti) ; blanc sans statut.
+static func teinte_statut(octet: int) -> Color:
+	if octet & Types.STATUT_ETOURDI != 0:
+		return Color(1.0, 0.92, 0.45)
+	if octet & Types.STATUT_BRULE != 0:
+		return Color(1.0, 0.6, 0.4)
+	if octet & Types.STATUT_EMPOISONNE != 0:
+		return Color(0.6, 1.0, 0.55)
+	if octet & Types.STATUT_GELE != 0:
+		return Color(0.6, 0.85, 1.0)
+	if octet & Types.STATUT_RALENTI != 0:
+		return Color(0.8, 0.7, 1.0)
+	return Color.WHITE
+
+
 func _process(delta: float) -> void:
 	_assurer_construite()
 	_horloge += delta
@@ -420,6 +455,7 @@ func _afficher_echantillon() -> void:
 	var familles: PackedByteArray = PackedByteArray()
 	if vue != null:
 		familles = vue.ennemis_famille
+	var statuts: PackedByteArray = vue.ennemis_statuts if vue != null else PackedByteArray()
 	var total: int = mini(familles.size(), mini(positions.size(), ids.size()))
 	for i: int in total:
 		var f: int = familles[i]
@@ -449,8 +485,17 @@ func _afficher_echantillon() -> void:
 			_poser_image(sprite, _regions[f], _decalages[f], image, miroir)
 		var couvre: bool = p.y >= 0.0 and absf(p.x) < _couvre_x[f] and p.y < _couvre_h[f]
 		var alpha: float = ALPHA_RECOUVRE if couvre else 1.0
-		if sprite.modulate.a != alpha:
-			sprite.modulate = Color(Color(_entrees[f]["couleur"]), alpha)
+		var teinte: Color = teinte_statut(statuts[i] if i < statuts.size() else 0)
+		var base: Color = _entrees[f]["couleur"]
+		var voulue := Color(base.r * teinte.r, base.g * teinte.g, base.b * teinte.b, alpha)
+		if sprite.modulate != voulue:
+			sprite.modulate = voulue
+		var teintes: PackedColorArray = _teintes[f]
+		var rang: int = decompte[f] - 1
+		if teintes.size() <= rang:
+			teintes.resize(rang + 1)
+		teintes[rang] = teinte
+		_teintes[f] = teintes
 	_animer_morts()
 
 
@@ -596,6 +641,7 @@ func _preparer_entites() -> void:
 		_colonnes.append(int(e["colonnes"]))
 		_lignes.append(0)
 		_pools.append(Array([], TYPE_OBJECT, &"Sprite2D", null))
+		_teintes.append(PackedColorArray())
 		_visibles.append(0)
 		var portee: float = 0.0
 		if f < nb_familles:

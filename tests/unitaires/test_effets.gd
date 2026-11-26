@@ -362,3 +362,158 @@ func test_un_evenement_absorption_cree_un_eclat_bleu_dans_le_plafond() -> void:
 	verifier(
 		_effets.nombre_vivants() <= Effets.PLAFOND, "plafond tenu : %d" % _effets.nombre_vivants()
 	)
+
+
+# --- Signatures d'armes en jeu (T8.16) --------------------------------------------------------
+
+
+## Un événement d'arme réelle : `arme` est l'index de l'arme dans `Donnees.ids_catalogue`.
+func _evenement_arme(
+	k: String, id: String, de: Vector2, vers: Vector2, rayon: float = 0.0, statut: int = 0
+) -> Dictionary:
+	var type_degats: int = (_donnees.armes[id] as Dictionary)["type_degats"]
+	var e: Dictionary = _evenement(k, type_degats, de, vers, rayon)
+	e["arme"] = _donnees.ids_catalogue.find(id)
+	if statut > 0:
+		e["statut"] = statut
+	return e
+
+
+func _avec_catalogue() -> void:
+	_effets.catalogue = _donnees.ids_catalogue
+
+
+func _sans_alpha(c: Color) -> Color:
+	return Color(c.r, c.g, c.b, 1.0)
+
+
+func test_chaque_arme_produit_un_tir_aux_formes_et_a_la_couleur_de_sa_signature() -> void:
+	_avec_catalogue()
+	for id: String in SignaturesArmes.ids():
+		_effets.vider()
+		var sig: Dictionary = SignaturesArmes.de(id)
+		verifier(_effets.ajouter(_evenement_arme("tir", id, Vector2.ZERO, Vector2(300, -200))), id)
+		var formes: PackedStringArray = _effets.formes_vivantes()
+		verifier_contient(formes, sig["projectile"], "projectile de %s" % id)
+		verifier_contient(formes, sig["trainee"], "traînée de %s" % id)
+		verifier_egal(
+			_sans_alpha(_effets.couleur_du_premier()), sig["couleur"], "couleur de %s" % id
+		)
+
+
+func _rendu_du_tir(id: String) -> String:
+	_effets.vider()
+	_effets.ajouter(_evenement_arme("tir", id, Vector2.ZERO, Vector2(300, -200)))
+	var formes: Array[String] = []
+	for forme: String in _effets.formes_vivantes():
+		formes.append(forme)
+	formes.sort()
+	var couleur: Color = _sans_alpha(_effets.couleur_du_premier())
+	return "%s|%s|%.1f" % [",".join(formes), couleur.to_html(false), _effets.taille_du_premier()]
+
+
+func test_deux_armes_ne_produisent_jamais_le_meme_rendu() -> void:
+	_avec_catalogue()
+	var ids: PackedStringArray = SignaturesArmes.ids()
+	var rendus: Dictionary = {}
+	for id: String in ids:
+		rendus[id] = _rendu_du_tir(id)
+	for i: int in ids.size():
+		for j: int in range(i + 1, ids.size()):
+			verifier(rendus[ids[i]] != rendus[ids[j]], "%s et %s : même rendu" % [ids[i], ids[j]])
+
+
+func test_l_impact_suit_la_signature_de_l_arme() -> void:
+	_avec_catalogue()
+	for id: String in SignaturesArmes.ids():
+		_effets.vider()
+		var sig: Dictionary = SignaturesArmes.de(id)
+		verifier(
+			_effets.ajouter(_evenement_arme("impact", id, Vector2.ZERO, Vector2(300, -200))), id
+		)
+		verifier_contient(_effets.formes_vivantes(), sig["impact"], "impact de %s" % id)
+
+
+func test_un_evenement_sans_arme_garde_le_rendu_par_type_de_degats() -> void:
+	_avec_catalogue()
+	for type_degats: int in 5:
+		_effets.vider()
+		var tir: Dictionary = _evenement("tir", type_degats, Vector2.ZERO, Vector2(300, -200), 0.0)
+		verifier(_effets.ajouter(tir))
+		var attendu: Dictionary = Effets.rendu(type_degats, "")
+		verifier_egal(_effets.formes_vivantes(), PackedStringArray([attendu["projectile"]]))
+		verifier_egal(_sans_alpha(_effets.couleur_du_premier()), Effets.COULEURS[type_degats])
+	# Une arme hors du catalogue retombe sur le rendu par type de dégâts.
+	_effets.vider()
+	var inconnu: Dictionary = _evenement("tir", 1, Vector2.ZERO, Vector2(300, -200), 0.0)
+	inconnu["arme"] = 99999
+	verifier(_effets.ajouter(inconnu))
+	verifier_egal(_effets.formes_vivantes(), PackedStringArray([Effets.rendu(1, "")["projectile"]]))
+
+
+func test_chaque_statut_a_un_visuel_distinct() -> void:
+	var statuts: Array[String] = ["poison", "brulure", "givre", "etourdissement", "vol_de_vie"]
+	verifier_egal(statuts.size(), 5)
+	for statut: String in statuts:
+		verifier(Effets.FORMES_STATUT.has(statut), "forme de %s" % statut)
+		verifier(
+			VueArene.STATUTS_ARME.has(statut) and VueArene.STATUTS_ARME.find(statut) > 0,
+			"%s voyage dans l'événement" % statut
+		)
+		_effets.vider()
+		var impact: Dictionary = _evenement("impact", 0, Vector2.ZERO, Vector2(300, -200), 0.0)
+		impact["statut"] = VueArene.STATUTS_ARME.find(statut)
+		verifier(_effets.ajouter(impact), statut)
+		verifier_contient(
+			_effets.formes_vivantes(), Effets.FORMES_STATUT[statut], "marque de %s" % statut
+		)
+	for i: int in statuts.size():
+		for j: int in range(i + 1, statuts.size()):
+			var a: String = statuts[i]
+			var b: String = statuts[j]
+			verifier(
+				Effets.FORMES_STATUT[a] != Effets.FORMES_STATUT[b], "%s et %s : forme" % [a, b]
+			)
+			var ecart: float = _distance(Effets.couleur_statut(a), Effets.couleur_statut(b))
+			verifier(ecart >= 0.2, "%s et %s : couleurs trop proches (%.2f)" % [a, b, ecart])
+
+
+func _distance(a: Color, b: Color) -> float:
+	return Vector3(a.r - b.r, a.g - b.g, a.b - b.b).length()
+
+
+func test_le_vol_de_vie_remonte_vers_la_tour_en_vert() -> void:
+	var ennemi := Vector2(300, -200)
+	var impact: Dictionary = _evenement("impact", 0, Vector2.ZERO, ennemi, 0.0)
+	impact["statut"] = VueArene.STATUTS_ARME.find("vol_de_vie")
+	verifier(_effets.ajouter(impact))
+	var trajet: Array[Vector2] = _effets.trajet_de("soin")
+	verifier_egal(trajet.size(), 2, "un effet « soin » est vivant")
+	if trajet.size() == 2:
+		verifier_egal(trajet[0], Apparence.vers_pixels(ennemi), "il part de l'ennemi")
+		verifier_egal(trajet[1], Vector2.ZERO, "il finit à la tour")
+	var couleur: Color = _effets.couleur_de("soin")
+	verifier_egal(_sans_alpha(couleur), Effets.COULEUR_SOIN)
+	verifier(couleur.g > couleur.r and couleur.g > couleur.b, "vert")
+	verifier(Effets.COULEUR_SOIN.v >= 0.6, "assez clair pour se lire de loin")
+	_effets.avancer(Effets.DUREE_SOIN * 0.5)
+	verifier(_effets.nombre_vivants() > 0, "encore en vol à mi-course")
+	_effets.avancer(Effets.DUREE_SOIN)
+	verifier_egal(_effets.nombre_vivants(), 0, "arrivé, il disparaît")
+	verifier(Effets.DUREE_SOIN <= Effets.DUREE_MAX, "durée dans la limite des effets")
+
+
+func test_le_plafond_de_200_effets_tient_avec_40_armes_qui_tirent() -> void:
+	_avec_catalogue()
+	var ids: PackedStringArray = SignaturesArmes.ids()
+	for tour: int in 10:
+		for k: int in 40:
+			var id: String = ids[(tour * 40 + k) % ids.size()]
+			_effets.ajouter(_evenement_arme("tir", id, Vector2.ZERO, Vector2(300 + k, -200)))
+			_effets.ajouter(
+				_evenement_arme("impact", id, Vector2.ZERO, Vector2(300 + k, -200), 0.0, 5)
+			)
+	verifier(
+		_effets.nombre_vivants() <= Effets.PLAFOND, "plafond tenu : %d" % _effets.nombre_vivants()
+	)
+	verifier_egal(_effets.taille_pool() <= Effets.PLAFOND + Effets.PLAFOND, true, "pool borné")
