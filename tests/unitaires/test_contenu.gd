@@ -9,7 +9,7 @@ const KINDS_EFFET: Array[String] = [
 	"cible_unique", "zone", "rebond", "onde", "barrage", "mine", "piege", "aura"
 ]
 const KINDS_STATUT: Array[String] = ["poison", "brulure", "givre", "etourdissement", "vol_de_vie"]
-const PORTEES: Array[int] = [300, 600, 900, 1200]
+const PORTEES: Array[int] = [500, 750, 1000, 1250]
 const STATS: Array[String] = [
 	"degats_type",
 	"degats_global",
