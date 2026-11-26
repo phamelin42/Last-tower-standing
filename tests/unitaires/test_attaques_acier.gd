@@ -242,3 +242,68 @@ func test_mouvement_reduit_le_moulinet_garde_ses_lames_sans_tourner() -> void:
 		0.0001,
 		"elles ne tournent pas"
 	)
+
+
+# --- Guillotine à vapeur : onde ----------------------------------------------------------------
+
+
+func test_la_guillotine_est_une_onde() -> void:
+	_verifier_arme("guillotine_a_vapeur", "guillotine", "onde")
+
+
+## Le front est dessiné d'un trait à son départ : sa vitesse et son rayon sont ceux de l'onde de
+## `data/armes.json`, sans quoi la lame passerait devant ou derrière les ennemis touchés.
+func test_le_front_de_la_guillotine_suit_la_vitesse_et_le_rayon_de_l_onde() -> void:
+	verifier_proche(AttaqueGuillotine.RAYON_PX, _rayon_px("guillotine_a_vapeur", "rayon_max"), 0.01)
+	verifier_proche(AttaqueGuillotine.VITESSE_PX, _rayon_px("guillotine_a_vapeur", "vitesse"), 0.01)
+
+
+func test_la_guillotine_n_a_pas_de_projectile() -> void:
+	verifier_egal(AttaquesElementaires.planche_projectile("guillotine"), "")
+
+
+func test_la_lame_d_acier_atteint_le_rayon_maximal_sans_le_depasser() -> void:
+	verifier(_a.onde("guillotine", TOUR))
+	var lames: Array[Dictionary] = _a.etats("arc_lame")
+	verifier_egal(lames.size(), AttaqueGuillotine.LAMES, "des lames tout autour")
+	var rayon: float = _rayon_px("guillotine_a_vapeur", "rayon_max")
+	var images: int = int(rayon / AttaqueGuillotine.VITESSE_PX / IMAGE) - 1
+	_avancer(images)
+	var plus_loin: float = 0.0
+	for lame: Dictionary in _a.etats("arc_lame"):
+		plus_loin = maxf(plus_loin, (lame["position"] as Vector2).distance_to(TOUR))
+	verifier_proche(plus_loin, rayon, 8.0, "le front est à son rayon maximal")
+	verifier(plus_loin <= rayon + 0.01, "il ne le dépasse jamais")
+
+
+func test_la_vapeur_se_forme_derriere_le_front_puis_se_dissipe() -> void:
+	_a.onde("guillotine", TOUR)
+	_avancer(25)
+	var front: float = AttaqueGuillotine.VITESSE_PX * 25.0 * IMAGE
+	var visibles: int = 0
+	for bouffee: Dictionary in _a.etats("vapeur"):
+		if bouffee["visible"]:
+			visibles += 1
+			verifier((bouffee["position"] as Vector2).distance_to(TOUR) <= front + 1.0, "derrière")
+	verifier(visibles > 0, "de la vapeur déjà visible")
+	_avancer(120)
+	verifier_egal(_a.nombre_vivants(), 0, "tout se dissipe")
+	verifier(_a.opacite_max() <= AttaquesElementaires.ALPHA_MAX)
+
+
+func test_la_guillotine_dans_effets_part_au_tir_et_les_impacts_n_ajoutent_rien() -> void:
+	var effets: Effets = Effets.new()
+	effets.catalogue = _donnees.ids_catalogue
+	arbre.root.add_child(effets)
+	var vitrine: VitrineArmes = VitrineArmes.new()
+	vitrine.armes = ["guillotine_a_vapeur"] as Array[String]
+	var evenements: Array[Dictionary] = vitrine.evenements_du_cycle("guillotine_a_vapeur")
+	effets.ajouter(evenements[0])
+	var lames: int = effets.elementaires().etats("arc_lame").size()
+	verifier_egal(lames, AttaqueGuillotine.LAMES, "le front part au tir")
+	for k: int in range(1, evenements.size()):
+		effets.ajouter(evenements[k])
+	verifier_egal(effets.elementaires().etats("arc_lame").size(), lames, "l'impact n'en ajoute pas")
+	verifier_egal(effets.formes_vivantes().has("anneau"), false, "plus d'anneau générique")
+	vitrine.free()
+	effets.free()
