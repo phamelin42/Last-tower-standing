@@ -1,7 +1,11 @@
 class_name Inventaire
 extends RefCounted
-## Ce que la tour porte : huit armes au plus et des améliorations empilables qui n'occupent
-## aucun emplacement. `stats()` les agrège en un `StatsTour`.
+## Ce que la tour porte : des armes sans plafond de jeu (seulement celui du réseau, `ARMES_MAX`)
+## et des améliorations empilables. `stats()` les agrège en un `StatsTour`.
+
+## Plus grand nombre d'armes portables : le réseau le transporte sur un octet
+## (`Protocole.MAX_ARMES`, vérifié par un test).
+const ARMES_MAX: int = 255
 
 ## Ids des armes équipées (un id peut y figurer plusieurs fois).
 var armes: Array[String] = []
@@ -12,21 +16,19 @@ var ameliorations: Dictionary = {}
 var jetons_marche_noir_utilises: int = 0
 
 var _donnees: Donnees
-var _emplacements: int
 var _ratio_vente: float
 
 
 func _init(donnees: Donnees) -> void:
 	_donnees = donnees
-	_emplacements = int(donnees.partie["emplacements_armes"])
 	_ratio_vente = float(donnees.partie["vente_ratio"])
 
 
-## `OFFRE_INVALIDE` pour un id inconnu, `EMPLACEMENTS_PLEINS` pour une arme en trop.
+## `OFFRE_INVALIDE` pour un id inconnu, `ARMES_AU_MAXIMUM` pour la 256e arme.
 func ajouter(id: String) -> int:
 	if _donnees.armes.has(id):
-		if armes.size() >= _emplacements:
-			return Types.Resultat.EMPLACEMENTS_PLEINS
+		if armes.size() >= ARMES_MAX:
+			return Types.Resultat.ARMES_AU_MAXIMUM
 		armes.append(id)
 		return Types.Resultat.OK
 	if _donnees.ameliorations.has(id):

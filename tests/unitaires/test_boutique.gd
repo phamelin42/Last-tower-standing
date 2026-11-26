@@ -255,7 +255,7 @@ func test_or_insuffisant_de_un_refuse_sans_rien_changer() -> void:
 	verifier(inv.armes.is_empty())
 
 
-func test_la_neuvieme_arme_est_refusee_sans_debit_et_l_offre_reste() -> void:
+func test_la_neuvieme_arme_s_achete_et_est_debitee() -> void:
 	var d := _donnees_reelles()
 	var b := _boutique(d)
 	var inv := Inventaire.new(d)
@@ -263,11 +263,40 @@ func test_la_neuvieme_arme_est_refusee_sans_debit_et_l_offre_reste() -> void:
 		inv.ajouter(_id_arme(d, i))
 	b.nouvelle_manche(1, 0)
 	_forcer(b, d, 2, _id_arme(d, 8))
+	var prix := int(b.offres[2]["prix"])
 	var eco := _eco(d, 1000000)
-	verifier_egal(b.acheter(2, eco, inv), Types.Resultat.EMPLACEMENTS_PLEINS)
+	verifier_egal(b.acheter(2, eco, inv), Types.Resultat.OK)
+	verifier_egal(eco.argent, 1000000 - prix, "l'or est débité")
+	verifier(bool(b.offres[2]["vendu"]), "l'offre est vendue")
+	verifier_egal(inv.armes.size(), 9)
+
+
+func test_la_256e_arme_est_refusee_sans_debit_avec_armes_au_maximum() -> void:
+	var d := _donnees_reelles()
+	var b := _boutique(d)
+	var inv := Inventaire.new(d)
+	for i: int in Inventaire.ARMES_MAX:
+		inv.ajouter(_id_arme(d, i % d.armes.size()))
+	b.nouvelle_manche(1, 0)
+	_forcer(b, d, 2, _id_arme(d, 0))
+	var eco := _eco(d, 1000000)
+	verifier_egal(b.acheter(2, eco, inv), Types.Resultat.ARMES_AU_MAXIMUM)
 	verifier_egal(eco.argent, 1000000, "aucun or débité")
 	verifier_faux(bool(b.offres[2]["vendu"]), "l'offre reste disponible")
-	verifier_egal(inv.armes.size(), 8)
+	verifier_egal(inv.armes.size(), Inventaire.ARMES_MAX)
+
+
+func test_emplacements_pleins_n_est_jamais_renvoye() -> void:
+	var d := _donnees_reelles()
+	var b := _boutique(d)
+	var inv := Inventaire.new(d)
+	var eco := _eco(d, 100000000)
+	b.nouvelle_manche(1, 0)
+	for achat: int in range(1, 41):
+		_forcer(b, d, 0, _id_arme(d, achat % d.armes.size()))
+		var resultat := b.acheter(0, eco, inv)
+		verifier(resultat != Types.Resultat.EMPLACEMENTS_PLEINS, "achat %d" % achat)
+		verifier_egal(resultat, Types.Resultat.OK, "achat %d" % achat)
 
 
 func test_une_amelioration_s_achete_meme_avec_huit_armes() -> void:

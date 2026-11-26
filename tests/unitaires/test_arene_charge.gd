@@ -86,3 +86,18 @@ func test_mille_attaquants_au_corps_a_corps_avec_epines_sous_5_ms_par_pas() -> v
 	print("  [mesure] 1200 attaquants au contact, %.3f ms par pas" % ms)
 	verifier(ms < BUDGET_MS, "%.3f ms par pas (budget %s)" % [ms, BUDGET_MS])
 	verifier(not a.est_detruite(), "la tour tient")
+
+
+func test_quarante_armes_contre_mille_ennemis_sous_5_ms_par_pas() -> void:
+	var a := Arene.new(d, GRAINE)
+	var ids: Array = d.armes.keys()
+	# Chaque arme du catalogue, puis des doublons jusqu'à quarante.
+	for i: int in maxi(ids.size(), 40):
+		a.inventaire.ajouter(str(ids[i % ids.size()]))
+		if a.inventaire.armes.size() >= maxi(ids.size(), 40):
+			break
+	a.synchroniser()
+	verifier(a.inventaire.armes.size() >= 40, "au moins quarante armes équipées")
+	a.demarrer_manche(40, 0, _mult(0.0))
+	var ms := _mesurer(a, 1000, 200)
+	verifier(ms < BUDGET_MS, "%.3f ms par pas avec %d armes" % [ms, a.inventaire.armes.size()])
