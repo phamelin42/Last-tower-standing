@@ -65,6 +65,17 @@ func _sans_doublons(liste: Array[String]) -> Array[String]:
 	return sortie
 
 
+## Les statuts que Phil a décidé de ne pas doter d'un défi : la ligne « Statuts sans défi » du
+## document (décision du 26/11/2026).
+func _statuts_sans_defi() -> Array[String]:
+	var texte := FileAccess.get_file_as_string(DOCUMENT)
+	for ligne: String in texte.split("\n"):
+		if ligne.begins_with("Statuts sans défi"):
+			return _citations(ligne)
+	verifier(false, "la ligne « Statuts sans défi » manque dans %s" % DOCUMENT)
+	return []
+
+
 func _defis() -> Array[Dictionary]:
 	return _tableau("4.")
 
@@ -219,8 +230,17 @@ func test_chaque_type_statut_et_genre_d_arme_des_donnees_a_son_defi_uniquement()
 			par_genre[genre] = int(par_genre.get(genre, 0)) + 1
 		for brut: Variant in arme.get("statuts", []) as Array:
 			statuts[String((brut as Dictionary)["kind"])] = true
+	var sans_defi := _statuts_sans_defi()
 	for statut: String in statuts:
-		verifier(utilises.has("armes_statut_" + statut), "statut « %s » sans défi" % statut)
+		verifier(
+			utilises.has("armes_statut_" + statut) or sans_defi.has(statut),
+			"statut « %s » sans défi ni mention « Statuts sans défi »" % statut
+		)
+	for statut: String in sans_defi:
+		verifier(
+			not utilises.has("armes_statut_" + statut),
+			"statut « %s » à la fois avec un défi et sans défi" % statut
+		)
 	for genre: String in par_genre:
 		if int(par_genre[genre]) >= GENRE_MIN_ARMES:
 			verifier(utilises.has("armes_genre_" + genre), "genre « %s » sans défi" % genre)
