@@ -291,6 +291,22 @@ func impacts_en_attente() -> int:
 	return _en_attente.size()
 
 
+## Le temps qui reste avant que le dernier impact en attente qui vise `ou` (unités de jeu) devienne
+## visible, -1 s'il n'y en a pas. Vise : l'impact retombe à `TOLERANCE_LIEN` de `ou`, ou, pour une
+## zone, assez près pour que `ou` soit dans son rayon. L'arène y retient la mort d'un ennemi pour
+## que le coup qui le tue paraisse le tuer.
+func delai_avant_impact(ou: Vector2) -> float:
+	var point: Vector2 = Apparence.vers_pixels(ou)
+	var delai: float = -1.0
+	for attente: Dictionary in _en_attente:
+		var portee: float = maxf(
+			TOLERANCE_LIEN, Apparence.vers_pixels(Vector2(attente["rayon"], 0.0)).x
+		)
+		if Apparence.vers_pixels(attente["vers"]).distance_to(point) <= portee:
+			delai = maxf(delai, float(attente["reste"]))
+	return delai
+
+
 ## Les émetteurs d'étincelles créés (jamais plus de `PLAFOND_ETINCELLES`).
 func emetteurs_etincelles() -> Array[CPUParticles2D]:
 	return _etincelles.emetteurs()
