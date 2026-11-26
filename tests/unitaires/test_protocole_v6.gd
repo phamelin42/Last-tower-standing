@@ -162,17 +162,37 @@ func test_plus_que_la_limite_est_refuse_a_l_encodage_et_au_decodage() -> void:
 	verifier(_encoder(_vue(Protocole.MAX_ALLIES + 1)).is_empty(), "65 alliés")
 	verifier(_encoder(_vue(0, Protocole.MAX_ZONES + 1)).is_empty(), "33 zones")
 	verifier(_encoder(_vue(0, 0, Protocole.MAX_BOMBES + 1)).is_empty(), "33 bombes")
-	# Au décodage : un compteur forgé au-delà du plafond, même avec assez d'octets derrière.
+	# Au décodage : un compteur forgé au-delà du plafond, avec exactement les octets qu'il annonce
+	# (sinon le paquet serait refusé pour une autre raison).
 	var base := _encoder(_vue())
-	var cible := base.size() - OCTETS_QUEUE
-	for compteur: int in [0, 1, 2]:
-		var plafonds: Array[int] = [Protocole.MAX_ALLIES, Protocole.MAX_ZONES, Protocole.MAX_BOMBES]
-		var plafond: int = plafonds[compteur]
-		var forge := base.slice(0, cible + compteur)
-		forge.append(plafond + 1)
-		for _k: int in 8 * (plafond + 1) + 8:
+	var debut := base.slice(0, base.size() - OCTETS_QUEUE)
+	var plafonds: Array[int] = [Protocole.MAX_ALLIES, Protocole.MAX_ZONES, Protocole.MAX_BOMBES]
+	var octets_par_entree: Array[int] = [5, 7, 6]
+	for compteur: int in 3:
+		var c := plafonds[compteur] + 1
+		var forge := debut.duplicate()
+		for liste: int in 3:
+			if liste == compteur:
+				forge.append(c)
+				for _k: int in octets_par_entree[liste] * c:
+					forge.append(0)
+			else:
+				forge.append(0)
+		for _k: int in 8:
 			forge.append(0)
-		verifier_nul(_decoder(forge), "compteur %d forgé à %d" % [compteur, plafond + 1])
+		verifier_nul(_decoder(forge), "compteur %d forgé à %d" % [compteur, c])
+		# Le même paquet avec un compteur dans la limite est valide : le test ne passe pas à côté.
+		var valide := debut.duplicate()
+		for liste: int in 3:
+			if liste == compteur:
+				valide.append(plafonds[liste])
+				for _k: int in octets_par_entree[liste] * plafonds[liste]:
+					valide.append(0)
+			else:
+				valide.append(0)
+		for _k: int in 8:
+			valide.append(0)
+		verifier_non_nul(_decoder(valide), "compteur %d à la limite" % compteur)
 
 
 func test_un_index_d_unite_ou_d_arme_hors_plage_est_refuse() -> void:
