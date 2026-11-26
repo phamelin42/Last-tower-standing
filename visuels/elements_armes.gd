@@ -32,6 +32,7 @@ const TABLE: Dictionary = {
 	"lame_de_fil": LAME,
 	"faucille_a_ressort": FAUCILLE,
 	"disque_scie": DISQUE,
+	"moulinet_de_cuivre": MOULINET,
 }
 
 

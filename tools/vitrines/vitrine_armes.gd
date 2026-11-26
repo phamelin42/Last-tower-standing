@@ -269,6 +269,17 @@ func evenements_du_cycle(id: String) -> Array[Dictionary]:
 				liste.append(impact)
 				depart = arrivee
 				rang = (rang + 1) % ENNEMIS_DANS_BANDE.size()
+		"aura", "onde":
+			# Rien ne part vers un ennemi : l'impact est centré sur la tour, au rayon de l'effet
+			# (celui de l'onde à son dernier pas). Une aura n'émet aucun tir.
+			var impact: Dictionary = evenement_de(id, "impact")
+			var tour: Vector2 = en_unites(position_tour(bande))
+			impact["de"] = tour
+			impact["vers"] = tour
+			impact["rayon"] = float(effet.get("rayon_max", rayon))
+			if String(effet["kind"]) == "aura":
+				liste.clear()
+			liste.append(impact)
 		_:
 			var impact: Dictionary = evenement_de(id, "impact")
 			impact["rayon"] = rayon

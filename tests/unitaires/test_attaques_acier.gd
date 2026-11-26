@@ -173,3 +173,72 @@ func test_mouvement_reduit_le_disque_ne_tourne_pas_et_sans_particule() -> void:
 	verifier_egal(_a.etats("disque_scie")[0]["image"], avant, "image fixe")
 	_a.impacter("disque", CIBLE, 0.0)
 	verifier_egal(_a.particules_actives(), 0)
+
+
+# --- Moulinet de cuivre : aura -----------------------------------------------------------------
+
+
+func _rayon_px(id: String, cle: String = "rayon") -> float:
+	return float(_effet(id)[cle]) * Apparence.PX_PAR_UNITE
+
+
+func test_le_moulinet_est_une_aura() -> void:
+	_verifier_arme("moulinet_de_cuivre", "moulinet", "aura")
+
+
+func test_le_moulinet_n_a_pas_de_projectile() -> void:
+	verifier_egal(
+		AttaquesElementaires.planche_projectile("moulinet"), "", "rien ne part de la tour"
+	)
+
+
+func test_six_lames_de_cuivre_atteignent_le_rayon_reel_de_l_aura() -> void:
+	var rayon: float = _rayon_px("moulinet_de_cuivre")
+	verifier(_a.aura("moulinet", TOUR, rayon))
+	verifier_egal(_a.etats("lame_cuivre").size(), 6, "six lames")
+	_avancer(AttaquesElementaires.IMAGES_COURONNE_OUVERTURE)
+	var portee_max: float = 0.0
+	for lame: Dictionary in _a.etats("lame_cuivre"):
+		var d: float = (lame["position"] as Vector2).distance_to(TOUR)
+		portee_max = maxf(portee_max, d + lame["taille"].y * 0.5)
+		verifier(d < rayon, "le centre de la lame est dans la zone")
+	verifier_proche(portee_max, rayon, rayon * 0.1, "le bord extérieur est au rayon")
+	verifier(_a.diametre_max() <= rayon * 2.0 * 1.1, "rien au-delà de la zone")
+
+
+func test_le_moulinet_s_efface_et_rend_le_pool() -> void:
+	_a.aura("moulinet", TOUR, 140.0)
+	_avancer(AttaquesElementaires.IMAGES_COURONNE + 1)
+	verifier_egal(_a.nombre_vivants(), 0)
+	verifier_egal(_a.particules_actives(), 0)
+
+
+func test_le_moulinet_dans_effets_se_dessine_a_chaque_coup_de_l_aura() -> void:
+	var effets: Effets = Effets.new()
+	effets.catalogue = _donnees.ids_catalogue
+	arbre.root.add_child(effets)
+	var vitrine: VitrineArmes = VitrineArmes.new()
+	vitrine.armes = ["moulinet_de_cuivre"] as Array[String]
+	var evenements: Array[Dictionary] = vitrine.evenements_du_cycle("moulinet_de_cuivre")
+	verifier_egal(evenements.size(), 1, "une aura n'émet qu'un impact")
+	effets.ajouter(evenements[0])
+	verifier_egal(effets.elementaires().etats("lame_cuivre").size(), 6, "six lames")
+	verifier_egal(effets.formes_vivantes().has("anneau"), false, "plus d'anneau générique")
+	vitrine.free()
+	effets.free()
+
+
+func test_mouvement_reduit_le_moulinet_garde_ses_lames_sans_tourner() -> void:
+	_a.mouvement_reduit = true
+	_a.aura("moulinet", TOUR, 140.0)
+	_avancer(3)
+	var avant: Array[Dictionary] = _a.etats("lame_cuivre")
+	_avancer(3)
+	var apres: Array[Dictionary] = _a.etats("lame_cuivre")
+	verifier_egal(apres.size(), 6, "les lames restent")
+	verifier_proche(
+		((avant[0]["position"] as Vector2) - TOUR).angle(),
+		((apres[0]["position"] as Vector2) - TOUR).angle(),
+		0.0001,
+		"elles ne tournent pas"
+	)
