@@ -454,21 +454,21 @@ revue du lot 10.
 
 ### 6.16 Mouvement réduit (D21)
 
-Décision de Phil du 26/11/2026. Livrée par la tâche T8.22 du plan.
+Décision de Phil du 26/11/2026. Livrée par les tâches T8.22 (gel d'impact et propriété de l'arène) et
+T8.23 (la case des réglages) du plan.
 
 - **Aucune secousse de caméra**, quel que soit le réglage : la caméra ne bouge que sur la commande du
   joueur (flèches, ZQSD, Espace, molette, §6.9). Cette règle **remplace** la secousse que préconise le
   skill `game-feel` (écarté, voir `CLAUDE.md`).
-- **Case « Mouvement réduit »** dans les réglages, **décochée par défaut**, conservée comme les autres
-  réglages (`app/reglages.gd`). Cochée, elle **coupe le gel d'impact** (et le recul de l'ennemi touché,
-  qui est un mouvement) ; il ne reste à l'impact **qu'un éclat bref** (l'éclaircissement de l'ennemi
-  touché, déjà borné à trois par seconde par ennemi, WCAG 2.3.1).
-- **Le gel d'impact** (décoché : actif) suspend, sur l'ennemi touché, l'animation et l'interpolation de
-  son sprite pendant quelques images (80 ms au plus, trois déclenchements par seconde au plus). Il reste
-  **purement visuel** (`CLAUDE.md`) : la simulation à 20 Hz et le réseau gardent le temps réel, et
-  `Engine.time_scale` ne bouge jamais.
-- **Point ouvert** : cochée, la case coupe aussi le recul de l'ennemi touché (un déplacement). Phil la
-  change s'il veut le garder.
+- **Le gel d'impact** frappe les **coups forts** (zone, explosion, siège) : 2 à 3 images à 60 Hz,
+  **l'attaquant et la cible seuls**, jamais la scène entière ; au plus trois par seconde. Il suspend
+  l'animation et l'interpolation de leurs sprites et reste **purement visuel** (`CLAUDE.md`) : la
+  simulation à 20 Hz et le réseau gardent le temps réel, et `Engine.time_scale` ne bouge jamais.
+- **Case « Mouvement réduit »** dans les réglages, **décochée par défaut** (le gel est donc actif),
+  conservée comme les autres réglages (`app/reglages.gd`) et reliée à la propriété
+  `Arene2D.mouvement_reduit`. Cochée, elle **coupe le gel d'impact, le recul et le rebond d'échelle**
+  de l'ennemi touché (des mouvements) ; il ne reste à l'impact **qu'un éclat bref** (l'éclaircissement
+  de l'ennemi touché, déjà borné à trois par seconde par ennemi, WCAG 2.3.1).
 
 ## 7. Découpage proposé pour le plan (lot 8)
 
