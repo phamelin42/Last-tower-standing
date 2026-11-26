@@ -170,17 +170,19 @@ func test_or_insuffisant_ne_debite_rien() -> void:
 	verifier_faux(bool(_vue(a).offres[0]["vendu"]))
 
 
-func test_huit_armes_au_plus_et_le_neuvieme_achat_ne_debite_rien() -> void:
+func test_la_neuvieme_et_la_quarantieme_arme_sont_achetees_et_debitees() -> void:
 	var a := Arene.new(d, GRAINE)
 	a.economie.argent = 100000
-	for _k: int in 8:
+	for k: int in 40:
 		_poser_offre(a, 0, "de_pipe")
-		verifier_egal(a.acheter(0), Types.Resultat.OK)
-	verifier_egal(a.economie.argent, 100000 - 8 * 70, "huit achats débités exactement")
-	_poser_offre(a, 0, "de_pipe")
-	verifier_egal(a.acheter(0), Types.Resultat.EMPLACEMENTS_PLEINS)
-	verifier_egal(a.economie.argent, 100000 - 8 * 70, "le neuvième n'est pas payé")
-	verifier_egal(_vue(a).armes.size(), 8)
+		verifier_egal(a.acheter(0), Types.Resultat.OK, "achat %d" % (k + 1))
+	verifier_egal(a.economie.argent, 100000 - 40 * 70, "quarante achats débités exactement")
+	var vue := _vue(a)
+	verifier_egal(vue.armes.size(), 40, "la vue porte les 40 armes")
+	for arme: Dictionary in vue.armes:
+		verifier_egal(arme["id"], "de_pipe")
+		var ratio := float(arme["recharge_ratio"])
+		verifier(ratio >= 0.0 and ratio <= 1.0, "recharge %s" % ratio)
 
 
 func test_vendre_une_arme_rend_la_moitie_du_prix() -> void:

@@ -35,6 +35,9 @@ class Contexte:
 	var genre: int = 0
 	## Index (`VueArene.STATUTS_ARME`) du statut principal de l'arme, 0 si elle n'en pose pas.
 	var statut: int = 0
+	## Index de l'arme dans `Donnees.ids_catalogue`, -1 si elle n'y figure pas : posé dans les
+	## événements pour que le rendu choisisse l'effet et le son propres à l'arme.
+	var index_arme: int = -1
 	var degats_base: float
 	var statuts: Array
 	var palier: float
@@ -103,6 +106,7 @@ static func _creer(
 	)
 	ctx.statuts = arme.def.get("statuts", [])
 	ctx.statut = _statut_principal(ctx.statuts)
+	ctx.index_arme = donnees.ids_catalogue.find(arme.id)
 	var critique: Dictionary = donnees.partie["critique"]
 	ctx.palier = float(critique["palier"])
 	ctx.puissance_base = float(critique["puissance_base"])
@@ -139,23 +143,19 @@ static func _critique(ctx: Contexte) -> float:
 static func _evenement(
 	ctx: Contexte, genre: String, de: Vector2, vers: Vector2, rayon: float
 ) -> void:
-	(
-		ctx
-		. bilan
-		. evenements
-		. append(
-			{
-				"k": genre,
-				"t": 0,
-				"de": de,
-				"vers": vers,
-				"type_degats": ctx.type_degats,
-				"rayon": rayon,
-				"genre": ctx.genre,
-				"statut": ctx.statut,
-			}
-		)
-	)
+	var evenement: Dictionary = {
+		"k": genre,
+		"t": 0,
+		"de": de,
+		"vers": vers,
+		"type_degats": ctx.type_degats,
+		"rayon": rayon,
+		"genre": ctx.genre,
+		"statut": ctx.statut,
+	}
+	if ctx.index_arme >= 0:
+		evenement["arme"] = ctx.index_arme
+	ctx.bilan.evenements.append(evenement)
 
 
 ## Un coup sur un ennemi : dégâts, vol de vie, mort ou statuts. Rend les dégâts réels.
@@ -200,6 +200,8 @@ static func _choisir(ctx: Contexte, portee: float, exclus: Array[int], au_sol: b
 	var ennemis := ctx.ennemis
 	var mode := int(ctx.arme.def["ciblage"])
 	var r2 := portee * portee
+	if ennemis.distance2_minimale(ctx.centre) > r2:
+		return -1
 	var meilleur := -1
 	var meilleure_cle := 0.0
 	for i: int in ennemis.ids.size():
@@ -226,6 +228,8 @@ static func _choisir(ctx: Contexte, portee: float, exclus: Array[int], au_sol: b
 static func _existe(ctx: Contexte, point: Vector2, rayon: float, volants: bool) -> bool:
 	var ennemis := ctx.ennemis
 	var r2 := rayon * rayon
+	if point == ctx.centre and ennemis.distance2_minimale(point) > r2:
+		return false
 	for i: int in ennemis.ids.size():
 		if ennemis.mort[i] != 0 or (not volants and ennemis.volant[i] != 0):
 			continue
@@ -240,6 +244,8 @@ static func _zone(
 ) -> int:
 	var ennemis := ctx.ennemis
 	var r2 := rayon * rayon
+	if point == ctx.centre and ennemis.distance2_minimale(point) > r2:
+		return 0
 	var touches := 0
 	for i: int in ennemis.ids.size():
 		if i == exclu or ennemis.mort[i] != 0 or (not volants and ennemis.volant[i] != 0):

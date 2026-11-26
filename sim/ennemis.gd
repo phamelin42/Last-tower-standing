@@ -55,6 +55,12 @@ var _cumuls_max: int
 var _givre_par_cumul: float
 var _givre_plafond: float
 var _suivant: int = 0
+## Plus petit carré de distance d'un vivant à `_centre_d2` (-1 : à recalculer). Les armes prêtes
+## mais sans cible rebalayaient chaque pas tous les ennemis : avec quarante armes, cela coûtait
+## plus de 10 ms par pas. Une mort ne l'invalide pas (il reste un minorant sûr) ; tout
+## déplacement ou ajout le fait.
+var _d2_min: float = -1.0
+var _centre_d2: Vector2 = Vector2.ZERO
 var _indice_par_id: Dictionary = {}
 ## Nombre d'entrées des tableaux, morts en attente compris.
 var _n: int = 0
@@ -96,6 +102,7 @@ func ajouter(
 	ids.append(id)
 	famille.append(clampi(fam, 0, 255))
 	pos.append(position)
+	_d2_min = -1.0
 	pv.append(points_de_vie)
 	pv_max.append(points_de_vie)
 	vitesse.append(maxf(vitesse_de_base, 0.0) if is_finite(vitesse_de_base) else 0.0)
@@ -120,6 +127,20 @@ func ajouter(
 
 
 ## -1 si l'identifiant est inconnu ou purgé.
+## Minorant du carré de la distance de `centre` au vivant le plus proche : `INF` sans vivant. Une
+## requête de portée `r` autour de `centre` ne trouve rien si `r × r` lui est inférieur.
+func distance2_minimale(centre: Vector2) -> float:
+	if _d2_min >= 0.0 and _centre_d2 == centre:
+		return _d2_min
+	var minimum := INF
+	for i: int in _n:
+		if mort[i] == 0:
+			minimum = minf(minimum, pos[i].distance_squared_to(centre))
+	_d2_min = minimum
+	_centre_d2 = centre
+	return minimum
+
+
 func indice_de(id: int) -> int:
 	return int(_indice_par_id.get(id, -1))
 
@@ -297,6 +318,7 @@ func avancer(
 		if distance > arret:
 			var pas := minf(vitesse[i] * facteur * dt, distance - arret)
 			pos[i] = depart + vers * (pas / distance)
+			_d2_min = -1.0
 			distance -= pas
 		if distance > arret + TOLERANCE_ARRET:
 			continue
@@ -362,6 +384,7 @@ func choisir(centre: Vector2, portee_max: float, mode: int) -> int:
 ## suit ses propres données). Rend `[{id, famille, prime, pos}]` par identifiant croissant.
 func purger() -> Array[Dictionary]:
 	var retires: Array[Dictionary] = []
+	_d2_min = -1.0
 	var i := 0
 	while i < _n:
 		if mort[i] == 0:

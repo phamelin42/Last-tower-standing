@@ -1,6 +1,6 @@
 extends CasDeTest
-## Ce que le joueur obtient de son équipement : huit armes au plus, des améliorations qui
-## s'empilent sans occuper d'emplacement, et des statistiques cumulées comme la spec le dit
+## Ce que le joueur obtient de son équipement : autant d'armes qu'il en achète (255 au plus, la
+## limite du réseau), des améliorations qui s'empilent, et des statistiques cumulées comme la spec le dit
 ## (additif dans une catégorie, multiplicatif entre catégories).
 
 
@@ -63,13 +63,44 @@ func _huit_armes(d: Donnees) -> Inventaire:
 # --- Emplacements -------------------------------------------------------------------------------
 
 
-func test_huit_armes_entrent_la_neuvieme_est_refusee() -> void:
+func test_la_neuvieme_et_la_quarantieme_arme_sont_acceptees() -> void:
 	var d := _donnees_reelles()
 	var inv := _huit_armes(d)
 	var ids: Array = d.armes.keys()
-	verifier_egal(inv.ajouter(str(ids[8])), Types.Resultat.EMPLACEMENTS_PLEINS)
-	verifier_egal(inv.armes.size(), 8)
-	verifier_faux(inv.armes.has(str(ids[8])), "la 9e arme ne doit pas entrer")
+	verifier_egal(inv.ajouter(str(ids[8 % ids.size()])), Types.Resultat.OK, "la 9e arme entre")
+	for i: int in range(9, 40):
+		verifier_egal(inv.ajouter(str(ids[i % ids.size()])), Types.Resultat.OK, "arme %d" % (i + 1))
+	verifier_egal(inv.armes.size(), 40)
+
+
+func test_la_256e_arme_est_refusee_avec_armes_au_maximum_et_n_entre_pas() -> void:
+	var d := _donnees_reelles()
+	var inv := Inventaire.new(d)
+	var ids: Array = d.armes.keys()
+	for i: int in Inventaire.ARMES_MAX:
+		verifier_egal(inv.ajouter(str(ids[i % ids.size()])), Types.Resultat.OK)
+	verifier_egal(inv.armes.size(), 255)
+	verifier_egal(inv.ajouter(str(ids[0])), Types.Resultat.ARMES_AU_MAXIMUM)
+	verifier_egal(inv.armes.size(), 255, "la 256e n'entre pas")
+	var id_amelio := str(d.ameliorations.keys()[0])
+	verifier_egal(inv.ajouter(id_amelio), Types.Resultat.OK, "une amélioration entre toujours")
+
+
+func test_la_limite_d_armes_est_celle_du_reseau() -> void:
+	verifier_egal(Inventaire.ARMES_MAX, Protocole.MAX_ARMES)
+
+
+func test_la_vente_de_la_40e_arme_rend_50_pour_cent_de_son_prix() -> void:
+	var d := _donnees_reelles()
+	var inv := Inventaire.new(d)
+	var ids: Array = d.armes.keys()
+	for i: int in 40:
+		inv.ajouter(str(ids[i % ids.size()]))
+	var id := inv.armes[39]
+	var prix := int((d.armes[id] as Dictionary)["prix"])
+	verifier_egal(inv.prix_vente(39), floori(float(prix) * 0.5))
+	verifier_egal(inv.retirer_arme(39), id)
+	verifier_egal(inv.armes.size(), 39)
 
 
 func test_une_amelioration_entre_meme_avec_huit_armes_et_s_empile() -> void:

@@ -1126,7 +1126,7 @@ func id_regarde() -> int                # -1 si aucune
 
 ### Task 8.3 : Armes illimitées et arme dans les événements — `sonnet`
 
-- [ ] **Objectif :** plus de plafond de huit armes (D2) : `Inventaire.ajouter` n'échoue plus pour cette raison, la boutique non plus ; au-delà de 255 armes l'achat est refusé proprement sans débit (`ARMES_AU_MAXIMUM`). Les événements de tir et d'impact portent l'arme. Le pas reste sous 5 ms avec 40 armes face à 1 000 ennemis. Les tests qui figeaient « la 9e arme refusée » sont inversés, pas supprimés.
+- [x] **Objectif :** plus de plafond de huit armes (D2) : `Inventaire.ajouter` n'échoue plus pour cette raison, la boutique non plus ; au-delà de 255 armes l'achat est refusé proprement sans débit (`ARMES_AU_MAXIMUM`). Les événements de tir et d'impact portent l'arme. Le pas reste sous 5 ms avec 40 armes face à 1 000 ennemis. Les tests qui figeaient « la 9e arme refusée » sont inversés, pas supprimés.
 - **Conception :** §6.3, §6.5 (l'arme dans l'événement), §6.5 bis.
 - **Fichiers :** `sim/inventaire.gd`, `sim/boutique.gd`, `sim/tir.gd`, `sim/arene.gd`, `tests/outils/strategies_joueur.gd` si un robot suppose huit armes ; tests `test_inventaire.gd`, `test_boutique.gd`, `test_arene_boutique.gd`, `test_arene_charge.gd`, `test_tir.gd`, `test_evenements_genre.gd`.
 - **Lire :** `sim/inventaire.gd` (134 lignes), `sim/boutique.gd` `acheter`, `sim/tir.gd` `_evenement` et `_choisir` ; les trois tests cités par `grep -n 'EMPLACEMENTS_PLEINS\|huit'`.
