@@ -84,9 +84,11 @@ static func _en_flottants(liste: Array) -> Array[float]:
 	return sortie
 
 
-## Skins de la tour (`data/skins_tour.json`, B7) : id → `{sprite, ancrages}`. Un skin donne le
-## sprite de la tour et, pour chaque superposition, le point (en pixels du sprite) où son centre se
-## pose. Un fichier non vide contient au moins le skin `defaut`.
+## Skins de la tour (`data/skins_tour.json`, B5 à B8) : id → `{sprite, cadre?, defi, marque,
+## licence, source, ancrages}`. Un skin donne le sprite de la tour (`cadre` : la partie de l'image
+## utilisée, pour une feuille d'images), le défi qui le débloque (vide pour `defaut`), la zone de
+## marque de la couleur du joueur, sa licence et, pour chaque superposition, le point (en pixels du
+## cadre) où son centre se pose. Un fichier non vide contient au moins le skin `defaut`.
 static func valider_skins(skins: Dictionary, err: Array[String]) -> void:
 	var f := "skins_tour.json"
 	if skins.is_empty():
@@ -101,6 +103,7 @@ static func valider_skins(skins: Dictionary, err: Array[String]) -> void:
 		var skin: Dictionary = skins[id]
 		if not skin.get("sprite") is String or String(skin["sprite"]).is_empty():
 			Donnees._err(err, f, "%s.sprite" % chemin, "chemin d'image attendu")
+		_valider_identite_skin(skin, chemin, err)
 		if not skin.get("ancrages") is Dictionary:
 			Donnees._err(err, f, "%s.ancrages" % chemin, "objet attendu")
 			continue
@@ -115,3 +118,38 @@ static func valider_skins(skins: Dictionary, err: Array[String]) -> void:
 				var v: Variant = a.get(axe)
 				if not (v is float or v is int) or not is_finite(float(v)):
 					Donnees._err(err, f, "%s.%s" % [ch, axe], "nombre fini attendu")
+
+
+## Défi, cadre, marque, licence et source d'un skin (T11.6) : tout sauf le sprite et les ancrages.
+static func _valider_identite_skin(skin: Dictionary, chemin: String, err: Array[String]) -> void:
+	var f := "skins_tour.json"
+	if not skin.get("defi") is String:
+		Donnees._err(err, f, "%s.defi" % chemin, "identifiant de défi attendu (vide pour defaut)")
+	elif String(skin["defi"]).is_empty() != (chemin == "defaut"):
+		Donnees._err(err, f, "%s.defi" % chemin, "vide pour defaut seulement")
+	for champ: String in ["licence", "source"]:
+		if not skin.get(champ) is String or String(skin[champ]).is_empty():
+			Donnees._err(err, f, "%s.%s" % [chemin, champ], "texte attendu")
+	if skin.has("cadre"):
+		_valider_rectangle(skin["cadre"], "%s.cadre" % chemin, err)
+	if not skin.get("marque") is Dictionary:
+		Donnees._err(err, f, "%s.marque" % chemin, "objet attendu")
+		return
+	var marque: Dictionary = skin["marque"]
+	if not marque.get("genre") in ["origine", "fanion"]:
+		Donnees._err(err, f, "%s.marque.genre" % chemin, "« origine » ou « fanion » attendu")
+	_valider_rectangle(marque, "%s.marque" % chemin, err)
+
+
+## Un rectangle {x, y, largeur, hauteur} d'entiers : position positive ou nulle, taille non nulle.
+static func _valider_rectangle(rect: Variant, chemin: String, err: Array[String]) -> void:
+	if not rect is Dictionary:
+		Donnees._err(err, "skins_tour.json", chemin, "objet attendu")
+		return
+	var r: Dictionary = rect
+	for cle: String in ["x", "y", "largeur", "hauteur"]:
+		var v: Variant = r.get(cle)
+		if not (v is int or (v is float and v == floorf(v))):
+			Donnees._err(err, "skins_tour.json", "%s.%s" % [chemin, cle], "entier attendu")
+		elif int(v) < 0 or (cle in ["largeur", "hauteur"] and int(v) == 0):
+			Donnees._err(err, "skins_tour.json", "%s.%s" % [chemin, cle], "valeur hors bornes")

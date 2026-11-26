@@ -60,6 +60,11 @@ Spécification : `docs/superpowers/specs/2026-11-24-jeu-tour-design.md`. Plan :
 - Outils de dessin, d'animation et bibliothèques : gratuits et open source seulement (licence OSI) ;
   Aseprite et les générateurs d'images par IA sont exclus (Phil, 26/11/2026).
 - Sons et ressources sonores : l'agent choisit lui-même un pack sous licence CC0, sans attendre Phil, une fois la licence vérifiée à sa source et citée dans `assets/sons/SOURCES.md` (Phil, 26/11/2026).
+- Assets remplaçables (Phil, 26/11/2026) : changer un pack d'images ou de sons ne doit demander que de remplacer
+  les fichiers. Chemin, taille de case, nombre d'images, régions, ancrages, échelle et durée vivent dans
+  les données (`data/*.json`) ou se lisent sur la texture, jamais dans des constantes de `visuels/` ou de
+  `ui/` ; chaque chemin d'asset passe par un seul point d'accès (`visuels/apparence.gd`, `ui/theme.gd`,
+  `sons/catalogue_sons.gd`). Une valeur géométrique trouvée en dur se signale (audit T10.4).
 
 ## Skills de jeu tiers
 
