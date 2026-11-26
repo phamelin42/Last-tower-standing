@@ -413,6 +413,11 @@ fin, une fois les décisions et les chiffres arrêtés.
   service n'envoie aucune donnée personnelle (pas d'e-mail dans le User-Agent) et attend sur 429.
 - Dans un workflow d'agent, l'étape qui détient un jeton d'écriture vit dans un autre job, repart
   d'un checkout propre et ne lit la production de l'agent que comme une donnée.
+- **Skill ou plugin tiers** : lu en entier, scripts compris, avant d'entrer dans un dépôt, puis copié
+  et épinglé par `npx -y skills@<version> add <source> --skill <nom> -a claude-code --copy -y`
+  (commit noté dans `skills-lock.json`), toujours précédé de `DISABLE_TELEMETRY=1 DO_NOT_TRACK=1` :
+  sinon `skills` envoie un événement à skills.sh. Un skill propre à un projet reste dans ce projet
+  (last-tower-standing : `docs/skills-claude/`).
 
 ## 15. Contenu éditorial et exactitude
 
