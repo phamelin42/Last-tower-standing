@@ -1,7 +1,7 @@
 # Candidats de sprites de tour : sources et licences (T11.6, partie 1)
 
 Relevé du 26/11/2026. **Rien n'est intégré** : ces images sont des candidats pour la validation de Phil.
-Planche v2 : `docs/skins/planche_v2.png` (générée par `docs/skins/generer_planche.py`), 50 skins : 18 candidats Spire ou Gobelin, 32 sprites dessinés.
+Planche v3 : `docs/skins/planche_v3.png` (générée par `docs/skins/generer_planche.py`), 50 skins.
 
 ## Licences vérifiées
 
@@ -41,17 +41,28 @@ tournantes, ruines, trophées, crânes, rond de sièges, couronne, puits, ronces
 - Recherches : 0 appel de WebSearch ; une vingtaine de requêtes de recherche OpenGameArt et itch.io (pages de listes
   filtrées par licence) et une trentaine de pages de packs lues directement.
 
-## Sprites dessinés (planche v2)
+## Nouvelle recherche (planche v3)
 
-Décision de Phil relayée par la pilote (26/11/2026) : les 7 skins « faibles » et les 23 manques sont **dessinés par
-script**, sans IA ni Aseprite ni sprite retouché ; s'y ajoutent deux skins provisoires pour les défis « zone posée »
-et « bombe » (PR #85, pas encore dans `docs/defis.md`), soit 32 sprites.
+Décision de Phil (26/11/2026) : les ébauches dessinées sont écartées (le script de dessin est supprimé), changer de
+famille est permis, et un skin sans candidat reçoit le **meilleur rapprochement** plutôt qu'un dessin pauvre.
 
-- `tools/dessiner_tours.py` trace chaque tour de zéro (rectangles, ellipses, lignes de Pillow sur une grille de
-  64 × 96, agrandie au plus proche voisin en 128 × 192), dans la palette de Tiny Swords (contour `#161c2e`, pierre,
-  bois). Aucune image n'est lue : licence du dessin = celle du dépôt.
-- Chaque sprite porte une **marque de la couleur du joueur** (drapeau, liseré ou bannière) dans le bleu de Tiny
-  Swords, teintable ; sa zone est dans `docs/skins/dessines/marques.json`. Les candidats Spire n'ont pas tous de
-  marque : seule la bannière bleue du pack 1 (arbalète) en a une, les autres la reçoivent du jeu (T11.7).
-- Ce sont des **ébauches** de planche : lisibles à la taille du jeu, mais plus simples que les Spire. À valider ou
-  retoucher par Phil avant toute intégration.
+- **Recherche :** 9 recherches web, plus un relevé par requêtes directes d'OpenGameArt (11 mots-clés, filtres CC0 et
+  CC-BY, 195 fiches ouvertes, vignettes regardées une à une). itch.io a répondu 403 au relevé par étiquettes après les
+  premiers essais.
+- **Résultat :** aucun autre pack de tours en pixel art sous CC0 ou CC-BY ne forme une famille cohérente. Les packs de
+  tours « libres » trouvés (Pixel Tower Defenders de codelaboratory, Archer et Guardian Towers de free-game-assets,
+  Pixel Castle Towers de pixelmateai, Simple Tower Defense de skyel13) ont des conditions maison ou CC-BY-ND, donc
+  **hors critère** (CC0 ou CC-BY seulement). OpenGameArt ne donne que des tuiles 16 × 16, des rendus 3D ou des
+  vecteurs (Kenney, looneybits, Bleed, LPC, MiniWorld de Shade en 16 × 16, Tiny Town de Kenney).
+- **Famille retenue :** les 24 tours **Spire** de Foozle (CC0), mêlées aux bâtiments de **Tiny Swords** déjà dans le
+  dépôt (`assets/tiny_swords/`, CC0, non retouchés) : tour de bois et cabane des Gobelins, tour en chantier et tour en
+  ruine, château, maison, mine d'or des Chevaliers. La tour des Chevaliers reste la tour par défaut.
+- **Planche v3** (`docs/skins/planche_v3.png`, 50 skins) : 9 bons candidats, 14 partiels, 27 rapprochés ; 32 sprites
+  distincts pour 50 skins, soit **18 réemplois** (un même sprite sert deux ou trois skins). Un vrai skin distinct
+  pour chacun demande un pack de plus ou un dessinateur : à décider.
+- **Marque de couleur :** le fanion bleu de la planche est posé à l'affichage, par-dessus l'aperçu, comme le fera le
+  jeu (T11.7) ; aucun fichier de sprite n'est modifié. Marque d'origine : fanions du Gobelin, tout le bleu des
+  bâtiments Chevaliers et la bannière du pack Spire 1.
+
+Sources des bâtiments Tiny Swords : `assets/tiny_swords/LICENCE.md` (Pixel Frog, https://pixelfrog-assets.itch.io/tiny-swords,
+« TS_old version_CC0 Licensed »).
