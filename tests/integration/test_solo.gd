@@ -395,3 +395,28 @@ func test_des_reglages_invalides_sont_ignores() -> void:
 	var jeu := _jeu_direct()
 	verifier(jeu.demarrer_solo(_donnees, GRAINE, 0.5), "la partie démarre quand même")
 	_liberer(jeu)
+
+
+## T8.20 : en solo, la mini-carte montre la tour et les ennemis de la partie, sans vignette ; un
+## clic y déplace la vue et Espace la ramène sur la tour ; la défaite la fait disparaître.
+func test_en_solo_la_minicarte_est_la_carte_seule_et_suit_la_partie() -> void:
+	var jeu := _jeu_direct()
+	verifier(jeu.demarrer_solo(_donnees, GRAINE, 0.5))
+	_avancer(jeu, 25.0)
+	jeu.placer_dans(Vector2(1280.0, 720.0))
+	verifier(jeu.minicarte.visible, "la mini-carte est affichée")
+	verifier(jeu.minicarte.vignettes.is_empty(), "aucune vignette en solo")
+	verifier_egal(
+		jeu.minicarte.taille_voulue(), Vector2(Minicarte.COTE_CARTE, Minicarte.COTE_CARTE)
+	)
+	verifier(jeu.minicarte.points_positions.size() > 0, "les ennemis de la partie sont des points")
+	jeu.minicarte.cliquer(jeu.minicarte.rect_carte().position + Vector2(20.0, 30.0))
+	verifier(jeu.camera.decalage_unites != Vector2.ZERO, "un clic déplace la vue")
+	var espace := InputEventAction.new()
+	espace.action = "camera_recentrer"
+	espace.pressed = true
+	jeu.arene._unhandled_input(espace)
+	verifier_egal(jeu.camera.decalage_unites, Vector2.ZERO, "Espace revient sur la tour")
+	_jusqua_la_defaite(jeu)
+	verifier_faux(jeu.minicarte.visible, "l'écran de fin masque la mini-carte")
+	_liberer(jeu)
