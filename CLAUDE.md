@@ -54,6 +54,29 @@ Spécification : `docs/superpowers/specs/2026-11-24-jeu-tour-design.md`. Plan :
 - Ne toucher qu'aux fichiers de sa tâche. Une interface fausse chez un voisin se signale, elle ne se corrige pas.
 - Avant de rendre une tâche : `tools/verifier.sh` vert, `gdlint` et `gdformat --check` verts sur ce qui a changé.
 
+## Skills de jeu tiers
+
+Douze skills de `.claude/skills/` viennent de dépôts tiers (source et commit dans `skills-lock.json`),
+relus fichier par fichier avant d'entrer ; le choix est expliqué dans `docs/skills-claude/`. Ils sont
+génériques et en anglais : ce fichier et les règles de dépendance l'emportent.
+
+- Améliorer une animation d'attaque ou de sort : lire d'abord `docs/skills-claude/animation-et-vfx.md`
+  (phases, nombres d'images, lisibilité, limites de flash, avec leurs sources) ; aucun skill ne le couvre.
+- Hit-stop, ralenti, gel d'impact : purement visuels, en suspendant l'animation et l'interpolation dans
+  `visuels/` ; la simulation à 20 Hz et le réseau gardent le temps réel. `game-feel` passe par
+  `Engine.time_scale` : remplacer ce passage par le gel visuel.
+- `godot-multiplayer`, `godot-signals-groups` et `game-ai` servent pour l'API et les pièges (ENet,
+  `@rpc`, A\*) ; l'architecture reste `sim/` pure et `reseau/` qui n'appelle que `sim/partie.gd`.
+- `godot-gdscript-headless-testing` : ses pièges de code de sortie et d'`await` valent pour
+  `tests/lanceur.gd`, qui reste le seul lanceur.
+- Leurs exemples ne sont pas tous typés : typer en recopiant.
+- Le projet rend en Forward+ ; une capture sous Xvfb (`--rendering-driver opengl3`) rend en
+  Compatibility, qui n'affiche pas les traînées de particules : le rendu final se juge sur un vrai écran.
+- Ajouter ou mettre à jour un skill tiers : le lire en entier, scripts compris, puis
+  `DISABLE_TELEMETRY=1 DO_NOT_TRACK=1 npx -y skills@1.9.0 add <source> --skill <nom> -a claude-code --copy -y`
+  (sans ces variables, l'outil envoie un événement à skills.sh), relire le `git diff`, passer Prettier
+  sur les `.md` copiés.
+
 ## Tableau d'avancement en direct
 
 Demandé par Phil le 25/11/2026 : https://claude.ai/artifact/QQaqHHiz3E9tmc5tsgiLa2 (tableau de bord
