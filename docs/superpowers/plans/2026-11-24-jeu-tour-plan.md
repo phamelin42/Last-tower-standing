@@ -1492,10 +1492,11 @@ func id_regarde() -> int                # -1 si aucune
 
 # Suivis relevés en cours de route
 
-- **Équilibrage** (rapport de la passe du 25/11/2026, `docs/equilibrage.md`) : rampe de dégâts
-  ennemis très raide (×0,03 à ×1 entre les manches 1 et 10) ; mur de PV après la manche 20 (×2 000
-  à la manche 31), car la puissance du joueur croît sans plafond (améliorations multiplicatives,
-  or inutilisé) ; boss retenu par les gels ; archers (portée 450) hors de portée des armes à 300.
+- **Équilibrage** : **clos par T8.21 (26/11/2026)**, chiffres dans `docs/equilibrage.md`. Rampe de
+  dégâts adoucie et primes revues ; la cible « manche 20 pour toutes les graines » n'est pas tenue
+  (minimum 17, médiane 31 sur les graines 1 à 10), seuil posé à la médiane 20 et au minimum 12.
+  Restent ouverts : puissance du joueur sans plafond après la manche 20 (le mur vient de
+  `apres_table`), boss retenu par les gels.
 - **Caméra** : vue lointaine pour cadrer le cercle d'apparition ; régler le zoom par défaut à
   l'usage.
 - **Réglages** : vérifier sous Windows que le renommage écrase bien l'ancien fichier.
