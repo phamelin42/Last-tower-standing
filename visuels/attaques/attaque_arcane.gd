@@ -9,10 +9,13 @@ const CONF: Dictionary = {
 	"projectile": "rune",
 	"cloche": 0.0,
 	"fps": 12.0,
+	"echelle": 1.5,
 }
 ## Deux points tournent autour de la rune.
 const POINTS: int = 2
-const DIAMETRE_RUNE: float = 36.0
+## La rune et son éclat s'affichent 1,5 fois plus grands (ils étaient 36 px) : un coup à cible
+## unique reste sous 60 px.
+const DIAMETRE_RUNE: float = 54.0
 
 
 func id() -> String:

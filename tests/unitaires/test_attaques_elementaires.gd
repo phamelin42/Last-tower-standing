@@ -3,6 +3,8 @@ extends CasDeTest
 ## dont la durée est celle que `tirer` annonce, un impact à la taille de la zone, puis la
 ## dissipation. Les durées sont des nombres d'images à 60 i/s (`IMAGE`).
 
+## La couleur des pixels de la planche `ombre` (`tools/dessin/dessin_commun.gd`).
+const ENCRE_OMBRE := Color("161c2e")
 const IMAGE: float = 1.0 / 60.0
 const DEPART := Vector2(40.0, 300.0)
 const ARRIVEE := Vector2(360.0, 300.0)
@@ -160,7 +162,10 @@ func test_la_bombe_et_la_fiole_passent_au_dessus_de_la_ligne_droite() -> void:
 		var ombre: Dictionary = _a.etats("ombre")[0]
 		verifier_proche(ombre["position"].y, DEPART.y, 0.01, "l'ombre reste sur la ligne droite")
 		verifier_proche(ombre["position"].x, projectile["position"].x, 40.0, "sous le projectile")
-		verifier_proche(ombre["alpha"], 0.35, 0.001, "ombre à 35 %")
+		verifier_proche(ombre["alpha"], 0.55, 0.001, "ombre à 55 %")
+		var sol := Color(0.24, 0.38, 0.27)
+		var pixel: Color = ENCRE_OMBRE * (ombre["teinte"] as Color)
+		verifier(pixel.get_luminance() < sol.get_luminance() * 0.5, "plus sombre que l'herbe")
 		verifier(ombre["echelle"].x < 3.0 * 0.76, "l'ombre rétrécit au sommet")
 
 
@@ -227,12 +232,27 @@ func test_l_arcane_dure_dix_images_avec_deux_points_qui_tournent() -> void:
 	verifier(_a.particules_actives() >= 1, "trois points bleus qui s'effacent")
 
 
-func test_l_eclat_de_rune_ne_depasse_jamais_quarante_pixels() -> void:
+## Avant le socle D22 la rune et son éclat étaient 36 px, la garde 40 px ; ×1,5, la garde 60.
+func test_l_eclat_de_rune_est_une_fois_et_demie_plus_grand_sous_soixante_pixels() -> void:
 	_a.impacter("arcane", ARRIVEE, 0.0)
+	var plus_grand: float = 0.0
 	for image: int in 12:
 		for eclat: Dictionary in _a.etats("eclat_rune"):
-			verifier(eclat["taille"].x <= 40.0 and eclat["taille"].y <= 40.0, "rune ≤ 40 px")
+			verifier(eclat["taille"].x <= 60.0 and eclat["taille"].y <= 60.0, "rune ≤ 60 px")
+			plus_grand = maxf(plus_grand, float(eclat["taille"].x))
 		_avancer(1)
+	verifier(
+		plus_grand >= 36.0 * 1.5 - 0.01, "au moins 1,5 fois les 36 px d'avant : %f" % plus_grand
+	)
+
+
+func test_la_rune_en_vol_est_une_fois_et_demie_plus_grande() -> void:
+	_a.tirer("arcane", DEPART, ARRIVEE)
+	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 2)
+	var rune: Dictionary = _a.etats("rune")[0]
+	verifier(
+		float(rune["taille"].x) >= 12.0 * 3.0 * 1.5 - 0.01, "rune ≥ 54 px : %s" % rune["taille"]
+	)
 
 
 func _eclair(de: Vector2, vers: Vector2) -> void:

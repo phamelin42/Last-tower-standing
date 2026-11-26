@@ -25,7 +25,9 @@ const DECALAGE_ANTICIPATION: float = 14.0
 ## Barrage : chaque boule part 2 images après la précédente.
 const RETARD_BARRAGE: float = 2.0 * IMAGE
 const HAUTEUR_MIN_CLOCHE: float = 30.0
-const ALPHA_OMBRE: float = 0.35
+## L'ombre au sol d'une bombe ou d'une fiole : assez sombre et opaque pour se lire sur l'herbe.
+const ALPHA_OMBRE: float = 0.55
+const COULEUR_OMBRE := Color(0.5, 0.5, 0.55)
 const ECHELLE_OMBRE_SOMMET: float = 0.7
 const ECHELLE_BOMBE_SOMMET: float = 1.15
 ## Un éclat blanc (départ, première image d'impact) au plus trois fois par seconde (WCAG 2.3.1).
@@ -61,7 +63,7 @@ const POISON: String = ElementsArmes.POISON
 const FOUDRE: String = ElementsArmes.FOUDRE
 const ARCANE: String = ElementsArmes.ARCANE
 ## Les points d'une orbite (rune) tournent à ce rayon, de ce nombre de tours sur le vol.
-const RAYON_ORBITE: float = 10.0
+const RAYON_ORBITE: float = 15.0
 const TOURS_ORBITE: float = 3.0
 const IMAGE_POINT_RUNE: int = 2
 ## L'éclair : 6 à 8 segments, cœur blanc de 3 px dans un bord de 6 px, tracé de nouveau toutes les
@@ -170,6 +172,7 @@ func etats(planche: String) -> Array[Dictionary]:
 					"diametre": float(e["diametre"]),
 					"visible": n.visible,
 					"alpha": n.modulate.a,
+					"teinte": Color(n.modulate, 1.0),
 				}
 			)
 		)
@@ -238,6 +241,7 @@ func tirer(element: String, depart: Vector2, arrivee: Vector2, retard: float = 0
 			projectile["depart"] = depart
 			projectile["arrivee"] = arrivee
 			projectile["couleur"] = Color.WHITE
+			projectile["echelle"] = ECHELLE * float(conf.get("echelle", 1.0))
 			projectile["fps"] = float(conf["fps"])
 			projectile["cloche"] = float(conf["cloche"])
 			projectile["tour"] = float(conf.get("tour", 0.0))
@@ -463,7 +467,7 @@ func _ombre(projectile: Dictionary, attente: float, vol: float) -> void:
 	ombre["age"] = -attente
 	ombre["depart"] = projectile["depart"]
 	ombre["arrivee"] = projectile["arrivee"]
-	ombre["couleur"] = Color.WHITE
+	ombre["couleur"] = COULEUR_OMBRE
 	poser(ombre)
 
 
