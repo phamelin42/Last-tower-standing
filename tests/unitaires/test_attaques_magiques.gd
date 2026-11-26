@@ -9,6 +9,7 @@ const CIBLE := Vector2(420.0, 300.0)
 const ARMES: Dictionary = {
 	"cercle_de_givre": ["cercle_givre", "aura"],
 	"nova_d_ambre": ["nova", "onde"],
+	"tempete_astrale": ["tempete", "rebond"],
 }
 
 var _a: AttaquesElementaires = null
@@ -176,6 +177,72 @@ func test_la_nova_dans_effets_est_dessinee_une_fois_au_depart() -> void:
 		effets.elementaires().etats("vague_ambre").size(),
 		AttaqueNova.LAMES,
 		"l'impact n'en ajoute pas"
+	)
+	vitrine.free()
+	effets.free()
+
+
+# --- Tempête astrale : rebond et étourdissement ------------------------------------------------
+
+
+func test_la_premiere_etoile_part_apres_trois_images_d_anticipation() -> void:
+	verifier_proche(_a.tirer("tempete", TOUR, CIBLE) / IMAGE, 10.0, 0.01)
+	verifier_egal(_a.etats("depart").size(), 1, "l'anticipation")
+	verifier_egal(_a.etats("etoile_astrale").size(), 1, "l'étoile")
+
+
+func test_un_saut_de_la_tempete_est_une_etoile_de_sept_images_sans_anticipation() -> void:
+	var fin: float = _a.saut("tempete", CIBLE, CIBLE + Vector2(90.0, 20.0), 4.0 * IMAGE)
+	verifier_proche(fin / IMAGE, 4.0 + AttaquesElementaires.IMAGES_VOL_DIRECT, 0.01)
+	verifier_egal(_a.etats("depart").size(), 0, "pas d'anticipation à chaque saut")
+	verifier_egal(_a.etats("etoile_astrale").size(), 1, "une étoile par saut")
+
+
+func test_l_etoile_tourne_sur_elle_meme_en_vol_sauf_en_mouvement_reduit() -> void:
+	_a.saut("tempete", TOUR, CIBLE, 0.0)
+	_avancer(1)
+	var avant: int = _a.etats("etoile_astrale")[0]["image"]
+	_avancer(4)
+	verifier(_a.etats("etoile_astrale")[0]["image"] != avant, "l'étoile change d'image")
+	_a.vider()
+	_a.mouvement_reduit = true
+	_a.saut("tempete", TOUR, CIBLE, 0.0)
+	_avancer(1)
+	var fige: int = _a.etats("etoile_astrale")[0]["image"]
+	_avancer(4)
+	verifier_egal(_a.etats("etoile_astrale")[0]["image"], fige, "figée en mouvement réduit")
+
+
+func test_l_impact_de_la_tempete_est_un_eclat_etoile_petit_avec_des_etincelles() -> void:
+	verifier(_a.impacter("tempete", CIBLE, 0.0, false, TOUR))
+	verifier_egal(_a.etats("eclat_astral").size(), 1, "un éclat étoilé")
+	verifier(_a.diametre_max() <= 60.0, "cible unique : au plus 60 px")
+	verifier(_a.particules_actives() >= 1 and _a.particules_actives() <= 8, "de 1 à 8 particules")
+	_avancer(40)
+	verifier_egal(_a.nombre_vivants(), 0, "tout se dissipe")
+
+
+func test_mouvement_reduit_la_tempete_garde_ses_sprites_sans_particule() -> void:
+	_a.mouvement_reduit = true
+	_a.tirer("tempete", TOUR, CIBLE)
+	_a.impacter("tempete", CIBLE, 0.0, false, TOUR)
+	verifier_egal(_a.particules_actives(), 0)
+	verifier_egal(_a.etats("eclat_astral").size(), 1, "l'éclat reste")
+
+
+func test_la_tempete_dans_effets_envoie_une_etoile_par_saut() -> void:
+	var effets: Effets = Effets.new()
+	effets.catalogue = _donnees.ids_catalogue
+	arbre.root.add_child(effets)
+	var vitrine: VitrineArmes = VitrineArmes.new()
+	vitrine.armes = ["tempete_astrale"] as Array[String]
+	var evenements: Array[Dictionary] = vitrine.evenements_du_cycle("tempete_astrale")
+	for evenement: Dictionary in evenements:
+		effets.ajouter(evenement)
+	verifier_egal(
+		effets.elementaires().etats("etoile_astrale").size(),
+		3,
+		"une étoile pour chacun des trois sauts"
 	)
 	vitrine.free()
 	effets.free()
