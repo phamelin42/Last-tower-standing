@@ -112,7 +112,15 @@ var _degrade: Gradient = null
 
 ## Un élément par fichier sous `visuels/attaques/` : une ligne ici suffit à en ajouter un.
 static func _scripts() -> Array[GDScript]:
-	return [AttaqueFeu, AttaqueGlace, AttaqueBombe, AttaquePoison, AttaqueFoudre, AttaqueArcane]
+	return [
+		AttaqueFeu,
+		AttaqueGlace,
+		AttaqueBombe,
+		AttaquePoison,
+		AttaqueFoudre,
+		AttaqueArcane,
+		AttaqueLame,
+	]
 
 
 ## Les éléments, par identifiant (créés une fois).
@@ -176,6 +184,7 @@ func etats(planche: String) -> Array[Dictionary]:
 					"taille": n.region_rect.size * n.scale.abs(),
 					"diametre": float(e["diametre"]),
 					"visible": n.visible,
+					"image": int(e["image"]),
 					"alpha": n.modulate.a,
 					"teinte": Color(n.modulate, 1.0),
 				}
@@ -252,6 +261,7 @@ func tirer(element: String, depart: Vector2, arrivee: Vector2, retard: float = 0
 			projectile["tour"] = float(conf.get("tour", 0.0))
 			projectile["bosse"] = float(conf.get("bosse", 0.0))
 			projectile["vrille"] = float(conf.get("vrille", 0.0))
+			projectile["fige_reduit"] = bool(conf.get("fige_reduit", false))
 			projectile["vol"] = vol
 			poser(projectile)
 			el.suivre_vol(self, projectile, attente, vol)
@@ -281,6 +291,7 @@ func saut(element: String, depart: Vector2, arrivee: Vector2, retard: float) -> 
 	projectile["echelle"] = ECHELLE * float(conf.get("echelle", 1.0))
 	projectile["fps"] = float(conf["fps"])
 	projectile["vrille"] = float(conf.get("vrille", 0.0))
+	projectile["fige_reduit"] = bool(conf.get("fige_reduit", false))
 	projectile["vol"] = vol
 	poser(projectile)
 	el.suivre_vol(self, projectile, retard, vol)
@@ -490,6 +501,7 @@ func _fiche(n: Node2D, kind: String, planche: String, duree: float) -> Dictionar
 		"tour": 0.0,
 		"bosse": 0.0,
 		"vrille": 0.0,
+		"fige_reduit": false,
 		"rayon_px": 0.0,
 		"vitesse": 0.0,
 	}
@@ -670,7 +682,7 @@ func _poser_vol(effet: Dictionary, n: Sprite2D, t: float, age: float) -> void:
 	elif float(effet["vrille"]) > 0.0 and not mouvement_reduit:
 		n.rotation += age * TAU * float(effet["vrille"])
 	var fps: float = float(effet["fps"])
-	if fps > 0.0:
+	if fps > 0.0 and not (mouvement_reduit and bool(effet["fige_reduit"])):
 		var images: int = int(
 			n.texture.get_width() / float((planches()[effet["planche"]] as Vector2i).x)
 		)

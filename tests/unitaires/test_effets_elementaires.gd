@@ -143,7 +143,7 @@ func test_une_arme_sans_element_garde_son_rendu() -> void:
 		_effets.avancer(0.5)
 		verifier_egal(_effets.elementaires().nombre_vivants(), 0)
 		verifier_egal(_effets.elementaires().particules_actives(), 0)
-	verifier(autres >= 24, "au moins les 24 autres armes : %d" % autres)
+	verifier_egal(autres, 30 - ElementsArmes.ids().size(), "toutes les autres armes du catalogue")
 
 
 func test_un_barrage_n_a_qu_un_anneau_au_rayon_reel_centre_sur_les_impacts() -> void:

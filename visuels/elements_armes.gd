@@ -1,8 +1,9 @@
 class_name ElementsArmes
 extends RefCounted
-## L'élément visuel des armes dont Phil juge les attaques (D22) : feu, glace, bombe, poison, foudre
-## ou arcane. Une arme absente de la table garde le rendu par signature d'aujourd'hui (`de()` rend
-## `""`) : les autres armes ne changent pas tant que Phil n'a pas validé la proposition.
+## L'élément visuel des armes dont Phil juge les attaques (D22) : feu, glace, bombe, poison, foudre,
+## arcane, puis la famille acier (une arme par élément). Une arme absente de la table garde le
+## rendu par signature d'aujourd'hui (`de()` rend `""`) : les autres armes ne changent pas tant que
+## Phil n'a pas validé la proposition.
 
 const FEU: String = "feu"
 const GLACE: String = "glace"
@@ -10,8 +11,15 @@ const BOMBE: String = "bombe"
 const POISON: String = "poison"
 const FOUDRE: String = "foudre"
 const ARCANE: String = "arcane"
+## La famille acier (armes tranchantes) : un élément par arme, car chaque genre a son geste.
+const LAME: String = "lame"
+const FAUCILLE: String = "faucille"
+const DISQUE: String = "disque"
+const MOULINET: String = "moulinet"
+const GUILLOTINE: String = "guillotine"
+const TOURBILLON: String = "tourbillon"
 
-const ELEMENTS: Array[String] = [FEU, GLACE, BOMBE, POISON, FOUDRE, ARCANE]
+const ELEMENTS: Array[String] = [FEU, GLACE, BOMBE, POISON, FOUDRE, ARCANE, LAME]
 
 ## id d'arme → élément.
 const TABLE: Dictionary = {
@@ -21,6 +29,7 @@ const TABLE: Dictionary = {
 	"cornue_instable": POISON,
 	"chaine_d_arcanes": FOUDRE,
 	"etincelle_runique": ARCANE,
+	"lame_de_fil": LAME,
 }
 
 
