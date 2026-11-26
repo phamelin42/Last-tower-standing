@@ -6,7 +6,9 @@ extends CasDeTest
 
 const GRAINES: Array[int] = [1, 2, 3, 4, 5]
 const MANCHE_MEDIANE_RAISONNABLE_MIN := 12
-const MANCHE_PASSIVE_MAX := 8
+const MANCHE_PASSIVE_MAX := 3
+const MANCHE_ACHAT_MIN := 6
+const GRAINES_SEUIL_BAS: Array[int] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 
 func _manches(strategie: String) -> Array[int]:
@@ -19,12 +21,65 @@ func _manches(strategie: String) -> Array[int]:
 	return manches
 
 
-func test_un_joueur_passif_tombe_avant_la_manche_huit_sur_chaque_graine() -> void:
-	var manches := _manches(StrategiesJoueur.PASSIVE)
-	for manche: int in manches:
+func test_sans_achat_la_tour_tombe_avant_la_fin_de_la_manche_3() -> void:
+	var d := AidesPartie.donnees()
+	for graine: int in GRAINES_SEUIL_BAS:
+		var r := SimulationEquilibrage.jouer(d, graine, StrategiesJoueur.PASSIVE, 0)
 		verifier(
-			manche < MANCHE_PASSIVE_MAX, "le joueur passif a tenu jusqu'à la manche %d" % manche
+			int(r["manche"]) <= MANCHE_PASSIVE_MAX and not bool(r["victoire"]),
+			"graine %d : le joueur passif a tenu jusqu'à la manche %d" % [graine, int(r["manche"])]
 		)
+
+
+func test_pv_et_degats_des_ennemis_augmentent_a_chaque_manche() -> void:
+	var d := AidesPartie.donnees()
+	for temps: float in [0.0]:
+		for manche: int in range(1, 41):
+			var a := Planning.multiplicateurs(d, manche, temps)
+			var b := Planning.multiplicateurs(d, manche + 1, temps)
+			verifier(
+				float(b["pv"]) > float(a["pv"]),
+				"PV : la manche %d ne dépasse pas la %d (temps %s)" % [manche + 1, manche, temps]
+			)
+			verifier(
+				float(b["degats"]) > float(a["degats"]),
+				(
+					"dégâts : la manche %d ne dépasse pas la %d (temps %s)"
+					% [manche + 1, manche, temps]
+				)
+			)
+
+
+func test_la_force_d_une_meme_famille_augmente_a_chaque_manche() -> void:
+	var d := AidesPartie.donnees()
+	for famille: Dictionary in d.familles:
+		var premiere := maxi(int(famille["manche_entree"]), int(famille["manche_min"]))
+		var pv_avant := -1.0
+		var degats_avant := -1.0
+		for manche: int in range(premiere, 41):
+			var m := Planning.multiplicateurs(d, manche, 0.0)
+			var pv := float(famille["pv"]) * float(m["pv"])
+			var degats := float(famille["degats"]) * float(m["degats"])
+			verifier(
+				pv > pv_avant, "%s : PV non croissants à la manche %d" % [famille["id"], manche]
+			)
+			verifier(
+				degats > degats_avant,
+				"%s : dégâts non croissants à la manche %d" % [famille["id"], manche]
+			)
+			pv_avant = pv
+			degats_avant = degats
+
+
+func test_un_robot_qui_achete_ne_tombe_pas_avant_la_manche_6() -> void:
+	var d := AidesPartie.donnees()
+	for strategie: String in [StrategiesJoueur.RAISONNABLE, StrategiesJoueur.BONNE]:
+		for graine: int in GRAINES_SEUIL_BAS:
+			var r := SimulationEquilibrage.jouer(d, graine, strategie, MANCHE_ACHAT_MIN)
+			verifier(
+				int(r["manche"]) >= MANCHE_ACHAT_MIN,
+				"%s, graine %d : tombé à la manche %d" % [strategie, graine, int(r["manche"])]
+			)
 
 
 func test_un_joueur_raisonnable_atteint_au_moins_la_manche_douze_en_mediane() -> void:
