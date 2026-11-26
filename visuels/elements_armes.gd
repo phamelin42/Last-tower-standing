@@ -31,6 +31,7 @@ const TABLE: Dictionary = {
 	"etincelle_runique": ARCANE,
 	"lame_de_fil": LAME,
 	"faucille_a_ressort": FAUCILLE,
+	"disque_scie": DISQUE,
 }
 
 

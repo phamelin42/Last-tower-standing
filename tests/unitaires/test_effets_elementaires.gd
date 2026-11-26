@@ -177,3 +177,17 @@ func test_un_barrage_n_a_qu_un_anneau_au_rayon_reel_centre_sur_les_impacts() -> 
 		verifier_proche(float(vu[0]["diametre"]), rayon_px * 2.0, 0.01, "au rayon réel de la zone")
 		verifier_proche((vu[0]["position"] as Vector2).distance_to(centre), 0.0, 0.01, "au centre")
 	verifier(coeurs >= 2, "les cœurs de feu de chaque boule restent (%d)" % coeurs)
+
+
+## Le rebond du disque : un projectile par saut ; chaque impact attend l'arrivée du sien, donc
+## 10, 17 puis 24 images après le tir (anticipation et premier vol, puis 7 images par saut).
+func test_les_sauts_du_disque_arrivent_avec_leur_projectile() -> void:
+	_vitrine.armes = ["disque_scie"] as Array[String]
+	_jouer("disque_scie", 40)
+	verifier_egal(_impacts.size(), 3, "trois sauts, trois impacts")
+	var attendu: Array[int] = [10, 17, 24]
+	for k: int in mini(_impacts.size(), 3):
+		verifier(
+			absi(_impacts[k] + 1 - attendu[k]) <= 1,
+			"saut %d : impact à l'image %d, attendu %d" % [k, _impacts[k] + 1, attendu[k]]
+		)
