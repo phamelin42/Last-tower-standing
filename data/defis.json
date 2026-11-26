@@ -144,6 +144,22 @@
   "mode": "les_deux"
  },
  {
+  "id": "seul_zone_posee",
+  "nom": "Terre brûlée",
+  "texte": "Vainquez le boss en n’achetant que des armes de zone posée.",
+  "condition": "victoire = 1 et armes_achetees ≥ 1 et armes_genre_zone_posee = armes_achetees",
+  "skin": "tour_cratere",
+  "mode": "les_deux"
+ },
+ {
+  "id": "seul_bombe",
+  "nom": "Artificier",
+  "texte": "Vainquez le boss en n’achetant que des armes à bombe.",
+  "condition": "victoire = 1 et armes_achetees ≥ 1 et armes_genre_bombe = armes_achetees",
+  "skin": "tour_artificier",
+  "mode": "les_deux"
+ },
+ {
   "id": "seul_poison",
   "nom": "Venin pur",
   "texte": "Vainquez le boss en n’achetant que des armes empoisonnantes.",
