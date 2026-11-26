@@ -15,13 +15,16 @@ Catalogue final du lot 9 : 75 armes et 87 améliorations.
 | ----------- | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | passive     | tombe au plus tard à la fin de la manche 3 (D16, T8.8)      | manche 3 (tenu par `test_sans_achat_la_tour_tombe_…`)                                                                                                                                                   |
 | bonne       | ne tombe pas avant la manche 20 ; bat le boss sur 10 à 30 % | **20 / 20 / 20 / 20 / 20 / 20 / 20 / 20 / 20 / 20** (arrêt à la 20) ; parties complètes : 31, 31 (victoire), 31, 31, 31, 31, 31, 31 (victoire), 25, 31 → minimum 25, médiane 31, **2 victoires sur 10** |
-| raisonnable | manche médiane de 18 à 25                                   | 21, 31, 31, 20, 18, 31, 31, 31, 18, 19 → minimum 18, **médiane 31** (au-dessus de la cible)                                                                                                             |
+| raisonnable | manche médiane de 18 à 25                                   | 19, 31, 23, 20, 17, 19, 26, 25, 16, 17 → minimum 16, **médiane 20** (31 avant la limite de six armes)                                                                                                   |
 
 La cible « la bonne stratégie ne tombe pas avant la manche 20 » est tenue sur les graines 1 à 10
-(`test_le_robot_de_reference_n_est_pas_elimine_avant_la_manche_20`). **Écart** : la médiane du
-joueur raisonnable (31) dépasse la cible de 18 à 25 : cinq graines sur dix atteignent le boss. Les
-fermer davantage ferait tomber le taux de victoire de la bonne stratégie sous 10 %. La mesure à
-50 graines est à refaire après T9.22 (parties de plus d'une demi-heure pour la bonne stratégie).
+(`test_le_robot_de_reference_n_est_pas_elimine_avant_la_manche_20`). **Correction du joueur raisonnable (Phil, 26/11/2026)** : sa médiane valait 31 (cinq graines sur dix
+atteignaient le boss), parce que le robot bâtissait un arsenal complet de huit armes comme la
+bonne stratégie. Il s'arrête désormais à six armes (`ARMES_VISEES_RAISONNABLE`, un joueur
+raisonnable ne cherche pas l'arsenal parfait) : médiane 20, minimum 16. Avant : 21, 31, 31, 20, 18,
+31, 31, 31, 18, 19 (médiane 31). Resserrer le mur après la 20 n'y changeait rien (graines 2, 3 et 8
+passaient le boss même à ×3,6) et aurait supprimé les victoires de la bonne stratégie. La mesure
+à 50 graines est à refaire après T9.22 (parties de plus d'une demi-heure pour la bonne stratégie).
 
 Les D16 (passive en manche 3) et D17 (PV et dégâts strictement croissants) sont intacts.
 
@@ -60,7 +63,8 @@ l'arsenal des premières manches :
 - `data/partie.json` : la clé `emplacements_armes` est supprimée (plus de plafond d'armes depuis
   le lot 8), gardée par `test_emplacements_armes_n_est_plus_lu_nulle_part`.
 - `tests/outils/strategies_joueur.gd` : la bonne stratégie achète d'abord trois armes avant
-  l'économie (`ARMES_MINIMUM_BONNE`).
+  l'économie (`ARMES_MINIMUM_BONNE`) ; le joueur raisonnable s'arrête à six armes
+  (`ARMES_VISEES_RAISONNABLE`).
 
 ## Points ouverts
 
@@ -68,4 +72,4 @@ l'arsenal des premières manches :
   sans plafond (améliorations multiplicatives, or inutilisé une fois l'arsenal plein).
 - Les armes de portée 300 sont trop courtes face aux archers : à vérifier si c'est voulu.
 - Les robots sont approximatifs ; une bonne stratégie humaine peut faire nettement mieux ou pire.
-- Mesure à 50 graines et réglage fin de la médiane de « raisonnable » : après T9.22.
+- Mesure à 50 graines : après T9.22.
