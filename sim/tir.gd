@@ -36,6 +36,8 @@ class Lecture:
 	var exemplaires: Dictionary = {}
 	## stat d'amélioration → nombre d'améliorations possédées qui la portent (chaque achat compte).
 	var ameliorations_par_stat: Dictionary = {}
+	## Zones et bombes de l'arène : sans elles (tests de tir), une arme qui pose ne pose rien.
+	var poses: Poses = null
 
 
 ## Ce qui est commun à toutes les résolutions d'un même pas.
@@ -63,6 +65,9 @@ class Contexte:
 	## Part du repoussement qui s'applique au boss (`partie.json` `repoussement.facteur_boss`).
 	var facteur_boss_repoussement: float
 	var pv_max_tour: float = 0.0
+	var poses: Poses = null
+	## `proprietaire` des poses de cette arme (`ArmeEquipee.get_instance_id()`).
+	var proprietaire: int = 0
 
 
 static func avancer_arme(
@@ -126,6 +131,8 @@ static func _creer(
 	var mana_max := float(donnees.partie["tour"]["mana_max"]) + stats.mana_max_bonus
 	var vue_tour := lecture if lecture != null else Lecture.new()
 	ctx.pv_max_tour = vue_tour.pv_max_tour
+	ctx.poses = vue_tour.poses
+	ctx.proprietaire = arme.get_instance_id()
 	var plafond: float = float(donnees.partie["armes"]["bonus_selon_stat_max"])
 	var brut := degats_de_base(
 		arme.def,
@@ -364,7 +371,77 @@ static func _effet(ctx: Contexte, kind: String, effet: Dictionary) -> bool:
 			return _poser_mine(ctx, effet)
 		"tournant":
 			return _tournant(ctx, effet)
+		"zone_posee", "bombe":
+			return _poser(ctx, kind, effet)
 	return false
+
+
+# --- Zones posées et bombes -----------------------------------------------------------------------
+
+
+## Pose une zone ou une bombe sur la cible choisie par le ciblage de l'arme. Les dégâts, le critique
+## et les bonus sont figés à la pose ; la pose ne frappe pas.
+static func _poser(ctx: Contexte, kind: String, effet: Dictionary) -> bool:
+	if ctx.poses == null:
+		return false
+	var i := _choisir(ctx, float(ctx.arme.def["portee"]), [])
+	if i < 0:
+		return false
+	var position := ctx.ennemis.pos[i]
+	var pose: Dictionary = {
+		"pos": position,
+		"rayon": float(effet["rayon"]),
+		"degats": ctx.degats_base * _critique(ctx) * float(effet["ratio"]),
+		"type_degats": ctx.type_degats,
+		"statuts": ctx.statuts,
+		"statut": ctx.statut,
+		"arme": maxi(ctx.index_arme, 0),
+		"proprietaire": ctx.proprietaire,
+	}
+	if kind == "zone_posee":
+		pose["duree"] = float(effet["duree"])
+		pose["periode"] = float(effet["periode"])
+		ctx.poses.ajouter_zone(pose, int(effet["max_actives"]))
+	else:
+		pose["delai"] = float(effet["delai"])
+		ctx.poses.ajouter_bombe(pose, int(effet["max_actives"]))
+	_evenement(ctx, "tir", ctx.centre, position, float(effet["rayon"]))
+	return true
+
+
+## Le contexte d'une pose qui frappe : ses dégâts, son type et ses statuts sont ceux de l'arme au
+## moment de la pose ; le reste (vol de vie, résistance) est celui de la tour maintenant.
+static func contexte_pose(
+	pose: Dictionary,
+	genre: int,
+	ennemis: Ennemis,
+	stats: StatsTour,
+	centre: Vector2,
+	donnees: Donnees,
+	resistance: float,
+	bilan: Bilan
+) -> Contexte:
+	var ctx := Contexte.new()
+	ctx.stats = stats
+	ctx.ennemis = ennemis
+	ctx.centre = centre
+	ctx.resistance = resistance
+	ctx.bilan = bilan
+	ctx.type_degats = int(pose["type_degats"])
+	ctx.statuts = pose["statuts"]
+	ctx.statut = int(pose["statut"])
+	ctx.genre = genre
+	ctx.index_arme = int(pose["arme"])
+	var repousse: Dictionary = donnees.partie["repoussement"]
+	ctx.facteur_boss_repoussement = float(repousse["facteur_boss"])
+	return ctx
+
+
+## Une impulsion de zone ou l'explosion d'une bombe : frappe tous les ennemis du rayon, puis
+## l'événement `impact`.
+static func impulsion(ctx: Contexte, point: Vector2, rayon: float, degats: float) -> void:
+	_zone(ctx, point, rayon, degats, -1)
+	_evenement(ctx, "impact", ctx.centre, point, rayon)
 
 
 # --- Tir tournant ------------------------------------------------------------------------------
