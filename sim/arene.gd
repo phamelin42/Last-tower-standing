@@ -38,6 +38,8 @@ var mana: float = 0.0
 var ennemis: Ennemis
 ## Zones posées et bombes : elles disparaissent avec la manche et la tour.
 var poses: Poses
+## Alliés invoqués : ils disparaissent avec la manche et la tour.
+var allies: Allies
 var economie: Economie
 var inventaire: Inventaire
 var boutique: Boutique
@@ -97,6 +99,7 @@ func _init(donnees: Donnees, graine: int) -> void:
 	_plancher = float(partie["spawn_plancher"])
 	ennemis = Ennemis.new(donnees)
 	poses = Poses.new(donnees)
+	allies = Allies.new(donnees)
 	economie = Economie.new(donnees)
 	inventaire = Inventaire.new(donnees)
 	boutique = Boutique.new(donnees, _rng)
@@ -121,6 +124,7 @@ func demarrer_manche(numero: int, composition: Composition, mult: Dictionary) ->
 	_manche_max = maxi(_manche_max, _manche)
 	_composition = composition
 	poses.vider()
+	allies.vider()
 	if composition != null:
 		_rng_familles.seed = composition.graine
 	_lire_mult(mult)
@@ -139,6 +143,7 @@ func demarrer_boss(mult: Dictionary) -> void:
 	_manche = maxi(_manche, int(_donnees.partie["manche_boss"]))
 	_manche_max = maxi(_manche_max, _manche)
 	poses.vider()
+	allies.vider()
 	_lire_mult(mult)
 	_boss_en_cours = true
 	_composition = null
@@ -187,6 +192,7 @@ func avancer(dt: float) -> void:
 	_pas_tour_et_ennemis(dt)
 	_pas_armes(dt)
 	_pas_poses(dt)
+	_pas_allies(dt)
 	_noter_degats(_degats_infliges - degats_avant)
 	_purger()
 	_pv_borne()
@@ -194,6 +200,7 @@ func avancer(dt: float) -> void:
 		pv = 0.0
 		_detruite = true
 		poses.vider()
+		allies.vider()
 		tour_detruite.emit()
 
 
@@ -361,6 +368,7 @@ func _pas_armes(dt: float) -> void:
 	lecture.exemplaires = inventaire.comptes_armes()
 	lecture.ameliorations_par_stat = inventaire.comptes_stats()
 	lecture.poses = poses
+	lecture.allies = allies
 	for arme: ArmeEquipee in armes:
 		Tir.avancer_arme(
 			arme, dt, _stats, ennemis, Vector2.ZERO, _donnees, _rng, _resistance, bilan, lecture
@@ -381,6 +389,18 @@ func _pas_poses(dt: float) -> void:
 	_degats_infliges += bilan.degats
 	pv = minf(pv + bilan.soin, _pv_max())
 	mana_gagnee(bilan.mana)
+	for e: Dictionary in bilan.evenements:
+		e["t"] = _tick
+		_ajouter_evenement(e)
+
+
+## Les alliés invoqués marchent, attaquent et s'éteignent ; ce qu'ils infligent compte comme les
+## dégâts des armes.
+func _pas_allies(dt: float) -> void:
+	if allies.ids.is_empty():
+		return
+	var bilan := allies.avancer(dt, ennemis, Vector2.ZERO)
+	_degats_infliges += bilan.degats
 	for e: Dictionary in bilan.evenements:
 		e["t"] = _tick
 		_ajouter_evenement(e)
@@ -542,6 +562,7 @@ func vue(
 	v.marche_noir_ouvert = _stats.marche_noir - inventaire.jetons_marche_noir_utilises > 0
 	ennemis.vers_vue(v)
 	poses.vers_vue(v)
+	allies.vers_vue(v)
 	v.evenements = _evenements
 	_evenements = []
 	v.eliminations = _eliminations

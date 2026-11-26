@@ -1,1 +1,20 @@
-[]
+[
+ {
+  "id": "sentinelle_de_braise",
+  "nom": "Sentinelle de braise",
+  "modele": "guerrier",
+  "vitesse": 90,
+  "portee": 50,
+  "cadence": 1.0,
+  "rayon_garde": 550
+ },
+ {
+  "id": "archere_des_brumes",
+  "nom": "Archère des brumes",
+  "modele": "archer",
+  "vitesse": 70,
+  "portee": 260,
+  "cadence": 1.2,
+  "rayon_garde": 700
+ }
+]
