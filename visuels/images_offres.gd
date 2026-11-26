@@ -1,6 +1,6 @@
 class_name ImagesOffres
 extends RefCounted
-## Correspondance offre → objet dessiné sur une case : pour chacune des 70 offres de la boutique,
+## Correspondance offre → objet dessiné sur une case : pour chacune des offres de la boutique,
 ## l'icône du pack peint de Ravenmore (CC BY 3.0, `assets/icones/ravenmore/`) et la couleur de la
 ## case. Les cases sont composées par `tools/composer_images_offres.gd` dans
 ## `assets/icones/cases/<id>.png`. La couleur dit le type de dégâts d'une arme ou la famille d'une
@@ -77,9 +77,16 @@ const OFFRES: Dictionary = {
 	"poudriere_renforcee": ["ludicarts/sac", "brun"],
 	"poussiere_d_entropie": ["ludicarts/fiole_violette", "pourpre"],
 	"coeur_du_desordre": ["heart", "pourpre"],
+	# Paliers épiques par type : un bonus qui grandit avec les armes communes du type.
+	"meule_des_lames": ["upg_dagger", "brique"],
+	"carquois_des_siecles": ["upg_spear", "vert"],
+	"chaire_des_arcanes": ["ludicarts/fiole_violette", "violet"],
+	"arsenal_des_remparts": ["upg_shield", "brun"],
+	"fracas_du_desordre": ["upg_axe", "pourpre"],
 	# Bonus général de dégâts.
 	"etincelle_d_ame": ["gemBlue", "dore"],
 	"couronne_de_rouages": ["upg_helmet", "dore"],
+	"metronome_patient": ["sablier/sablier", "dore"],
 	# Défense et survie.
 	"renfort_de_poutres": ["swordWood", "acier"],
 	"fondations_de_pierre": ["shield", "acier"],
@@ -111,6 +118,20 @@ const OFFRES: Dictionary = {
 	"lentille_fixe": ["ludicarts/cristal_vert", "sarcelle"],
 	"bourse_de_rebut": ["backpack", "sarcelle"],
 	"jeton_de_l_arriere_boutique": ["map", "sarcelle"],
+	# Classes d'arme : onde, courte portée, longue portée, arme commune.
+	"caisse_d_echo": ["ludicarts/anneau_vert", "sarcelle"],
+	"garde_rapprochee": ["upg_shield", "sarcelle"],
+	"longue_vue": ["upg_bow", "sarcelle"],
+	"fierte_du_rang": ["helmet", "sarcelle"],
+	# États : poison, brûlure, étourdissement, et les dégâts contre un ennemi dans un état.
+	"venin_concentre": ["potionGreen", "sarcelle"],
+	"charbon_ardent": ["ludicarts/torche", "sarcelle"],
+	"ampoule_tenace": ["ludicarts/fiole_violette", "sarcelle"],
+	"braises_couvees": ["ludicarts/lame_feu", "sarcelle"],
+	"maillet_de_plomb": ["upg_hammer", "sarcelle"],
+	"frappe_du_vertige": ["upg_sword", "sarcelle"],
+	"dard_du_fievreux": ["potionRed", "sarcelle"],
+	"proie_a_la_traine": ["ludicarts/fleches_givre", "sarcelle"],
 	# Mana : maximale et régénération.
 	"fiole_d_azur": ["potionBlue", "sarcelle"],
 	"cristal_de_reserve": ["ludicarts/cristal_violet", "sarcelle"],
@@ -136,6 +157,10 @@ const RAPPROCHEMENTS_FAIBLES: PackedStringArray = [
 	"fonderie_de_pieces",
 	"chasse_aux_trophees",
 	"de_de_fortune",
+	"chaire_des_arcanes",
+	"fracas_du_desordre",
+	"fierte_du_rang",
+	"dard_du_fievreux",
 ]
 
 

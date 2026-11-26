@@ -666,5 +666,305 @@
     "valeur": 1.5
    }
   ]
+ },
+ {
+  "id": "meule_des_lames",
+  "nom": "Meule des lames",
+  "description": "La meule tourne sans cesse, et chaque lame commune y gagne son fil.",
+  "rarete": "epique",
+  "prix": 920,
+  "categorie": "amelioration",
+  "famille": "degats_type",
+  "effets": [
+   {
+    "stat": "degats_type",
+    "type_degats": "tranchant",
+    "valeur": 0.35,
+    "categorie": "C",
+    "par_arme_commune": 0.05
+   }
+  ]
+ },
+ {
+  "id": "carquois_des_siecles",
+  "nom": "Carquois des siècles",
+  "description": "Chaque flèche commune de plus alourdit le carquois.",
+  "rarete": "epique",
+  "prix": 940,
+  "categorie": "amelioration",
+  "famille": "degats_type",
+  "effets": [
+   {
+    "stat": "degats_type",
+    "type_degats": "perçant",
+    "valeur": 0.35,
+    "categorie": "C",
+    "par_arme_commune": 0.05
+   }
+  ]
+ },
+ {
+  "id": "chaire_des_arcanes",
+  "nom": "Chaire des arcanes",
+  "description": "Du haut de sa chaire, le mage éclaire les sortilèges simples.",
+  "rarete": "epique",
+  "prix": 960,
+  "categorie": "amelioration",
+  "famille": "degats_type",
+  "effets": [
+   {
+    "stat": "degats_type",
+    "type_degats": "magique",
+    "valeur": 0.35,
+    "categorie": "C",
+    "par_arme_commune": 0.05
+   }
+  ]
+ },
+ {
+  "id": "arsenal_des_remparts",
+  "nom": "Arsenal des remparts",
+  "description": "Chaque machine commune du rempart ajoute sa poudre à la réserve.",
+  "rarete": "epique",
+  "prix": 960,
+  "categorie": "amelioration",
+  "famille": "degats_type",
+  "effets": [
+   {
+    "stat": "degats_type",
+    "type_degats": "siège",
+    "valeur": 0.35,
+    "categorie": "C",
+    "par_arme_commune": 0.05
+   }
+  ]
+ },
+ {
+  "id": "fracas_du_desordre",
+  "nom": "Fracas du désordre",
+  "description": "Chaque bricole chaotique de plus ajoute au vacarme.",
+  "rarete": "epique",
+  "prix": 930,
+  "categorie": "amelioration",
+  "famille": "degats_type",
+  "effets": [
+   {
+    "stat": "degats_type",
+    "type_degats": "chaos",
+    "valeur": 0.35,
+    "categorie": "C",
+    "par_arme_commune": 0.05
+   }
+  ]
+ },
+ {
+  "id": "metronome_patient",
+  "nom": "Métronome patient",
+  "description": "Plus la partie dure, plus ses rouages frappent juste.",
+  "rarete": "rare",
+  "prix": 480,
+  "categorie": "amelioration",
+  "famille": "degats_global",
+  "effets": [
+   {
+    "stat": "degats_global",
+    "valeur": 0.05,
+    "categorie": "B",
+    "croissance": 0.02,
+    "croissance_max": 0.3
+   }
+  ]
+ },
+ {
+  "id": "caisse_d_echo",
+  "nom": "Caisse d’écho",
+  "description": "Chaque onde repart avec l’écho de la précédente.",
+  "rarete": "peu_commune",
+  "prix": 270,
+  "categorie": "amelioration",
+  "famille": "degats_classe",
+  "effets": [
+   {
+    "stat": "degats_classe",
+    "classe": "onde",
+    "valeur": 0.25
+   }
+  ]
+ },
+ {
+  "id": "garde_rapprochee",
+  "nom": "Garde rapprochée",
+  "description": "Au pied des remparts, les armes proches frappent plus fort.",
+  "rarete": "peu_commune",
+  "prix": 260,
+  "categorie": "amelioration",
+  "famille": "degats_classe",
+  "effets": [
+   {
+    "stat": "degats_classe",
+    "classe": "portee_courte",
+    "valeur": 0.2
+   }
+  ]
+ },
+ {
+  "id": "longue_vue",
+  "nom": "Longue-vue",
+  "description": "Une lunette qui pardonne la distance aux armes de longue portée.",
+  "rarete": "peu_commune",
+  "prix": 260,
+  "categorie": "amelioration",
+  "famille": "degats_classe",
+  "effets": [
+   {
+    "stat": "degats_classe",
+    "classe": "portee_longue",
+    "valeur": 0.2
+   }
+  ]
+ },
+ {
+  "id": "fierte_du_rang",
+  "nom": "Fierté du rang",
+  "description": "Les armes les plus modestes se battent comme si on les regardait.",
+  "rarete": "commune",
+  "prix": 110,
+  "categorie": "amelioration",
+  "famille": "degats_classe",
+  "effets": [
+   {
+    "stat": "degats_classe",
+    "classe": "commune",
+    "valeur": 0.25
+   }
+  ]
+ },
+ {
+  "id": "venin_concentre",
+  "nom": "Venin concentré",
+  "description": "Une goutte de plus par fiole, et le poison mord plus profond.",
+  "rarete": "peu_commune",
+  "prix": 240,
+  "categorie": "amelioration",
+  "famille": "etats",
+  "effets": [
+   {
+    "stat": "etat_degats",
+    "etat": "poison",
+    "valeur": 0.25
+   }
+  ]
+ },
+ {
+  "id": "charbon_ardent",
+  "nom": "Charbon ardent",
+  "description": "Les brûlures couvent plus fort sous la peau.",
+  "rarete": "peu_commune",
+  "prix": 240,
+  "categorie": "amelioration",
+  "famille": "etats",
+  "effets": [
+   {
+    "stat": "etat_degats",
+    "etat": "brulure",
+    "valeur": 0.25
+   }
+  ]
+ },
+ {
+  "id": "ampoule_tenace",
+  "nom": "Ampoule tenace",
+  "description": "Le poison met longtemps à quitter l’ennemi.",
+  "rarete": "peu_commune",
+  "prix": 250,
+  "categorie": "amelioration",
+  "famille": "etats",
+  "effets": [
+   {
+    "stat": "etat_duree",
+    "etat": "poison",
+    "valeur": 0.3
+   }
+  ]
+ },
+ {
+  "id": "braises_couvees",
+  "nom": "Braises couvées",
+  "description": "Les flammes s’attardent longtemps après le coup.",
+  "rarete": "peu_commune",
+  "prix": 250,
+  "categorie": "amelioration",
+  "famille": "etats",
+  "effets": [
+   {
+    "stat": "etat_duree",
+    "etat": "brulure",
+    "valeur": 0.3
+   }
+  ]
+ },
+ {
+  "id": "maillet_de_plomb",
+  "nom": "Maillet de plomb",
+  "description": "Un coup bien placé laisse l’ennemi assommé plus longtemps.",
+  "rarete": "rare",
+  "prix": 450,
+  "categorie": "amelioration",
+  "famille": "etats",
+  "effets": [
+   {
+    "stat": "etat_duree",
+    "etat": "etourdissement",
+    "valeur": 0.3
+   }
+  ]
+ },
+ {
+  "id": "frappe_du_vertige",
+  "nom": "Frappe du vertige",
+  "description": "Un ennemi qui titube est une cible qu’on ne manque pas.",
+  "rarete": "rare",
+  "prix": 460,
+  "categorie": "amelioration",
+  "famille": "etats",
+  "effets": [
+   {
+    "stat": "degats_contre_etat",
+    "etat": "etourdi",
+    "valeur": 0.3
+   }
+  ]
+ },
+ {
+  "id": "dard_du_fievreux",
+  "nom": "Dard du fiévreux",
+  "description": "Les ennemis malades sentent chaque coup deux fois.",
+  "rarete": "rare",
+  "prix": 440,
+  "categorie": "amelioration",
+  "famille": "etats",
+  "effets": [
+   {
+    "stat": "degats_contre_etat",
+    "etat": "empoisonne",
+    "valeur": 0.25
+   }
+  ]
+ },
+ {
+  "id": "proie_a_la_traine",
+  "nom": "Proie à la traîne",
+  "description": "Celui qui ralentit finit toujours par se prendre le coup.",
+  "rarete": "rare",
+  "prix": 440,
+  "categorie": "amelioration",
+  "famille": "etats",
+  "effets": [
+   {
+    "stat": "degats_contre_etat",
+    "etat": "ralenti",
+    "valeur": 0.25
+   }
+  ]
  }
 ]

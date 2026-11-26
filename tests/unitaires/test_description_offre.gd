@@ -118,6 +118,9 @@ func _chiffres_attendus(entree: Dictionary, genre: int) -> Array[String]:
 				attendus.append(_fr(float(effet["valeur"]) * 100.0))
 			"epines", "critique_chance", "cadence", "revenu_mult", "prime_mult":
 				attendus.append(_fr(float(effet["valeur"]) * 100.0))
+			"degats_classe", "etat_degats", "etat_duree", "degats_contre_etat":
+				# Des pourcentages : +25 % de dégâts, +30 % de durée, +30 % contre un état.
+				attendus.append(_fr(float(effet["valeur"]) * 100.0))
 			"esquive":
 				var v := float(effet["valeur"])
 				var k := float(_donnees.partie["esquive_k"])
@@ -717,3 +720,20 @@ func test_les_cles_de_textes_boutique_ont_toutes_une_valeur_francaise() -> void:
 		verifier_faux(String(textes[cle]).strip_edges().is_empty(), "%s : valeur vide" % cle)
 	for stat: String in Donnees.STATS_AMELIORATION:
 		verifier(textes.has("BOUTIQUE_STAT_" + stat.to_upper()), "nom court de la stat %s" % stat)
+
+
+# --- Ce que disent les gabarits de T9.10 : la règle que la simulation applique ----------------
+
+
+func test_la_ligne_d_un_palier_de_type_dit_les_communes_du_meme_type_et_le_plafond() -> void:
+	var plat := _sans_milliers(_ligne("meule_des_lames", Types.Genre.AMELIORATION)).replace(
+		NBSP, " "
+	)
+	verifier(plat.contains("+5 % de dégâts par arme commune du même type possédée"), plat)
+	verifier(plat.contains("×20"), "le plafond du produit : " + plat)
+
+
+func test_la_ligne_d_une_croissance_dit_le_pas_de_partie_et_le_total_maximal() -> void:
+	var plat := _ligne("metronome_patient", Types.Genre.AMELIORATION).replace(NBSP, " ")
+	verifier(plat.contains("+2 % de dégâts par tranche de 30 s de partie, jusqu’à +30 %"), plat)
+	verifier_faux(plat.contains("du même type"), "le global compte les communes de tous les types")

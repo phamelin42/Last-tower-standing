@@ -34,6 +34,11 @@ const STATS: Array[String] = [
 	"marche_noir",
 	"mana_max",
 	"mana_regen",
+	# Lot 9 : classes d'arme et états.
+	"degats_classe",
+	"etat_degats",
+	"etat_duree",
+	"degats_contre_etat",
 ]
 ## Mana maximale de référence pour comparer le rendement des armes de mana aux autres (D12).
 const MANA_MAX_REFERENCE := 100.0

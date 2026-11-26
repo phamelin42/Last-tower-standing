@@ -114,6 +114,7 @@ BOUTIQUE_EFFET_ARME_PAR_AMELIORATION,+%s des dégâts de base par amélioration 
 BOUTIQUE_EFFET_TYPE_SECONDAIRE_EPINES,inflige aussi des dégâts d’épines
 BOUTIQUE_EFFET_DEGATS_CROISSANCE,"+%s de dégâts par tranche de %s s de partie, jusqu’à +%s"
 BOUTIQUE_EFFET_DEGATS_PAR_ARME_COMMUNE,+%s de dégâts par arme commune possédée
+BOUTIQUE_EFFET_DEGATS_PAR_ARME_COMMUNE_TYPE,+%s de dégâts par arme commune du même type possédée
 BOUTIQUE_EFFET_DEGATS_PLAFOND,le produit de tous les bonus de dégâts s’arrête à ×%s
 BOUTIQUE_EFFET_DEGATS_CLASSE,+%s de dégâts des armes %s
 BOUTIQUE_CLASSE_ONDE,à onde

@@ -644,7 +644,11 @@ static func _morceaux_croissance_degats(effet: Dictionary, donnees: Donnees) -> 
 		morceaux.append(_t("BOUTIQUE_EFFET_DEGATS_CROISSANCE", croit))
 	if effet.has("par_arme_commune"):
 		var commune := _pourcent(float(effet["par_arme_commune"]))
-		morceaux.append(_t("BOUTIQUE_EFFET_DEGATS_PAR_ARME_COMMUNE", [commune]))
+		# Pour un type, seules les armes communes de ce type comptent ; pour le global, toutes.
+		var cle := "BOUTIQUE_EFFET_DEGATS_PAR_ARME_COMMUNE"
+		if effet["stat"] == "degats_type":
+			cle += "_TYPE"
+		morceaux.append(_t(cle, [commune]))
 	if effet.has("croissance") or effet.has("par_arme_commune"):
 		var plafond := _nombre(_reglage(donnees, "ameliorations", "facteur_degats_max"), 0)
 		morceaux.append(_t("BOUTIQUE_EFFET_DEGATS_PLAFOND", [plafond]))
