@@ -90,6 +90,120 @@ BOUTIQUE_EFFET_BONUS_ELIM,+%s or tous les %s ennemis tués
 BOUTIQUE_EFFET_RELANCE_UNE,%s relance gratuite de la boutique par manche
 BOUTIQUE_EFFET_RELANCE_PLUSIEURS,%s relances gratuites de la boutique par manche
 BOUTIQUE_EFFET_MARCHE_NOIR,"ouvre un choix gratuit d’une amélioration, jusqu’à la rareté %s"
+BOUTIQUE_EFFET_TOURNANT,%s dégâts toutes les %s s
+BOUTIQUE_EFFET_TOURNANT_DETAIL,"%s faisceaux qui tournent de %s° à chaque tir (%s), largeur %s"
+BOUTIQUE_EFFET_SENS_HORAIRE,sens horaire
+BOUTIQUE_EFFET_SENS_ANTIHORAIRE,sens antihoraire
+BOUTIQUE_EFFET_ZONE_POSEE,pose toutes les %s s une zone de %s qui dure %s s et inflige %s des dégâts de l’arme toutes les %s s (%s au plus)
+BOUTIQUE_EFFET_BOMBE,pose toutes les %s s une bombe qui explose après %s s : %s des dégâts de l’arme dans un rayon de %s (%s au plus)
+BOUTIQUE_EFFET_INVOCATION,"invoque toutes les %s s un allié, %s, pendant %s s : il inflige %s des dégâts de l’arme (%s au plus)"
+BOUTIQUE_EFFET_ALLIE,allié
+BOUTIQUE_EFFET_VULNERABILITE,"vulnérabilité : +%s de dégâts %s subis pendant %s s, cumulable jusqu’à +%s"
+BOUTIQUE_EFFET_MALEDICTION_DEGATS,"malédiction : −%s des dégâts de l’ennemi pendant %s s, jusqu’à −%s au total"
+BOUTIQUE_EFFET_MALEDICTION_TOUCHER,"malédiction : %s de chances que l’attaque de l’ennemi échoue pendant %s s, jusqu’à %s au total"
+BOUTIQUE_EFFET_REPOUSSEMENT,"repousse l’ennemi de %s, %s"
+BOUTIQUE_EFFET_REPOUSSEMENT_BOSS_AUCUN,sans effet sur les boss
+BOUTIQUE_EFFET_REPOUSSEMENT_BOSS_REDUIT,les boss reculent de ×%s cette distance
+BOUTIQUE_EFFET_SIPHON_MANA,siphon : prend %s de mana par seconde à l’ennemi pendant %s s et la rend à la tour
+BOUTIQUE_EFFET_SIPHON_VIE,siphon : prend %s PV par seconde à l’ennemi pendant %s s et les rend à la tour
+BOUTIQUE_EFFET_MANA_AU_COUP,chaque coup qui touche rend %s de mana à la tour
+BOUTIQUE_EFFET_BORNE_M5,au plus %s fois les dégâts de base
+BOUTIQUE_EFFET_ARME_PAR_PV_MAX,+%s des PV max de la tour en dégâts (%s)
+BOUTIQUE_EFFET_ARME_PAR_EXEMPLAIRE,+%s des dégâts de base par exemplaire de plus (%s)
+BOUTIQUE_EFFET_ARME_PAR_AMELIORATION,+%s des dégâts de base par amélioration possédée de type « %s » (%s)
+BOUTIQUE_EFFET_TYPE_SECONDAIRE_EPINES,inflige aussi des dégâts d’épines
+BOUTIQUE_EFFET_DEGATS_CROISSANCE,"+%s de dégâts par tranche de %s s de partie, jusqu’à +%s"
+BOUTIQUE_EFFET_DEGATS_PAR_ARME_COMMUNE,+%s de dégâts par arme commune possédée
+BOUTIQUE_EFFET_DEGATS_PLAFOND,le produit de tous les bonus de dégâts s’arrête à ×%s
+BOUTIQUE_EFFET_DEGATS_CLASSE,+%s de dégâts des armes %s
+BOUTIQUE_CLASSE_ONDE,à onde
+BOUTIQUE_CLASSE_PORTEE_COURTE,à courte portée
+BOUTIQUE_CLASSE_PORTEE_LONGUE,à longue portée
+BOUTIQUE_CLASSE_COMMUNE,communes
+BOUTIQUE_EFFET_ETAT_DEGATS,+%s de dégâts %s
+BOUTIQUE_ETAT_DEGATS_POISON,du poison
+BOUTIQUE_ETAT_DEGATS_BRULURE,de la brûlure
+BOUTIQUE_EFFET_ETAT_DUREE,+%s de durée %s
+BOUTIQUE_ETAT_DUREE_POISON,du poison
+BOUTIQUE_ETAT_DUREE_BRULURE,de la brûlure
+BOUTIQUE_ETAT_DUREE_ETOURDISSEMENT,de l’étourdissement
+BOUTIQUE_EFFET_DEGATS_CONTRE_ETAT,+%s de dégâts contre les ennemis %s
+BOUTIQUE_ETAT_CONTRE_ETOURDI,étourdis
+BOUTIQUE_ETAT_CONTRE_EMPOISONNE,empoisonnés
+BOUTIQUE_ETAT_CONTRE_RALENTI,ralentis
+BOUTIQUE_EFFET_EPINES_DEGATS,+%s de dégâts renvoyés par les épines
+BOUTIQUE_EFFET_EPINES_CROISSANTES,"les épines gagnent +%s par tranche de %s s de partie, jusqu’à +%s"
+BOUTIQUE_EFFET_EPINES_PREMIER_COUP,le premier renvoi sur chaque ennemi inflige +%s de dégâts
+BOUTIQUE_EFFET_EPINES_SOIN,rend à la tour %s des dégâts renvoyés par les épines
+BOUTIQUE_EFFET_EPINES_REDUCTION,"−%s de dégâts reçus au corps à corps, avant l’armure et la mana"
+BOUTIQUE_STATUT_POSE_POISON,le poison
+BOUTIQUE_STATUT_POSE_BRULURE,la brûlure
+BOUTIQUE_STATUT_POSE_GIVRE,le givre
+BOUTIQUE_STATUT_POSE_ETOURDISSEMENT,l’étourdissement
+BOUTIQUE_EFFET_EPINES_STATUT,les épines infligent %s à l’attaquant au corps à corps pendant %s s
+BOUTIQUE_EFFET_RIPOSTE_STATUT,chaque coup reçu au corps à corps inflige %s à l’attaquant pendant %s s
+BOUTIQUE_EFFET_PV_MAX_MULT,+%s de PV max pour la tour (le gain est soigné)
+BOUTIQUE_EFFET_SOIN_PV_MANQUANTS,rend %s des PV manquants au début de chaque manche
+BOUTIQUE_EFFET_DEGATS_PAR_PV_MAX,+%s de dégâts par tranche de %s PV max de la tour
+BOUTIQUE_EFFET_RESURRECTION,"relève la tour une seule fois par partie, avec %s de ses PV max"
+BOUTIQUE_EFFET_REGEN_CROISSANTE,"+%s PV par seconde par tranche de %s s de partie, jusqu’à +%s"
+BOUTIQUE_EFFET_SOIN_PERIODIQUE,rend %s des PV max toutes les %s s
+BOUTIQUE_EFFET_ARMURE_CROISSANTE,"+%s d’armure par tranche de %s s de partie, jusqu’à +%s"
+BOUTIQUE_EFFET_MANA_MAX_MULT,+%s de mana maximale
+BOUTIQUE_EFFET_MANA_RUPTURE_ETOURDIT,"quand la mana tombe à 0 sous un coup, étourdit %s s les ennemis à moins de %s"
+BOUTIQUE_EFFET_DEGATS_TANT_QUE_MANA,+%s de dégâts tant qu’il reste de la mana
+BOUTIQUE_EFFET_REDUCTION_TANT_QUE_MANA,−%s de dégâts reçus tant qu’il reste de la mana
+BOUTIQUE_EFFET_REVENU_CONTRE_PV,"+%s or toutes les %s s, contre −%s PV max (jamais sous 1 PV)"
+BOUTIQUE_EFFET_COPIE_PROCHAINE_OFFRE,"le prochain achat d’une offre de rareté %s au plus donne un second exemplaire gratuit, une fois par exemplaire"
+BOUTIQUE_EFFET_AURA_MIXTE,aura de rayon %s : %s dégâts de chaos par seconde aux ennemis et %s PV par seconde rendus à la tour tant qu’un ennemi s’y trouve
+BOUTIQUE_STAT_DEGATS_TYPE,dégâts d’un type
+BOUTIQUE_STAT_DEGATS_GLOBAL,dégâts de toutes les armes
+BOUTIQUE_STAT_PV_MAX,PV max
+BOUTIQUE_STAT_REGEN,régénération
+BOUTIQUE_STAT_ARMURE,armure
+BOUTIQUE_STAT_ESQUIVE,esquive
+BOUTIQUE_STAT_EPINES,épines
+BOUTIQUE_STAT_CRITIQUE_CHANCE,coups critiques
+BOUTIQUE_STAT_CADENCE,cadence
+BOUTIQUE_STAT_TIRS_MULTIPLES,tirs multiples
+BOUTIQUE_STAT_ECLABOUSSURE,éclaboussure
+BOUTIQUE_STAT_FOCALISATION,focalisation
+BOUTIQUE_STAT_VOL_DE_VIE_COUP,vol de vie
+BOUTIQUE_STAT_VOL_DE_VIE_MORT,vol de vie à la mort
+BOUTIQUE_STAT_REVENU_FIXE,revenu fixe
+BOUTIQUE_STAT_REVENU_CROISSANT,revenu croissant
+BOUTIQUE_STAT_REVENU_MULT,revenu
+BOUTIQUE_STAT_PRIME_MULT,prime
+BOUTIQUE_STAT_BONUS_ELIM,bonus d’élimination
+BOUTIQUE_STAT_RELANCE_GRATUITE,relance gratuite
+BOUTIQUE_STAT_MARCHE_NOIR,marché noir
+BOUTIQUE_STAT_MANA_MAX,mana
+BOUTIQUE_STAT_MANA_REGEN,régénération de mana
+BOUTIQUE_STAT_DEGATS_CLASSE,dégâts d’une classe d’arme
+BOUTIQUE_STAT_ETAT_DEGATS,dégâts d’état
+BOUTIQUE_STAT_ETAT_DUREE,durée d’état
+BOUTIQUE_STAT_DEGATS_CONTRE_ETAT,dégâts contre un état
+BOUTIQUE_STAT_EPINES_DEGATS,épines
+BOUTIQUE_STAT_EPINES_CROISSANTES,épines
+BOUTIQUE_STAT_EPINES_PREMIER_COUP,épines
+BOUTIQUE_STAT_EPINES_SOIN,épines
+BOUTIQUE_STAT_EPINES_REDUCTION,épines
+BOUTIQUE_STAT_EPINES_STATUT,épines
+BOUTIQUE_STAT_PV_MAX_MULT,PV max
+BOUTIQUE_STAT_SOIN_PV_MANQUANTS,soin
+BOUTIQUE_STAT_DEGATS_PAR_PV_MAX,PV max
+BOUTIQUE_STAT_RESURRECTION,résurrection
+BOUTIQUE_STAT_REGEN_CROISSANTE,régénération
+BOUTIQUE_STAT_SOIN_PERIODIQUE,soin
+BOUTIQUE_STAT_ARMURE_CROISSANTE,armure
+BOUTIQUE_STAT_RIPOSTE_STATUT,riposte
+BOUTIQUE_STAT_MANA_MAX_MULT,mana
+BOUTIQUE_STAT_MANA_RUPTURE_ETOURDIT,mana
+BOUTIQUE_STAT_DEGATS_TANT_QUE_MANA,mana
+BOUTIQUE_STAT_REDUCTION_TANT_QUE_MANA,mana
+BOUTIQUE_STAT_REVENU_CONTRE_PV,revenu
+BOUTIQUE_STAT_COPIE_PROCHAINE_OFFRE,boutique
+BOUTIQUE_STAT_AURA_MIXTE,aura
 BOUTIQUE_CATEGORIE_ARME,Arme
 BOUTIQUE_CATEGORIE_AMELIORATION,Amélioration
 BOUTIQUE_CATEGORIE_REVENU,Revenu
