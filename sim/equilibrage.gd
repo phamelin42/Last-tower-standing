@@ -23,14 +23,17 @@ static func cibles_estimees(arme: Dictionary) -> float:
 	return meilleur
 
 
-static func dps_estime(arme: Dictionary) -> float:
+## `mana_max` : la mana maximale de la tour, dont les armes de mana (`degats_par_mana_max`) tirent
+## des dégâts en plus.
+static func dps_estime(arme: Dictionary, mana_max: float = 0.0) -> float:
 	var degats: float = arme.get("degats", 0.0)
+	degats += float(arme.get("degats_par_mana_max", 0.0)) * maxf(mana_max, 0.0)
 	return degats * tirs_par_seconde(arme) * cibles_estimees(arme)
 
 
-static func rendement(arme: Dictionary) -> float:
+static func rendement(arme: Dictionary, mana_max: float = 0.0) -> float:
 	var prix: int = arme.get("prix", PRIX_MIN)
-	return dps_estime(arme) / float(maxi(prix, PRIX_MIN))
+	return dps_estime(arme, mana_max) / float(maxi(prix, PRIX_MIN))
 
 
 static func _cibles_effet(effet: Dictionary) -> float:

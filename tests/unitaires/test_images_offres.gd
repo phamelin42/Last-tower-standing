@@ -22,10 +22,10 @@ func _ids_offres() -> PackedStringArray:
 	return ids
 
 
-func test_il_y_a_trente_armes_et_quarante_ameliorations() -> void:
-	verifier_egal(_donnees.armes.size(), 30)
-	verifier_egal(_donnees.ameliorations.size(), 40)
-	verifier_egal(ImagesOffres.ids().size(), 70)
+func test_la_table_compte_autant_d_entrees_que_d_armes_et_d_ameliorations() -> void:
+	verifier_egal(
+		ImagesOffres.ids().size(), _donnees.armes.size() + _donnees.ameliorations.size(), "entrées"
+	)
 
 
 func test_chaque_offre_de_data_a_une_entree_et_aucune_entree_n_est_orpheline() -> void:
@@ -111,7 +111,7 @@ func test_chaque_case_composee_existe_et_fait_128_sur_128() -> void:
 			verifier_egal(img.get_height(), TAILLE_CASE, "hauteur de %s" % id)
 
 
-func test_le_script_regenere_les_soixante_dix_cases_au_octet_pres() -> void:
+func test_le_script_regenere_toutes_les_cases_au_octet_pres() -> void:
 	var sortie: String = dossier_temporaire()
 	var args := PackedStringArray(
 		[

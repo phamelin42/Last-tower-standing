@@ -94,6 +94,10 @@ func _appliquer(
 			s.pv_max_bonus += v
 		"regen":
 			s.regen += v
+		"mana_max":
+			s.mana_max_bonus += v
+		"mana_regen":
+			s.mana_regen += v
 		"armure":
 			s.armure += v
 		"esquive":

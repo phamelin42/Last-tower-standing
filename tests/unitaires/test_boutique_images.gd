@@ -7,7 +7,6 @@ const CSV_BOUTIQUE := "res://i18n/textes_boutique.csv"
 const CSV_COMMUNS := "res://i18n/textes_communs.csv"
 const SCENE := "res://scenes/boutique.tscn"
 const NB_OFFRES := 4
-const NB_OFFRES_TOTAL := 70
 const RESOLUTIONS: Array[Vector2] = [
 	Vector2(1152.0, 648.0), Vector2(1280.0, 720.0), Vector2(1366.0, 768.0), Vector2(1920.0, 1080.0)
 ]
@@ -139,10 +138,11 @@ func _liberer(noeud: Node) -> void:
 # --- La carte --------------------------------------------------------------------------------
 
 
-func test_la_table_couvre_les_70_offres_de_la_boutique() -> void:
-	verifier_egal(ImagesOffres.ids().size(), NB_OFFRES_TOTAL, "70 offres dessinées")
+func test_la_table_couvre_toutes_les_offres_de_la_boutique() -> void:
 	verifier_egal(
-		_donnees.armes.size() + _donnees.ameliorations.size(), NB_OFFRES_TOTAL, "70 offres au total"
+		ImagesOffres.ids().size(),
+		_donnees.armes.size() + _donnees.ameliorations.size(),
+		"une image par offre"
 	)
 
 

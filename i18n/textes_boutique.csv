@@ -71,6 +71,8 @@ BOUTIQUE_EFFET_TYPE_SIEGE,de siège
 BOUTIQUE_EFFET_TYPE_CHAOS,du chaos
 BOUTIQUE_EFFET_PV_MAX,+%s PV max pour la tour
 BOUTIQUE_EFFET_REGEN,régénère %s PV par seconde
+BOUTIQUE_EFFET_MANA_MAX,"+%s de mana maximale : la mana absorbe les coups avant les PV"
+BOUTIQUE_EFFET_MANA_REGEN,régénère %s de mana par seconde
 BOUTIQUE_EFFET_ARMURE,"+%s d’armure : −%s de dégâts reçus, rendement décroissant"
 BOUTIQUE_EFFET_ESQUIVE,"évite %s des attaques reçues, rendement décroissant"
 BOUTIQUE_EFFET_EPINES,renvoie %s des dégâts de chaque attaque au corps à corps à l’assaillant

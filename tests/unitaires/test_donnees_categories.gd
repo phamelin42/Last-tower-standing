@@ -119,7 +119,11 @@ func test_categorie_absente_ou_inconnue_est_refusee_en_nommant_le_fichier_et_le_
 
 
 func test_degats_par_mana_max_est_zero_par_defaut_et_negatif_est_refuse() -> void:
-	var d := Donnees.depuis_brut(_brut_reel())
+	# Sans la clé, une arme n'a aucun dégât de mana (les armes de mana la portent explicitement).
+	var sans := _brut_reel()
+	for arme: Dictionary in sans["armes.json"]:
+		arme.erase("degats_par_mana_max")
+	var d := Donnees.depuis_brut(sans)
 	verifier_non_nul(d)
 	if d == null:
 		return
