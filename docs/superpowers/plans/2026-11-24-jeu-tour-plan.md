@@ -2023,6 +2023,7 @@ Tests du gabarit (écrits par T9.13, étendus par chaque tâche en ajoutant son 
   - `test_le_statut_de_la_signature_est_celui_de_l_arme_nouveaux_statuts_compris` ; `test_la_marque_correspond_a_la_mecanique_de_l_arme` : en boucle, une arme à effet `tournant`, `zone_posee`, `bombe` ou `invocation` a la marque correspondante, une arme à statut `vulnerabilite` la marque `vulnerabilite`, les autres `""`.
   - `test_les_signatures_d_avant_le_lot_ne_changent_pas` (les 30 de T8.14, comparées champ à champ).
   - `test_une_arme_inconnue_n_a_pas_de_signature`.
+  - **Rétablir l'égalité stricte** : le 26/11/2026, pour laisser entrer T9.13 à T9.17 avant leur rendu, `test_chaque_arme_a_une_signature_et_il_n_y_en_a_pas_d_autre` a cédé la place à `test_chaque_signature_designe_une_arme_des_donnees` et `test_les_trente_armes_du_lot_8_gardent_leur_signature` (liste figée `tests/unitaires/armes_lot_8.gd`). T9.18 remet le test strict ci-dessus et retire ces deux-là ; la dernière de T9.18 et T9.20 supprime `armes_lot_8.gd`.
 - **Vérif :** `T --filtre test_signatures_armes`, `godot --headless --path . --script res://tools/planche_signatures.gd`, puis `tools/verifier.sh`. Rapport : lien vers la planche.
 
 ### Task 9.19 : Mécaniques et signatures en jeu — `sonnet`
@@ -2054,6 +2055,7 @@ Tests du gabarit (écrits par T9.13, étendus par chaque tâche en ajoutant son 
   - `test_chaque_son_est_liste_dans_sources_md` ; `test_chaque_fichier_de_son_pese_moins_de_80_ko`.
   - `test_le_detecteur_choisit_le_son_de_l_arme_de_l_evenement` : en boucle sur le catalogue.
   - `test_la_liste_des_sons_de_tir_suit_les_donnees` (anti-dérive).
+  - **Rétablir l'égalité stricte** : le 26/11/2026, pour laisser entrer T9.13 à T9.17 avant leurs sons, `test_catalogue_sons.gd` ne boucle plus que sur `CatalogueSons.ids_armes()` (`test_chaque_son_de_tir_designe_une_arme_des_donnees`, `test_les_trente_armes_du_lot_8_gardent_leur_son_de_tir`, `test_une_arme_sans_son_propre_retombe_sur_le_son_tir_qui_a_son_fichier`) et `test_detecteur_sons.gd` admet le son « tir » pour une arme sans le sien. T9.20 remet la boucle sur `Donnees.armes` et l'égalité des listes, et retire ces exceptions ; la dernière de T9.18 et T9.20 supprime `tests/unitaires/armes_lot_8.gd`.
 - **Vérif :** `T --filtre test_catalogue_sons`, `test_detecteur_sons`, puis `tools/verifier.sh`.
 
 ## Session « Interface »
@@ -2165,17 +2167,17 @@ Conception : §6.14 (décision D19 de Phil du 26/11/2026). Ces trois tâches se
 
 **Parallélisme :** quatre sessions, chacune sur ses fichiers.
 
-- **Progression** (`progression/`, `app/progression_locale.gd`, `data/defis.json`, `docs/defis.md`) : T11.1 (**attend Phil**) et T11.3 tout de suite ; T11.4 après la liste validée et T11.2.
+- **Progression** (`progression/`, `app/progression_locale.gd`, `data/defis.json`, `docs/defis.md`) : T11.1 (**attend Phil**) et T11.3 tout de suite ; T11.3bis après T11.3 et la liste validée de T11.1 ; T11.4 après la liste validée, T11.2 et T11.3bis.
 - **Simulation** (`sim/`, `reseau/`, `app/source_vue.gd`, `app/source_locale.gd`) : T11.2 après la liste validée de T11.1 et T9.9, puis T11.5. Les deux montent `Protocole.VERSION` : **dans cet ordre, relire celle de `main` avant de l'incrémenter**.
 - **Rendu** (`visuels/`, `assets/tours/`, `tools/planche_skins_tour.gd`) : T11.6 (**attend Phil**) quand T11.1 est validée et T9.24 fusionnée ; T11.7 après la validation de T11.6, T9.25 et T11.5.
-- **Interface** (`ui/`, `i18n/`) : T11.8 quand T11.3, T11.4 et T11.5 sont fusionnées.
+- **Interface** (`ui/`, `i18n/`) : T11.8 quand T11.3, T11.3bis, T11.4 et T11.5 sont fusionnées.
 - **Passe finale** : T11.9, quand tout est fusionné.
 
-**Dépendances :** T11.1 T9.1 · T11.2 T11.1 (validée), T9.9 · T11.3 aucune · T11.4 T11.1 (validée), T11.2, T11.3 · T11.5 T11.2, T9.24 · T11.6 T11.1 (validée), T9.24 · T11.7 T9.25, T11.5, T11.6 (validée) · T11.8 T11.3, T11.4, T11.5 · T11.9 T11.1 à T11.8
+**Dépendances :** T11.1 T9.1 · T11.2 T11.1 (validée), T9.9 · T11.3 aucune · T11.3bis T11.3, T11.1 (validée) · T11.4 T11.1 (validée), T11.2, T11.3bis · T11.5 T11.2, T9.24 · T11.6 T11.1 (validée), T9.24 · T11.7 T9.25, T11.5, T11.6 (validée) · T11.8 T11.3, T11.3bis, T11.4, T11.5 · T11.9 T11.1 à T11.8
 
 **Choix du plan faute d'information dans la conception (à relire par Phil) :**
 
-1. **Source des compteurs** : un bilan calculé par la simulation et envoyé à la fin de la partie (déterministe, testable), plutôt qu'un cumul côté client sur un canal non fiable.
+1. **Source des compteurs** : un bilan par partie calculé par la simulation et envoyé à la fin de la partie (déterministe, testable), plutôt qu'un cumul côté client sur un canal non fiable. **Les cumuls entre parties vivent dans la sauvegarde locale** (décision de Phil du 26/11/2026, B9) : T11.3bis.
 2. **« Joueur présent » (B4)** : tout joueur connecté à la fin de la partie ou au moment où la condition du défi est remplie ; un joueur qui a quitté avant ne valide pas. En solo, le joueur est présent.
 3. **Skin au salon** : le skin se choisit au salon et ne change pas en cours de partie (la table des joueurs ne bouge pas pendant une manche).
 4. **Un skin non débloqué** peut être montré par un client modifié : accepté, la progression est cosmétique et non vérifiée (B2) ; le serveur ne borne que l'index.
@@ -2211,12 +2213,13 @@ Conception : §6.14 (décision D19 de Phil du 26/11/2026). Ces trois tâches se
 
 ### Task 11.2 : Bilan de partie dans la simulation et au réseau — `sonnet`
 
-- [ ] **Objectif :** `sim/` produit, pour chaque joueur, un **bilan** de partie : les compteurs de la liste validée de T11.1 (typiquement : manche atteinte, éliminations, dégâts infligés et subis, or gagné et dépensé, armes et améliorations achetées, PV minimum de la tour, temps survécu, victoire). Donnée pure (`sim/bilan.gd`, `RefCounted`), alimentée là où l'événement a lieu, déterministe (la même graine donne le même bilan). `Partie.bilan_joueur(id: int) -> Dictionary` l'expose. À la fin de la partie, le serveur envoie à **chaque joueur présent son propre bilan** (canal fiable) ; `Client` et la source locale l'exposent. **Montée de `Protocole.VERSION`** : relire celle de `main` avant de l'incrémenter, garder les formats précédents refusés par un test en boucle. Aucun défi, aucune sauvegarde ici.
+- [ ] **Objectif :** `sim/` produit, pour chaque joueur, un **bilan** de partie : les compteurs de la liste validée de T11.1 (`docs/defis.md`, §2 : manche atteinte, victoire, dernière tour debout, PV minimum et PV soignés, manches sans dégât de suite, mana et chutes du bouclier, épines, série d'éliminations, armes équipées, améliorations achetées dont celles de revenu, or détenu, dépensé et gagné, et pour « uniquement… » le nombre d'armes achetées **par type de dégâts, par genre d'effet et par statut**). Donnée pure (`sim/bilan.gd`, `RefCounted`), alimentée là où l'événement a lieu, déterministe (la même graine donne le même bilan). `Partie.bilan_joueur(id: int) -> Dictionary` l'expose. À la fin de la partie, le serveur envoie à **chaque joueur présent son propre bilan** (canal fiable) ; `Client` et la source locale l'exposent. **Montée de `Protocole.VERSION`** : relire celle de `main` avant de l'incrémenter, garder les formats précédents refusés par un test en boucle. Aucun défi, aucune sauvegarde ici.
 - **Conception :** §6.15 (B4 et règles de dépendance), choix du plan 1 et 2.
 - **Fichiers :** `sim/bilan.gd` (nouveau), `sim/arene.gd` (points de comptage), `sim/partie.gd`, `sim/joueur_partie.gd`, `reseau/protocole.gd`, `reseau/serveur.gd`, `reseau/client.gd`, `reseau/canal.gd`, `app/source_vue.gd`, `app/source_locale.gd`, `tests/outils/source_factice.gd` ; tests `test_bilan.gd` (nouveau), `test_partie.gd`, `test_protocole_bilan.gd` (nouveau), `test_serveur.gd`, `test_client.gd`, `test_source_locale.gd`.
 - **Lire :** `docs/defis.md` (la liste des compteurs) ; `sim/partie.gd` (`est_terminee`, `vue_globale`) ; `reseau/serveur.gd` (fin de partie) ; `test_protocole_v5.gd`.
 - **Interfaces :** produit `Bilan` (un champ par compteur de `docs/defis.md`, `a_dict() -> Dictionary`, `depuis_dict(d) -> Bilan`), `Partie.bilan_joueur(id) -> Dictionary`, `Client.bilan_recu` (signal et dernier bilan), `Protocole.encoder_bilan` / `decoder_bilan`.
 - **Tests :**
+  - `test_chaque_type_genre_et_statut_des_donnees_a_son_compteur_d_armes` : en boucle sur `Types.NOMS_TYPES` et sur les genres et statuts présents dans `data/armes.json` ; une arme compte pour chacun de ses genres et statuts.
   - `test_chaque_compteur_de_la_liste_est_produit` : en boucle sur les compteurs lus dans `docs/defis.md`, le bilan porte le champ ; jamais une liste en dur.
   - `test_le_bilan_est_deterministe` (deux parties de même graine, bilans égaux) ; `test_chaque_joueur_a_son_propre_bilan` (2 joueurs, compteurs différents).
   - `test_aucun_compteur_n_est_negatif_ni_non_fini` (robots passif, raisonnable, bonne, sur plusieurs graines) ; `test_les_compteurs_croissants_ne_decroissent_jamais` (suite de bilans pendant la partie).
@@ -2242,17 +2245,33 @@ Conception : §6.14 (décision D19 de Phil du 26/11/2026). Ces trois tâches se
   - `test_deux_processus_n_ecrivent_pas_le_meme_fichier_temporaire` ; `test_le_fichier_ne_contient_aucun_champ_hors_de_la_liste` (liste blanche des clés).
 - **Vérif :** `T --filtre test_sauvegarde`, puis `tools/verifier.sh`. Rapport : la taille maximale retenue et le format.
 
+### Task 11.3bis : Cumuls entre parties dans la sauvegarde (version 2) — `sonnet`
+
+- [ ] **Objectif :** les défis cumulés (B9, `docs/defis.md` §3 et §6) demandent six compteurs de plus dans le profil. `Profil` gagne `cumul_victoires`, `cumul_eliminations`, `cumul_or_gagne`, `cumul_manches`, `cumul_parties_multijoueur` et `cumul_dernier_rempart` ; `Sauvegarde.VERSION` passe à **2** et la version 1 **se migre** (les six compteurs partent de 0, rien n'est perdu) ; un fichier de version 3 ou plus reste ni lu ni écrasé. `Profil.ajouter_bilan(bilan: Dictionary, multijoueur: bool) -> void` ajoute un bilan de partie aux cumuls (et à `parties`, `meilleure_manche`). Bornes : or un milliard, éliminations dix millions, parties, manches, victoires et parties à plusieurs un million ; un cumul qui dépasserait sa borne s'y arrête. La liste blanche de clés s'élargit des six noms. Tout s'écrit en **un seul enregistrement** : aucune perte si l'écriture échoue (T11.3).
+- **Conception :** §6.15 (B1, B9), `docs/defis.md` §3 et §6.
+- **Fichiers :** `progression/profil.gd`, `progression/sauvegarde.gd` ; tests `tests/unitaires/test_sauvegarde.gd`, `tests/unitaires/test_profil_cumuls.gd` (nouveau).
+- **Lire :** `progression/sauvegarde.gd` et `progression/profil.gd` (T11.3) ; `docs/defis.md` §3.
+- **Interfaces :** consomme `Profil`, `Sauvegarde` (T11.3). Produit `Profil.cumul_*` (six entiers), `Profil.ajouter_bilan`, `Sauvegarde.VERSION` = 2.
+- **Tests :**
+  - `test_chaque_cumul_du_document_est_un_champ_du_profil` : en boucle sur les compteurs de `docs/defis.md` §3.
+  - `test_un_fichier_de_version_1_se_migre_sans_rien_perdre` (fixture écrite dans le test : les six compteurs valent 0, parties et meilleure manche gardées) ; `test_chaque_version_precedente_se_migre` (la boucle de T11.3 n'est plus vide) ; `test_une_version_3_n_est_ni_lue_ni_ecrasee`.
+  - `test_un_bilan_s_ajoute_aux_cumuls_et_un_cumul_s_arrete_a_sa_borne` (en boucle sur les six) ; `test_un_echec_d_ecriture_garde_les_cumuls_precedents` (en boucle sur les étapes d'écriture) ; `test_valeurs_hors_bornes_ou_de_mauvais_types_des_cumuls`.
+  - `test_le_fichier_ne_contient_aucun_champ_hors_de_la_liste` (liste blanche étendue).
+- **Vérif :** `T --filtre test_sauvegarde`, `test_profil_cumuls`, puis les tests ciblés ; `tools/verifier.sh` seulement si le schéma de `data/` change (non). Rapport : les bornes retenues.
+
 ### Task 11.4 : Défis et déblocage des skins — `sonnet`
 
-- [ ] **Objectif :** `data/defis.json` (la liste **validée** de T11.1, un défi par skin) et `progression/defis.gd` (`Defis`) : `Defis.evaluer(bilan, profil, donnees) -> Array[String]` rend les défis **nouvellement réussis** par ce bilan, les ajoute au profil avec le skin qu'ils débloquent, et ne valide jamais deux fois le même défi. En multijoueur, **chaque poste** évalue **son** bilan (B4) ; en solo, de même. `app/progression_locale.gd` (nouveau) relie la fin de partie à l'évaluation puis à la sauvegarde (T11.3), et **ne fait rien sur un serveur dédié** (B2). Validation du fichier par `sim/donnees.gd` : un défi sans condition, un compteur inconnu, un identifiant en double ou un nom d'origine est refusé.
+- [ ] **Objectif :** `data/defis.json` (la liste **validée** de T11.1, un défi par skin) et `progression/defis.gd` (`Defis`) : `Defis.evaluer(bilan, profil, donnees) -> Array[String]` ajoute d'abord le bilan aux cumuls du profil (`Profil.ajouter_bilan`, T11.3bis), puis rend les défis **nouvellement réussis** (une condition lit un compteur du bilan ou un cumul du profil), les ajoute au profil avec le skin qu'ils débloquent, et ne valide jamais deux fois le même défi. Les conditions de `data/defis.json` ont la forme de `docs/defis.md` §4 (compteurs entre puces, comparaisons `=`, `≤`, `≥`, `>`, liées par « et »). Un défi `multijoueur` ne se valide pas en solo. En multijoueur, **chaque poste** évalue **son** bilan (B4) ; en solo, de même. `app/progression_locale.gd` (nouveau) relie la fin de partie à l'évaluation puis à la sauvegarde (T11.3), et **ne fait rien sur un serveur dédié** (B2). Validation du fichier par `sim/donnees.gd` : un défi sans condition, un compteur inconnu, un identifiant en double ou un nom d'origine est refusé.
 - **Conception :** §6.15 (B2, B4, B5) ; choix du plan 1 et 2.
 - **Fichiers :** `data/defis.json` (nouveau), `sim/donnees.gd` et `sim/donnees_progression.gd` (nouveau, validation), `progression/defis.gd` (nouveau), `app/progression_locale.gd` (nouveau), `app/jeu.gd` (une ligne : appel à la fin de partie) ; tests `test_defis.gd` (nouveau), `test_donnees_progression.gd` (nouveau), `test_progression_locale.gd` (nouveau).
-- **Lire :** `docs/defis.md` validé ; `progression/sauvegarde.gd` (T11.3) ; `sim/bilan.gd` (T11.2) ; `app/jeu.gd` (fin de partie).
+- **Lire :** `docs/defis.md` validé ; `progression/sauvegarde.gd` et `progression/profil.gd` (T11.3, T11.3bis) ; `sim/bilan.gd` (T11.2) ; `app/jeu.gd` (fin de partie).
 - **Interfaces :** consomme `Bilan`, `Profil`, `Sauvegarde`. Produit `Defis.evaluer(bilan: Dictionary, profil: Profil, donnees: Donnees) -> Array[String]`, `Donnees.defis: Dictionary` ({id: {nom, texte, condition, skin}}).
 - **Tests :**
   - `test_chaque_defi_se_reussit_avec_un_bilan_qui_remplit_sa_condition_et_pas_sans` : en boucle sur **tous les défis de `data/`**, un bilan juste au seuil le valide, un bilan juste en dessous non (aucun nombre de défis en dur).
   - `test_un_defi_deja_reussi_n_est_jamais_valide_deux_fois` ; `test_reussir_un_defi_debloque_son_skin_et_seulement_celui_la`.
   - **Review Focus 4 :** `test_chaque_defi_debloque_un_skin_et_chaque_skin_a_un_defi` (en boucle, `defaut` exclu) ; `test_aucun_defi_ne_cite_un_compteur_absent_du_bilan`.
+  - `test_un_defi_cumule_se_valide_apres_plusieurs_parties_et_pas_avant` : en boucle sur les défis dont la condition cite un `cumul_*` ou `parties`.
+  - `test_chaque_defi_uniquement_ne_se_valide_que_si_toutes_les_armes_achetees_ont_la_classe` : en boucle sur les défis « uniquement… » (au moins une arme, toutes de la classe).
   - `test_deux_joueurs_valident_chacun_leur_defi` (deux profils, deux bilans) ; `test_un_joueur_parti_avant_la_fin_ne_valide_rien` ; `test_le_solo_valide_comme_le_multijoueur`.
   - `test_un_serveur_dedie_n_ecrit_aucun_fichier`.
   - `test_un_defi_malforme_est_refuse_au_chargement` (mutations : condition vide, compteur inconnu, doublon, nom d'origine) ; **Review Focus 8 :** `test_aucun_nom_ni_texte_de_defi_n_est_un_nom_d_origine` sur `data/defis.json`.

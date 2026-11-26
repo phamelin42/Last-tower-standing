@@ -1,7 +1,11 @@
 extends CasDeTest
 ## Chaque arme a une signature qu'on reconnaît d'un coup d'œil : forme et couleur du projectile,
-## traînée, impact et statut. Les listes viennent de `data/` : une arme ajoutée sans signature
-## fait échouer ce test, et aucun effectif n'est figé (le catalogue grossit).
+## traînée, impact et statut. Les listes viennent de `data/` et aucun effectif n'est figé (le
+## catalogue grossit). Les armes du lot 9 entrent dans les données avant leur signature (T9.18) :
+## d'ici là, une signature désigne toujours une arme qui existe, les 30 armes du lot 8 gardent la
+## leur, et une arme sans signature retombe sur le rendu par type (`test_effets.gd`).
+
+const ArmesLot8 := preload("res://tests/unitaires/armes_lot_8.gd")
 
 var _donnees: Donnees = null
 
@@ -27,13 +31,17 @@ func _paires() -> Array[PackedStringArray]:
 	return paires
 
 
-func test_chaque_arme_a_une_signature_et_il_n_y_en_a_pas_d_autre() -> void:
-	var attendus: PackedStringArray = _ids_donnees()
-	var table: PackedStringArray = SignaturesArmes.ids()
-	table.sort()
-	verifier_egal(table, attendus)
-	for id: String in attendus:
+func test_chaque_signature_designe_une_arme_des_donnees() -> void:
+	var donnees: PackedStringArray = _ids_donnees()
+	for id: String in SignaturesArmes.ids():
+		verifier(donnees.has(id), "signature orpheline : %s" % id)
 		verifier(not SignaturesArmes.de(id).is_empty(), "signature de %s" % id)
+
+
+func test_les_trente_armes_du_lot_8_gardent_leur_signature() -> void:
+	verifier_egal(ArmesLot8.IDS.size(), 30)
+	for id: String in ArmesLot8.IDS:
+		verifier(not SignaturesArmes.de(id).is_empty(), "signature de %s perdue" % id)
 
 
 func test_une_arme_inconnue_n_a_pas_de_signature() -> void:
@@ -105,7 +113,9 @@ func test_les_couleurs_de_la_palette_se_distinguent_deux_a_deux() -> void:
 
 func test_le_statut_de_la_signature_est_celui_de_l_arme_vol_de_vie_compris() -> void:
 	var vus: Dictionary = {}
-	for id: String in _ids_donnees():
+	for id: String in SignaturesArmes.ids():
+		if not _donnees.armes.has(id):
+			continue
 		var kinds: Array[String] = []
 		for statut: Variant in (_donnees.armes[id] as Dictionary)["statuts"]:
 			kinds.append(String((statut as Dictionary)["kind"]))
