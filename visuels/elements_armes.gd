@@ -25,6 +25,14 @@ const RICOCHET: String = "ricochet"
 const HERSE: String = "herse"
 const BALISTE: String = "baliste"
 const PLUIE: String = "pluie"
+## Les armes magiques et de siège : un élément par arme, comme l'acier et le carreau.
+const CERCLE_GIVRE: String = "cercle_givre"
+const NOVA: String = "nova"
+const TEMPETE: String = "tempete"
+const PETARD: String = "petard"
+const TREBUCHET: String = "trebuchet"
+const MINE_FORGE: String = "mine_forge"
+const GRANDE_BOMBE: String = "grande_bombe"
 
 const ELEMENTS: Array[String] = [
 	FEU,
@@ -45,6 +53,7 @@ const ELEMENTS: Array[String] = [
 	HERSE,
 	BALISTE,
 	PLUIE,
+	CERCLE_GIVRE,
 ]
 
 ## id d'arme → élément.
@@ -67,6 +76,7 @@ const TABLE: Dictionary = {
 	"herse_de_ressorts": HERSE,
 	"baliste_de_guet": BALISTE,
 	"pluie_d_aiguilles": PLUIE,
+	"cercle_de_givre": CERCLE_GIVRE,
 }
 
 
