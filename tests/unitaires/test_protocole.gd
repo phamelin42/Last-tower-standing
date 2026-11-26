@@ -57,6 +57,7 @@ func _brut_catalogue() -> Dictionary:
 					"rarete": "commune",
 					"prix": 100 + i,
 					"categorie": "amelioration",
+					"famille": "degats_type",
 					"effets":
 					[
 						{

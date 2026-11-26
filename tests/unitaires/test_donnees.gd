@@ -67,6 +67,7 @@ func _ameliorations_valides() -> Array:
 			"rarete": "commune",
 			"prix": 150,
 			"categorie": "amelioration",
+			"famille": "degats_type",
 			"effets":
 			[{"stat": "degats_type", "type_degats": "tranchant", "valeur": 0.1, "categorie": "A"}],
 		},
@@ -77,6 +78,7 @@ func _ameliorations_valides() -> Array:
 			"rarete": "epique",
 			"prix": 700,
 			"categorie": "revenu",
+			"famille": "revenu",
 			"effets": [{"stat": "bonus_elim", "tous_les": 10, "or": 25}],
 		},
 	]
