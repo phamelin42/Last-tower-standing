@@ -54,6 +54,15 @@ const OFFRES: Dictionary = {
 	"herse_de_ressorts": ["ludicarts/bouclier_bois", "vert"],
 	"baliste_de_guet": ["upg_bow", "vert"],
 	"pluie_d_aiguilles": ["ludicarts/fleches_feu", "vert"],
+	"javeline_de_jet": ["upg_spear", "vert"],
+	"trait_en_gerbe": ["dagger", "vert"],
+	"fleche_marquante": ["upg_dagger", "vert"],
+	"arc_de_remparts": ["upg_sword", "vert"],
+	"herse_de_pieux": ["axeDouble", "vert"],
+	"lance_epineuse": ["sword", "vert"],
+	"carquois_en_rafale": ["ludicarts/sac", "vert"],
+	"mur_de_pointes": ["upg_shield", "vert"],
+	"couronne_de_pointes": ["upg_helmet", "vert"],
 	# Armes magiques.
 	"etincelle_runique": ["wand", "violet"],
 	"orbe_de_brume": ["gemBlue", "violet"],
@@ -129,6 +138,11 @@ const OFFRES: Dictionary = {
 ## Offres dont l'icône n'est qu'un rapprochement faible, à faire valider par Phil.
 const RAPPROCHEMENTS_FAIBLES: PackedStringArray = [
 	"chausse_trape",
+	"trait_en_gerbe",
+	"herse_de_pieux",
+	"carquois_en_rafale",
+	"mur_de_pointes",
+	"couronne_de_pointes",
 	"couperet_a_epines",
 	"lame_de_brume",
 	"scie_a_ruban",
