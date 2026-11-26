@@ -283,7 +283,9 @@ func _attendre_s(secondes: float) -> void:
 func test_le_delai_par_defaut_est_celui_de_phil() -> void:
 	# Décision 21 (26/11/2026) : 10 s, ni plus ni moins.
 	verifier_egal(SessionReseau.DELAI_UPNP_MAX_S, 10.0)
-	verifier_egal(SessionReseau.new().delai_upnp_max, 10.0, "une session neuve a le délai de Phil")
+	var neuve := SessionReseau.new()
+	verifier_egal(neuve.delai_upnp_max, 10.0, "une session neuve a le délai de Phil")
+	neuve.free()
 
 
 func test_une_box_qui_se_fige_n_empeche_pas_l_annonce_du_port_local() -> void:
@@ -305,7 +307,7 @@ func test_une_box_qui_repond_avant_le_delai_ne_change_rien() -> void:
 	var box := TestUpnp.Double.new()
 	box.barrage = Semaphore.new()
 	var s := _session(box)
-	s.delai_upnp_max = 3.0
+	s.delai_upnp_max = 1.0
 	var emis := _ecouter_upnp(s)
 	var port := _port_libre()
 	_heberger(s, port)
@@ -315,7 +317,7 @@ func test_une_box_qui_repond_avant_le_delai_ne_change_rien() -> void:
 	verifier(await _jusqua(func() -> bool: return _fausse.lancees.size() >= 1))
 	verifier_egal(emis, [port] as Array[int], "seul le port obtenu est émis")
 	verifier_egal(_fausse.lancees[0]["port"], port)
-	await _attendre_s(3.3)
+	await _attendre_s(1.3)
 	verifier_egal(emis, [port] as Array[int], "l'échéance passée ne dit plus rien")
 
 
@@ -323,12 +325,11 @@ func test_fermer_avant_l_echeance_n_annonce_ni_n_emet_rien() -> void:
 	var box := TestUpnp.Double.new()
 	box.barrage = Semaphore.new()
 	var s := _session(box)
-	s.delai_upnp_max = 0.5
+	s.delai_upnp_max = 1.0
 	var emis := _ecouter_upnp(s)
 	_heberger(s, _port_libre())
-	await attendre_images(10)
 	s.fermer()
-	await _attendre_s(0.9)
+	await _attendre_s(1.4)
 	verifier_egal(emis.size(), 0, "aucun 0 émis après la fermeture")
 	verifier_egal(_fausse.lancees.size(), 0, "rien n'est annoncé après la fermeture")
 	box.barrage.post()
@@ -341,7 +342,9 @@ func test_heberger_a_nouveau_avant_l_echeance_ne_laisse_pas_le_decompte_de_la_pr
 	seconde.barrage = Semaphore.new()
 	var boites: Array[UpnpHote.Passerelle] = [premiere, seconde]
 	var s := _session(premiere)
-	s.fabrique_passerelle = func() -> UpnpHote.Passerelle: return boites.pop_front()
+	s.fabrique_passerelle = func() -> UpnpHote.Passerelle:
+		var b: UpnpHote.Passerelle = boites.pop_front()
+		return b
 	s.delai_upnp_max = 1.0
 	var emis := _ecouter_upnp(s)
 	_heberger(s, _port_libre())
@@ -394,3 +397,49 @@ func test_un_echec_tardif_ne_repete_pas_le_zero() -> void:
 	box.barrage_decouverte.post()
 	await _attendre_s(0.5)
 	verifier_egal(emis, [0] as Array[int], "l'échec de la box n'émet pas un second 0")
+
+
+func test_l_echeance_avant_l_enregistrement_de_l_hote_attend_l_hote_puis_annonce_le_port_local(
+) -> void:
+	var box := TestUpnp.Double.new()
+	box.barrage = Semaphore.new()
+	var s := _session(box)
+	# Une échéance de 20 ms sonne bien avant l'aller-retour du client local vers le serveur.
+	s.delai_upnp_max = 0.02
+	var ordre: Array[String] = []
+	s.tentative_upnp_terminee.connect(func(_p: int) -> void: ordre.append("upnp"))
+	s.hote_enregistre.connect(func() -> void: ordre.append("hote"))
+	var port := _port_libre()
+	_heberger(s, port)
+	verifier(await _jusqua(func() -> bool: return _fausse.lancees.size() >= 1))
+	verifier_egal(ordre, ["upnp", "hote"] as Array[String], "l'échéance a sonné avant l'hôte")
+	verifier_egal(_fausse.lancees[0]["port"], port, "port local une fois l'hôte enregistré")
+	box.barrage.post()
+
+
+func test_une_partie_non_publique_dit_quand_meme_a_l_hote_que_la_box_n_a_pas_repondu() -> void:
+	var box := TestUpnp.Double.new()
+	box.barrage = Semaphore.new()
+	var s := _session(box, false)
+	s.delai_upnp_max = 0.3
+	var emis := _ecouter_upnp(s)
+	_heberger(s, _port_libre())
+	verifier(await _jusqua(func() -> bool: return emis.size() == 1))
+	verifier_egal(emis, [0] as Array[int])
+	await attendre_images(30)
+	verifier_nul(s.annuaire, "rien n'est annoncé pour une partie non publique")
+	verifier_egal(_fausse.lancees.size(), 0)
+	box.barrage.post()
+
+
+func test_sans_passerelle_aucun_decompte_n_est_lance() -> void:
+	var s := SessionReseau.new()
+	s.fabrique_passerelle = func() -> UpnpHote.Passerelle: return null
+	arbre.root.add_child(s)
+	_sessions.append(s)
+	_heberger(s, _port_libre())
+	var timers: Array[Timer] = []
+	for enfant: Node in s.get_children():
+		if enfant is Timer:
+			timers.append(enfant as Timer)
+	verifier_egal(timers.size(), 0, "pas de box, pas d'échéance")
