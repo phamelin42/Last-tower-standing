@@ -41,6 +41,7 @@ func _amelio(id: String, effets: Array) -> Dictionary:
 		"description": "Test.",
 		"rarete": "commune",
 		"prix": 10,
+		"categorie": "amelioration",
 		"effets": effets,
 	}
 

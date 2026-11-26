@@ -67,3 +67,27 @@ func test_chaque_arme_et_amelioration_a_une_rarete_proposable_a_une_manche() -> 
 					% [id, rarete, MANCHE_BOSS]
 				)
 			)
+
+
+func test_la_categorie_revenu_regroupe_exactement_les_stats_economiques() -> void:
+	if donnees == null:
+		return
+	var economiques: Array[String] = [
+		"revenu_fixe", "revenu_croissant", "revenu_mult", "prime_mult", "bonus_elim"
+	]
+	var nb_revenu := 0
+	for id: String in donnees.ameliorations:
+		var amelioration: Dictionary = donnees.ameliorations[id]
+		var effets: Array = amelioration["effets"]
+		var tous_economiques := true
+		for effet: Dictionary in effets:
+			if not (effet["stat"] as String) in economiques:
+				tous_economiques = false
+		var est_revenu: bool = int(amelioration["categorie"]) == Types.Categorie.REVENU
+		verifier_egal(est_revenu, tous_economiques, "%s : catégorie et effets" % id)
+		nb_revenu += 1 if est_revenu else 0
+	verifier(nb_revenu > 0, "au moins une offre de revenu")
+	for id: String in ["bourse_de_rebut", "jeton_de_l_arriere_boutique"]:
+		verifier_egal(
+			donnees.categorie_de(id), Types.Categorie.AMELIORATION, "%s n'est pas un revenu" % id
+		)

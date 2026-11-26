@@ -1090,7 +1090,7 @@ func id_regarde() -> int                # -1 si aucune
 
 ### Task 8.1 : Types, vues et schémas de données — `sonnet`
 
-- [ ] **Objectif :** figer en code les interfaces de simulation du lot : énumérations, `StatsTour`, champs de `VueArene` et de `VueGlobale`, schémas validés de `data/` (catégorie, mana, armes de mana, classes de portée, familles), stubs de `SourceVue`. Aucun comportement de jeu ne change encore : les données du jeu restent valides (les 8 familles et leurs portées actuelles sont migrées par T8.4 et T8.5, pas ici ; ici, seules les nouvelles clés facultatives et la catégorie des améliorations entrent).
+- [x] **Objectif :** figer en code les interfaces de simulation du lot : énumérations, `StatsTour`, champs de `VueArene` et de `VueGlobale`, schémas validés de `data/` (catégorie, mana, armes de mana, classes de portée, familles), stubs de `SourceVue`. Aucun comportement de jeu ne change encore : les données du jeu restent valides (les 8 familles et leurs portées actuelles sont migrées par T8.4 et T8.5, pas ici ; ici, seules les nouvelles clés facultatives et la catégorie des améliorations entrent).
 - **Conception :** §6.3, §6.4, §6.7 (catégories), §6.8, §6.11, §7.
 - **Fichiers :** `sim/types.gd`, `sim/stats_tour.gd`, `sim/vue_arene.gd`, `sim/vue_globale.gd`, `sim/donnees.gd` (catégorie, `degats_par_mana_max`, `mana_max`, `mana_regen`, clés `tour` et `vagues` et `reseau` ci-dessus, `emplacements_armes` facultatif), `data/ameliorations.json` (champ `categorie` des 40 améliorations), `data/partie.json`, `app/source_vue.gd` (stubs `regarder`, `id_regarde`, signal), `tests/outils/source_factice.gd` (même API, appels notés).
 - **Lire :** `sim/vue_arene.gd` et `sim/vue_globale.gd` en entier ; `sim/donnees.gd` par `grep -n '_valider_\|_normaliser_'`.
@@ -1108,7 +1108,7 @@ func id_regarde() -> int                # -1 si aucune
 
 ### Task 8.2 : Protocole version 5 — `sonnet`
 
-- [ ] **Objectif :** une seule montée de version pour toutes les nouveautés réseau du lot : 255 armes, mana, familles suivantes, événements `absorption` et `arme`, `dps` et densités dans l'état global, état d'arène regardée, intention `REGARDER`. Décodage défensif et fuzz comme les versions précédentes.
+- [x] **Objectif :** une seule montée de version pour toutes les nouveautés réseau du lot : 255 armes, mana, familles suivantes, événements `absorption` et `arme`, `dps` et densités dans l'état global, état d'arène regardée, intention `REGARDER`. Décodage défensif et fuzz comme les versions précédentes.
 - **Conception :** §6.3, §6.4, §6.8, §6.10, §6.11.
 - **Fichiers :** `reseau/protocole.gd` ; tests `test_protocole.gd`, `test_protocole_resultat.gd`, `test_protocole_jeton.gd` (version).
 - **Lire :** `reseau/protocole.gd` : `grep -n 'static func\|^const'`, puis `encoder_etat_arene` et `decoder_etat_arene` par plage.

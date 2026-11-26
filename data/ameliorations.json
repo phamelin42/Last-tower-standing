@@ -5,6 +5,7 @@
   "description": "Un coup de pierre à aiguiser sur chaque lame.",
   "rarete": "commune",
   "prix": 70,
+  "categorie": "amelioration",
   "effets": [
    {
     "stat": "degats_type",
@@ -20,6 +21,7 @@
   "description": "Les pointes ressortent de l’huile plus acérées.",
   "rarete": "commune",
   "prix": 70,
+  "categorie": "amelioration",
   "effets": [
    {
     "stat": "degats_type",
@@ -35,6 +37,7 @@
   "description": "Des runes retracées à l’encre vive brillent davantage.",
   "rarete": "commune",
   "prix": 75,
+  "categorie": "amelioration",
   "effets": [
    {
     "stat": "degats_type",
@@ -50,6 +53,7 @@
   "description": "Une poudre plus fine, un boulet qui part plus franc.",
   "rarete": "commune",
   "prix": 75,
+  "categorie": "amelioration",
   "effets": [
    {
     "stat": "degats_type",
@@ -65,6 +69,7 @@
   "description": "Un soupçon de désordre glissé dans chaque coup du chaos.",
   "rarete": "commune",
   "prix": 70,
+  "categorie": "amelioration",
   "effets": [
    {
     "stat": "degats_type",
@@ -80,6 +85,7 @@
   "description": "Le maître forgeron reprend vos lames une à une.",
   "rarete": "rare",
   "prix": 450,
+  "categorie": "amelioration",
   "effets": [
    {
     "stat": "degats_type",
@@ -95,6 +101,7 @@
   "description": "Un carquois toujours plein, des traits mieux ferrés.",
   "rarete": "rare",
   "prix": 450,
+  "categorie": "amelioration",
   "effets": [
    {
     "stat": "degats_type",
@@ -110,6 +117,7 @@
   "description": "Des sorts écrits au sommet des monts, plus puissants.",
   "rarete": "rare",
   "prix": 460,
+  "categorie": "amelioration",
   "effets": [
    {
     "stat": "degats_type",
@@ -125,6 +133,7 @@
   "description": "Une réserve plus sûre, des charges mieux dosées.",
   "rarete": "rare",
   "prix": 460,
+  "categorie": "amelioration",
   "effets": [
    {
     "stat": "degats_type",
@@ -140,6 +149,7 @@
   "description": "Le chaos bat à votre rythme et frappe plus fort.",
   "rarete": "rare",
   "prix": 450,
+  "categorie": "amelioration",
   "effets": [
    {
     "stat": "degats_type",
@@ -155,6 +165,7 @@
   "description": "Un peu d’énergie vive ajoutée à chaque arme.",
   "rarete": "peu_commune",
   "prix": 260,
+  "categorie": "amelioration",
   "effets": [
    {
     "stat": "degats_global",
@@ -169,6 +180,7 @@
   "description": "Un diadème d’engrenages qui fait mieux frapper chaque arme.",
   "rarete": "epique",
   "prix": 900,
+  "categorie": "amelioration",
   "effets": [
    {
     "stat": "degats_global",
@@ -183,6 +195,7 @@
   "description": "Des poutres neuves consolident la tour.",
   "rarete": "commune",
   "prix": 80,
+  "categorie": "amelioration",
   "effets": [
    {
     "stat": "pv_max",
@@ -196,6 +209,7 @@
   "description": "Une assise de pierre qui encaisse mieux les coups.",
   "rarete": "peu_commune",
   "prix": 240,
+  "categorie": "amelioration",
   "effets": [
    {
     "stat": "pv_max",
@@ -209,6 +223,7 @@
   "description": "Une mousse vivace referme peu à peu les fissures de la tour.",
   "rarete": "commune",
   "prix": 90,
+  "categorie": "amelioration",
   "effets": [
    {
     "stat": "regen",
@@ -222,6 +237,7 @@
   "description": "Une résine épaisse recolle la tour à vue d’œil.",
   "rarete": "rare",
   "prix": 480,
+  "categorie": "amelioration",
   "effets": [
    {
     "stat": "regen",
@@ -235,6 +251,7 @@
   "description": "Quelques plaques clouées sur les murs amortissent les coups.",
   "rarete": "commune",
   "prix": 90,
+  "categorie": "amelioration",
   "effets": [
    {
     "stat": "armure",
@@ -248,6 +265,7 @@
   "description": "Une lourde carapace métallique enveloppe la tour.",
   "rarete": "peu_commune",
   "prix": 280,
+  "categorie": "amelioration",
   "effets": [
    {
     "stat": "armure",
@@ -261,6 +279,7 @@
   "description": "Des ouvertures en biais font dévier une partie des attaques.",
   "rarete": "peu_commune",
   "prix": 260,
+  "categorie": "amelioration",
   "effets": [
    {
     "stat": "esquive",
@@ -274,6 +293,7 @@
   "description": "Des piques de fer répondent aux assaillants au corps à corps.",
   "rarete": "commune",
   "prix": 100,
+  "categorie": "amelioration",
   "effets": [
    {
     "stat": "epines",
@@ -287,6 +307,7 @@
   "description": "Qui s’attaque à la tour au corps à corps se blesse autant.",
   "rarete": "rare",
   "prix": 440,
+  "categorie": "amelioration",
   "effets": [
    {
     "stat": "epines",
@@ -300,6 +321,7 @@
   "description": "Un viseur affûté repère les points faibles.",
   "rarete": "peu_commune",
   "prix": 240,
+  "categorie": "amelioration",
   "effets": [
    {
     "stat": "critique_chance",
@@ -313,6 +335,7 @@
   "description": "Le sort sourit plus souvent et les coups font mouche.",
   "rarete": "rare",
   "prix": 500,
+  "categorie": "amelioration",
   "effets": [
    {
     "stat": "critique_chance",
@@ -326,6 +349,7 @@
   "description": "Un balancier huilé donne du rythme à toutes les armes.",
   "rarete": "peu_commune",
   "prix": 250,
+  "categorie": "amelioration",
   "effets": [
    {
     "stat": "cadence",
@@ -339,6 +363,7 @@
   "description": "Un engrenage emballé fait tirer les armes à toute allure.",
   "rarete": "epique",
   "prix": 850,
+  "categorie": "amelioration",
   "effets": [
    {
     "stat": "cadence",
@@ -352,6 +377,7 @@
   "description": "Une encoche de plus sur la corde, un tir de plus par salve.",
   "rarete": "rare",
   "prix": 520,
+  "categorie": "amelioration",
   "effets": [
    {
     "stat": "tirs_multiples",
@@ -365,6 +391,7 @@
   "description": "Un impact bien placé projette des éclats sur les voisins.",
   "rarete": "peu_commune",
   "prix": 270,
+  "categorie": "amelioration",
   "effets": [
    {
     "stat": "eclaboussure",
@@ -378,6 +405,7 @@
   "description": "Une lentille concentre le tir sur une seule cible.",
   "rarete": "peu_commune",
   "prix": 250,
+  "categorie": "amelioration",
   "effets": [
    {
     "stat": "focalisation",
@@ -391,6 +419,7 @@
   "description": "Chaque coup porté rend un peu de vie à la tour.",
   "rarete": "peu_commune",
   "prix": 280,
+  "categorie": "amelioration",
   "effets": [
    {
     "stat": "vol_de_vie_coup",
@@ -404,6 +433,7 @@
   "description": "Chaque ennemi tombé verse sa part de vie à la tour.",
   "rarete": "rare",
   "prix": 400,
+  "categorie": "amelioration",
   "effets": [
    {
     "stat": "vol_de_vie_mort",
@@ -417,6 +447,7 @@
   "description": "Le guet met un peu de côté à chaque versement.",
   "rarete": "commune",
   "prix": 90,
+  "categorie": "revenu",
   "effets": [
    {
     "stat": "revenu_fixe",
@@ -430,6 +461,7 @@
   "description": "Un atelier de tissage qui rapporte régulièrement de l’or.",
   "rarete": "rare",
   "prix": 450,
+  "categorie": "revenu",
   "effets": [
    {
     "stat": "revenu_fixe",
@@ -443,6 +475,7 @@
   "description": "Un petit capital dont le rapport grossit avec le temps.",
   "rarete": "peu_commune",
   "prix": 280,
+  "categorie": "revenu",
   "effets": [
    {
     "stat": "revenu_croissant",
@@ -456,6 +489,7 @@
   "description": "Des comptes tenus au centime font fructifier vos rentes.",
   "rarete": "rare",
   "prix": 480,
+  "categorie": "revenu",
   "effets": [
    {
     "stat": "revenu_mult",
@@ -469,6 +503,7 @@
   "description": "Une fonderie qui presse vos rentes pour en tirer plus d’or.",
   "rarete": "epique",
   "prix": 900,
+  "categorie": "revenu",
   "effets": [
    {
     "stat": "revenu_mult",
@@ -482,6 +517,7 @@
   "description": "Le guet verse un peu plus pour chaque ennemi abattu.",
   "rarete": "peu_commune",
   "prix": 270,
+  "categorie": "revenu",
   "effets": [
    {
     "stat": "prime_mult",
@@ -495,6 +531,7 @@
   "description": "Chaque dépouille rapporte davantage au chasseur.",
   "rarete": "rare",
   "prix": 500,
+  "categorie": "revenu",
   "effets": [
    {
     "stat": "prime_mult",
@@ -508,6 +545,7 @@
   "description": "La tirelire tinte à chaque série d’ennemis abattus.",
   "rarete": "peu_commune",
   "prix": 260,
+  "categorie": "revenu",
   "effets": [
    {
     "stat": "bonus_elim",
@@ -522,6 +560,7 @@
   "description": "Les fonds de tiroir paient un nouveau tirage à chaque manche.",
   "rarete": "commune",
   "prix": 110,
+  "categorie": "amelioration",
   "effets": [
    {
     "stat": "relance_gratuite",
@@ -535,6 +574,7 @@
   "description": "Un jeton glissé au comptoir ouvre la porte du fond.",
   "rarete": "peu_commune",
   "prix": 300,
+  "categorie": "amelioration",
   "effets": [
    {
     "stat": "marche_noir",
