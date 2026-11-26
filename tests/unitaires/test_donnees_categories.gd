@@ -12,6 +12,7 @@ const FICHIERS: Array[String] = [
 	"armes.json",
 	"ameliorations.json",
 	"ennemis.json",
+	"unites.json",
 ]
 
 

@@ -176,8 +176,35 @@ func _tirer_un(manche: int, pris: Dictionary) -> String:
 		tirage -= poids[r]
 		if tirage < 0.0:
 			break
-	var libres := reste[choisie]
-	return libres[_rng.randi_range(0, libres.size() - 1)]
+	return _choisir_selon_genre(reste[choisie], manche)
+
+
+## Objet de la rareté tirée, pondéré par le poids de genre de la manche (arme ou amélioration) ;
+## sans table `poids_genre`, tirage uniforme. Un poids nul n'exclut un genre que s'il reste
+## un objet de l'autre.
+func _choisir_selon_genre(libres: PackedStringArray, manche: int) -> String:
+	if not _donnees.boutique.has("poids_genre"):
+		return libres[_rng.randi_range(0, libres.size() - 1)]
+	var table: Array = _donnees.boutique["poids_genre"]
+	var poids_arme := maxf(0.0, _donnees.palier(table, manche, "arme"))
+	var poids_amelioration := maxf(0.0, _donnees.palier(table, manche, "amelioration"))
+	var poids: Array[float] = []
+	var total := 0.0
+	for id: String in libres:
+		var p := poids_arme if _donnees.armes.has(id) else poids_amelioration
+		poids.append(p)
+		total += p
+	if total <= 0.0:
+		return libres[_rng.randi_range(0, libres.size() - 1)]
+	var tirage := _rng.randf() * total
+	for i: int in libres.size():
+		tirage -= poids[i]
+		if tirage < 0.0 and poids[i] > 0.0:
+			return libres[i]
+	for i: int in range(libres.size() - 1, -1, -1):
+		if poids[i] > 0.0:
+			return libres[i]
+	return libres[0]
 
 
 static func _rarete_de(fiche: Dictionary) -> int:

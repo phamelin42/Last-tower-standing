@@ -212,7 +212,7 @@ func test_la_tour_debout_au_dernier_ennemi_gagne() -> void:
 func test_le_boss_tue_par_un_poison_donne_la_victoire() -> void:
 	var a := Arene.new(d, GRAINE)
 	var mult := _mult()
-	mult["pv"] = 0.1  # 2 000 PV
+	mult["pv"] = 2000.0 / float(d.boss["pv"])  # 2 000 PV
 	a.demarrer_boss(mult)
 	a.ennemis.empoisonner(0, 2000.0, 1.0)
 	_avancer(a, 10)

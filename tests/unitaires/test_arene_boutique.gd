@@ -144,7 +144,7 @@ func test_acheter_une_arme_l_equipe_et_elle_apparait_dans_la_vue() -> void:
 	var a := Arene.new(d, GRAINE)
 	_poser_offre(a, 0, "de_pipe")
 	verifier_egal(a.acheter(0), Types.Resultat.OK)
-	verifier_egal(a.economie.argent, 430)
+	verifier_egal(a.economie.argent, 500 - int(d.armes["de_pipe"]["prix"]))
 	var v := _vue(a)
 	verifier_egal(v.armes.size(), 1)
 	verifier_egal(v.armes[0]["id"], "de_pipe")
@@ -174,7 +174,11 @@ func test_la_neuvieme_et_la_quarantieme_arme_sont_achetees_et_debitees() -> void
 	for k: int in 40:
 		_poser_offre(a, 0, "de_pipe")
 		verifier_egal(a.acheter(0), Types.Resultat.OK, "achat %d" % (k + 1))
-	verifier_egal(a.economie.argent, 100000 - 40 * 70, "quarante achats débités exactement")
+	verifier_egal(
+		a.economie.argent,
+		100000 - 40 * int(d.armes["de_pipe"]["prix"]),
+		"quarante achats débités exactement"
+	)
 	var vue := _vue(a)
 	verifier_egal(vue.armes.size(), 40, "la vue porte les 40 armes")
 	for arme: Dictionary in vue.armes:

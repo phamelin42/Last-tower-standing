@@ -17,6 +17,10 @@ const RESERVE := 60
 const MANCHES_ECONOMIE := 8
 const MANCHE_DEFENSE := 14
 const ARMES_VISEES := 8
+## Le joueur « raisonnable » ne bâtit pas un arsenal complet : il s'arrête à ce nombre d'armes.
+const ARMES_VISEES_RAISONNABLE := 6
+## Avant l'économie, la « bonne » stratégie s'arme : une tour sans arme ne tient pas la manche 6.
+const ARMES_MINIMUM_BONNE := 3
 
 
 ## Joue un tour d'achats pour le joueur `id`. Rend les ids achetés.
@@ -122,7 +126,8 @@ static func _valeur_offre(
 ) -> float:
 	var prix := float(maxi(int(offre["prix"]), 1))
 	if int(offre["genre"]) == Types.Genre.ARME:
-		if v.armes.size() >= ARMES_VISEES:
+		var visees := ARMES_VISEES_RAISONNABLE if nom == RAISONNABLE else ARMES_VISEES
+		if v.armes.size() >= visees:
 			return 0.0
 		var a: Dictionary = d.armes[str(offre["id"])]
 		var base := Equilibrage.rendement(a)
@@ -131,7 +136,7 @@ static func _valeur_offre(
 			var eff := 1.0
 			if v.prochaine_armure >= 0:
 				eff = Combat.efficacite(d.efficacite, t, v.prochaine_armure)
-			if v.manche < MANCHES_ECONOMIE:
+			if v.manche < MANCHES_ECONOMIE and v.armes.size() >= ARMES_MINIMUM_BONNE:
 				return base * 0.1 * eff
 			return base * eff
 		return base
