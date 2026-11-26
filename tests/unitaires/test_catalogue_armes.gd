@@ -229,7 +229,7 @@ func test_toute_nouvelle_arme_a_une_image_et_un_nom_original() -> void:
 			verifier(PORTEES.has(int(arme["portee"])), "%s : portée hors palier" % id)
 
 
-## Les quatre armes de mana du lot 8 gardent leurs champs : seul le prix de la commune promue change.
+## Les quatre armes de mana du lot 8 gardent leurs champs : seul le prix de la promue change.
 func test_les_armes_de_mana_du_lot_8_gardent_leurs_champs() -> void:
 	var attendues: Dictionary = {
 		"etincelle_runique": [30.3, 0.9, 0.08],
