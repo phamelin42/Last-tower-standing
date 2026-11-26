@@ -9,12 +9,15 @@ const SEUIL_PV_BAS := 0.3
 
 
 ## Renvoie les identifiants de sons, sans doublon, à jouer pour passer de `precedente` à
-## `courante`. Sans vue précédente, seuls les événements de `courante` se jouent.
-static func sons_du_pas(precedente: VueArene, courante: VueArene) -> Array[String]:
+## `courante`. Sans vue précédente, seuls les événements de `courante` se jouent. `catalogue`
+## (`Donnees.ids_catalogue`) traduit l'index `arme` d'un événement de tir en identifiant d'arme.
+static func sons_du_pas(
+	precedente: VueArene, courante: VueArene, catalogue: PackedStringArray = PackedStringArray()
+) -> Array[String]:
 	var sons: Array[String] = []
 	if courante == null:
 		return sons
-	_ajouter_evenements(courante, sons)
+	_ajouter_evenements(courante, sons, catalogue)
 	if precedente == null:
 		return sons
 	if courante.manche > precedente.manche:
@@ -27,15 +30,25 @@ static func sons_du_pas(precedente: VueArene, courante: VueArene) -> Array[Strin
 	return sons
 
 
-static func _ajouter_evenements(courante: VueArene, sons: Array[String]) -> void:
+static func _ajouter_evenements(
+	courante: VueArene, sons: Array[String], catalogue: PackedStringArray
+) -> void:
 	for evenement: Dictionary in courante.evenements:
 		match str(evenement.get("k", "")):
 			"tir":
-				_ajouter(sons, CatalogueSons.TIR)
+				_ajouter(sons, CatalogueSons.id_tir(_arme_de(evenement, catalogue)))
 			"impact":
-				_ajouter(sons, CatalogueSons.IMPACT)
+				_ajouter(sons, CatalogueSons.id_impact(int(evenement.get("type_degats", -1))))
 			"mort":
 				_ajouter(sons, CatalogueSons.MORT)
+
+
+## L'arme de l'événement, `""` sans arme ou avec un index hors catalogue.
+static func _arme_de(evenement: Dictionary, catalogue: PackedStringArray) -> String:
+	var index: int = int(evenement.get("arme", -1))
+	if index < 0 or index >= catalogue.size():
+		return ""
+	return catalogue[index]
 
 
 static func _ajouter_phase(phase: int, sons: Array[String]) -> void:
