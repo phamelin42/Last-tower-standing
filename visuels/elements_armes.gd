@@ -18,6 +18,8 @@ const DISQUE: String = "disque"
 const MOULINET: String = "moulinet"
 const GUILLOTINE: String = "guillotine"
 const TOURBILLON: String = "tourbillon"
+## La famille du carreau (armes perçantes) : un élément par arme, comme l'acier.
+const ARBALETE: String = "arbalete"
 
 const ELEMENTS: Array[String] = [FEU, GLACE, BOMBE, POISON, FOUDRE, ARCANE, LAME]
 
@@ -35,6 +37,7 @@ const TABLE: Dictionary = {
 	"moulinet_de_cuivre": MOULINET,
 	"guillotine_a_vapeur": GUILLOTINE,
 	"tourbillon_d_acier": TOURBILLON,
+	"arbalete_de_bureau": ARBALETE,
 }
 
 
