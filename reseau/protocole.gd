@@ -40,7 +40,9 @@ enum Intention {
 ##     plus ; les genres et statuts d'événement du lot 9 (4 bits chacun, format inchangé) ne sont
 ##     lisibles que par cette version (lot 9).
 ## 8 : message `BILAN`, le bilan de fin de partie envoyé à chaque joueur présent (lot 11).
-const VERSION: int = 8
+## 9 : l'état d'arène porte quatre flottants d'apparence de la tour de plus (épines, esquive,
+##     régénération, vol de vie : 16 octets), aussi pour l'arène regardée (lot 9, D19).
+const VERSION: int = 9
 ## Taille du jeton d'hôte ; un bonjour sans jeton en porte 0.
 const JETON_OCTETS: int = 8
 const MAX_ENNEMIS: int = 2000
@@ -71,14 +73,17 @@ const ERREUR_POS_MAX: float = 1.0 / 32.0
 
 ## Octets d'un état d'arène sans offre, arme, amélioration, ennemi, événement, allié, zone ni
 ## bombe.
-const TAILLE_FIXE: int = 63
+const TAILLE_FIXE: int = 79
 const OFFSET_PHASE: int = 5
 const OFFSET_TOUR_PV: int = 11
 const OFFSET_MANA: int = 36
-const OFFSET_NB_FAMILLES: int = 44
+## Début des quatre flottants d'apparence (épines, esquive, régénération, vol de vie), juste après
+## la mana maximale.
+const OFFSET_APPARENCE: int = 44
+const OFFSET_NB_FAMILLES: int = 60
 ## Famille et armure de la première famille suivante (présentes si `OFFSET_NB_FAMILLES` ≥ 1).
-const OFFSET_FAMILLE: int = 45
-const OFFSET_ARMURE: int = 46
+const OFFSET_FAMILLE: int = 61
+const OFFSET_ARMURE: int = 62
 const OFFSET_NB_JOUEURS: int = 10
 
 const _OCTETS_ENNEMI: int = 9
@@ -512,6 +517,10 @@ static func encoder_etat_arene(
 	e.u8(v.relances_gratuites)
 	e.f32(v.tour_mana)
 	e.f32(v.tour_mana_max)
+	e.f32(v.tour_epines)
+	e.f32(v.tour_esquive)
+	e.f32(v.tour_regen)
+	e.f32(v.tour_vol_de_vie)
 	e.u8(familles_suivantes.size())
 	for i in familles_suivantes.size():
 		e.u8(familles_suivantes[i])
@@ -592,8 +601,15 @@ static func decoder_etat_arene(
 	v.relances_gratuites = l.u8()
 	v.tour_mana = l.f32()
 	v.tour_mana_max = l.f32()
+	v.tour_epines = l.f32()
+	v.tour_esquive = l.f32()
+	v.tour_regen = l.f32()
+	v.tour_vol_de_vie = l.f32()
 	var n_familles := l.u8()
-	if not l.ok or flags & ~3 != 0 or v.phase > Types.Phase.DEFAITE:
+	var apparence_negative := (
+		v.tour_epines < 0.0 or v.tour_esquive < 0.0 or v.tour_regen < 0.0 or v.tour_vol_de_vie < 0.0
+	)
+	if not l.ok or flags & ~3 != 0 or v.phase > Types.Phase.DEFAITE or apparence_negative:
 		return null
 	if n_familles > MAX_FAMILLES_SUIVANTES or not l.exiger(2 * n_familles):
 		return null
