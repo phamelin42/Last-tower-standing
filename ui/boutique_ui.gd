@@ -1,9 +1,15 @@
 class_name BoutiqueUi
 extends Control
-## Panneau de boutique : quatre cartes (nom, rareté en texte et en couleur, prix, type de dégâts,
-## description), relance, armes équipées à vendre et choix du marché noir. Il lit une `VueArene`
-## et n'agit que par les intentions de la `SourceVue`. Une offre trop chère reste cliquable : la
-## source tranche, l'interface annonce « or insuffisant » en texte.
+## Panneau de boutique : quatre cartes (ruban de catégorie, nom, rareté en texte et en couleur,
+## prix), relance, grille des armes équipées (une arme se touche pour la vendre), améliorations
+## achetées et choix du marché noir. Il lit une `VueArene` et n'agit que par les intentions de la
+## `SourceVue`. Une offre trop chère reste cliquable : la source tranche, l'interface annonce
+## « or insuffisant » en texte. Le panneau se replie (touche B ou bouton) : il ne reste alors que
+## le bouton pour le déplier, et le marché noir s'il est ouvert.
+
+## Le panneau vient de se replier (`true`) ou de se déplier : la mise en page de la partie
+## recalcule la zone libre de l'arène.
+signal repli_change(replie: bool)
 
 ## Actions d'entrée : `project.godot` (T2.7) les déclare, liées à 1 à 4 et R. Les lire comme
 ## actions plutôt que comme touches laisse la lectrice les reconfigurer.
@@ -11,6 +17,7 @@ const ACTIONS_OFFRES: Array[String] = [
 	"boutique_offre_1", "boutique_offre_2", "boutique_offre_3", "boutique_offre_4"
 ]
 const ACTION_RELANCER := "boutique_relancer"
+const ACTION_REPLIER := "boutique_replier"
 const NB_OFFRES := 4
 const HAUTEUR_CONTROLE := 48.0
 const LARGEUR_CARTE := 180.0
@@ -32,9 +39,15 @@ const LARGEUR_ENTETE_TEXTE := 165.0
 ## Largeur plancher du nom : de quoi tenir un mot, le reste vient de la place laissée par l'image.
 const LARGEUR_MOT_NOM := 48.0
 ## Petite image devant le nom d'une arme équipée, et devant un choix du marché noir.
-const IMAGE_ARME := 32.0
 const IMAGE_NOIR := 40.0
-const LARGEUR_VENTE := 140.0
+## Case d'une grille d'icônes (armes équipées, améliorations achetées) : une cible de 48 px,
+## l'icône dedans et l'icône de la catégorie en coin.
+const CELLULE := 48.0
+const IMAGE_CELLULE := 36.0
+const ICONE_COIN := 16.0
+const ESPACE_CELLULES := 4
+## Largeur que la barre de défilement du panneau latéral prend sur la grille.
+const LARGEUR_ASCENSEUR := 20.0
 ## Hauteur d'une ligne de 16 px sans interligne.
 const HAUTEUR_LIGNE_SERREE := 23.0
 ## Marges verticales du style des boutons (haut et bas) autour du texte.
@@ -74,7 +87,19 @@ var _relance: Button
 var _note_relance: Label
 var _message: Label
 var _noir: VBoxContainer
-var _liste_armes: VBoxContainer
+var _section_armes: VBoxContainer
+var _grille_armes: GridContainer
+var _ligne_vente: VBoxContainer
+var _nom_vente: Label
+var _bouton_vente: Button
+var _selection: int = -1
+var _section_amelios: VBoxContainer
+var _grille_amelios: GridContainer
+var _amelios_vues: Dictionary = {}
+var _rubans: Array[HBoxContainer] = []
+var _categories_cartes: Array[int] = []
+var _bouton_repli: Button
+var _replie: bool = false
 var _bandeau: PanelContainer
 var _cote: PanelContainer
 var _defilement: ScrollContainer
@@ -88,6 +113,7 @@ func _init() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_construire_bandeau()
 	_construire_cote()
+	_construire_repli()
 
 
 ## Bandeau du bas : quatre cartes et, à droite, la relance et les messages. Il pousse vers le haut
@@ -155,12 +181,102 @@ func _construire_cote() -> void:
 	_noir.name = "MarcheNoir"
 	_noir.visible = false
 	colonne.add_child(_noir)
+	_section_armes = VBoxContainer.new()
+	_section_armes.name = "SectionArmes"
+	colonne.add_child(_section_armes)
+	var entete := HBoxContainer.new()
+	_section_armes.add_child(entete)
+	entete.add_child(CategorieOffre.creer_ruban(Types.Categorie.ARME, "RubanArmes"))
 	var titre_armes := _etiquette("TitreArmes", "BOUTIQUE_ARMES_TITRE")
 	titre_armes.add_theme_color_override("font_color", ThemeJeu.LAITON_CLAIR)
-	colonne.add_child(titre_armes)
-	_liste_armes = VBoxContainer.new()
-	colonne.add_child(_liste_armes)
+	entete.add_child(titre_armes)
+	_ligne_vente = VBoxContainer.new()
+	_ligne_vente.name = "LigneVente"
+	_section_armes.add_child(_ligne_vente)
+	_nom_vente = _etiquette("NomVente")
+	# Le nom de l'arme choisie (ou la consigne) passe à la ligne : il a toute la largeur du panneau,
+	# le bouton « Vendre » est dessous.
+	_nom_vente.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_nom_vente.custom_minimum_size = Vector2(
+		LARGEUR_COTE - 2.0 * MARGE_COTE - LARGEUR_ASCENSEUR, 0.0
+	)
+	_ligne_vente.add_child(_nom_vente)
+	_bouton_vente = _bouton(Callable(self, "vendre_selection"))
+	_bouton_vente.autowrap_mode = TextServer.AUTOWRAP_OFF
+	_bouton_vente.theme_type_variation = ThemeJeu.TYPE_DANGER
+	_ligne_vente.add_child(_bouton_vente)
+	_grille_armes = _creer_grille("GrilleArmes")
+	_section_armes.add_child(_grille_armes)
+	_section_amelios = VBoxContainer.new()
+	_section_amelios.name = "SectionAmeliorations"
+	_section_amelios.visible = false
+	colonne.add_child(_section_amelios)
+	var titre_amelios := _etiquette("TitreAmeliorations", "BOUTIQUE_AMELIORATIONS_TITRE")
+	titre_amelios.add_theme_color_override("font_color", ThemeJeu.LAITON_CLAIR)
+	_section_amelios.add_child(titre_amelios)
+	_grille_amelios = _creer_grille("GrilleAmeliorations")
+	_section_amelios.add_child(_grille_amelios)
+	_afficher_vente()
 	_placer_cote()
+
+
+## Bouton qui replie et déplie le panneau : il reste visible, en bas à gauche, au-dessus du
+## bandeau déplié ou dans le coin quand tout est replié (la mini-carte occupe le coin droit).
+func _construire_repli() -> void:
+	_bouton_repli = _bouton(Callable(self, "basculer_repli"))
+	_bouton_repli.name = "BoutonRepli"
+	_bouton_repli.autowrap_mode = TextServer.AUTOWRAP_OFF
+	_bouton_repli.anchor_left = 0.0
+	_bouton_repli.anchor_right = 0.0
+	_bouton_repli.anchor_top = 1.0
+	_bouton_repli.anchor_bottom = 1.0
+	_bouton_repli.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	_bouton_repli.offset_left = MiseEnPage.MARGE
+	add_child(_bouton_repli)
+	_appliquer_repli()
+
+
+func est_replie() -> bool:
+	return _replie
+
+
+func basculer_repli() -> void:
+	definir_replie(not _replie)
+
+
+func definir_replie(replie: bool) -> void:
+	if replie == _replie:
+		return
+	_replie = replie
+	_appliquer_repli()
+	repli_change.emit(_replie)
+
+
+func _appliquer_repli() -> void:
+	_bandeau.visible = not _replie
+	_section_armes.visible = not _replie
+	_section_amelios.visible = not _replie and _grille_amelios.get_child_count() > 0
+	# Le panneau latéral n'apparaît que s'il a quelque chose à montrer : armes équipées, améliorations
+	# achetées, ou le marché noir (qui reste là même replié : un choix attend).
+	var contenu := not _armes_ids.is_empty() or _grille_amelios.get_child_count() > 0
+	_cote.visible = _noir.visible or (not _replie and contenu)
+	_bouton_repli.text = tr("BOUTIQUE_DEPLIER") if _replie else tr("BOUTIQUE_REPLIER")
+	_bouton_repli.tooltip_text = _raccourci_repli()
+	_placer_cote()
+
+
+func _raccourci_repli() -> String:
+	if not InputMap.has_action(ACTION_REPLIER):
+		return ""
+	var evenements := InputMap.action_get_events(ACTION_REPLIER)
+	return "" if evenements.is_empty() else tr("BOUTIQUE_RACCOURCI") % evenements[0].as_text()
+
+
+## Le bouton se pose juste au-dessus du bandeau déplié, ou au ras du bas une fois replié.
+func _placer_repli() -> void:
+	var dessous := 0.0 if _replie else _bandeau.get_combined_minimum_size().y
+	_bouton_repli.offset_bottom = -(dessous + MiseEnPage.MARGE)
+	_bouton_repli.offset_top = _bouton_repli.offset_bottom - HAUTEUR_CONTROLE
 
 
 ## Fenêtre libre entre le HUD et le bandeau : le panneau des armes s'y loge.
@@ -169,19 +285,24 @@ func definir_zone_libre(libre: Rect2) -> void:
 	_placer_cote()
 
 
-## Rectangle écran du bandeau (cartes, relance, messages).
+## Rectangle écran du bandeau (cartes, relance, messages) ; replié, celui du bouton de dépliage.
 func rect_bandeau() -> Rect2:
-	return _bandeau.get_global_rect()
+	return _bouton_repli.get_global_rect() if _replie else _bandeau.get_global_rect()
 
 
-## Taille minimale du bandeau : sa hauteur ne dépend que du contenu des cartes.
+## Taille minimale du bandeau : sa hauteur ne dépend que du contenu des cartes. Replié, il ne
+## prend plus rien : l'arène visible retrouve sa place (le bouton de dépliage flotte dessus).
 func rect_bandeau_minimal() -> Vector2:
-	return _bandeau.get_combined_minimum_size()
+	return Vector2.ZERO if _replie else _bandeau.get_combined_minimum_size()
 
 
 ## Panneaux visibles de la boutique, pour les contrôles de mise en page.
 func panneaux() -> Array[PanelContainer]:
-	return [_bandeau, _cote]
+	var visibles: Array[PanelContainer] = []
+	for panneau: PanelContainer in [_bandeau, _cote]:
+		if panneau.visible:
+			visibles.append(panneau)
+	return visibles
 
 
 func _placer_cote() -> void:
@@ -209,6 +330,7 @@ func configurer(donnees: Donnees, source: SourceVue) -> void:
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_RESIZED:
 		_regler_images()
+		_placer_repli()
 
 
 ## Taille de l'image d'une carte pour une fenêtre de cette taille : celle que la hauteur permet,
@@ -236,7 +358,9 @@ func afficher(vue: VueArene) -> void:
 	_afficher_relance(vue)
 	_noir.visible = vue.marche_noir_ouvert
 	_afficher_armes(vue)
-	_placer_cote()
+	_afficher_ameliorations(vue)
+	_appliquer_repli()
+	_placer_repli()
 
 
 func acheter_offre(index: int) -> void:
@@ -267,6 +391,10 @@ func _unhandled_input(event: InputEvent) -> void:
 			return
 	if InputMap.has_action(ACTION_RELANCER) and event.is_action_pressed(ACTION_RELANCER):
 		relancer()
+		_consommer()
+		return
+	if InputMap.has_action(ACTION_REPLIER) and event.is_action_pressed(ACTION_REPLIER):
+		basculer_repli()
 		_consommer()
 
 
@@ -310,18 +438,28 @@ func _construire_carte(i: int) -> PanelContainer:
 	textes.add_theme_constant_override("separation", 0)
 	textes.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	entete.add_child(textes)
-	var haut := HBoxContainer.new()
-	haut.add_theme_constant_override("separation", 3)
+	# Rareté et prix côte à côte quand la carte est assez large ; sinon le prix passe dessous plutôt
+	# que d'écraser la rareté (à 125 % de taille d'interface, les deux ne tiennent plus ensemble).
+	var haut := HFlowContainer.new()
+	haut.add_theme_constant_override("h_separation", 12)
+	haut.add_theme_constant_override("v_separation", 0)
 	colonne.add_child(haut)
 	colonne.move_child(haut, 0)
+	# En tête de carte : le ruban de la catégorie (icône et mot), posé par `_afficher_carte`.
+	var repere := HBoxContainer.new()
+	repere.name = "Repere%d" % i
+	colonne.add_child(repere)
+	colonne.move_child(repere, 0)
+	_rubans.append(repere)
+	_categories_cartes.append(-1)
 	# Rareté et prix sur la largeur de la carte : Metamorphous est plus large que l'ancienne
 	# police, et dans la colonne à droite de l'image la rareté passait sur cinq lignes.
 	prix.autowrap_mode = TextServer.AUTOWRAP_OFF
 	prix.custom_minimum_size.x = 0.0
 	rarete.custom_minimum_size = Vector2(0.0, _hauteur_ligne())
-	rarete.clip_text = true
-	rarete.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	rarete.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	# Jamais à la ligne ni rognée : un mot de rareté coupé en deux (« Peu » / « commune ») serait
+	# masqué par la hauteur d'une seule ligne.
+	rarete.autowrap_mode = TextServer.AUTOWRAP_OFF
 	prix.add_theme_color_override("font_color", ThemeJeu.LAITON_CLAIR)
 	haut.add_child(rarete)
 	haut.add_child(prix)
@@ -387,6 +525,13 @@ func _construire_marche_noir() -> void:
 	ids.sort()
 	for id: String in ids:
 		var amelio: Dictionary = _donnees.ameliorations[id]
+		var choix := VBoxContainer.new()
+		choix.name = "Choix_%s" % id
+		choix.add_theme_constant_override("separation", 0)
+		var categorie := _categorie(id, Types.Genre.AMELIORATION)
+		var repere := HBoxContainer.new()
+		repere.add_child(CategorieOffre.creer_ruban(categorie, "Ruban"))
+		choix.add_child(repere)
 		var bouton := _bouton(Callable(self, "_choisir_noir").bind(id))
 		bouton.text = tr("BOUTIQUE_CHOISIR") % str(amelio["nom"])
 		bouton.tooltip_text = _infobulle(amelio, Types.Genre.AMELIORATION)
@@ -394,7 +539,8 @@ func _construire_marche_noir() -> void:
 		bouton.expand_icon = true
 		bouton.add_theme_constant_override("icon_max_width", int(IMAGE_NOIR))
 		bouton.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		_noir.add_child(bouton)
+		choix.add_child(bouton)
+		_noir.add_child(choix)
 
 
 func _choisir_noir(id: String) -> void:
@@ -409,6 +555,7 @@ func _afficher_carte(i: int, offre: Dictionary, vue: VueArene) -> void:
 	_achats[i].disabled = offre.is_empty() or bool(offre["vendu"])
 	_cartes[i].modulate.a = 1.0
 	if offre.is_empty():
+		_poser_ruban(i, -1)
 		for libelle: Label in [_raretes[i], _noms[i], _prix[i]]:
 			libelle.text = ""
 		_images[i].texture = null
@@ -421,6 +568,7 @@ func _afficher_carte(i: int, offre: Dictionary, vue: VueArene) -> void:
 	var prix: int = offre["prix"]
 	var vendu: bool = offre["vendu"]
 	var entree := _entree(str(offre["id"]), genre)
+	_poser_ruban(i, _categorie(str(offre["id"]), genre))
 	ImageOffre.poser(_images[i], str(offre["id"]))
 	_raretes[i].text = (
 		"%s %s" % [Apparence.symbole_rarete(rarete), tr(Apparence.cle_libelle_rarete(rarete))]
@@ -436,11 +584,23 @@ func _afficher_carte(i: int, offre: Dictionary, vue: VueArene) -> void:
 	else:
 		if vue.argent < prix:
 			notes.append(tr("BOUTIQUE_OR_INSUFFISANT"))
-		if genre == Types.Genre.ARME and vue.armes.size() >= _capacite():
-			notes.append(tr("BOUTIQUE_PLEINS"))
+		if genre == Types.Genre.ARME and vue.armes.size() >= Inventaire.ARMES_MAX:
+			notes.append(tr("BOUTIQUE_ARMES_AU_MAXIMUM"))
 	_notes[i].text = SEPARATEUR_NOTES.join(notes)
 	_notes[i].tooltip_text = _notes[i].text
 	_notes[i].visible = not _notes[i].text.is_empty()
+
+
+## Ruban de la catégorie en tête de la carte `i` ; refait seulement quand la catégorie change,
+## vide (rien d'affiché) pour une catégorie inconnue ou une carte sans offre.
+func _poser_ruban(i: int, categorie: int) -> void:
+	if _categories_cartes[i] == categorie and _rubans[i].get_child_count() > 0:
+		return
+	_categories_cartes[i] = categorie
+	for enfant: Node in _rubans[i].get_children():
+		_rubans[i].remove_child(enfant)
+		enfant.free()
+	_rubans[i].add_child(CategorieOffre.creer_ruban(categorie, "Ruban%d" % i))
 
 
 ## « Relancer » sur une ligne, le prix sur la suivante : le retour à la ligne est voulu, pour que
@@ -460,49 +620,143 @@ func _afficher_relance(vue: VueArene) -> void:
 	_note_relance.text = tr("BOUTIQUE_OR_INSUFFISANT") if vue.argent < vue.cout_relance else ""
 
 
-## Les lignes ne sont reconstruites que si la liste des armes change : l'état arrive à 15 Hz,
-## et refaire les boutons à chaque fois leur ferait perdre le survol et le focus.
+## La grille n'est reconstruite que si la liste des armes change : l'état arrive à 15 Hz, et
+## refaire les cases à chaque fois leur ferait perdre le survol et le focus.
 func _afficher_armes(vue: VueArene) -> void:
 	var ids: Array[String] = []
 	for arme: Dictionary in vue.armes:
 		ids.append(str(arme["id"]))
-	if ids == _armes_ids and _liste_armes.get_child_count() > 0:
+	if ids == _armes_ids and _grille_armes.get_child_count() > 0:
 		return
 	_armes_ids = ids
-	for enfant: Node in _liste_armes.get_children():
-		_liste_armes.remove_child(enfant)
-		enfant.free()
-	if ids.is_empty():
-		_liste_armes.add_child(_etiquette("AucuneArme", "BOUTIQUE_AUCUNE_ARME"))
-		return
+	_selection = -1
+	_vider(_grille_armes)
 	for i: int in ids.size():
 		var entree := _entree(ids[i], Types.Genre.ARME)
-		var ligne := HBoxContainer.new()
-		var image := ImageOffre.creer("ImageArme%d" % i, IMAGE_ARME)
-		ImageOffre.poser(image, ids[i])
-		ligne.add_child(image)
-		var nom := _etiquette("NomArme%d" % i)
-		nom.text = str(entree.get("nom", ids[i]))
-		nom.autowrap_mode = TextServer.AUTOWRAP_OFF
-		nom.custom_minimum_size.x = LARGEUR_NOM_ARME
-		nom.clip_text = true
-		nom.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-		nom.tooltip_text = _infobulle(entree, Types.Genre.ARME)
-		nom.mouse_filter = Control.MOUSE_FILTER_PASS
-		nom.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		ligne.add_child(nom)
-		var vente := _bouton(Callable(self, "_vendre").bind(i))
-		vente.text = tr("BOUTIQUE_VENDRE_PRIX") % Nombres.groupe(_prix_vente(entree))
-		vente.autowrap_mode = TextServer.AUTOWRAP_OFF
-		vente.theme_type_variation = ThemeJeu.TYPE_DANGER
-		vente.custom_minimum_size.x = LARGEUR_VENTE
-		ligne.add_child(vente)
-		_liste_armes.add_child(ligne)
+		var case := Button.new()
+		case.name = "Arme%d" % i
+		case.theme_type_variation = ThemeJeu.TYPE_CELLULE
+		case.custom_minimum_size = Vector2(CELLULE, CELLULE)
+		case.toggle_mode = true
+		case.icon = ImageOffre.texture(ids[i])
+		case.expand_icon = true
+		case.tooltip_text = _infobulle(entree, Types.Genre.ARME)
+		case.pressed.connect(_choisir_arme.bind(i))
+		case.add_child(_coin(_categorie(ids[i], Types.Genre.ARME)))
+		_grille_armes.add_child(case)
+	if ids.is_empty():
+		_grille_armes.add_child(_etiquette("AucuneArme", "BOUTIQUE_AUCUNE_ARME"))
+	_afficher_vente()
 
 
-func _vendre(index: int) -> void:
-	if _source != null:
-		_source.vendre(index)
+## Une arme se touche pour la choisir, puis « Vendre » la vend : une seule touche ne vend rien.
+func _choisir_arme(index: int) -> void:
+	_selection = -1 if _selection == index else index
+	if _selection >= _armes_ids.size():
+		_selection = -1
+	_afficher_vente()
+
+
+func _afficher_vente() -> void:
+	for i: int in _grille_armes.get_child_count():
+		var case := _grille_armes.get_child(i) as Button
+		if case != null:
+			case.set_pressed_no_signal(i == _selection)
+	var choisie := _selection >= 0 and _selection < _armes_ids.size()
+	_bouton_vente.visible = choisie
+	if choisie:
+		var entree := _entree(_armes_ids[_selection], Types.Genre.ARME)
+		_nom_vente.text = str(entree.get("nom", _armes_ids[_selection]))
+		_bouton_vente.text = tr("BOUTIQUE_VENDRE_PRIX") % Nombres.groupe(_prix_vente(entree))
+	else:
+		_nom_vente.text = "" if _armes_ids.is_empty() else tr("BOUTIQUE_ARME_A_VENDRE")
+	_ligne_vente.visible = not _armes_ids.is_empty()
+
+
+## Améliorations achetées (id → nombre d'achats), rangées par identifiant. Chaque case porte le
+## repère de sa catégorie (amélioration ou revenu) et son nombre ; le détail est en infobulle.
+func _afficher_ameliorations(vue: VueArene) -> void:
+	if vue.ameliorations == _amelios_vues and _grille_amelios.get_child_count() > 0:
+		return
+	_amelios_vues = vue.ameliorations.duplicate()
+	_vider(_grille_amelios)
+	var ids: Array[String] = []
+	for id: Variant in _amelios_vues:
+		ids.append(str(id))
+	ids.sort()
+	for id: String in ids:
+		var entree := _entree(id, Types.Genre.AMELIORATION)
+		var case := PanelContainer.new()
+		case.name = "Amelioration_%s" % id
+		case.theme_type_variation = ThemeJeu.TYPE_CELLULE_FIXE
+		case.custom_minimum_size = Vector2(CELLULE, CELLULE)
+		case.mouse_filter = Control.MOUSE_FILTER_STOP
+		case.tooltip_text = _infobulle(entree, Types.Genre.AMELIORATION)
+		var image := ImageOffre.creer("Image", IMAGE_CELLULE)
+		ImageOffre.poser(image, id)
+		image.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		case.add_child(image)
+		case.add_child(_coin(_categorie(id, Types.Genre.AMELIORATION)))
+		var nombre := int(_amelios_vues[id]) if _amelios_vues[id] is int else 1
+		if nombre > 1:
+			var quantite := _etiquette("Quantite", "")
+			quantite.text = tr("BOUTIQUE_QUANTITE") % Nombres.groupe(nombre)
+			quantite.theme_type_variation = "Petit"
+			quantite.add_theme_color_override("font_outline_color", ThemeJeu.ENCRE)
+			quantite.add_theme_constant_override("outline_size", 6)
+			quantite.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+			quantite.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+			quantite.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			case.add_child(quantite)
+		_grille_amelios.add_child(case)
+	_section_amelios.visible = not _replie and not ids.is_empty()
+
+
+## Repère de catégorie dans le coin bas droit d'une case : l'icône, le mot est dans l'infobulle.
+func _coin(categorie: int) -> TextureRect:
+	var icone := CategorieOffre.creer_icone(categorie, CategorieOffre.NOM_REPERE, ICONE_COIN)
+	icone.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
+	icone.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	icone.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	icone.visible = icone.texture != null
+	return icone
+
+
+func _creer_grille(nom: String) -> GridContainer:
+	var grille := GridContainer.new()
+	grille.name = nom
+	grille.columns = maxi(
+		1,
+		int(
+			(
+				(LARGEUR_COTE - 2.0 * MARGE_COTE - LARGEUR_ASCENSEUR)
+				/ (CELLULE + float(ESPACE_CELLULES))
+			)
+		)
+	)
+	grille.add_theme_constant_override("h_separation", ESPACE_CELLULES)
+	grille.add_theme_constant_override("v_separation", ESPACE_CELLULES)
+	return grille
+
+
+func _vider(conteneur: Node) -> void:
+	for enfant: Node in conteneur.get_children():
+		conteneur.remove_child(enfant)
+		enfant.free()
+
+
+## Vend l'arme choisie dans la grille.
+func vendre_selection() -> void:
+	vendre(_selection)
+
+
+## Vend l'arme d'index `index` de la liste équipée ; un index hors de la grille ne fait rien.
+func vendre(index: int) -> void:
+	if _source == null or index < 0 or index >= _armes_ids.size():
+		return
+	_source.vendre(index)
+	_selection = -1
+	_afficher_vente()
 
 
 func _sur_resultat(_genre: String, code: int) -> void:
@@ -524,6 +778,9 @@ func _entree(id: String, genre: int) -> Dictionary:
 func _infobulle(entree: Dictionary, genre: int) -> String:
 	var morceaux := PackedStringArray()
 	morceaux.append(str(entree.get("nom", "")))
+	var mot := CategorieOffre.mot(_categorie(str(entree.get("id", "")), genre))
+	if not mot.is_empty():
+		morceaux.append(mot)
 	var effet := DescriptionOffre.ligne_effet(entree, genre, _donnees)
 	if not effet.is_empty():
 		morceaux.append(effet)
@@ -534,8 +791,17 @@ func _infobulle(entree: Dictionary, genre: int) -> String:
 	return "\n".join(morceaux)
 
 
-func _capacite() -> int:
-	return int(_donnees.partie["emplacements_armes"]) if _donnees != null else 8
+## Catégorie d'une offre d'après les données ; à défaut (identifiant inconnu), celle de son genre.
+## -1 si rien ne la dit : le repère disparaît, jamais d'exception.
+func _categorie(id: String, genre: int) -> int:
+	var categorie := _donnees.categorie_de(id) if _donnees != null else -1
+	if categorie >= 0:
+		return categorie
+	if genre == Types.Genre.ARME:
+		return Types.Categorie.ARME
+	if genre == Types.Genre.AMELIORATION:
+		return Types.Categorie.AMELIORATION
+	return -1
 
 
 ## Même arrondi que `Inventaire.prix_vente`.
