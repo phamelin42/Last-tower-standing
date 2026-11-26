@@ -4,7 +4,7 @@ extends CasDeTest
 ## Chaque tâche de type (T9.13 à T9.17) ajoute son type à `TYPES_TERMINES`.
 
 const TYPES: Array[String] = ["tranchant", "perçant", "magique", "siège", "chaos"]
-const TYPES_TERMINES: Array[String] = ["tranchant"]
+const TYPES_TERMINES: Array[String] = ["tranchant", "perçant"]
 const RARETES: Array[String] = ["commune", "peu_commune", "rare", "epique"]
 const REPARTITION: Array[int] = [1, 6, 6, 2]
 const MANA_MAX_REFERENCE := 100.0
@@ -33,6 +33,12 @@ const MECANIQUES_IMPOSEES: Dictionary = {
 		["M1", "vulnerabilite_du_type", ""],
 		["M2", "statut", "malediction_toucher"],
 		["M7", "effet", "tournant"],
+		["M10", "champ", "type_secondaire"],
+	],
+	"perçant":
+	[
+		["M1", "vulnerabilite_du_type", ""],
+		["M3", "statut", "repoussement"],
 		["M10", "champ", "type_secondaire"],
 	],
 }
