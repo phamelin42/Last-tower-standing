@@ -10,6 +10,8 @@ const ARRIVEE := Vector2(360.0, 300.0)
 const PROJECTILES: Dictionary = {
 	"feu": "boule_feu",
 	"glace": "eclat_glace",
+	"bombe": "bombe",
+	"poison": "fiole",
 }
 
 var _a: AttaquesElementaires = null
@@ -130,3 +132,83 @@ func test_la_glace_brise_au_rayon_puis_laisse_du_givre_au_sol() -> void:
 	verifier(_a.etats("givre_sol")[0]["alpha"] < alpha_20, "le givre s'efface")
 	_avancer(2)
 	verifier_egal(_a.etats("givre_sol").size(), 0, "il a disparu en 24 images")
+
+
+func _a_mi_vol(element: String) -> void:
+	_a.tirer(element, DEPART, ARRIVEE)
+	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 5)
+
+
+func test_la_bombe_et_la_fiole_durent_quatorze_images() -> void:
+	verifier_proche(_duree_en_images("bombe"), 14.0, 0.01)
+	_a.vider()
+	verifier_proche(_duree_en_images("poison"), 14.0, 0.01)
+
+
+func test_la_bombe_et_la_fiole_passent_au_dessus_de_la_ligne_droite() -> void:
+	var distance: float = DEPART.distance_to(ARRIVEE)
+	var attendu: Dictionary = {"bombe": 0.35, "poison": 0.25}
+	for element: String in attendu:
+		_a.vider()
+		_a_mi_vol(element)
+		var planche: String = AttaquesElementaires.planche_projectile(element)
+		var projectile: Dictionary = _a.etats(planche)[0]
+		var monte: float = DEPART.y - float(projectile["position"].y)
+		verifier(monte >= 0.9 * float(attendu[element]) * distance, "sommet de %s" % element)
+		verifier(monte <= 1.05 * float(attendu[element]) * distance, "pas trop haut : %s" % element)
+		var ombre: Dictionary = _a.etats("ombre")[0]
+		verifier_proche(ombre["position"].y, DEPART.y, 0.01, "l'ombre reste sur la ligne droite")
+		verifier_proche(ombre["position"].x, projectile["position"].x, 40.0, "sous le projectile")
+		verifier_proche(ombre["alpha"], 0.35, 0.001, "ombre à 35 %")
+		verifier(ombre["echelle"].x < 3.0 * 0.76, "l'ombre rétrécit au sommet")
+
+
+func test_la_hauteur_du_sommet_a_un_minimum_sur_une_courte_distance() -> void:
+	_a.tirer("poison", DEPART, DEPART + Vector2(40.0, 0.0))
+	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 5)
+	var monte: float = DEPART.y - float(_a.etats("fiole")[0]["position"].y)
+	verifier(monte >= 0.9 * AttaquesElementaires.HAUTEUR_MIN_CLOCHE, "au moins 30 px")
+
+
+func test_la_bombe_tourne_d_un_demi_tour_et_la_fiole_d_un_tour_et_demi() -> void:
+	_a.tirer("bombe", DEPART, ARRIVEE)
+	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 10)
+	verifier_proche(_a.etats("bombe")[0]["rotation"], PI * 10.0 / 11.0, 0.01, "demi-tour")
+	_a.vider()
+	_a.tirer("poison", DEPART, ARRIVEE)
+	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 10)
+	verifier_proche(_a.etats("fiole")[0]["rotation"], 3.0 * PI * 10.0 / 11.0, 0.01, "1,5 tour")
+
+
+func test_la_bombe_grossit_au_sommet_puis_reprend_sa_taille() -> void:
+	_a_mi_vol("bombe")
+	verifier(_a.etats("bombe")[0]["echelle"].x > 3.0 * 1.1, "elle grossit au sommet")
+
+
+func test_mouvement_reduit_ni_rotation_ni_particule() -> void:
+	_a.mouvement_reduit = true
+	for element: String in ["bombe", "poison"]:
+		_a.vider()
+		_a_mi_vol(element)
+		var planche: String = AttaquesElementaires.planche_projectile(element)
+		verifier_proche(_a.etats(planche)[0]["rotation"], 0.0, 0.0001, "pas de rotation")
+		_a.impacter(element, ARRIVEE, 60.0, true)
+		verifier_egal(_a.particules_actives(), 0, "aucune particule en %s" % element)
+
+
+func test_la_bombe_lance_dix_debris_a_l_impact() -> void:
+	verifier(_a.impacter("bombe", ARRIVEE, 65.0, true), "des débris sont lancés")
+	verifier_egal(_a.particules_actives(), 1)
+	verifier_egal((_a.get_child(0) as CPUParticles2D).amount, 10, "dix débris, au plus douze")
+
+
+func test_le_poison_eclabousse_au_rayon_puis_laisse_trois_nuages() -> void:
+	_a.impacter("poison", ARRIVEE, 70.0)
+	verifier_proche(_a.etats("eclaboussure_poison")[0]["diametre"], 140.0, 0.01)
+	verifier_egal(_a.etats("nuage_poison").size(), 3, "trois nuages")
+	_avancer(30)
+	verifier_egal(_a.etats("eclaboussure_poison").size(), 0, "l'éclaboussure est finie")
+	verifier_egal(_a.etats("nuage_poison").size(), 3, "le poison dure : les nuages restent")
+	verifier(_a.opacite_max() <= 0.6 + 0.001, "un nuage n'est jamais plus opaque que 0,6")
+	_avancer(7)
+	verifier_egal(_a.nombre_vivants(), 0, "les nuages s'effacent en 36 images")

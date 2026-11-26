@@ -51,9 +51,19 @@ const PLANCHES: Dictionary = {
 	"eclat_glace": Vector2i(20, 8),
 	"brisure_glace": Vector2i(32, 32),
 	"givre_sol": Vector2i(32, 16),
+	"bombe": Vector2i(12, 12),
+	"ombre": Vector2i(12, 6),
+	"fiole": Vector2i(10, 14),
+	"eclaboussure_poison": Vector2i(32, 32),
+	"nuage_poison": Vector2i(16, 16),
 }
 ## Diamètre visible, en pixels de planche, de l'image la plus grande d'un impact.
-const VISIBLE: Dictionary = {"explosion_feu": 28.0, "brisure_glace": 30.0, "givre_sol": 31.0}
+const VISIBLE: Dictionary = {
+	"explosion_feu": 28.0,
+	"brisure_glace": 30.0,
+	"givre_sol": 31.0,
+	"eclaboussure_poison": 32.0,
+}
 
 ## Image de planche à chaque image à 60 i/s : le pic est dans le premier quart de l'impact.
 const SEQ_EXPLOSION: Array[int] = [0, 1, 2, 2, 3, 3, 4, 4, 4, 5, 5, 5]
@@ -67,6 +77,14 @@ const IMAGES_GIVRE: int = 24
 
 const FEU: String = ElementsArmes.FEU
 const GLACE: String = ElementsArmes.GLACE
+const BOMBE: String = ElementsArmes.BOMBE
+const POISON: String = ElementsArmes.POISON
+## La bouffée grise de départ de la bombe et de la fiole.
+const COULEUR_BOUFFEE := Color(0.7, 0.7, 0.72)
+const NUAGES_POISON: int = 3
+const IMAGES_NUAGE: int = 36
+const ALPHA_NUAGE: float = 0.6
+const MONTEE_NUAGE: float = 24.0
 
 const CONF: Dictionary = {
 	FEU:
@@ -82,6 +100,25 @@ const CONF: Dictionary = {
 		"projectile": "eclat_glace",
 		"cloche": 0.0,
 		"fps": 0.0,
+	},
+	BOMBE:
+	{
+		"couleur": Color(0.72, 0.72, 0.75),
+		"anticipation": COULEUR_BOUFFEE,
+		"projectile": "bombe",
+		"cloche": 0.35,
+		"fps": 8.0,
+		"tour": PI,
+		"bosse": 0.15,
+	},
+	POISON:
+	{
+		"couleur": Color(0.45, 0.85, 0.35),
+		"anticipation": COULEUR_BOUFFEE,
+		"projectile": "fiole",
+		"cloche": 0.25,
+		"fps": 0.0,
+		"tour": 3.0 * PI,
 	},
 }
 
@@ -193,7 +230,7 @@ func tirer(element: String, depart: Vector2, arrivee: Vector2, retard: float = 0
 	anticipation["age"] = -retard
 	anticipation["depart"] = depart + sens * DECALAGE_ANTICIPATION
 	anticipation["sens"] = sens
-	anticipation["couleur"] = conf["couleur"]
+	anticipation["couleur"] = conf.get("anticipation", conf["couleur"])
 	anticipation["seq"] = _sequence(SEQ_ANTICIPATION, _eclat_permis())
 	var planche: String = String(conf["projectile"])
 	if planche != "":
@@ -205,10 +242,14 @@ func tirer(element: String, depart: Vector2, arrivee: Vector2, retard: float = 0
 			projectile["couleur"] = Color.WHITE
 			projectile["fps"] = float(conf["fps"])
 			projectile["cloche"] = float(conf["cloche"])
+			projectile["tour"] = float(conf.get("tour", 0.0))
+			projectile["bosse"] = float(conf.get("bosse", 0.0))
 			projectile["vol"] = vol
 			_poser(projectile)
 			_suivre_vol(element, projectile)
 			_suites(element, projectile, attente, vol)
+			if cloche:
+				_ombre(projectile, attente, vol)
 	_poser(anticipation)
 	return attente + vol
 
@@ -232,6 +273,10 @@ func impacter(
 			cree = _impact_feu(ou, rayon_px, fort, age)
 		GLACE:
 			cree = _impact_glace(ou, rayon_px, age)
+		BOMBE:
+			cree = _impact_bombe(ou)
+		POISON:
+			cree = _impact_poison(ou, rayon_px, age)
 	return cree
 
 
@@ -288,6 +333,33 @@ func _impact_glace(ou: Vector2, rayon_px: float, age: float) -> bool:
 	return cree
 
 
+## Les débris de la bombe : son explosion est celle du pack, dessinée par `Effets`.
+func _impact_bombe(ou: Vector2) -> bool:
+	return _salve(ou, 10, Color(0.5, 0.45, 0.42), 0.4, 80.0, 200.0, Vector2(0.0, 300.0), 2.0)
+
+
+## L'éclaboussure au rayon, puis trois nuages qui montent et s'effacent en 36 images.
+func _impact_poison(ou: Vector2, rayon_px: float, age: float) -> bool:
+	var zone: bool = rayon_px > 0.0
+	var diametre: float = rayon_px * 2.0 if zone else DIAMETRE_PETIT
+	var couleur: Color = CONF[POISON]["couleur"]
+	var cree: bool = not (
+		_image_impact("eclaboussure_poison", ou, diametre, SEQ_EXPLOSION, age).is_empty()
+	)
+	for k: int in NUAGES_POISON:
+		var nuage: Dictionary = _nouveau("nuage", "nuage_poison", IMAGES_NUAGE * IMAGE)
+		if nuage.is_empty():
+			break
+		var angle: float = TAU * k / NUAGES_POISON
+		nuage["age"] = age
+		nuage["depart"] = ou + Vector2.from_angle(angle) * diametre * 0.2
+		nuage["couleur"] = couleur
+		_poser(nuage)
+		cree = true
+	_salve(ou, 6, couleur, 25.0 * IMAGE, 40.0, 120.0, Vector2(0.0, 200.0), 1.5)
+	return cree
+
+
 # --- Effets ------------------------------------------------------------------------------------
 
 
@@ -325,8 +397,10 @@ func _nouveau(kind: String, planche: String, duree: float) -> Dictionary:
 		"cloche": 0.0,
 		"vol": duree,
 		"suite": 0.0,
+		"tour": 0.0,
+		"bosse": 0.0,
 	}
-	n.z_index = -1 if kind == "sol" else 0
+	n.z_index = -1 if kind == "sol" or kind == "ombre" else 0
 	_vivants.append(effet)
 	return effet
 
@@ -397,6 +471,18 @@ func _suivre_vol(element: String, vol: Dictionary) -> void:
 			_trainee(vol, 3, 10.0 * IMAGE, Color.WHITE, Vector2.ZERO)
 
 
+## L'ombre d'un projectile en cloche : elle reste sur la ligne droite et rétrécit au sommet.
+func _ombre(projectile: Dictionary, attente: float, vol: float) -> void:
+	var ombre: Dictionary = _nouveau("ombre", "ombre", vol)
+	if ombre.is_empty():
+		return
+	ombre["age"] = -attente
+	ombre["depart"] = projectile["depart"]
+	ombre["arrivee"] = projectile["arrivee"]
+	ombre["couleur"] = Color.WHITE
+	_poser(ombre)
+
+
 ## Les éclats qui suivent le projectile : même trajet, décalés dans le temps.
 func _suites(element: String, projectile: Dictionary, attente: float, vol: float) -> void:
 	if element != GLACE:
@@ -440,7 +526,16 @@ func _poser(effet: Dictionary) -> void:
 		"vol":
 			_poser_vol(effet, n, t, age)
 			n.visible = age >= float(effet["suite"])
-			echelle = float(effet["echelle"])
+			echelle = float(effet["echelle"]) * (1.0 + float(effet["bosse"]) * sin(t * PI))
+		"ombre":
+			n.position = (effet["depart"] as Vector2).lerp(effet["arrivee"], t)
+			echelle = ECHELLE * lerpf(1.0, ECHELLE_OMBRE_SOMMET, sin(t * PI))
+			alpha = ALPHA_OMBRE
+		"nuage":
+			var base: Vector2 = effet["depart"]
+			n.position = base + Vector2(0.0, -MONTEE_NUAGE * t)
+			_image(effet, mini(int(t * 3.0), 2))
+			alpha = ALPHA_NUAGE * (1.0 - t)
 		"sol":
 			n.position = effet["depart"]
 			alpha = ALPHA_MAX * (1.0 - t)
@@ -472,6 +567,8 @@ func _poser_vol(effet: Dictionary, n: Sprite2D, t: float, age: float) -> void:
 		position.y -= sin(t * PI) * maxf(hauteur * sens.length(), HAUTEUR_MIN_CLOCHE)
 	n.position = position
 	n.rotation = sens.angle() if sens.length() > 0.001 else 0.0
+	if hauteur > 0.0:
+		n.rotation = 0.0 if mouvement_reduit else t * float(effet["tour"])
 	var fps: float = float(effet["fps"])
 	if fps > 0.0:
 		var images: int = int(n.texture.get_width() / float(PLANCHES[effet["planche"]].x))
@@ -502,14 +599,15 @@ func _salve(
 	vmax: float,
 	gravite: Vector2,
 	echelle: float
-) -> void:
+) -> bool:
 	if mouvement_reduit:
-		return
+		return false
 	var e: Dictionary = _emetteur_libre()
 	if e.is_empty():
-		return
+		return false
 	_regler(e, ou, nombre, couleur, vie, vmin, vmax, gravite, echelle, true)
 	e["reste"] = vie
+	return true
 
 
 ## Une traînée : des carrés lâchés derrière le vol `vol` tant qu'il dure.
