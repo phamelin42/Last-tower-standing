@@ -40,7 +40,7 @@ func _brut_catalogue() -> Dictionary:
 					"type_degats": "tranchant",
 					"degats": 10.0,
 					"recharge": 1.0,
-					"portee": 600,
+					"portee": 750,
 					"ciblage": "plus_proche",
 					"effets": [{"kind": "cible_unique"}],
 				}
