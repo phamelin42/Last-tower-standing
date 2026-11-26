@@ -35,7 +35,7 @@ func apres_chaque() -> void:
 	_effets = null
 
 
-func _noter_impact(ou: Vector2, rayon: float) -> void:
+func _noter_impact(ou: Vector2, rayon: float, _fort: bool) -> void:
 	_visibles.append([_image, ou, rayon])
 
 

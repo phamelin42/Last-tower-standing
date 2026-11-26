@@ -11,9 +11,37 @@ extends RefCounted
 const SEPARATEUR := " · "
 const ESPACE_INSECABLE := " "
 const EFFETS: Array[String] = [
-	"cible_unique", "zone", "rebond", "onde", "barrage", "mine", "piege", "aura"
+	"cible_unique",
+	"zone",
+	"rebond",
+	"onde",
+	"barrage",
+	"mine",
+	"piege",
+	"aura",
+	"tournant",
+	"zone_posee",
+	"bombe",
+	"invocation",
 ]
-const STATUTS: Array[String] = ["poison", "brulure", "givre", "etourdissement", "vol_de_vie"]
+const STATUTS: Array[String] = [
+	"poison",
+	"brulure",
+	"givre",
+	"etourdissement",
+	"vol_de_vie",
+	"vulnerabilite",
+	"malediction_degats",
+	"malediction_toucher",
+	"repoussement",
+	"siphon",
+	"mana_au_coup",
+]
+## Champs facultatifs d'une arme qui ajoutent une ligne (`degats_par_amelioration` cite une stat).
+const CHAMPS_ARME: Array[String] = [
+	"degats_par_pv_max", "degats_par_exemplaire", "degats_par_amelioration", "type_secondaire"
+]
+const TYPES_SECONDAIRES: Array[String] = ["epines"]
 const STATISTIQUES: Array[String] = [
 	"degats_type",
 	"degats_global",
@@ -38,6 +66,31 @@ const STATISTIQUES: Array[String] = [
 	"marche_noir",
 	"mana_max",
 	"mana_regen",
+	"degats_classe",
+	"etat_degats",
+	"etat_duree",
+	"degats_contre_etat",
+	"epines_degats",
+	"epines_croissantes",
+	"epines_premier_coup",
+	"epines_soin",
+	"epines_reduction",
+	"epines_statut",
+	"pv_max_mult",
+	"soin_pv_manquants",
+	"degats_par_pv_max",
+	"resurrection",
+	"regen_croissante",
+	"soin_periodique",
+	"armure_croissante",
+	"riposte_statut",
+	"mana_max_mult",
+	"mana_rupture_etourdit",
+	"degats_tant_que_mana",
+	"reduction_tant_que_mana",
+	"revenu_contre_pv",
+	"copie_prochaine_offre",
+	"aura_mixte",
 ]
 
 const CLES_TYPE: Dictionary = {
@@ -77,7 +130,7 @@ const EFFETS_QUI_VISENT: Array[String] = [
 ## Genres d'effet dont la portée de `data/` compte : celle du tir, ou celle qui déclenche l'onde ou
 ## la pose. L'aura ne la lit jamais.
 const EFFETS_A_PORTEE: Array[String] = [
-	"cible_unique", "zone", "rebond", "barrage", "onde", "mine", "piege"
+	"cible_unique", "zone", "rebond", "barrage", "onde", "mine", "piege", "tournant"
 ]
 
 
@@ -122,6 +175,14 @@ static func est_complete(entree: Dictionary, genre: int) -> bool:
 		var statut: Dictionary = brut
 		if not STATUTS.has(String(statut.get("kind", ""))):
 			return false
+	if genre == Types.Genre.ARME:
+		var secondaire := String(entree.get("type_secondaire", ""))
+		if not secondaire.is_empty() and not TYPES_SECONDAIRES.has(secondaire):
+			return false
+		var par_amelio: Dictionary = entree.get("degats_par_amelioration", {})
+		var stat := String(par_amelio.get("stat", ""))
+		if not stat.is_empty() and not STATISTIQUES.has(stat):
+			return false
 	return true
 
 
@@ -142,7 +203,7 @@ static func _morceaux_arme(entree: Dictionary, donnees: Donnees, avec_type: bool
 		var effet: Dictionary = brut
 		var kind: String = effet["kind"]
 		kinds.append(kind)
-		morceaux.append_array(_morceaux_effet(kind, effet, degats, recharge))
+		morceaux.append_array(_morceaux_effet(kind, effet, degats, recharge, donnees))
 	# La portée du tir et le ciblage ne se disent qu'une fois, après le dernier effet qui s'en sert.
 	if _contient_un(kinds, EFFETS_A_PORTEE):
 		morceaux.append(_t("BOUTIQUE_EFFET_PORTEE", [portee]))
@@ -150,15 +211,42 @@ static func _morceaux_arme(entree: Dictionary, donnees: Donnees, avec_type: bool
 		var ciblage := int(entree["ciblage"])
 		if ciblage != Types.Ciblage.PLUS_PROCHE and CLES_CIBLAGE.has(ciblage):
 			morceaux.append(_t(CLES_CIBLAGE[ciblage]))
+	morceaux.append_array(_morceaux_champs_arme(entree, donnees))
 	var statuts: Array = entree.get("statuts", [])
 	for brut: Variant in statuts:
 		var statut: Dictionary = brut
-		morceaux.append(_statut(statut, donnees))
+		morceaux.append(_statut(statut, donnees, type_degats))
+	return morceaux
+
+
+## Bonus de dégâts liés à la tour ou à l'inventaire (M5, bornés par `partie.json`), type secondaire.
+static func _morceaux_champs_arme(entree: Dictionary, donnees: Donnees) -> Array[String]:
+	var morceaux: Array[String] = []
+	var borne := _t(
+		"BOUTIQUE_EFFET_BORNE_M5", [_nombre(_reglage(donnees, "armes", "bonus_selon_stat_max"), 2)]
+	)
+	var par_pv := float(entree.get("degats_par_pv_max", 0.0))
+	if par_pv > 0.0:
+		morceaux.append(_t("BOUTIQUE_EFFET_ARME_PAR_PV_MAX", [_pourcent(par_pv), borne]))
+	var par_exemplaire := float(entree.get("degats_par_exemplaire", 0.0))
+	if par_exemplaire > 0.0:
+		morceaux.append(
+			_t("BOUTIQUE_EFFET_ARME_PAR_EXEMPLAIRE", [_pourcent(par_exemplaire), borne])
+		)
+	var par_amelio: Dictionary = entree.get("degats_par_amelioration", {})
+	var stat := String(par_amelio.get("stat", ""))
+	if not stat.is_empty() and float(par_amelio.get("ratio", 0.0)) > 0.0:
+		var nom_stat := _t("BOUTIQUE_STAT_" + stat.to_upper())
+		var ratio := _pourcent(float(par_amelio["ratio"]))
+		morceaux.append(_t("BOUTIQUE_EFFET_ARME_PAR_AMELIORATION", [ratio, nom_stat, borne]))
+	var secondaire := String(entree.get("type_secondaire", ""))
+	if not secondaire.is_empty():
+		morceaux.append(_t("BOUTIQUE_EFFET_TYPE_SECONDAIRE_" + secondaire.to_upper()))
 	return morceaux
 
 
 static func _morceaux_effet(
-	kind: String, effet: Dictionary, degats: String, recharge: String
+	kind: String, effet: Dictionary, degats: String, recharge: String, donnees: Donnees
 ) -> Array[String]:
 	var morceaux: Array[String] = []
 	match kind:
@@ -209,6 +297,43 @@ static func _morceaux_effet(
 					)
 				)
 			)
+		"tournant":
+			morceaux.append(_t("BOUTIQUE_EFFET_TOURNANT", [degats, recharge]))
+			var sens := "BOUTIQUE_EFFET_SENS_" + String(effet["sens"]).to_upper()
+			var tourne := [
+				_nombre(float(effet["branches"]), 0),
+				_nombre(float(effet["pas_deg"])),
+				_t(sens),
+				_nombre(float(effet["largeur"]), 0),
+			]
+			morceaux.append(_t("BOUTIQUE_EFFET_TOURNANT_DETAIL", tourne))
+		"zone_posee":
+			var zone := [
+				_nombre(float(effet["rayon"]), 0),
+				_nombre(float(effet["duree"])),
+				_pourcent(float(effet["ratio"])),
+				_nombre(float(effet["periode"])),
+				_nombre(float(effet["max_actives"]), 0),
+			]
+			morceaux.append(_t("BOUTIQUE_EFFET_ZONE_POSEE", [recharge] + zone))
+		"bombe":
+			var bombe := [
+				_nombre(float(effet["delai"])),
+				_pourcent(float(effet["ratio"])),
+				_nombre(float(effet["rayon"]), 0),
+				_nombre(float(effet["max_actives"]), 0),
+			]
+			morceaux.append(_t("BOUTIQUE_EFFET_BOMBE", [recharge] + bombe))
+		"invocation":
+			var fiche: Dictionary = donnees.unites.get(String(effet["unite"]), {})
+			var nom_unite := String(fiche.get("nom", _t("BOUTIQUE_EFFET_ALLIE")))
+			var allie := [
+				nom_unite,
+				_nombre(float(effet["duree"])),
+				_pourcent(float(effet["ratio_degats"])),
+				_nombre(float(effet["max_actives"]), 0),
+			]
+			morceaux.append(_t("BOUTIQUE_EFFET_INVOCATION", [recharge] + allie))
 	return morceaux
 
 
@@ -228,7 +353,7 @@ static func _morceaux_efficacite(type_degats: int, donnees: Donnees) -> Array[St
 	return morceaux
 
 
-static func _statut(statut: Dictionary, donnees: Donnees) -> String:
+static func _statut(statut: Dictionary, donnees: Donnees, type_arme: int = -1) -> String:
 	match String(statut["kind"]):
 		"poison":
 			return _t(
@@ -259,7 +384,46 @@ static func _statut(statut: Dictionary, donnees: Donnees) -> String:
 				else "BOUTIQUE_EFFET_VOL_DE_VIE"
 			)
 			return _t(cle, [_pourcent(float(statut["ratio"]))])
+		"vulnerabilite":
+			var type_cible := int(statut.get("type_degats", -1))
+			if type_cible < 0:
+				type_cible = type_arme
+			var plafond := _reglage(donnees, "vulnerabilite", "plafond")
+			var vulnerable := [
+				_pourcent(float(statut["ratio"])),
+				_t(CLES_TYPE_ADJECTIF[type_cible]) if CLES_TYPE_ADJECTIF.has(type_cible) else "",
+				_nombre(float(statut["duree"])),
+				_pourcent(plafond, 0),
+			]
+			return _t("BOUTIQUE_EFFET_VULNERABILITE", vulnerable)
+		"malediction_degats", "malediction_toucher":
+			var maudit := [
+				_pourcent(float(statut["ratio"])),
+				_nombre(float(statut["duree"])),
+				_pourcent(_reglage(donnees, "malediction", "plafond"), 0),
+			]
+			return _t("BOUTIQUE_EFFET_" + String(statut["kind"]).to_upper(), maudit)
+		"repoussement":
+			var facteur := _reglage(donnees, "repoussement", "facteur_boss")
+			var cle_boss := "BOUTIQUE_EFFET_REPOUSSEMENT_BOSS_REDUIT"
+			if facteur <= 0.0:
+				cle_boss = "BOUTIQUE_EFFET_REPOUSSEMENT_BOSS_AUCUN"
+			var recul := _t(cle_boss, [] if facteur <= 0.0 else [_nombre(facteur, 2)])
+			return _t("BOUTIQUE_EFFET_REPOUSSEMENT", [_nombre(float(statut["distance"]), 0), recul])
+		"siphon":
+			var cle_siphon := "BOUTIQUE_EFFET_SIPHON_" + String(statut["ressource"]).to_upper()
+			return _t(
+				cle_siphon, [_nombre(float(statut["par_seconde"])), _nombre(float(statut["duree"]))]
+			)
+		"mana_au_coup":
+			return _t("BOUTIQUE_EFFET_MANA_AU_COUP", [_nombre(float(statut["valeur"]))])
 	return ""
+
+
+## Réglage numérique de `partie.json` ; 0 s'il manque (les données de test n'ont pas tout).
+static func _reglage(donnees: Donnees, section: String, cle: String) -> float:
+	var bloc: Dictionary = donnees.partie.get(section, {})
+	return float(bloc.get(cle, 0.0))
 
 
 static func _contient_un(kinds: Array[String], parmi: Array[String]) -> bool:
@@ -284,7 +448,7 @@ static func _morceaux_amelioration(entree: Dictionary, donnees: Donnees) -> Arra
 static func _morceaux_statistique(effet: Dictionary, donnees: Donnees) -> Array[String]:
 	var morceaux: Array[String] = []
 	var stat: String = effet["stat"]
-	var v := 0.0 if stat == "bonus_elim" else float(effet["valeur"])
+	var v := 0.0 if stat in Donnees.STATS_SANS_VALEUR else float(effet["valeur"])
 	match stat:
 		"degats_type":
 			var type_degats := int(effet["type_degats"])
@@ -296,10 +460,12 @@ static func _morceaux_statistique(effet: Dictionary, donnees: Donnees) -> Array[
 			)
 			var rang: String = effet["categorie"]
 			morceaux.append(_t("BOUTIQUE_EFFET_RANG", [rang, rang]))
+			morceaux.append_array(_morceaux_croissance_degats(effet, donnees))
 		"degats_global":
 			morceaux.append(_t("BOUTIQUE_EFFET_DEGATS_GLOBAL", [_pourcent(v)]))
 			var rang: String = effet["categorie"]
 			morceaux.append(_t("BOUTIQUE_EFFET_RANG", [rang, rang]))
+			morceaux.append_array(_morceaux_croissance_degats(effet, donnees))
 		"pv_max":
 			morceaux.append(_t("BOUTIQUE_EFFET_PV_MAX", [_nombre(v)]))
 		"regen":
@@ -380,6 +546,108 @@ static func _morceaux_statistique(effet: Dictionary, donnees: Donnees) -> Array[
 			var rarete := Types.rarete_depuis_nom(str(reglage["raretes_max"]))
 			var libelle := _t(Apparence.cle_libelle_rarete(rarete)).to_lower()
 			morceaux.append(_t("BOUTIQUE_EFFET_MARCHE_NOIR", [libelle]))
+		_:
+			morceaux.append_array(_morceaux_statistique_lot9(stat, effet, donnees))
+	return morceaux
+
+
+## Statistiques du lot 9. Les plafonds et les pas de croissance se lisent dans `partie.json`.
+static func _morceaux_statistique_lot9(
+	stat: String, effet: Dictionary, donnees: Donnees
+) -> Array[String]:
+	var morceaux: Array[String] = []
+	var v := float(effet.get("valeur", 0.0))
+	var pas := _nombre(_reglage(donnees, "ameliorations", "croissance_pas_s"), 0)
+	match stat:
+		"degats_classe":
+			var classe := "BOUTIQUE_CLASSE_" + String(effet["classe"]).to_upper()
+			morceaux.append(_t("BOUTIQUE_EFFET_DEGATS_CLASSE", [_pourcent(v), _t(classe)]))
+		"etat_degats":
+			var etat := "BOUTIQUE_ETAT_DEGATS_" + String(effet["etat"]).to_upper()
+			morceaux.append(_t("BOUTIQUE_EFFET_ETAT_DEGATS", [_pourcent(v), _t(etat)]))
+		"etat_duree":
+			var duree := "BOUTIQUE_ETAT_DUREE_" + String(effet["etat"]).to_upper()
+			morceaux.append(_t("BOUTIQUE_EFFET_ETAT_DUREE", [_pourcent(v), _t(duree)]))
+		"degats_contre_etat":
+			var contre := "BOUTIQUE_ETAT_CONTRE_" + String(effet["etat"]).to_upper()
+			morceaux.append(_t("BOUTIQUE_EFFET_DEGATS_CONTRE_ETAT", [_pourcent(v), _t(contre)]))
+		"epines_degats":
+			morceaux.append(_t("BOUTIQUE_EFFET_EPINES_DEGATS", [_pourcent(v)]))
+		"epines_croissantes":
+			var croit := [_pourcent(v), pas, _pourcent(float(effet["max"]))]
+			morceaux.append(_t("BOUTIQUE_EFFET_EPINES_CROISSANTES", croit))
+		"epines_premier_coup":
+			morceaux.append(_t("BOUTIQUE_EFFET_EPINES_PREMIER_COUP", [_pourcent(v)]))
+		"epines_soin":
+			morceaux.append(_t("BOUTIQUE_EFFET_EPINES_SOIN", [_pourcent(v)]))
+		"epines_reduction":
+			morceaux.append(_t("BOUTIQUE_EFFET_EPINES_REDUCTION", [_pourcent(v)]))
+		"epines_statut", "riposte_statut":
+			var statut := "BOUTIQUE_STATUT_POSE_" + String(effet["statut"]).to_upper()
+			var cle := "BOUTIQUE_EFFET_" + stat.to_upper()
+			morceaux.append(_t(cle, [_t(statut), _nombre(v)]))
+		"pv_max_mult":
+			morceaux.append(_t("BOUTIQUE_EFFET_PV_MAX_MULT", [_pourcent(v)]))
+		"soin_pv_manquants":
+			morceaux.append(_t("BOUTIQUE_EFFET_SOIN_PV_MANQUANTS", [_pourcent(v)]))
+		"degats_par_pv_max":
+			morceaux.append(
+				_t("BOUTIQUE_EFFET_DEGATS_PAR_PV_MAX", [_pourcent(v), _nombre(1000, 0)])
+			)
+		"resurrection":
+			morceaux.append(_t("BOUTIQUE_EFFET_RESURRECTION", [_pourcent(v, 0)]))
+		"regen_croissante":
+			var regen := [_nombre(v, 2), pas, _nombre(float(effet["max"]), 2)]
+			morceaux.append(_t("BOUTIQUE_EFFET_REGEN_CROISSANTE", regen))
+		"soin_periodique":
+			var soin := [_pourcent(float(effet["ratio"])), _nombre(float(effet["tous_les"]))]
+			morceaux.append(_t("BOUTIQUE_EFFET_SOIN_PERIODIQUE", soin))
+		"armure_croissante":
+			var armure := [_nombre(v, 2), pas, _nombre(float(effet["max"]), 2)]
+			morceaux.append(_t("BOUTIQUE_EFFET_ARMURE_CROISSANTE", armure))
+		"mana_max_mult":
+			morceaux.append(_t("BOUTIQUE_EFFET_MANA_MAX_MULT", [_pourcent(v)]))
+		"mana_rupture_etourdit":
+			var rupture := [_nombre(float(effet["duree"])), _nombre(float(effet["rayon"]), 0)]
+			morceaux.append(_t("BOUTIQUE_EFFET_MANA_RUPTURE_ETOURDIT", rupture))
+		"degats_tant_que_mana":
+			morceaux.append(_t("BOUTIQUE_EFFET_DEGATS_TANT_QUE_MANA", [_pourcent(v)]))
+		"reduction_tant_que_mana":
+			morceaux.append(_t("BOUTIQUE_EFFET_REDUCTION_TANT_QUE_MANA", [_pourcent(v)]))
+		"revenu_contre_pv":
+			var contre_pv := [
+				_nombre(float(effet["or"]), 0), _periode(donnees), _nombre(float(effet["pv"]))
+			]
+			morceaux.append(_t("BOUTIQUE_EFFET_REVENU_CONTRE_PV", contre_pv))
+		"copie_prochaine_offre":
+			var rarete := int(effet["raretes_max"])
+			var libelle := _t(Apparence.cle_libelle_rarete(rarete)).to_lower()
+			morceaux.append(_t("BOUTIQUE_EFFET_COPIE_PROCHAINE_OFFRE", [libelle]))
+		"aura_mixte":
+			var aura := [
+				_nombre(float(effet["rayon"]), 0),
+				_nombre(float(effet["poison"])),
+				_nombre(float(effet["regen"])),
+			]
+			morceaux.append(_t("BOUTIQUE_EFFET_AURA_MIXTE", aura))
+	return morceaux
+
+
+## Croissance dans le temps et bonus par arme commune des bonus de dégâts, bornés par `partie.json`.
+static func _morceaux_croissance_degats(effet: Dictionary, donnees: Donnees) -> Array[String]:
+	var morceaux: Array[String] = []
+	if effet.has("croissance"):
+		var pas := _nombre(_reglage(donnees, "ameliorations", "croissance_pas_s"), 0)
+		var croit := [
+			_pourcent(float(effet["croissance"])), pas, _pourcent(float(effet["croissance_max"]))
+		]
+		morceaux.append(_t("BOUTIQUE_EFFET_DEGATS_CROISSANCE", croit))
+	if effet.has("par_arme_commune"):
+		var commune := _pourcent(float(effet["par_arme_commune"]))
+		morceaux.append(_t("BOUTIQUE_EFFET_DEGATS_PAR_ARME_COMMUNE", [commune]))
+	if effet.has("croissance") or effet.has("par_arme_commune"):
+		var plafond := _nombre(_reglage(donnees, "ameliorations", "facteur_degats_max"), 0)
+		morceaux.append(_t("BOUTIQUE_EFFET_DEGATS_PLAFOND", [plafond]))
 	return morceaux
 
 

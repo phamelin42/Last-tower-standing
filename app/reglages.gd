@@ -37,6 +37,9 @@ var annuaire_adresse: String = ANNUAIRE_DEFAUT
 var salon_public: bool = true
 ## Compteur d'images par seconde (T5.1b) : éteint tant que la joueuse ne le demande pas.
 var afficher_ips: bool = false
+## Mouvement réduit (D21) : ni gel d'impact, ni recul, ni rebond, ni étincelles dans l'arène.
+## Décoché par défaut ; l'écran ne tremble jamais, quel que soit ce réglage.
+var mouvement_reduit: bool = false
 
 
 ## Renvoie toujours un réglage utilisable : les valeurs absentes ou invalides prennent leur
@@ -59,6 +62,7 @@ static func charger(chemin: String = CHEMIN_DEFAUT) -> Reglages:
 	r.annuaire_adresse = _texte(cfg, "annuaire_adresse", r.annuaire_adresse)
 	r.salon_public = _booleen(cfg, "salon_public", r.salon_public)
 	r.afficher_ips = _booleen(cfg, "afficher_ips", r.afficher_ips)
+	r.mouvement_reduit = _booleen(cfg, "mouvement_reduit", r.mouvement_reduit)
 	r.normaliser()
 	return r
 
@@ -78,6 +82,7 @@ func sauver(chemin: String = CHEMIN_DEFAUT) -> bool:
 	cfg.set_value(SECTION, "annuaire_adresse", annuaire_adresse)
 	cfg.set_value(SECTION, "salon_public", salon_public)
 	cfg.set_value(SECTION, "afficher_ips", afficher_ips)
+	cfg.set_value(SECTION, "mouvement_reduit", mouvement_reduit)
 	var temporaire := chemin + ".tmp"
 	var fichier := FileAccess.open(temporaire, FileAccess.WRITE)
 	if fichier == null:
