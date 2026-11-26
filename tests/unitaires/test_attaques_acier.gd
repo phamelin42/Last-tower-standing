@@ -9,6 +9,7 @@ const CIBLE := Vector2(360.0, 300.0)
 
 var _a: AttaquesElementaires = null
 var _donnees: Donnees = Donnees.charger()
+var _effets_tourbillon: Effets = null
 
 
 func avant_chaque() -> void:
@@ -307,3 +308,75 @@ func test_la_guillotine_dans_effets_part_au_tir_et_les_impacts_n_ajoutent_rien()
 	verifier_egal(effets.formes_vivantes().has("anneau"), false, "plus d'anneau générique")
 	vitrine.free()
 	effets.free()
+
+
+# --- Tourbillon d'acier : barrage et vol de vie ------------------------------------------------
+
+
+func test_le_tourbillon_est_un_barrage_qui_soigne() -> void:
+	_verifier_arme("tourbillon_d_acier", "tourbillon", "barrage")
+	verifier_egal(String(_donnees.armes["tourbillon_d_acier"]["statuts"][0]["kind"]), "vol_de_vie")
+
+
+func test_chaque_lame_du_tourbillon_part_deux_images_apres_la_precedente() -> void:
+	var retard: float = AttaquesElementaires.RETARD_BARRAGE
+	var premiere: float = _a.tirer("tourbillon", TOUR, CIBLE, 0.0)
+	var seconde: float = _a.tirer("tourbillon", TOUR, CIBLE, retard)
+	verifier_proche(premiere / IMAGE, 10.0, 0.01, "anticipation + vol")
+	verifier_proche((seconde - premiere) / IMAGE, 2.0, 0.01, "décalées de 2 images")
+	verifier_egal(_a.etats("lame_tournante").size(), 2, "une lame par tir")
+	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 2)
+	var avant: float = _a.etats("lame_tournante")[0]["rotation"]
+	_avancer(2)
+	verifier(absf(_a.etats("lame_tournante")[0]["rotation"] - avant) > 0.5, "elle tourne")
+
+
+func test_un_seul_anneau_au_rayon_reel_pour_tout_le_barrage() -> void:
+	var rayon: float = _rayon_px("tourbillon_d_acier")
+	for k: int in 8:
+		_a.impacter_en_groupe("tourbillon", CIBLE + Vector2(0.0, k * 6.0), rayon)
+	verifier_egal(_a.etats("").size(), 0, "aucun anneau par lame")
+	_a.zone("tourbillon", CIBLE, rayon)
+	verifier_egal(_a.etats("").size(), 1, "un anneau pour le tir")
+	verifier_proche(_a.diametre_max(), rayon * 2.0, rayon * 2.0 * 0.1, "au rayon réel")
+
+
+func test_chaque_impact_du_tourbillon_est_petit_avec_peu_d_eclats() -> void:
+	_a.impacter_en_groupe("tourbillon", CIBLE, 30.0)
+	verifier_egal(_a.etats("eclat_acier").size(), 1, "un éclat d'acier")
+	verifier(_a.etats("eclat_acier")[0]["diametre"] <= 60.0, "reste petit")
+	verifier(_a.particules_actives() <= 8, "au plus huit particules par impact")
+	_avancer(60)
+	verifier_egal(_a.nombre_vivants(), 0, "tout se dissipe")
+
+
+func test_le_tourbillon_dans_effets_lance_quatre_lames_et_un_soin_a_la_fois() -> void:
+	_vitrine_tourbillon()
+	var effets: Effets = _effets_tourbillon
+	var avant: int = effets.elementaires().etats("lame_tournante").size()
+	verifier_egal(avant, 4, "quatre lames pour quatre impacts")
+	var anneaux: int = 0
+	for _i: int in 40:
+		effets.avancer(IMAGE)
+		anneaux = maxi(anneaux, effets.elementaires().etats("").size())
+	verifier_egal(anneaux, 1, "un seul anneau")
+
+
+func _vitrine_tourbillon() -> void:
+	_effets_tourbillon = Effets.new()
+	_effets_tourbillon.catalogue = _donnees.ids_catalogue
+	arbre.root.add_child(_effets_tourbillon)
+	var vitrine: VitrineArmes = VitrineArmes.new()
+	vitrine.armes = ["tourbillon_d_acier"] as Array[String]
+	for evenement: Dictionary in vitrine.evenements_du_cycle("tourbillon_d_acier"):
+		_effets_tourbillon.ajouter(evenement)
+	vitrine.free()
+
+
+func test_mouvement_reduit_le_tourbillon_ne_tourne_pas_et_sans_particule() -> void:
+	_a.mouvement_reduit = true
+	_a.tirer("tourbillon", TOUR, CIBLE)
+	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 2)
+	verifier_proche(_a.etats("lame_tournante")[0]["rotation"], 0.0, 0.0001, "pas de rotation")
+	_a.impacter_en_groupe("tourbillon", CIBLE, 30.0)
+	verifier_egal(_a.particules_actives(), 0)
