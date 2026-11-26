@@ -29,6 +29,10 @@ const PROJECTILES: PackedStringArray = [
 	"petard",
 	"rocher",
 	"mine_forge",
+	"de_pipe",
+	"sablier",
+	"eclat_miroir",
+	"engrenage",
 ]
 
 
@@ -47,8 +51,8 @@ func _images(nom: String) -> int:
 	return Dessin.PLANCHES[nom]["images"]
 
 
-func test_la_liste_des_planches_compte_les_quarante_deux_effets() -> void:
-	verifier_egal(Dessin.PLANCHES.size(), 42, "planches")
+func test_la_liste_des_planches_compte_les_cinquante_deux_effets() -> void:
+	verifier_egal(Dessin.PLANCHES.size(), 52, "planches")
 
 
 func test_chaque_planche_existe_a_la_taille_taille_fois_nombre_d_images() -> void:

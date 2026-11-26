@@ -543,12 +543,9 @@ func test_un_ennemi_a_statut_est_teinte_et_cinq_statuts_donnent_cinq_teintes() -
 func test_l_arene_donne_le_catalogue_aux_effets_et_un_tir_suit_la_signature_de_l_arme() -> void:
 	var effets := _arene.get_node("Effets") as Effets
 	verifier_egal(effets.catalogue, _donnees.ids_catalogue)
-	var id: String = ""
-	for candidat: String in SignaturesArmes.ids():
-		# Une arme à élément (D22) a son propre rendu : la signature ne vaut que pour les autres.
-		if ElementsArmes.de(candidat) == "":
-			id = candidat
-			break
+	# Les 30 armes ont un élément (D22) : le repli par signature se vérifie sans eux.
+	effets.rendu_par_element = false
+	var id: String = SignaturesArmes.ids()[0]
 	var tir: Dictionary = _evenement("tir")
 	tir["type_degats"] = (_donnees.armes[id] as Dictionary)["type_degats"]
 	tir["arme"] = _donnees.ids_catalogue.find(id)

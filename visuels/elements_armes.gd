@@ -34,6 +34,16 @@ const TREBUCHET: String = "trebuchet"
 const MINE_FORGE: String = "mine_forge"
 const GRANDE_BOMBE: String = "grande_bombe"
 
+const DE_PIPE: String = "de_pipe"
+
+const SABLIER: String = "sablier"
+
+const MIROIR: String = "miroir"
+
+const VORTEX: String = "vortex"
+
+const HORLOGE: String = "horloge"
+
 const ELEMENTS: Array[String] = [
 	FEU,
 	GLACE,
@@ -60,6 +70,11 @@ const ELEMENTS: Array[String] = [
 	MINE_FORGE,
 	TREBUCHET,
 	GRANDE_BOMBE,
+	DE_PIPE,
+	SABLIER,
+	MIROIR,
+	VORTEX,
+	HORLOGE,
 ]
 
 ## id d'arme → élément.
@@ -89,6 +104,11 @@ const TABLE: Dictionary = {
 	"mine_de_forge": MINE_FORGE,
 	"trebuchet_de_chambre": TREBUCHET,
 	"grande_bombarde": GRANDE_BOMBE,
+	"de_pipe": DE_PIPE,
+	"sablier_fele": SABLIER,
+	"miroir_brise": MIROIR,
+	"vortex_de_verre": VORTEX,
+	"horloge_folle": HORLOGE,
 }
 
 
