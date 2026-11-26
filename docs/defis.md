@@ -223,3 +223,14 @@ La sauvegarde de T11.3 (`Profil`, version 1) porte déjà `parties` et `meilleur
    zone posée, bombe, invocation) en recevront un quand leurs armes seront livrées. Défaut : oui.
 5. **Le statut « givre »** n'a que deux armes aujourd'hui : le défi « Gel pur » devient jouable surtout après les armes du
    lot 9. Défaut : le garder.
+
+## 8. Statuts et genres du lot 9 : défi à décider par Phil
+
+Les armes du lot 9 introduisent des statuts et des genres d'effet que la liste du § 4 ne couvre pas. Aucun défi n'est inventé ici : chaque ligne attend la décision de Phil, puis la session des défis la remplace par un vrai défi « uniquement ». `test_defis_document` exige pour chaque statut et chaque genre de 3 armes ou plus soit un défi du § 4, soit sa ligne dans ce tableau.
+
+| nature | nom                   | introduit par |
+| ------ | --------------------- | ------------- |
+| statut | `vulnerabilite`       | T9.13         |
+| statut | `malediction_toucher` | T9.13         |
+| genre  | `aura`                | T9.13         |
+| genre  | `tournant`            | T9.13         |
