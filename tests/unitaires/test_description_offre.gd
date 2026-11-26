@@ -147,8 +147,24 @@ func _chiffres_attendus(entree: Dictionary, genre: int) -> Array[String]:
 			"bonus_elim":
 				attendus.append(_fr(float(effet["tous_les"])))
 				attendus.append(_fr(float(effet["or"])))
-			"marche_noir":
+			"marche_noir", "copie_prochaine_offre":
 				pass
+			"epines_statut", "riposte_statut":
+				# Le givre ne dure pas : un cran par coup, sans nombre.
+				if effet["statut"] != "givre":
+					attendus.append(_fr(float(effet["valeur"])))
+			"mana_max_mult", "degats_tant_que_mana", "reduction_tant_que_mana":
+				attendus.append(_fr(float(effet["valeur"]) * 100.0))
+			"mana_rupture_etourdit":
+				attendus.append(_fr(float(effet["duree"])))
+				attendus.append(_fr(float(effet["rayon"])))
+			"revenu_contre_pv":
+				attendus.append(_fr(float(effet["or"])))
+				attendus.append(_fr(float(effet["pv"])))
+			"aura_mixte":
+				attendus.append(_fr(float(effet["rayon"])))
+				attendus.append(_fr(float(effet["poison"])))
+				attendus.append(_fr(float(effet["regen"])))
 			_:
 				attendus.append(_fr(float(effet["valeur"])))
 	return attendus
@@ -589,6 +605,9 @@ func test_chaque_nouveau_genre_statut_champ_et_stat_a_son_modele() -> void:
 			_fiche_amelio(effet), Types.Genre.AMELIORATION, _donnees
 		)
 		var sans_chiffre: Dictionary = {} if effet["stat"] in STATS_AU_CHIFFRE_CALCULE else effet
+		if effet.get("statut", "") == "givre":
+			# Le givre n'a pas de durée : sa ligne ne porte aucun nombre.
+			sans_chiffre = {}
 		_verifier_ligne_pleine(ligne, "stat « %s » %s" % [effet["stat"], effet], sans_chiffre)
 
 
@@ -801,3 +820,52 @@ func test_les_armes_zone_posee_bombe_et_invocation_disent_degats_de_base_et_port
 				for attendu: String in _chiffres_attendus(arme, Types.Genre.ARME):
 					verifier(plat.contains(attendu), "« %s » absent : %s" % [attendu, contexte])
 				verifier_faux(plat.contains("BOUTIQUE_"), "clé brute : " + contexte)
+
+
+func test_le_givre_des_epines_et_de_la_riposte_est_un_cran_par_coup_sans_duree() -> void:
+	for id: String in ["givre_des_ronces", "cuirasse_de_givre"]:
+		var ligne := _ligne(id, Types.Genre.AMELIORATION)
+		verifier(ligne.contains("cran de givre"), "%s : %s" % [id, ligne])
+		verifier(ligne.contains("à l’attaquant"), "%s : %s" % [id, ligne])
+		verifier_faux(ligne.contains("pendant"), "%s : aucune durée dans « %s »" % [id, ligne])
+		for chiffre: String in "0123456789":
+			verifier_faux(ligne.contains(chiffre), "%s : aucun nombre dans « %s »" % [id, ligne])
+	# Les autres statuts gardent leur durée.
+	var poison := _ligne("epines_venimeuses", Types.Genre.AMELIORATION)
+	verifier(poison.contains("pendant 4 s"), poison)
+	var riposte := _ligne("cotte_de_venin", Types.Genre.AMELIORATION)
+	verifier(riposte.contains("pendant 4 s"), riposte)
+
+
+func test_les_stats_de_mana_de_revenu_de_boutique_et_d_aura_se_lisent_en_clair() -> void:
+	var cas: Array = [
+		[{"stat": "mana_max_mult", "valeur": 0.25}, ["+25" + NBSP + "% de mana maximale"]],
+		[
+			{"stat": "mana_rupture_etourdit", "rayon": 300.0, "duree": 2.0},
+			["étourdit 2 s", "à moins de 300"],
+		],
+		[
+			{"stat": "degats_tant_que_mana", "valeur": 0.2},
+			["+20" + NBSP + "% de dégâts tant qu’il reste de la mana"],
+		],
+		[
+			{"stat": "reduction_tant_que_mana", "valeur": 0.15},
+			["−15" + NBSP + "% de dégâts reçus tant qu’il reste de la mana"],
+		],
+		[{"stat": "revenu_contre_pv", "pv": 150.0, "or": 14}, ["+14 or", "−150 PV max"]],
+		[
+			{"stat": "copie_prochaine_offre", "raretes_max": Types.Rarete.PEU_COMMUNE},
+			["peu commune", "second exemplaire gratuit"],
+		],
+		[
+			{"stat": "aura_mixte", "rayon": 220.0, "poison": 40.0, "regen": 6.0},
+			["rayon 220", "40 dégâts de chaos par seconde", "6 PV par seconde"],
+		],
+	]
+	for c: Array in cas:
+		var fiche := {"effets": [c[0]]}
+		var ligne := _sans_milliers(
+			DescriptionOffre.ligne_effet(fiche, Types.Genre.AMELIORATION, _donnees)
+		)
+		for attendu: String in c[1]:
+			verifier(ligne.contains(attendu), "« %s » absent de « %s »" % [attendu, ligne])

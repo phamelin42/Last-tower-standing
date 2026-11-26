@@ -596,9 +596,13 @@ static func _morceaux_statistique_lot9(
 		"epines_reduction":
 			morceaux.append(_t("BOUTIQUE_EFFET_EPINES_REDUCTION", [_pourcent(v)]))
 		"epines_statut", "riposte_statut":
-			var statut := "BOUTIQUE_STATUT_POSE_" + String(effet["statut"]).to_upper()
 			var cle := "BOUTIQUE_EFFET_" + stat.to_upper()
-			morceaux.append(_t(cle, [_t(statut), _nombre(v)]))
+			if String(effet["statut"]) == "givre":
+				# Le givre n'a pas de durée : un cran par coup reçu, la valeur n'y change rien.
+				morceaux.append(_t(cle + "_GIVRE"))
+			else:
+				var statut := "BOUTIQUE_STATUT_POSE_" + String(effet["statut"]).to_upper()
+				morceaux.append(_t(cle, [_t(statut), _nombre(v)]))
 		"pv_max_mult":
 			morceaux.append(_t("BOUTIQUE_EFFET_PV_MAX_MULT", [_pourcent(v)]))
 		"soin_pv_manquants":

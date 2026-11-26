@@ -183,6 +183,14 @@ const OFFRES: Dictionary = {
 	"patine_du_temps": ["upg_shield", "acier"],
 	"cuirasse_de_givre": ["gemBlue", "acier"],
 	"cotte_de_venin": ["upg_wand", "acier"],
+	# Mana, revenu contre des PV, copie d'offre et aura mixte (T9.12).
+	"citerne_d_arcanes": ["potionRed", "violet"],
+	"bouclier_en_eclats": ["upg_wand", "sarcelle"],
+	"grimoire_de_surcharge": ["tome", "sarcelle"],
+	"voile_de_brume": ["ludicarts/parchemin_bleu", "sarcelle"],
+	"commerce_a_credit": ["map", "or"],
+	"echo_de_l_aubaine": ["ludicarts/sac", "sarcelle"],
+	"brume_de_vie": ["gemGreen", "pourpre"],
 }
 
 ## Offres dont l'icône n'est qu'un rapprochement faible, à faire valider par Phil.

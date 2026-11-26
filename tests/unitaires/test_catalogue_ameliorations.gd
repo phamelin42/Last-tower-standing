@@ -13,6 +13,13 @@ const FAMILLES_TERMINEES: Array[String] = [
 	"pv_max",
 	"regeneration",
 	"armure",
+	"cadence",
+	"esquive",
+	"mana",
+	"revenu",
+	"boutique",
+	"aura_mixte",
+	"critique",
 ]
 
 ## Effectif cible de chaque famille (la map d'origine, plus nos trois améliorations sans homologue).
@@ -102,6 +109,55 @@ func test_les_familles_terminees_atteignent_leur_cible() -> void:
 
 func test_aucune_famille_ne_depasse_le_total_final() -> void:
 	verifier(_donnees.ameliorations.size() <= TOTAL_FINAL, "au plus 87 améliorations")
+
+
+func test_les_quinze_familles_sont_terminees_et_le_lot_ne_derive_pas() -> void:
+	var terminees: Array[String] = FAMILLES_TERMINEES.duplicate()
+	terminees.sort()
+	var cibles: Array = CIBLES.keys()
+	cibles.sort()
+	verifier_egal(terminees, cibles, "chaque famille cible est terminée, ni plus ni moins")
+	verifier_egal(terminees.size(), 15)
+
+
+func test_chaque_famille_atteint_sa_cible_et_le_total_est_87() -> void:
+	var effectifs := _effectifs()
+	for famille: String in CIBLES:
+		var effectif := int(effectifs.get(famille, 0))
+		verifier(
+			effectif >= int(CIBLES[famille]),
+			"%s : %d améliorations pour une cible de %d" % [famille, effectif, CIBLES[famille]]
+		)
+	for famille: Variant in effectifs:
+		verifier(CIBLES.has(famille), "famille inconnue : %s" % famille)
+	verifier_egal(_donnees.ameliorations.size(), TOTAL_FINAL, "exactement 87 améliorations")
+
+
+func test_les_87_ameliorations_ont_un_id_un_nom_une_image_et_une_description_uniques() -> void:
+	var ids: Dictionary = {}
+	var noms: Dictionary = {}
+	var descriptions: Dictionary = {}
+	var images: Dictionary = {}
+	for id: String in _donnees.ameliorations:
+		var amelioration: Dictionary = _donnees.ameliorations[id]
+		verifier_egal(amelioration["id"], id, "la clé est l'id")
+		verifier(not ids.has(id), "%s : id en double" % id)
+		ids[id] = true
+		var nom: String = amelioration["nom"]
+		verifier(nom.length() > 2 and not noms.has(nom), "%s : nom « %s »" % [id, nom])
+		noms[nom] = true
+		var texte: String = amelioration["description"]
+		verifier(
+			texte.length() > 10 and not descriptions.has(texte), "%s : description en double" % id
+		)
+		descriptions[texte] = true
+		var entree := ImagesOffres.entree(id)
+		verifier(not entree.is_empty(), "%s : une image" % id)
+		verifier(FileAccess.file_exists(ImagesOffres.chemin_case(id)), "%s : case composée" % id)
+		var cle := "%s|%s" % [entree.get("icone"), entree.get("couleur")]
+		verifier(not images.has(cle), "%s : image identique à %s" % [id, images.get(cle)])
+		images[cle] = id
+	verifier_egal(ids.size(), TOTAL_FINAL)
 
 
 func test_les_dix_huit_nouvelles_ameliorations_existent_avec_leur_famille_et_leur_effet() -> void:

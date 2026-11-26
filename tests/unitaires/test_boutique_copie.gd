@@ -40,14 +40,18 @@ func _proposer(ids: Array[String]) -> void:
 	_boutique.offres.clear()
 	for id: String in ids:
 		var fiche: Dictionary = d.ameliorations[id]
-		_boutique.offres.append(
-			{
-				"id": id,
-				"genre": Types.Genre.AMELIORATION,
-				"rarete": int(fiche["rarete"]),
-				"prix": int(fiche["prix"]),
-				"vendu": false,
-			}
+		(
+			_boutique
+			. offres
+			. append(
+				{
+					"id": id,
+					"genre": Types.Genre.AMELIORATION,
+					"rarete": int(fiche["rarete"]),
+					"prix": int(fiche["prix"]),
+					"vendu": false,
+				}
+			)
 		)
 
 
@@ -59,7 +63,8 @@ func _nombre(id: String) -> int:
 	return int(_inventaire.ameliorations.get(id, 0))
 
 
-func test_copie_prochaine_offre_double_le_prochain_achat_eligible_une_fois_et_pas_une_offre_plus_rare() -> void:
+func test_copie_prochaine_offre_double_le_prochain_achat_eligible_une_fois_et_pas_une_offre_plus_rare(
+) -> void:
 	for plafond: int in Types.NOMS_RARETES.size():
 		avant_chaque()
 		_inventaire.ameliorations["copie_%d" % plafond] = 1
@@ -111,7 +116,8 @@ func test_acheter_la_copie_elle_meme_ne_se_double_pas_avec_elle_meme() -> void:
 	verifier_egal(_nombre("cible_0"), 2, "elle double l'achat suivant")
 
 
-func test_une_arme_est_copiee_si_la_tour_a_de_la_place_et_sans_amelioration_rien_ne_change() -> void:
+func test_une_arme_est_copiee_si_la_tour_a_de_la_place_et_sans_amelioration_rien_ne_change(
+) -> void:
 	var id_arme: String = d.armes.keys()[0]
 	d.armes[id_arme]["rarete"] = Types.Rarete.COMMUNE
 	_boutique.offres = [

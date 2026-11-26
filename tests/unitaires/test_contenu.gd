@@ -54,6 +54,14 @@ const STATS: Array[String] = [
 	"soin_periodique",
 	"armure_croissante",
 	"riposte_statut",
+	# Lot 9 : mana, revenu contre des PV, copie d'offre, aura mixte.
+	"mana_max_mult",
+	"mana_rupture_etourdit",
+	"degats_tant_que_mana",
+	"reduction_tant_que_mana",
+	"revenu_contre_pv",
+	"copie_prochaine_offre",
+	"aura_mixte",
 ]
 ## Mana maximale de référence pour comparer le rendement des armes de mana aux autres (D12).
 const MANA_MAX_REFERENCE := 100.0

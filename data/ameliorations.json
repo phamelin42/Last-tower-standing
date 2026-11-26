@@ -1087,7 +1087,7 @@
    {
     "stat": "epines_statut",
     "statut": "givre",
-    "valeur": 3.0
+    "valeur": 1.0
    }
   ]
  },
@@ -1242,7 +1242,7 @@
    {
     "stat": "riposte_statut",
     "statut": "givre",
-    "valeur": 2.0
+    "valeur": 1.0
    }
   ]
  },
@@ -1259,6 +1259,115 @@
     "stat": "riposte_statut",
     "statut": "poison",
     "valeur": 4.0
+   }
+  ]
+ },
+ {
+  "id": "citerne_d_arcanes",
+  "nom": "Citerne d’arcanes",
+  "description": "Une citerne plus vaste pour la mana que la tour garde en réserve.",
+  "rarete": "rare",
+  "prix": 450,
+  "categorie": "amelioration",
+  "famille": "mana",
+  "effets": [
+   {
+    "stat": "mana_max_mult",
+    "valeur": 0.25
+   }
+  ]
+ },
+ {
+  "id": "bouclier_en_eclats",
+  "nom": "Bouclier en éclats",
+  "description": "Quand la réserve cède, l’onde fige les assaillants proches.",
+  "rarete": "rare",
+  "prix": 470,
+  "categorie": "amelioration",
+  "famille": "mana",
+  "effets": [
+   {
+    "stat": "mana_rupture_etourdit",
+    "rayon": 300.0,
+    "duree": 2.0
+   }
+  ]
+ },
+ {
+  "id": "grimoire_de_surcharge",
+  "nom": "Grimoire de surcharge",
+  "description": "Tant que la réserve n’est pas vide, chaque coup tombe plus lourd.",
+  "rarete": "rare",
+  "prix": 460,
+  "categorie": "amelioration",
+  "famille": "mana",
+  "effets": [
+   {
+    "stat": "degats_tant_que_mana",
+    "valeur": 0.2
+   }
+  ]
+ },
+ {
+  "id": "voile_de_brume",
+  "nom": "Voile de brume",
+  "description": "Une brume nacrée amortit les coups tant que la réserve de mana tient.",
+  "rarete": "rare",
+  "prix": 450,
+  "categorie": "amelioration",
+  "famille": "mana",
+  "effets": [
+   {
+    "stat": "reduction_tant_que_mana",
+    "valeur": 0.15
+   }
+  ]
+ },
+ {
+  "id": "commerce_a_credit",
+  "nom": "Commerce à crédit",
+  "description": "La tour s’endette en solidité pour des versements plus gras.",
+  "rarete": "rare",
+  "prix": 480,
+  "categorie": "revenu",
+  "famille": "revenu",
+  "effets": [
+   {
+    "stat": "revenu_contre_pv",
+    "pv": 150.0,
+    "or": 14
+   }
+  ]
+ },
+ {
+  "id": "echo_de_l_aubaine",
+  "nom": "Écho de l’aubaine",
+  "description": "La prochaine affaire modeste se présente à nouveau, sans supplément.",
+  "rarete": "rare",
+  "prix": 430,
+  "categorie": "amelioration",
+  "famille": "boutique",
+  "effets": [
+   {
+    "stat": "copie_prochaine_offre",
+    "raretes_max": "peu_commune"
+   }
+  ]
+ },
+ {
+  "id": "brume_de_vie",
+  "nom": "Brume de vie",
+  "description": "Un nuage mordant ronge les assaillants et ranime la tour.",
+  "rarete": "rare",
+  "prix": 470,
+  "categorie": "amelioration",
+  "famille": "aura_mixte",
+  "effets": [
+   {
+    "stat": "aura_mixte",
+    "rayon": 220.0,
+    "poison": 40.0,
+    "regen": 6.0
    }
   ]
  }
