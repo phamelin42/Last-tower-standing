@@ -9,6 +9,7 @@ const ARRIVEE := Vector2(360.0, 300.0)
 ## Planche du projectile de chaque élément (celles du dossier `assets/maison/effets_attaques/`).
 const PROJECTILES: Dictionary = {
 	"feu": "boule_feu",
+	"glace": "eclat_glace",
 }
 
 var _a: AttaquesElementaires = null
@@ -101,3 +102,31 @@ func test_tout_se_dissipe_et_rend_le_pool() -> void:
 	_avancer(60)
 	verifier_egal(_a.nombre_vivants(), 0, "plus rien après une seconde")
 	verifier_egal(_a.particules_actives(), 0, "plus de particule")
+
+
+func test_la_glace_dure_dix_images_et_trois_eclats_se_suivent() -> void:
+	verifier_proche(_duree_en_images("glace"), 10.0, 0.01)
+	var eclats: Array[Dictionary] = _a.etats("eclat_glace")
+	verifier_egal(eclats.size(), 3, "un éclat et deux qui le suivent")
+	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 4)
+	eclats = _a.etats("eclat_glace")
+	verifier(eclats[0]["position"].x > eclats[1]["position"].x, "le premier est devant")
+	verifier(eclats[1]["position"].x > eclats[2]["position"].x, "les suivants le suivent")
+	verifier(eclats[1]["echelle"].x < eclats[0]["echelle"].x, "les suivants sont plus petits")
+	verifier(_a.particules_actives() >= 1, "des points de givre")
+
+
+func test_la_glace_brise_au_rayon_puis_laisse_du_givre_au_sol() -> void:
+	_a.impacter("glace", ARRIVEE, 60.0)
+	verifier_proche(_a.etats("brisure_glace")[0]["diametre"], 120.0, 0.01, "brisure au rayon")
+	var givre: Array[Dictionary] = _a.etats("givre_sol")
+	verifier_egal(givre.size(), 1, "le givre reste au sol")
+	verifier_proche(givre[0]["diametre"], 120.0, 0.01, "givre au rayon exact")
+	_avancer(20)
+	verifier_egal(_a.etats("brisure_glace").size(), 0, "la brisure s'est dissipée")
+	verifier_egal(_a.etats("givre_sol").size(), 1, "le givre tient encore après 20 images")
+	var alpha_20: float = _a.etats("givre_sol")[0]["alpha"]
+	_avancer(3)
+	verifier(_a.etats("givre_sol")[0]["alpha"] < alpha_20, "le givre s'efface")
+	_avancer(2)
+	verifier_egal(_a.etats("givre_sol").size(), 0, "il a disparu en 24 images")
