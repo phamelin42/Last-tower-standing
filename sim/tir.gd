@@ -43,6 +43,8 @@ class Contexte:
 	var palier: float
 	var puissance_base: float
 	var coef_exces: float
+	## Part du repoussement qui s'applique au boss (`partie.json` `repoussement.facteur_boss`).
+	var facteur_boss_repoussement: float
 
 
 static func avancer_arme(
@@ -114,6 +116,8 @@ static func _creer(
 	ctx.palier = float(critique["palier"])
 	ctx.puissance_base = float(critique["puissance_base"])
 	ctx.coef_exces = float(critique["coef_exces"])
+	var repousse: Dictionary = donnees.partie["repoussement"]
+	ctx.facteur_boss_repoussement = float(repousse["facteur_boss"])
 	return ctx
 
 
@@ -194,6 +198,23 @@ static func _frapper(ctx: Contexte, i: int, degats: float) -> float:
 				ctx.ennemis.givrer(i, ctx.resistance)
 			"etourdissement":
 				ctx.ennemis.etourdir(i, float(statut["duree"]), ctx.resistance)
+			"vulnerabilite":
+				var type_vulnerable := int(statut.get("type_degats", -1))
+				if type_vulnerable < 0:
+					type_vulnerable = ctx.type_degats
+				ctx.ennemis.vulnerabiliser(
+					i, type_vulnerable, float(statut["ratio"]), float(statut["duree"])
+				)
+			"malediction_degats":
+				ctx.ennemis.maudire_degats(i, float(statut["ratio"]), float(statut["duree"]))
+			"malediction_toucher":
+				ctx.ennemis.maudire_toucher(i, float(statut["ratio"]), float(statut["duree"]))
+			"repoussement":
+				var facteur := 1.0
+				if ctx.ennemis.armure[i] == Types.Armure.BOSS:
+					facteur = ctx.facteur_boss_repoussement
+				if facteur > 0.0:
+					ctx.ennemis.repousser(i, float(statut["distance"]), ctx.centre, facteur)
 	return reels
 
 
