@@ -63,8 +63,7 @@ func _nombre(id: String) -> int:
 	return int(_inventaire.ameliorations.get(id, 0))
 
 
-func test_copie_prochaine_offre_double_le_prochain_achat_eligible_une_fois_et_pas_une_offre_plus_rare(
-) -> void:
+func test_copie_prochaine_offre_double_l_achat_eligible_une_fois_pas_une_offre_plus_rare() -> void:
 	for plafond: int in Types.NOMS_RARETES.size():
 		avant_chaque()
 		_inventaire.ameliorations["copie_%d" % plafond] = 1
