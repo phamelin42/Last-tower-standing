@@ -5,8 +5,9 @@ extends CasDeTest
 
 const GRAINE := 20261125
 const OCTETS_EVENEMENT := 14
-## Octets qui suivent le dernier événement : éliminations (u16), dégâts (f32), manche max (u16).
-const OCTETS_QUEUE := 8
+## Octets après la dernière liste d'événements : les trois compteurs d'alliés, de zones et de bombes
+## (version 6), puis éliminations, dégâts et manche maximale.
+const OCTETS_QUEUE := 11
 
 var _catalogue: PackedStringArray
 
@@ -84,13 +85,13 @@ func _prefixes(b: PackedByteArray) -> Array[PackedByteArray]:
 	return liste
 
 
-func test_la_version_est_5_et_un_bonjour_de_version_4_est_refuse_avec_un_motif() -> void:
-	verifier_egal(Protocole.VERSION, 5)
+func test_un_bonjour_de_version_4_est_refuse_avec_un_motif() -> void:
+	verifier(Protocole.VERSION >= 5)
 	var b := Protocole.encoder_bonjour("Phil", 42)
 	b[1] = 4
 	verifier_egal(Protocole.version_bonjour(b), 4)
 	var motif := Protocole.motif_version(4)
-	verifier(motif.contains("4") and motif.contains("5"), motif)
+	verifier(motif.contains("4") and motif.contains(str(Protocole.VERSION)), motif)
 
 
 func test_mana_et_prochaines_familles_traversent_le_protocole() -> void:
@@ -115,8 +116,9 @@ func test_mana_et_prochaines_familles_traversent_le_protocole() -> void:
 
 
 func test_un_etat_vide_a_exactement_la_taille_fixe() -> void:
-	verifier_egal(Protocole.encoder_etat_arene(VueArene.new(), _catalogue).size(), 60)
-	verifier_egal(Protocole.TAILLE_FIXE, 60)
+	verifier_egal(
+		Protocole.encoder_etat_arene(VueArene.new(), _catalogue).size(), Protocole.TAILLE_FIXE
+	)
 
 
 func test_une_famille_unique_de_l_ancien_champ_est_annoncee() -> void:
