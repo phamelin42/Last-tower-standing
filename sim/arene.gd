@@ -723,6 +723,10 @@ func vue(
 	v.tour_mana = mana
 	v.tour_mana_max = mana_max()
 	v.tour_armure = _armure_tour + _stats.armure_totale(_temps)
+	v.tour_epines = _stats.ratio_epines(_temps)
+	v.tour_esquive = Combat.chance_esquive(_stats.esquive, _esquive_k)
+	v.tour_regen = _stats.regen_totale(_temps)
+	v.tour_vol_de_vie = _stats.vol_de_vie_coup + _stats.vol_de_vie_mort
 	v.argent = economie.argent
 	v.revenu = economie.revenu_par_periode(_manche, _stats, _temps)
 	v.revenu_dans = economie.temps_avant_versement()

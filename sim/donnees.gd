@@ -19,13 +19,14 @@ const FICHIERS_OBJET: Array[String] = [
 	"efficacite.json",
 	"boutique.json",
 	"ennemis.json",
+	"apparence_tour.json",
 ]
 const FICHIERS_LISTE: Array[String] = [
 	"armes.json", "ameliorations.json", "unites.json", "defis.json"
 ]
-const FICHIERS_OPTIONNELS_EN_TEST: Array[String] = [
-	"armes.json", "ameliorations.json", "ennemis.json", "unites.json", "defis.json"
-]
+const FICHIERS_OPTIONNELS_EN_TEST: Array[String] = (
+	FICHIERS_LISTE + ["ennemis.json", "apparence_tour.json"]
+)
 const PORTEES: Array[int] = [500, 750, 1000, 1250]
 const CATEGORIES: Array[String] = ["A", "B", "C"]
 const STATS_AMELIORATION: Array[String] = [
@@ -129,6 +130,8 @@ var unites: Dictionary
 var ids_unites: PackedStringArray
 ## id → défi (`data/defis.json`, lot 11), dans l'ordre du fichier ; hors empreinte (cosmétique).
 var defis: Dictionary
+## Seuils d'apparence de la tour (D19) : `stats` et `agrandissement` ; hors empreinte (visuel).
+var apparence_tour: Dictionary
 ## Hash stable du contenu des fichiers (poignée de main réseau). Il porte sur le contenu lu,
 ## pas sur sa mise en forme : un fichier reformaté garde la même empreinte.
 var empreinte: int
@@ -205,6 +208,7 @@ static func depuis_brut(brut: Dictionary) -> Donnees:
 	ids_u.sort()
 	d.ids_unites = PackedStringArray(ids_u)
 	d.defis = DonneesProgression.normaliser(brut.get("defis.json", []))
+	d.apparence_tour = DonneesApparence.normaliser(brut.get("apparence_tour.json", {}))
 	var ennemis: Dictionary = brut["ennemis.json"]
 	d.familles = DonneesEnnemis.construire_familles(ennemis)
 	d.convoi = _copie(ennemis["convoi"])
@@ -214,6 +218,7 @@ static func depuis_brut(brut: Dictionary) -> Donnees:
 	if not complet.has("unites.json"):
 		complet["unites.json"] = []
 	complet.erase("defis.json")
+	complet.erase("apparence_tour.json")
 	d.empreinte = _empreinte(complet)
 	return d
 
@@ -267,7 +272,7 @@ static func valider(brut: Dictionary) -> PackedStringArray:
 	for nom in tout:
 		if not brut.has(nom):
 			# Un jeu de données bâti à la main peut ignorer les unités : liste vide.
-			if nom != "unites.json" and nom != "defis.json":
+			if nom not in ["unites.json", "defis.json", "apparence_tour.json"]:
 				err.append("%s: absent du jeu de données" % nom)
 			continue
 		var contenu: Variant = brut[nom]
@@ -300,6 +305,7 @@ static func valider(brut: Dictionary) -> PackedStringArray:
 		DonneesProgression.valider(presents["defis.json"], err)
 	if presents.has("ennemis.json"):
 		DonneesEnnemis.valider(presents["ennemis.json"], err)
+	DonneesApparence.valider(presents.get("apparence_tour.json", {}), err)
 	return PackedStringArray(err)
 
 
@@ -948,7 +954,7 @@ static func _normaliser_arme(v: Variant) -> Dictionary:
 static func _contenu_vide(nom: String) -> Variant:
 	if nom == "ennemis.json":
 		return {"modeles": [], "paliers": [], "convoi": {}, "boss": {}}
-	return []
+	return {} if nom == "apparence_tour.json" else []
 
 
 ## Hash SHA-256 du contenu canonique de chaque fichier (clés triées, entiers et flottants

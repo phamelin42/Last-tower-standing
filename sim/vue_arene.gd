@@ -19,6 +19,10 @@ const SCHEMA: Dictionary = {
 	"tour_armure": TYPE_FLOAT,
 	"tour_mana": TYPE_FLOAT,
 	"tour_mana_max": TYPE_FLOAT,
+	"tour_epines": TYPE_FLOAT,
+	"tour_esquive": TYPE_FLOAT,
+	"tour_regen": TYPE_FLOAT,
+	"tour_vol_de_vie": TYPE_FLOAT,
 	"prochaines_familles": TYPE_PACKED_INT32_ARRAY,
 	"prochaines_armures": TYPE_PACKED_BYTE_ARRAY,
 	"argent": TYPE_INT,
@@ -135,6 +139,13 @@ var tour_pv_max: float = 0.0
 var tour_armure: float = 0.0
 var tour_mana: float = 0.0
 var tour_mana_max: float = 0.0
+## Valeurs effectives des statistiques qui se voient sur la tour (lot 9, D19) : ratio d'épines,
+## chance d'esquive (0 à 1), PV par seconde de régénération, vol de vie au coup plus à la mort.
+## Armure, PV maximum et mana maximale sont les champs ci-dessus.
+var tour_epines: float = 0.0
+var tour_esquive: float = 0.0
+var tour_regen: float = 0.0
+var tour_vol_de_vie: float = 0.0
 ## 0 à 3 index de `Donnees.familles` (majoritaire en premier), `[index du convoi]` pour le convoi ;
 ## `prochaines_armures` a la même taille. `prochaine_famille` en est le premier élément.
 var prochaines_familles: PackedInt32Array = PackedInt32Array()
@@ -179,6 +190,10 @@ func to_dict() -> Dictionary:
 		"tour_armure": tour_armure,
 		"tour_mana": tour_mana,
 		"tour_mana_max": tour_mana_max,
+		"tour_epines": tour_epines,
+		"tour_esquive": tour_esquive,
+		"tour_regen": tour_regen,
+		"tour_vol_de_vie": tour_vol_de_vie,
 		"prochaines_familles": prochaines_familles.duplicate(),
 		"prochaines_armures": prochaines_armures.duplicate(),
 		"argent": argent,
@@ -221,6 +236,10 @@ static func from_dict(d: Dictionary) -> VueArene:
 	vue.tour_armure = d["tour_armure"]
 	vue.tour_mana = d["tour_mana"]
 	vue.tour_mana_max = d["tour_mana_max"]
+	vue.tour_epines = d["tour_epines"]
+	vue.tour_esquive = d["tour_esquive"]
+	vue.tour_regen = d["tour_regen"]
+	vue.tour_vol_de_vie = d["tour_vol_de_vie"]
 	var familles_suivantes: PackedInt32Array = d["prochaines_familles"]
 	vue.prochaines_familles = familles_suivantes.duplicate()
 	var armures_suivantes: PackedByteArray = d["prochaines_armures"]

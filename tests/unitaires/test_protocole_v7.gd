@@ -86,7 +86,7 @@ func test_les_plafonds_du_protocole_sont_ceux_de_partie_json() -> void:
 func test_un_etat_vide_a_exactement_la_taille_fixe_et_une_queue_de_onze_octets() -> void:
 	var b := _encoder(_vue())
 	verifier_egal(b.size(), Protocole.TAILLE_FIXE)
-	verifier_egal(Protocole.TAILLE_FIXE, 63)
+	verifier_egal(Protocole.TAILLE_FIXE, 79)
 	verifier_egal(b[b.size() - OCTETS_QUEUE], 0, "aucun allié")
 	verifier_egal(b[b.size() - OCTETS_QUEUE + 1], 0, "aucune zone")
 	verifier_egal(b[b.size() - OCTETS_QUEUE + 2], 0, "aucune bombe")
