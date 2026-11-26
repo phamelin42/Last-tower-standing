@@ -3,13 +3,14 @@ extends Node2D
 ## Vitrine des effets de combat, à capturer par `tools/capturer.sh` : rejoue en boucle tout ce que
 ## `Effets` sait dessiner, sans simulation ni réseau, sur un fond uni. Aucun texte affiché.
 ##
-## Disposition (écran de 1152 × 648, une cellule de 128 × 108 px, tour à gauche et cible à droite) :
+## Disposition (écran de 1152 × 648, cellules de 89 × 108 px, tour à gauche, cible à droite) :
 ## - une ligne par type de dégâts, de haut en bas : tranchant, perçant, magique, siège, chaos ;
 ## - une colonne par genre d'arme, de gauche à droite : aucun, cible unique, zone, rebond, aura,
-##   onde, barrage, piège, mine (l'ordre de `VueArene.GENRES_ARME`) ;
-## - la dernière ligne, de gauche à droite : les statuts poison, brûlure, givre, étourdissement et
-##   vol de vie (`VueArene.STATUTS_ARME`, sans « aucun »), puis une explosion de mort et
-##   l'absorption par la mana.
+##   onde, barrage, piège, mine, tournant, zone posée, bombe, invocation (l'ordre de
+##   `VueArene.GENRES_ARME`) ;
+## - la dernière ligne, de gauche à droite : les onze statuts de `VueArene.STATUTS_ARME` (sans
+##   « aucun »), puis une explosion de mort et l'absorption par la mana. Les colonnes tiennent
+##   13 cellules : un genre ou un statut de plus demande d'élargir `COLONNES`.
 ## Chaque cycle (`PERIODE`) envoie le tir et l'impact de chaque cellule dans la même image, comme la
 ## simulation : c'est `Effets` qui fait attendre l'impact jusqu'à l'arrivée du projectile. Les
 ## cibles réagissent aux coups comme les ennemis de l'arène (`ReactionsCoups`).
@@ -23,21 +24,21 @@ const ECHELLE_CIBLE: float = 0.35
 
 const LARGEUR_ECRAN: float = 1152.0
 const HAUTEUR_ECRAN: float = 648.0
-const COLONNES: int = 9
+const COLONNES: int = 13
 const LIGNES: int = 6
 const LARGEUR_CELLULE: float = LARGEUR_ECRAN / COLONNES
 const HAUTEUR_CELLULE: float = HAUTEUR_ECRAN / LIGNES
 ## Position de la tour et de la cible dans une cellule, en pixels depuis son coin haut gauche.
-const TOUR_DANS_CELLULE := Vector2(16.0, 54.0)
-const CIBLE_DANS_CELLULE := Vector2(96.0, 54.0)
+const TOUR_DANS_CELLULE := Vector2(12.0, 54.0)
+const CIBLE_DANS_CELLULE := Vector2(66.0, 54.0)
 const RAYON_TOUR_PX: float = 4.0
-## Rayon des genres de zone, en unités de jeu : 90 unités font 90 px de diamètre à l'écran.
-const RAYON_ZONE: float = 90.0
+## Rayon des genres de zone, en unités de jeu : 70 unités font 70 px de diamètre à l'écran.
+const RAYON_ZONE: float = 70.0
 ## Type de dégâts des cellules de statut : le magique, dont l'impact (le halo) reste discret.
 const TYPE_STATUT: int = Types.TypeDegats.MAGIQUE
 const LIGNE_SPECIALE: int = LIGNES - 1
-const COLONNE_EXPLOSION: int = 5
-const COLONNE_ABSORPTION: int = 6
+const COLONNE_EXPLOSION: int = 11
+const COLONNE_ABSORPTION: int = 12
 
 const PERIODE: float = 1.5
 const GRAINE: int = 20261126

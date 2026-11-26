@@ -20,9 +20,9 @@ const FICHIERS_OBJET: Array[String] = [
 	"boutique.json",
 	"ennemis.json",
 ]
-const FICHIERS_LISTE: Array[String] = ["armes.json", "ameliorations.json"]
+const FICHIERS_LISTE: Array[String] = ["armes.json", "ameliorations.json", "unites.json"]
 const FICHIERS_OPTIONNELS_EN_TEST: Array[String] = [
-	"armes.json", "ameliorations.json", "ennemis.json"
+	"armes.json", "ameliorations.json", "ennemis.json", "unites.json"
 ]
 const PORTEES: Array[int] = [500, 750, 1000, 1250]
 const CATEGORIES: Array[String] = ["A", "B", "C"]
@@ -50,11 +50,62 @@ const STATS_AMELIORATION: Array[String] = [
 	"marche_noir",
 	"mana_max",
 	"mana_regen",
+	# Lot 9 : acceptées et cumulées dès T9.2, consommées par T9.10 à T9.12.
+	"degats_classe",
+	"etat_degats",
+	"etat_duree",
+	"degats_contre_etat",
+	"epines_degats",
+	"epines_croissantes",
+	"epines_premier_coup",
+	"epines_soin",
+	"epines_reduction",
+	"epines_statut",
+	"pv_max_mult",
+	"soin_pv_manquants",
+	"degats_par_pv_max",
+	"resurrection",
+	"regen_croissante",
+	"soin_periodique",
+	"armure_croissante",
+	"riposte_statut",
+	"mana_max_mult",
+	"mana_rupture_etourdit",
+	"degats_tant_que_mana",
+	"reduction_tant_que_mana",
+	"revenu_contre_pv",
+	"copie_prochaine_offre",
+	"aura_mixte",
 ]
 ## Statistiques dont la valeur est un compteur entier (≥ 0).
 const STATS_ENTIERES: Array[String] = [
-	"tirs_multiples", "revenu_fixe", "relance_gratuite", "marche_noir"
+	"tirs_multiples", "revenu_fixe", "relance_gratuite", "marche_noir", "resurrection"
 ]
+## Statistiques « croissantes » : un `max` obligatoire borne leur croissance dans le temps.
+const STATS_CROISSANTES: Array[String] = [
+	"epines_croissantes", "regen_croissante", "armure_croissante"
+]
+## Statistiques qui portent une clé de dictionnaire : stat → [paramètre, noms acceptés].
+const STATS_A_CLE: Dictionary = {
+	"degats_classe": ["classe", ["onde", "portee_courte", "portee_longue", "commune"]],
+	"etat_degats": ["etat", ["poison", "brulure"]],
+	"etat_duree": ["etat", ["poison", "brulure", "etourdissement"]],
+	"degats_contre_etat": ["etat", ["etourdi", "empoisonne", "ralenti"]],
+	"epines_statut": ["statut", ["poison", "brulure", "givre", "etourdissement"]],
+	"riposte_statut": ["statut", ["givre", "poison"]],
+}
+## Statistiques qui portent leurs propres paramètres au lieu d'une `valeur`.
+const STATS_SANS_VALEUR: Array[String] = [
+	"bonus_elim",
+	"soin_periodique",
+	"mana_rupture_etourdit",
+	"revenu_contre_pv",
+	"copie_prochaine_offre",
+	"aura_mixte",
+]
+const MODELES_UNITES: Array[String] = ["guerrier", "archer", "paysan"]
+const RESSOURCES_SIPHON: Array[String] = ["mana", "vie"]
+const SENS_TOURNANT: Array[String] = ["horaire", "antihoraire"]
 
 var partie: Dictionary
 var economie: Dictionary
@@ -70,6 +121,10 @@ var convoi: Dictionary
 var boss: Dictionary
 ## Tous les ids d'armes et d'améliorations, triés : l'index sert de numéro réseau.
 var ids_catalogue: PackedStringArray
+## id → fiche des unités invocables (`data/unites.json`), et leurs ids triés : l'index sert de
+## numéro réseau.
+var unites: Dictionary
+var ids_unites: PackedStringArray
 ## Hash stable du contenu des fichiers (poignée de main réseau). Il porte sur le contenu lu,
 ## pas sur sa mise en forme : un fichier reformaté garde la même empreinte.
 var empreinte: int
@@ -127,7 +182,7 @@ static func depuis_brut(brut: Dictionary) -> Donnees:
 		d.armes[arme["id"]] = arme
 	var liste_amelios: Array = brut["ameliorations.json"]
 	for entree: Variant in liste_amelios:
-		var amelio := _normaliser_amelioration(entree)
+		var amelio := DonneesLot9.normaliser_amelioration(entree)
 		d.ameliorations[amelio["id"]] = amelio
 	var ids: Array[String] = []
 	for id: String in d.armes:
@@ -136,11 +191,24 @@ static func depuis_brut(brut: Dictionary) -> Donnees:
 		ids.append(id)
 	ids.sort()
 	d.ids_catalogue = PackedStringArray(ids)
+	var liste_unites: Array = brut.get("unites.json", [])
+	for entree: Variant in liste_unites:
+		var unite := DonneesLot9.normaliser_unite(entree)
+		d.unites[unite["id"]] = unite
+	var ids_u: Array[String] = []
+	for id: String in d.unites:
+		ids_u.append(id)
+	ids_u.sort()
+	d.ids_unites = PackedStringArray(ids_u)
 	var ennemis: Dictionary = brut["ennemis.json"]
 	d.familles = DonneesEnnemis.construire_familles(ennemis)
 	d.convoi = _copie(ennemis["convoi"])
 	d.boss = _copie(ennemis["boss"])
-	d.empreinte = _empreinte(brut)
+	# Un jeu bâti à la main sans unités vaut un jeu à liste d'unités vide : même empreinte.
+	var complet: Dictionary = brut.duplicate()
+	if not complet.has("unites.json"):
+		complet["unites.json"] = []
+	d.empreinte = _empreinte(complet)
 	return d
 
 
@@ -153,6 +221,14 @@ func categorie_de(id: String) -> int:
 		var amelioration: Dictionary = ameliorations[id]
 		return int(amelioration["categorie"])
 	return -1
+
+
+## Famille d'une amélioration (`Types.FAMILLES_AMELIORATION`) ; « » pour une arme ou un id inconnu.
+func famille_de(id: String) -> String:
+	if not ameliorations.has(id):
+		return ""
+	var amelioration: Dictionary = ameliorations[id]
+	return String(amelioration["famille"])
 
 
 ## Dernier palier dont `manche` ≤ la manche demandée. Avant le premier palier (la préparation,
@@ -184,7 +260,9 @@ static func valider(brut: Dictionary) -> PackedStringArray:
 	var presents: Dictionary = {}
 	for nom in tout:
 		if not brut.has(nom):
-			err.append("%s: absent du jeu de données" % nom)
+			# Un jeu de données bâti à la main peut ignorer les unités : liste vide.
+			if nom != "unites.json":
+				err.append("%s: absent du jeu de données" % nom)
 			continue
 		var contenu: Variant = brut[nom]
 		if nom in FICHIERS_OBJET and not contenu is Dictionary:
@@ -205,8 +283,11 @@ static func valider(brut: Dictionary) -> PackedStringArray:
 	if presents.has("boutique.json"):
 		_valider_boutique(presents["boutique.json"], err)
 	var ids: Dictionary = {}
+	var ids_unites_valides: Dictionary = {}
+	if presents.has("unites.json"):
+		DonneesLot9.valider_unites(presents["unites.json"], ids_unites_valides, err)
 	if presents.has("armes.json"):
-		_valider_armes(presents["armes.json"], ids, err)
+		_valider_armes(presents["armes.json"], ids, err, ids_unites_valides)
 	if presents.has("ameliorations.json"):
 		_valider_ameliorations(presents["ameliorations.json"], ids, err)
 	if presents.has("ennemis.json"):
@@ -300,6 +381,7 @@ static func _valider_partie(p: Dictionary, err: Array[String]) -> void:
 			and float(vagues["familles_max"]) < float(vagues["familles_min"])
 		):
 			_err(err, f, "vagues.familles_max", "ne peut être inférieur à vagues.familles_min")
+	DonneesLot9.valider_partie_lot9(p, err)
 	var vitesses_ok := _tableau(p, "vitesses_partie", f, "", err)
 	if vitesses_ok:
 		var vitesses: Array = p["vitesses_partie"]
@@ -381,7 +463,9 @@ static func _valider_boutique(b: Dictionary, err: Array[String]) -> void:
 		_nom_enum(noir, "raretes_max", Types.NOMS_RARETES, f, "marche_noir", err)
 
 
-static func _valider_armes(liste: Array, ids: Dictionary, err: Array[String]) -> void:
+static func _valider_armes(
+	liste: Array, ids: Dictionary, err: Array[String], unites: Dictionary = {}
+) -> void:
 	var f := "armes.json"
 	for i in liste.size():
 		var ch := "[%d]" % i
@@ -399,8 +483,14 @@ static func _valider_armes(liste: Array, ids: Dictionary, err: Array[String]) ->
 		_nombre(a, _pos("degats"), f, ch, err)
 		_nombre(a, _pos("recharge"), f, ch, err)
 		_nom_enum(a, "ciblage", Types.NOMS_CIBLAGES, f, ch, err)
-		if a.has("degats_par_mana_max"):
-			_nombre(a, _nn("degats_par_mana_max"), f, ch, err)
+		for nom: String in ["degats_par_mana_max", "degats_par_pv_max", "degats_par_exemplaire"]:
+			if a.has(nom):
+				_nombre(a, _nn(nom), f, ch, err)
+		if a.has("degats_par_amelioration"):
+			DonneesLot9.valider_degats_par_amelioration(a["degats_par_amelioration"], f, ch, err)
+		if a.has("type_secondaire") and a["type_secondaire"] != "epines":
+			var brut_second := _decrire(a["type_secondaire"])
+			_err(err, f, _sous(ch, "type_secondaire"), "« epines » attendu, reçu %s" % brut_second)
 		if _nombre(a, _ent("portee", 0.0), f, ch, err):
 			var portee: int = int(a["portee"])
 			if not portee in PORTEES:
@@ -412,7 +502,7 @@ static func _valider_armes(liste: Array, ids: Dictionary, err: Array[String]) ->
 				_err(err, f, _sous(ch, "effets"), "au moins un effet attendu")
 			for j in effets.size():
 				_valider_sous_effet(
-					effets[j], f, "%s[%d]" % [_sous(ch, "effets"), j], err, _kinds_effets()
+					effets[j], f, "%s[%d]" % [_sous(ch, "effets"), j], err, _kinds_effets(), unites
 				)
 		if a.has("statuts"):
 			var statuts_ok := _tableau(a, "statuts", f, ch, err)
@@ -425,7 +515,12 @@ static func _valider_armes(liste: Array, ids: Dictionary, err: Array[String]) ->
 
 ## Un effet d'arme ou un statut : `kind` connu, puis les paramètres de ce `kind`.
 static func _valider_sous_effet(
-	entree: Variant, f: String, ch: String, err: Array[String], kinds: Dictionary
+	entree: Variant,
+	f: String,
+	ch: String,
+	err: Array[String],
+	kinds: Dictionary,
+	unites: Dictionary = {}
 ) -> void:
 	if not entree is Dictionary:
 		_err(err, f, ch, "attendu un objet, reçu %s" % _decrire(entree))
@@ -444,6 +539,7 @@ static func _valider_sous_effet(
 		_nombre(e, spec, f, ch, err)
 	if kind == "vol_de_vie" and e.has("a_la_mort") and not e["a_la_mort"] is bool:
 		_err(err, f, _sous(ch, "a_la_mort"), "booléen attendu, reçu %s" % _decrire(e["a_la_mort"]))
+	DonneesLot9.valider_champs_texte(kind, e, f, ch, err, unites)
 
 
 static func _kinds_effets() -> Dictionary:
@@ -461,6 +557,17 @@ static func _kinds_effets() -> Dictionary:
 		"mine": [_pos("rayon"), _ent("max_actives", 1.0)],
 		"piege": [_pos("rayon"), _ent("max_actives", 1.0)],
 		"aura": [_pos("rayon"), _pos("periode")],
+		"tournant":
+		[
+			_spec("branches", 1.0, false, 8.0, true),
+			_spec("pas_deg", 0.0, true, 180.0),
+			_pos("largeur")
+		],
+		"zone_posee":
+		[_pos("rayon"), _pos("duree"), _pos("periode"), _pos("ratio"), _ent("max_actives", 1.0)],
+		"bombe":
+		[_spec("delai", 0.0, true, 5.0), _pos("rayon"), _pos("ratio"), _ent("max_actives", 1.0)],
+		"invocation": [_pos("duree"), _pos("ratio_degats"), _ent("max_actives", 1.0)],
 	}
 
 
@@ -471,6 +578,12 @@ static func _kinds_statuts() -> Dictionary:
 		"givre": [],
 		"etourdissement": [_pos("duree")],
 		"vol_de_vie": [_pos("ratio")],
+		"vulnerabilite": [_pos("ratio"), _pos("duree")],
+		"malediction_degats": [_spec("ratio", 0.0, true, 1.0), _pos("duree")],
+		"malediction_toucher": [_spec("ratio", 0.0, true, 1.0), _pos("duree")],
+		"repoussement": [_pos("distance")],
+		"siphon": [_pos("par_seconde"), _pos("duree")],
+		"mana_au_coup": [_pos("valeur")],
 	}
 
 
@@ -489,6 +602,7 @@ static func _valider_ameliorations(liste: Array, ids: Dictionary, err: Array[Str
 		_nom_enum(a, "rarete", Types.NOMS_RARETES, f, ch, err)
 		_nombre(a, _ent("prix", 0.0), f, ch, err)
 		var categorie := _nom_enum(a, "categorie", Types.NOMS_CATEGORIES, f, ch, err)
+		_nom_enum(a, "famille", Types.FAMILLES_AMELIORATION, f, ch, err)
 		if categorie == Types.Categorie.ARME:
 			var raison := "« arme » est réservé aux armes : « amelioration » ou « revenu » attendu"
 			_err(err, f, _sous(ch, "categorie"), raison)
@@ -498,37 +612,9 @@ static func _valider_ameliorations(liste: Array, ids: Dictionary, err: Array[Str
 		if effets.is_empty():
 			_err(err, f, _sous(ch, "effets"), "au moins un effet attendu")
 		for j in effets.size():
-			_valider_effet_amelioration(effets[j], f, "%s[%d]" % [_sous(ch, "effets"), j], err)
-
-
-static func _valider_effet_amelioration(
-	entree: Variant, f: String, ch: String, err: Array[String]
-) -> void:
-	if not entree is Dictionary:
-		_err(err, f, ch, "attendu un objet, reçu %s" % _decrire(entree))
-		return
-	var e: Dictionary = entree
-	if not e.has("stat") or not e["stat"] is String:
-		_err(err, f, _sous(ch, "stat"), "texte attendu, reçu %s" % _decrire(e.get("stat")))
-		return
-	var stat: String = e["stat"]
-	if not stat in STATS_AMELIORATION:
-		_err(err, f, _sous(ch, "stat"), "inconnue « %s »" % stat)
-		return
-	if stat == "bonus_elim":
-		_nombre(e, _ent("tous_les", 1.0), f, ch, err)
-		_nombre(e, _ent("or", 0.0), f, ch, err)
-		return
-	if stat in STATS_ENTIERES:
-		_nombre(e, _ent("valeur", 0.0), f, ch, err)
-	else:
-		_nombre(e, _spec("valeur", -INF), f, ch, err)
-	if stat == "degats_type":
-		_nom_enum(e, "type_degats", Types.NOMS_TYPES, f, ch, err)
-	if stat == "degats_type" or stat == "degats_global":
-		if not e.has("categorie") or not e["categorie"] in CATEGORIES:
-			var raison := "attendu A, B ou C, reçu %s" % _decrire(e.get("categorie"))
-			_err(err, f, _sous(ch, "categorie"), raison)
+			DonneesLot9.valider_effet_amelioration(
+				effets[j], f, "%s[%d]" % [_sous(ch, "effets"), j], err
+			)
 
 
 # --- Briques de validation ---------------------------------------------------------------------
@@ -804,6 +890,18 @@ static func _normaliser_sous_effet(v: Variant, kinds: Dictionary) -> Dictionary:
 		sortie[nom] = _entier_ou_flottant(source[nom], spec["entier"])
 	if kind == "vol_de_vie":
 		sortie["a_la_mort"] = source.get("a_la_mort", false)
+	match kind:
+		"tournant":
+			sortie["sens"] = source["sens"]
+		"siphon":
+			sortie["ressource"] = source["ressource"]
+		"invocation":
+			sortie["unite"] = source["unite"]
+		"vulnerabilite":
+			# -1 : le type de l'arme qui pose le statut.
+			sortie["type_degats"] = (
+				Types.type_depuis_nom(source["type_degats"]) if source.has("type_degats") else -1
+			)
 	return sortie
 
 
@@ -821,6 +919,10 @@ static func _normaliser_arme(v: Variant) -> Dictionary:
 		"portee": int(a["portee"]),
 		"ciblage": Types.ciblage_depuis_nom(a["ciblage"]),
 		"degats_par_mana_max": float(a.get("degats_par_mana_max", 0.0)),
+		"degats_par_pv_max": float(a.get("degats_par_pv_max", 0.0)),
+		"degats_par_exemplaire": float(a.get("degats_par_exemplaire", 0.0)),
+		"degats_par_amelioration": DonneesLot9.normaliser_par_amelioration(a),
+		"type_secondaire": String(a.get("type_secondaire", "")),
 	}
 	var effets: Array = []
 	var effets_bruts: Array = a["effets"]
@@ -833,35 +935,6 @@ static func _normaliser_arme(v: Variant) -> Dictionary:
 		statuts.append(_normaliser_sous_effet(s, _kinds_statuts()))
 	sortie["statuts"] = statuts
 	return sortie
-
-
-static func _normaliser_amelioration(v: Variant) -> Dictionary:
-	var a: Dictionary = v
-	var effets: Array = []
-	var effets_bruts: Array = a["effets"]
-	for e_brut: Variant in effets_bruts:
-		var e: Dictionary = e_brut
-		var stat: String = e["stat"]
-		var sortie_effet: Dictionary = {"stat": stat}
-		if stat == "bonus_elim":
-			sortie_effet["tous_les"] = int(e["tous_les"])
-			sortie_effet["or"] = int(e["or"])
-		else:
-			sortie_effet["valeur"] = _entier_ou_flottant(e["valeur"], stat in STATS_ENTIERES)
-		if stat == "degats_type":
-			sortie_effet["type_degats"] = Types.type_depuis_nom(e["type_degats"])
-		if stat == "degats_type" or stat == "degats_global":
-			sortie_effet["categorie"] = e["categorie"]
-		effets.append(sortie_effet)
-	return {
-		"id": a["id"],
-		"nom": a["nom"],
-		"description": a["description"],
-		"rarete": Types.rarete_depuis_nom(a["rarete"]),
-		"prix": int(a["prix"]),
-		"categorie": Types.categorie_depuis_nom(a["categorie"]),
-		"effets": effets,
-	}
 
 
 static func _contenu_vide(nom: String) -> Variant:

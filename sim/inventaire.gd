@@ -55,6 +55,8 @@ func prix_vente(index: int) -> int:
 
 func stats() -> StatsTour:
 	var s := StatsTour.new()
+	var reglages: Dictionary = _donnees.partie.get("ameliorations", {})
+	s.pas_croissance_s = float(reglages.get("croissance_pas_s", s.pas_croissance_s))
 	# catégorie → somme, par type de dégâts (et pour le global).
 	var par_type: Array[Dictionary] = [{}, {}, {}, {}, {}]
 	var global: Dictionary = {}
@@ -80,6 +82,8 @@ func _appliquer(
 		var tous_les := int(e["tous_les"])
 		if s.bonus_elim_tous_les == 0 or tous_les < s.bonus_elim_tous_les:
 			s.bonus_elim_tous_les = tous_les
+		return
+	if _appliquer_composite(s, e, stat, n):
 		return
 	var v: float = float(e["valeur"]) * n
 	match stat:
@@ -130,6 +134,86 @@ func _appliquer(
 			s.relances_gratuites += roundi(v)
 		"marche_noir":
 			s.marche_noir += roundi(v)
+		"degats_classe":
+			_ajouter(s.degats_classe, String(e["classe"]), v)
+		"etat_degats":
+			_ajouter(s.etat_degats, String(e["etat"]), v)
+		"etat_duree":
+			_ajouter(s.etat_duree, String(e["etat"]), v)
+		"degats_contre_etat":
+			_ajouter(s.degats_contre_etat, String(e["etat"]), v)
+		"epines_statut":
+			_ajouter(s.epines_statut, String(e["statut"]), v)
+		"riposte_statut":
+			_ajouter(s.riposte_statut, String(e["statut"]), v)
+		"epines_degats":
+			s.epines_degats += v
+		"epines_croissantes":
+			s.epines_croissantes += v
+			s.epines_croissantes_max += float(e["max"]) * n
+		"epines_premier_coup":
+			s.epines_premier_coup += v
+		"epines_soin":
+			s.epines_soin += v
+		"epines_reduction":
+			s.epines_reduction += v
+		"pv_max_mult":
+			s.pv_max_mult += v
+		"soin_pv_manquants":
+			s.soin_pv_manquants += v
+		"degats_par_pv_max":
+			s.degats_par_pv_max += v
+		"resurrection":
+			s.resurrection += roundi(v)
+		"regen_croissante":
+			s.regen_croissante += v
+			s.regen_croissante_max += float(e["max"]) * n
+		"armure_croissante":
+			s.armure_croissante += v
+			s.armure_croissante_max += float(e["max"]) * n
+		"mana_max_mult":
+			s.mana_max_mult += v
+		"degats_tant_que_mana":
+			s.degats_tant_que_mana += v
+		"reduction_tant_que_mana":
+			s.reduction_tant_que_mana += v
+
+
+## Les stats qui portent plusieurs paramètres au lieu d'une `valeur`. Vrai si `stat` en est une.
+func _appliquer_composite(s: StatsTour, e: Dictionary, stat: String, n: int) -> bool:
+	match stat:
+		"soin_periodique":
+			s.soin_periodique["ratio"] = float(s.soin_periodique["ratio"]) + float(e["ratio"]) * n
+			s.soin_periodique["tous_les"] = _plus_petit_non_nul(
+				float(s.soin_periodique["tous_les"]), float(e["tous_les"])
+			)
+		"mana_rupture_etourdit":
+			var rayon := maxf(float(s.mana_rupture_etourdit["rayon"]), float(e["rayon"]))
+			var duree := maxf(float(s.mana_rupture_etourdit["duree"]), float(e["duree"]))
+			s.mana_rupture_etourdit = {"rayon": rayon, "duree": duree}
+		"revenu_contre_pv":
+			s.revenu_contre_pv["or"] = int(s.revenu_contre_pv["or"]) + int(e["or"]) * n
+			s.revenu_contre_pv["pv"] = _plus_petit_non_nul(
+				float(s.revenu_contre_pv["pv"]), float(e["pv"])
+			)
+		"copie_prochaine_offre":
+			s.copie_prochaine_offre = maxi(s.copie_prochaine_offre, int(e["raretes_max"]))
+		"aura_mixte":
+			s.aura_mixte["rayon"] = maxf(float(s.aura_mixte["rayon"]), float(e["rayon"]))
+			s.aura_mixte["poison"] = float(s.aura_mixte["poison"]) + float(e["poison"]) * n
+			s.aura_mixte["regen"] = float(s.aura_mixte["regen"]) + float(e["regen"]) * n
+		_:
+			return false
+	return true
+
+
+static func _ajouter(cumul: Dictionary, cle: String, valeur: float) -> void:
+	cumul[cle] = float(cumul.get(cle, 0.0)) + valeur
+
+
+## Le plus petit des deux, 0 voulant dire « pas encore de valeur ».
+static func _plus_petit_non_nul(actuel: float, nouveau: float) -> float:
+	return nouveau if actuel <= 0.0 else minf(actuel, nouveau)
 
 
 ## Π sur les catégories de (1 + Σ valeurs de la catégorie).
