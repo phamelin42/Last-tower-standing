@@ -41,8 +41,9 @@ const MAX_OFFRES: int = 8
 const MAX_ARMES: int = 255
 ## Familles annoncées pour la manche suivante.
 const MAX_FAMILLES_SUIVANTES: int = 3
-## Plus grand identifiant de joueur qu'on peut regarder (il tient sur un octet).
-const MAX_ID_REGARDE: int = 255
+## Plus grand identifiant de joueur qu'on peut regarder : un identifiant de joueur est celui du
+## pair ENet, un entier de 32 bits aléatoire (il ne tient donc pas sur un octet).
+const MAX_ID_REGARDE: int = 0x7FFFFFFF
 ## Plus grand index de famille transportable (un octet, 0 à 127).
 const MAX_FAMILLE: int = 127
 
@@ -133,7 +134,8 @@ static func motif_version(version_recue: int) -> String:
 
 
 ## `u8 type · u8 genre · i32 arg · u8 n + texte UTF-8`. Vide si le genre est inconnu ou le texte
-## trop long (64 octets) ou invalide ; pour `REGARDER`, l'argument est -1 (cesser) ou 0 à 255.
+## trop long (64 octets) ou invalide ; pour `REGARDER`, l'argument est -1 (cesser) ou un
+## identifiant de joueur (0 à `MAX_ID_REGARDE`).
 static func encoder_intention(genre: int, arg: int, texte: String = "") -> PackedByteArray:
 	if genre < Intention.ACHETER or genre > Intention.REGARDER:
 		return PackedByteArray()
@@ -658,7 +660,7 @@ static func decoder_etat_arene(b: PackedByteArray, catalogue: PackedStringArray)
 	return v
 
 
-## `u8 type · u8 id` puis le corps d'un état d'arène (sans son octet de type) : l'arène d'un
+## `u8 type · i32 id` puis le corps d'un état d'arène (sans son octet de type) : l'arène d'un
 ## autre joueur, regardée de son vivant. Vide si l'identifiant n'est pas dans 0 à 255 ou si l'état
 ## n'est pas représentable (voir `encoder_etat_arene`).
 static func encoder_etat_arene_regardee(
@@ -669,7 +671,9 @@ static func encoder_etat_arene_regardee(
 	var etat := encoder_etat_arene(v, catalogue)
 	if etat.is_empty():
 		return PackedByteArray()
-	var sortie := PackedByteArray([Msg.ETAT_ARENE_REGARDEE, id_joueur])
+	var sortie := PackedByteArray([Msg.ETAT_ARENE_REGARDEE])
+	sortie.resize(5)
+	sortie.encode_s32(1, id_joueur)
 	sortie.append_array(etat.slice(1))
 	return sortie
 
@@ -678,14 +682,17 @@ static func encoder_etat_arene_regardee(
 static func decoder_etat_arene_regardee(
 	b: PackedByteArray, catalogue: PackedStringArray
 ) -> Dictionary:
-	if b.size() > MAX_TAILLE or b.size() < 2 or b[0] != Msg.ETAT_ARENE_REGARDEE:
+	if b.size() > MAX_TAILLE or b.size() < 5 or b[0] != Msg.ETAT_ARENE_REGARDEE:
+		return {}
+	var id := b.decode_s32(1)
+	if id < 0:
 		return {}
 	var etat := PackedByteArray([Msg.ETAT_ARENE])
-	etat.append_array(b.slice(2))
+	etat.append_array(b.slice(5))
 	var vue := decoder_etat_arene(etat, catalogue)
 	if vue == null:
 		return {}
-	return {"id": b[1], "vue": vue}
+	return {"id": id, "vue": vue}
 
 
 static func _id_regarde_valide(arg: int) -> bool:

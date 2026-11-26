@@ -201,6 +201,49 @@ func test_creer_rejoindre_pret_vitesse_x4_lancer_achat_depart_et_aucune_fuite() 
 	)
 
 
+func test_regarder_l_arene_de_l_autre_par_le_reseau_puis_la_voir_partir() -> void:
+	verifier(_port_jeu > 0 and _port_udp > 0, "des ports libres")
+	var hote := _session()
+	verifier_egal(hote.heberger(_donnees, _port_jeu, "Salon", "Mina", _port_udp, [ADRESSE]), OK)
+	var h := Ecoute.new(hote)
+	var autre := _session()
+	verifier_egal(autre.rejoindre(_donnees, ADRESSE, _port_jeu, "Bo"), OK)
+	var b := Ecoute.new(autre)
+	verifier(await _jusqua(_deux_joueurs.bind(h, b)), "les deux voient deux joueurs")
+	var id_b := autre.client.id_local()
+	autre.client.pret(true)
+	hote.client.lancer()
+	verifier(
+		await _jusqua(func() -> bool: return h.arenes.size() >= 2 and b.arenes.size() >= 2),
+		"la partie tourne"
+	)
+	var regardees: Array[int] = []
+	hote.client.vue_regardee_recue.connect(
+		func(id: int, _v: VueArene) -> void: regardees.append(id)
+	)
+	hote.client.regarder(id_b)
+	verifier(
+		await _jusqua(func() -> bool: return regardees.size() >= 3), "l'hôte voit l'arène de B"
+	)
+	verifier_egal(hote.client.id_regarde(), id_b)
+	for id: int in regardees:
+		verifier_egal(id, id_b)
+	# B part : l'hôte retrouve sa propre arène, sans erreur ni perte de connexion.
+	autre.client.quitter_partie()
+	verifier(
+		await _jusqua(func() -> bool: return hote.client.id_regarde() == -1),
+		"l'hôte ne regarde plus un joueur parti"
+	)
+	verifier_egal(h.perte, "")
+	var tick := h.derniere_arene().tick
+	verifier(
+		await _jusqua(func() -> bool: return h.derniere_arene().tick > tick + 10),
+		"sa propre arène continue"
+	)
+	_fermer_tout()
+	await attendre_images(4)
+
+
 func test_un_port_deja_pris_donne_un_message_clair_et_ne_laisse_rien() -> void:
 	var occupant := _session()
 	verifier_egal(occupant.heberger(_donnees, _port_jeu, "A", "Mina", _port_udp, [ADRESSE]), OK)

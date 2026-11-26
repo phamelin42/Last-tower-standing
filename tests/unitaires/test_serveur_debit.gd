@@ -13,6 +13,7 @@ var s: Serveur
 var ids: Array[int] = []
 var octets_par_pair: Dictionary = {}
 var paquets_par_pair: Dictionary = {}
+var regardees_par_pair: Dictionary = {}
 var plus_gros: int = 0
 
 
@@ -35,6 +36,8 @@ func _monter(n: int) -> void:
 	s = Serveur.new()
 	s.emetteur = func(pair: int, rpc: String, octets: PackedByteArray) -> void:
 		octets_par_pair[pair] = int(octets_par_pair.get(pair, 0)) + octets.size()
+		if rpc == "rpc_etat_arene_regardee":
+			regardees_par_pair[pair] = int(regardees_par_pair.get(pair, 0)) + 1
 		if rpc == "rpc_etat_arene":
 			paquets_par_pair[pair] = int(paquets_par_pair.get(pair, 0)) + 1
 			plus_gros = maxi(plus_gros, octets.size())
@@ -65,6 +68,7 @@ func _enrichir(cible: int) -> int:
 func _vider() -> void:
 	octets_par_pair = {}
 	paquets_par_pair = {}
+	regardees_par_pair = {}
 	plus_gros = 0
 
 
@@ -147,6 +151,50 @@ func test_le_debit_mesure_sur_10_s_tient_le_budget_a_un_paquet_pres() -> void:
 	)
 	verifier(paquets >= 50 and paquets <= 56, "5 à 5,6 Hz : %d paquets en 10 s" % paquets)
 	verifier_egal(s.etats_trop_gros, 0)
+
+
+func test_le_budget_de_50000_octets_par_seconde_tient_a_8_clients_et_1000_ennemis_en_regardant(
+) -> void:
+	_monter(8)
+	var n := _enrichir(FOULE_GRANDE)
+	# Chacun regarde l'arène du suivant : tous les pairs paient l'arène regardée.
+	for i: int in ids.size():
+		s.traiter_intention(
+			ids[i],
+			Protocole.encoder_intention(Protocole.Intention.REGARDER, ids[(i + 1) % ids.size()])
+		)
+	for i: int in 120:
+		s.tick(1.0 / 60.0)
+	_vider()
+	for i: int in 600:
+		s.tick(1.0 / 60.0)
+	var pire := 0
+	for pair: int in ids:
+		pire = maxi(pire, int(octets_par_pair[pair]) / 10)
+	var hz_propre := s.frequence_de(ids[0])
+	var hz_regardee := s.frequence_regardee_de(ids[0])
+	print(
+		(
+			(
+				"DEBIT T8.10 : %d ennemis, 8 clients qui regardent : %d o/s au plus par client "
+				+ "(budget %d), propre %.1f Hz, regardée %.1f Hz"
+			)
+			% [n, pire, _budget(), hz_propre, hz_regardee]
+		)
+	)
+	# Mesuré : l'arène propre descend à 3,7 Hz et l'arène regardée à son plancher de 1 Hz, soit
+	# 50 000 à 50 075 o/s par client : au paquet près (un état d'arène, ici 10 Ko), comme T3.3.
+	for pair: int in ids:
+		var total: int = octets_par_pair[pair]
+		verifier(
+			total <= _budget() * 10 + plus_gros,
+			"client %d : %d o en 10 s pour un budget de %d" % [pair, total, _budget() * 10]
+		)
+		verifier(
+			int(regardees_par_pair.get(pair, 0)) > 0, "client %d reçoit l'arène regardée" % pair
+		)
+	verifier(hz_regardee >= 1.0, "la fréquence regardée respecte son plancher")
+	verifier_egal(s.etats_trop_gros, 0, "aucun état refusé par le protocole")
 
 
 func test_cout_de_la_boucle_avec_8_clients_en_fin_de_partie() -> void:

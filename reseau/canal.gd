@@ -8,6 +8,7 @@ extends Node
 signal bonjour_recu(pair: int, octets: PackedByteArray)
 signal intention_recue(pair: int, octets: PackedByteArray)
 signal etat_arene_recu(octets: PackedByteArray)
+signal etat_arene_regardee_recu(octets: PackedByteArray)
 signal etat_global_recu(octets: PackedByteArray)
 signal salon_recu(octets: PackedByteArray)
 signal refus_recu(octets: PackedByteArray)
@@ -26,6 +27,12 @@ func rpc_intention(octets: PackedByteArray) -> void:
 @rpc("authority", "unreliable")
 func rpc_etat_arene(octets: PackedByteArray) -> void:
 	etat_arene_recu.emit(octets)
+
+
+## L'arène d'un autre joueur, regardée de son vivant (lot 8) : non fiable comme la sienne.
+@rpc("authority", "unreliable")
+func rpc_etat_arene_regardee(octets: PackedByteArray) -> void:
+	etat_arene_regardee_recu.emit(octets)
 
 
 @rpc("authority", "reliable")

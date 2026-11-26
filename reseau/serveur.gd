@@ -22,6 +22,8 @@ const ACCELERATION_MAX: int = 60
 ## Intentions admises par pair : 30 par seconde au plus, dont au plus 10 entre deux pas de boucle.
 const INTENTIONS_PAR_SECONDE: int = 30
 const INTENTIONS_PAR_PAS: int = 10
+## Cadence des cartes de densité dans l'état global (lot 8) : une fois par seconde.
+const HZ_DENSITES: float = 1.0
 const DELAI_BONJOUR_S: float = 5.0
 ## Laisse partir le refus (fiable) avant de couper : couper aussitôt le jette avec la file.
 const DELAI_COUPURE_S: float = 0.5
@@ -52,6 +54,9 @@ var _actif: bool = false
 var _peer: ENetMultiplayerPeer = null
 var _acc_global: float = 0.0
 var _taille_globale: int = 0
+## Octets des cartes de densité du dernier état global qui en portait, et attente avant le suivant.
+var _taille_densites: int = 0
+var _acc_densites: float = 1.0 / HZ_DENSITES
 var _fin_signalee: bool = false
 var _liaisons: Array[Array] = []
 var _coupures: Dictionary = {}
@@ -70,6 +75,13 @@ class _Pair:
 	var curseur: int = 0
 	var acc_arene: float = 0.0
 	var taille_arene: int = 0
+	## Joueur dont l'arène est regardée en plus de la sienne (-1 : aucun) ; son propre curseur,
+	## accumulateur et taille de dernier état, comme pour l'arène du pair.
+	var regarde: int = -1
+	var curseur_regarde: int = 0
+	var acc_regardee: float = 0.0
+	var taille_regardee: int = 0
+	var hz_regardee: float = 0.0
 	var fenetre: float = 0.0
 	var n_fenetre: int = 0
 	var n_pas: int = 0
@@ -90,6 +102,27 @@ static func frequence_arene(
 	if taille <= 0:
 		return hz_arene
 	return clampf((budget - reserve) / float(taille), hz_min, hz_arene)
+
+
+## Fréquence de l'arène regardée : ce qui reste du budget une fois retirés la part de l'état
+## global, `reserve`, et l'état propre (`octets_propre` à `hz_propre`), bornée à
+## [`hz_min`, `hz_max`] ; `hz_max` si l'état regardé n'a pas de taille connue.
+static func frequence_arene_regardee(
+	budget: float,
+	reserve: float,
+	octets_propre: int,
+	hz_propre: float,
+	octets_regardee: int,
+	hz_max: float,
+	hz_min: float
+) -> float:
+	if octets_regardee <= 0:
+		return hz_max
+	var reste := budget - reserve - float(octets_propre) * hz_propre
+	var hz := reste / float(octets_regardee)
+	if is_nan(hz):
+		return hz_min
+	return maxf(hz_min, minf(hz_max, hz))
 
 
 # --- Cycle de vie ----------------------------------------------------------------------------
@@ -199,7 +232,21 @@ func limitees(pair: int) -> int:
 ## Fréquence actuelle d'envoi de l'état d'arène à ce pair.
 func frequence_de(pair: int) -> float:
 	var p := _pairs.get(pair) as _Pair
-	return _frequence(p.taille_arene if p != null else 0)
+	if p == null:
+		return _frequence(0)
+	return _frequence(p.taille_arene, p.taille_regardee if p.regarde >= 0 else -1)
+
+
+## Fréquence actuelle d'envoi de l'arène regardée à ce pair ; 0 s'il n'en regarde aucune.
+func frequence_regardee_de(pair: int) -> float:
+	var p := _pairs.get(pair) as _Pair
+	return p.hz_regardee if p != null and p.regarde >= 0 else 0.0
+
+
+## Joueur que ce pair regarde en plus de sa propre arène ; -1 s'il n'en regarde aucun.
+func regarde_de(pair: int) -> int:
+	var p := _pairs.get(pair) as _Pair
+	return p.regarde if p != null else -1
 
 
 func _exit_tree() -> void:
@@ -323,6 +370,8 @@ func traiter_intention(pair: int, octets: PackedByteArray) -> int:
 		resultat = _options(pair, arg, String(i["texte"]))
 	elif genre == Protocole.Intention.OBSERVER:
 		resultat = _observer(p, pair, arg)
+	elif genre == Protocole.Intention.REGARDER:
+		resultat = _regarder(p, pair, arg)
 	elif partie == null:
 		resultat = _hors_phase()
 	else:
@@ -407,8 +456,30 @@ func _observer(p: _Pair, pair: int, cible: int) -> int:
 	if vue == null:
 		return Types.Resultat.INDICE_INVALIDE
 	p.cible = cible
+	p.regarde = -1
 	# Les événements d'avant le changement ne l'intéressent pas.
 	p.curseur = _tampon(cible).dernier
+	return Types.Resultat.OK
+
+
+## Regarder l'arène d'un autre joueur sans quitter la sienne : réservé au joueur en jeu (le
+## tombé, le vainqueur et le parti observent). -1 arrête ; soi-même ou un inconnu est refusé, et
+## le joueur regardé jusque-là l'est toujours.
+func _regarder(p: _Pair, pair: int, cible: int) -> int:
+	if partie == null:
+		return Types.Resultat.MAUVAISE_PHASE
+	if cible == -1:
+		p.regarde = -1
+		return Types.Resultat.OK
+	if cible == pair or partie.observation_permise(pair):
+		return Types.Resultat.INDICE_INVALIDE
+	if _lire_vue(pair, cible) == null:
+		return Types.Resultat.INDICE_INVALIDE
+	p.regarde = cible
+	p.curseur_regarde = _tampon(cible).dernier
+	# Un premier état part au prochain pas, sans attendre la période.
+	p.acc_regardee = 1.0
+	p.taille_regardee = 0
 	return Types.Resultat.OK
 
 
@@ -473,17 +544,31 @@ func _horloge_pairs(dt: float) -> void:
 		_couper(pair)
 
 
-func _frequence(taille: int) -> float:
+func _frequence(taille: int, octets_regardee: int = -1) -> float:
 	var r: Dictionary = _donnees.partie["reseau"]
-	var reserve := float(_taille_globale) * float(r["hz_global"])
+	var reserve := _reserve_globale()
+	var plancher := float(r["hz_min"])
+	if octets_regardee >= 0:
+		# Pair qui regarde : on retire d'abord le strict minimum de l'arène regardée, la propre
+		# arène prend le reste, quitte à descendre sous son plancher (le budget par client est
+		# la limite dure).
+		plancher = float(r["hz_min_regardee"])
+		reserve += float(r["hz_min_regardee"]) * float(octets_regardee)
 	return frequence_arene(
-		float(r["budget_octets_s"]), reserve, taille, float(r["hz_min"]), float(r["hz_arene"])
+		float(r["budget_octets_s"]), reserve, taille, plancher, float(r["hz_arene"])
 	)
+
+
+## Octets par seconde de l'état global : l'état à `hz_global` plus les cartes à `HZ_DENSITES`.
+func _reserve_globale() -> float:
+	var r: Dictionary = _donnees.partie["reseau"]
+	return float(_taille_globale) * float(r["hz_global"]) + float(_taille_densites) * HZ_DENSITES
 
 
 func _envoyer_etats(dt: float) -> void:
 	var r: Dictionary = _donnees.partie["reseau"]
 	_acc_global += dt
+	_acc_densites += dt
 	var periode_globale := 1.0 / float(r["hz_global"])
 	if _acc_global >= periode_globale:
 		_acc_global = minf(_acc_global - periode_globale, periode_globale)
@@ -492,27 +577,78 @@ func _envoyer_etats(dt: float) -> void:
 		var p := _pairs.get(pair) as _Pair
 		if p == null or not p.enregistre:
 			continue
-		p.acc_arene += dt
-		var periode := 1.0 / _frequence(p.taille_arene)
-		if p.acc_arene < periode:
-			continue
-		p.acc_arene = minf(p.acc_arene - periode, periode)
-		var vue := _vue_du_pas(p.cible)
-		if vue == null and p.cible != pair:
-			p.cible = pair
-			p.curseur = _tampon(pair).dernier
-			vue = _vue_du_pas(pair)
-		if vue == null:
-			continue
-		var lot := _tampon(p.cible).prendre(p.curseur, TAMPON_PAR_ENVOI)
-		vue.evenements = lot.evenements
-		var octets := Protocole.encoder_etat_arene(vue, _donnees.ids_catalogue)
-		if octets.is_empty():
-			etats_trop_gros += 1
-			continue
-		p.taille_arene = octets.size()
-		p.curseur = lot.curseur
-		_envoyer(pair, "rpc_etat_arene", octets)
+		_envoyer_arene_propre(pair, p, dt)
+		_envoyer_arene_regardee(pair, p, dt)
+
+
+func _envoyer_arene_propre(pair: int, p: _Pair, dt: float) -> void:
+	p.acc_arene += dt
+	var periode := 1.0 / _frequence(p.taille_arene, p.taille_regardee if p.regarde >= 0 else -1)
+	if p.acc_arene < periode:
+		return
+	p.acc_arene = minf(p.acc_arene - periode, periode)
+	var vue := _vue_du_pas(p.cible)
+	if vue == null and p.cible != pair:
+		p.cible = pair
+		p.curseur = _tampon(pair).dernier
+		vue = _vue_du_pas(pair)
+	if vue == null:
+		return
+	var lot := _tampon(p.cible).prendre(p.curseur, TAMPON_PAR_ENVOI)
+	vue.evenements = lot.evenements
+	var octets := Protocole.encoder_etat_arene(vue, _donnees.ids_catalogue)
+	if octets.is_empty():
+		etats_trop_gros += 1
+		return
+	p.taille_arene = octets.size()
+	p.curseur = lot.curseur
+	_envoyer(pair, "rpc_etat_arene", octets)
+
+
+## L'arène regardée, en plus de la sienne, à une fréquence qui tient le budget du pair. Un joueur
+## parti ou un pair tombé (qui observe désormais) ramène à sa propre arène : le pair en est averti
+## par un résultat `ARENE_MORTE`, pour que son interface cesse d'attendre cette arène.
+func _envoyer_arene_regardee(pair: int, p: _Pair, dt: float) -> void:
+	if p.regarde < 0:
+		return
+	var vue := _vue_du_pas(p.regarde) if not partie.observation_permise(pair) else null
+	if vue == null:
+		p.regarde = -1
+		_envoyer(
+			pair,
+			"rpc_resultat",
+			Protocole.encoder_resultat(Protocole.Intention.REGARDER, Types.Resultat.ARENE_MORTE)
+		)
+		return
+	var r: Dictionary = _donnees.partie["reseau"]
+	p.acc_regardee += dt
+	p.hz_regardee = frequence_arene_regardee(
+		float(r["budget_octets_s"]),
+		_reserve_globale(),
+		p.taille_arene,
+		_frequence(p.taille_arene, p.taille_regardee),
+		p.taille_regardee,
+		float(r["hz_arene_regardee"]),
+		float(r["hz_min_regardee"])
+	)
+	var periode := 1.0 / p.hz_regardee
+	if p.acc_regardee < periode:
+		return
+	p.acc_regardee = minf(p.acc_regardee - periode, periode)
+	var lot := _tampon(p.regarde).prendre(p.curseur_regarde, TAMPON_PAR_ENVOI)
+	# Une copie : la vue du pas sert aussi au propriétaire et à d'autres observateurs.
+	var copie := VueArene.from_dict(vue.to_dict())
+	if copie == null:
+		etats_trop_gros += 1
+		return
+	copie.evenements = lot.evenements
+	var octets := Protocole.encoder_etat_arene_regardee(p.regarde, copie, _donnees.ids_catalogue)
+	if octets.is_empty():
+		etats_trop_gros += 1
+		return
+	p.taille_regardee = octets.size()
+	p.curseur_regarde = lot.curseur
+	_envoyer(pair, "rpc_etat_arene_regardee", octets)
 
 
 func _tampon(joueur: int) -> TamponEvenements:
@@ -561,8 +697,19 @@ func taille_tampon(joueur: int) -> int:
 
 
 func _diffuser_global() -> void:
-	var octets := Protocole.encoder_etat_global(partie.vue_globale())
-	_taille_globale = octets.size()
+	var avec_densites := _acc_densites >= 1.0 / HZ_DENSITES
+	var vue := partie.vue_globale(avec_densites)
+	var octets := Protocole.encoder_etat_global(vue)
+	if avec_densites:
+		_acc_densites = 0.0
+		# La part des cartes se compte à part : elles ne partent qu'une fois par seconde.
+		var cartes := vue.densites
+		vue.densites = {}
+		_taille_globale = Protocole.encoder_etat_global(vue).size()
+		_taille_densites = octets.size() - _taille_globale
+		vue.densites = cartes
+	else:
+		_taille_globale = octets.size()
 	for pair: int in _pairs:
 		if (_pairs[pair] as _Pair).enregistre:
 			_envoyer(pair, "rpc_etat_global", octets)

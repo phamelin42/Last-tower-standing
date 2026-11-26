@@ -136,6 +136,19 @@ func test_observer_est_refuse_tant_que_le_joueur_local_est_en_jeu() -> void:
 	verifier_egal(source.cible_observee(), SourceLocale.ID_LOCAL)
 
 
+func test_solo_regarder_est_sans_effet() -> void:
+	var source := _creer()
+	var vues_regardees := 0
+	source.vue_regardee_recue.connect(func(_id: int, _v: VueArene) -> void: vues_regardees += 1)
+	for cible: int in [-1, 0, 7, SourceLocale.ID_LOCAL, 1 << 30]:
+		source.regarder(cible)
+		verifier_egal(source.id_regarde(), -1, "cible %d : rien n'est regardé" % cible)
+	_simuler(source, 2.0)
+	verifier_egal(vues_regardees, 0, "aucune vue d'une autre arène en solo")
+	verifier(arenes.size() > 0, "la sienne continue")
+	verifier_egal(source.cible_observee(), SourceLocale.ID_LOCAL)
+
+
 func test_une_partie_perdue_se_termine_par_une_vue_globale_terminee() -> void:
 	var source := _creer()
 	var images := 0
