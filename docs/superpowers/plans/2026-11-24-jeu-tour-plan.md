@@ -1905,7 +1905,7 @@ ameliorations.json — champ obligatoire « famille » (Types.FAMILLES_AMELIORAT
 
 ### Task 9.9 : Protocole : alliés, zones et bombes — `sonnet`
 
-- [ ] **Objectif :** transporter `allies`, `zones` et `bombes` dans l'état d'arène et dans l'état d'arène regardée, avec la montée de version du lot. Décodage défensif et fuzz comme les versions précédentes ; les nouveaux genres et statuts d'événement (4 bits) ne changent pas le format mais l'ancien client ne sait pas les lire : c'est ce qui motive la version.
+- [x] **Objectif :** transporter `allies`, `zones` et `bombes` dans l'état d'arène et dans l'état d'arène regardée, avec la montée de version du lot. Décodage défensif et fuzz comme les versions précédentes ; les nouveaux genres et statuts d'événement (4 bits) ne changent pas le format mais l'ancien client ne sait pas les lire : c'est ce qui motive la version.
 - **Conception :** §6.11 de la conception du lot 8, §6.13.
 - **Fichiers :** `reseau/protocole.gd` ; tests `test_protocole.gd`, `test_protocole_resultat.gd`, `test_protocole_jeton.gd` (version), `test_serveur_debit.gd`.
 - **Lire :** `reseau/protocole.gd` : `grep -n 'static func\|^const'`, puis `encoder_etat_arene` et `decoder_etat_arene` par plage ; `git log origin/main -3 -- reseau/protocole.gd` et `grep -n 'const VERSION' reseau/protocole.gd` **sur `origin/main` au moment de la tâche**.

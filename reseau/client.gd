@@ -227,7 +227,9 @@ func _a_la_reception_salon(octets: PackedByteArray) -> void:
 func _a_la_reception_arene(octets: PackedByteArray) -> void:
 	if not _valide(octets, Protocole.Msg.ETAT_ARENE) or donnees == null:
 		return
-	var vue := Protocole.decoder_etat_arene(octets, donnees.ids_catalogue)
+	var vue := Protocole.decoder_etat_arene(
+		octets, donnees.ids_catalogue, donnees.ids_unites.size()
+	)
 	if vue == null:
 		paquets_ignores += 1
 		return
@@ -245,7 +247,9 @@ func _a_la_reception_arene(octets: PackedByteArray) -> void:
 func _a_la_reception_regardee(octets: PackedByteArray) -> void:
 	if not _valide(octets, Protocole.Msg.ETAT_ARENE_REGARDEE) or donnees == null:
 		return
-	var r := Protocole.decoder_etat_arene_regardee(octets, donnees.ids_catalogue)
+	var r := Protocole.decoder_etat_arene_regardee(
+		octets, donnees.ids_catalogue, donnees.ids_unites.size()
+	)
 	if r.is_empty():
 		paquets_ignores += 1
 		return
