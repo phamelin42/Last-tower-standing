@@ -1,5 +1,5 @@
 extends CasDeTest
-## Siphon de mana et de vie, mana au coup (M4) : ce que la tour reçoit des ennemis qu'elle a touchés.
+## Siphon de mana et de vie, mana au coup (M4) : ce que la tour reçoit des ennemis touchés.
 
 const DT := 0.05
 const RAYON_TOUR := 60.0
