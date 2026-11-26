@@ -40,6 +40,8 @@ const SABLIER: String = "sablier"
 
 const MIROIR: String = "miroir"
 
+const VORTEX: String = "vortex"
+
 const ELEMENTS: Array[String] = [
 	FEU,
 	GLACE,
@@ -69,6 +71,7 @@ const ELEMENTS: Array[String] = [
 	DE_PIPE,
 	SABLIER,
 	MIROIR,
+	VORTEX,
 ]
 
 ## id d'arme → élément.
@@ -101,6 +104,7 @@ const TABLE: Dictionary = {
 	"de_pipe": DE_PIPE,
 	"sablier_fele": SABLIER,
 	"miroir_brise": MIROIR,
+	"vortex_de_verre": VORTEX,
 }
 
 

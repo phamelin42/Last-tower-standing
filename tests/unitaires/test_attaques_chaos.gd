@@ -280,3 +280,76 @@ func test_le_miroir_dans_effets_envoie_un_eclat_par_saut() -> void:
 		"un éclat pour le tir et un pour chaque saut"
 	)
 	effets.free()
+
+
+func _distances(planche: String, centre: Vector2) -> Array[float]:
+	var liste: Array[float] = []
+	for e: Dictionary in _a.etats(planche):
+		liste.append((e["position"] as Vector2).distance_to(centre))
+	return liste
+
+
+# --- Vortex de verre : onde et vol de vie ------------------------------------------------------
+
+
+func test_le_vortex_est_une_onde_qui_soigne() -> void:
+	_verifier_arme("vortex_de_verre", "vortex", "onde")
+	verifier_egal(String(_donnees.armes["vortex_de_verre"]["statuts"][0]["kind"]), "vol_de_vie")
+
+
+func test_le_vortex_va_aussi_vite_et_aussi_loin_que_l_onde_des_donnees() -> void:
+	var effet: Dictionary = _effet("vortex_de_verre")
+	verifier_proche(
+		AttaqueVortex.RAYON_PX, float(effet["rayon_max"]) * Apparence.PX_PAR_UNITE, 0.01
+	)
+	verifier_proche(
+		AttaqueVortex.VITESSE_PX, float(effet["vitesse"]) * Apparence.PX_PAR_UNITE, 0.01
+	)
+
+
+func test_les_bras_de_verre_partent_de_la_tour_a_la_vitesse_de_l_onde() -> void:
+	verifier(_a.onde("vortex", TOUR))
+	verifier_egal(_a.etats("vague_verre").size(), AttaqueVortex.BRAS, "une spirale de bras")
+	_avancer(10)
+	for d: float in _distances("vague_verre", TOUR):
+		verifier_proche(
+			d, AttaqueVortex.VITESSE_PX * 10.0 * IMAGE, 0.5, "10 images à la vitesse réelle"
+		)
+	verifier_egal(_a.etats("vague_verre")[0]["diametre"], 0.0, "ce n'est pas une zone pleine")
+
+
+func test_le_vortex_ne_depasse_jamais_son_rayon_et_s_efface_a_la_fin() -> void:
+	_a.onde("vortex", TOUR)
+	var fin: int = int(AttaqueVortex.RAYON_PX / AttaqueVortex.VITESSE_PX / IMAGE)
+	_avancer(fin - 1)
+	for d: float in _distances("vague_verre", TOUR):
+		verifier(d <= AttaqueVortex.RAYON_PX + 0.01, "jamais au-delà du rayon")
+	for bras: Dictionary in _a.etats("vague_verre"):
+		verifier(bras["alpha"] < AttaquesElementaires.ALPHA_MAX * 0.8, "il s'efface sur la fin")
+	_avancer(80)
+	verifier_egal(_a.nombre_vivants(), 0, "plus rien")
+
+
+func test_des_eclats_restent_derriere_le_front_et_pas_avant() -> void:
+	_a.onde("vortex", TOUR)
+	var attendus: int = AttaqueVortex.COURONNES_ECLATS.size() * AttaqueVortex.ECLATS
+	verifier_egal(_a.etats("eclat_verre").size(), attendus)
+	verifier_egal(_visibles("eclat_verre"), 0, "aucun éclat tant que le front n'est pas passé")
+	_avancer(int(AttaqueVortex.RAYON_PX / AttaqueVortex.VITESSE_PX / IMAGE))
+	verifier(_visibles("eclat_verre") > 0, "les éclats restent derrière le front")
+	_avancer(60)
+	verifier_egal(_a.nombre_vivants(), 0)
+
+
+func test_le_vortex_dans_effets_est_dessine_une_fois_au_depart() -> void:
+	var effets: Effets = _effets()
+	var evenements: Array[Dictionary] = _evenements("vortex_de_verre")
+	effets.ajouter(evenements[0])
+	verifier_egal(effets.elementaires().etats("vague_verre").size(), AttaqueVortex.BRAS, "le front")
+	effets.ajouter(evenements[1])
+	verifier_egal(
+		effets.elementaires().etats("vague_verre").size(),
+		AttaqueVortex.BRAS,
+		"l'impact n'en ajoute pas"
+	)
+	effets.free()
