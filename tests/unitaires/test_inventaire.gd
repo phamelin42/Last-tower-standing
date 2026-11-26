@@ -1,7 +1,7 @@
 extends CasDeTest
 ## Ce que le joueur obtient de son équipement : autant d'armes qu'il en achète (255 au plus, la
-## limite du réseau), des améliorations qui s'empilent, et des statistiques cumulées comme la spec le dit
-## (additif dans une catégorie, multiplicatif entre catégories).
+## limite du réseau), des améliorations qui s'empilent, et des statistiques cumulées comme la spec
+## le dit (additif dans une catégorie, multiplicatif entre catégories).
 
 
 func _donnees_reelles() -> Donnees:
