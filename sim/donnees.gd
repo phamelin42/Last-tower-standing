@@ -228,6 +228,15 @@ static func depuis_brut(brut: Dictionary) -> Donnees:
 	return d
 
 
+## Les identifiants de skin de tour, dans l'ordre de `data/skins_tour.json` : l'index fait le
+## numéro réseau (0, le skin par défaut).
+func ids_skins() -> Array[String]:
+	var ids: Array[String] = []
+	for id: String in skins_tour:
+		ids.append(id)
+	return ids
+
+
 ## Catégorie d'une offre (`Types.Categorie`) : une arme est toujours `ARME`, une amélioration porte
 ## la sienne dans les données ; -1 pour un identifiant inconnu.
 func categorie_de(id: String) -> int:

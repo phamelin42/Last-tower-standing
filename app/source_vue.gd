@@ -19,6 +19,12 @@ func bilan() -> Dictionary:
 	return {}
 
 
+## Choisit le skin de tour au salon (index du catalogue de `data/skins_tour.json`, borné par la
+## simulation) ; sans effet tant que la base n'est pas redéfinie.
+func definir_skin(_index: int) -> void:
+	pass
+
+
 ## Identifiant du joueur local ; -1 tant que la base n'est pas redéfinie.
 func id_local() -> int:
 	return -1

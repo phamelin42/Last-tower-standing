@@ -128,6 +128,7 @@ func _globale(nb: int) -> VueGlobale:
 					"dps": 12.5 * float(i),
 					"pv": 100.0 * float(i),
 					"pv_max": 1000.0,
+					"skin": (i * 37) % 256,
 					"vivant": i % 2 == 0,
 					"victorieux": nb == 8 and i == 0,
 				}
@@ -347,10 +348,12 @@ func test_vue_globale_renvoie_null_si_une_cle_manque_ou_si_le_type_est_faux() ->
 
 func test_vue_globale_refuse_une_entree_de_joueur_malformee() -> void:
 	var d := _globale(3).to_dict()
-	# Dps, PV et PV max sont facultatifs (un ancien état se relit avec 0.0) : leur mauvaise forme est
-	# testée à part.
+	# Dps, PV, PV max et skin sont facultatifs (un ancien état se relit avec 0.0 et 0) : leur
+	# mauvaise forme est testée à part.
 	for entree: Dictionary in d["joueurs"]:
 		for cle: String in VueGlobale.CHAMPS_JOUEUR_FACULTATIFS:
+			entree.erase(cle)
+		for cle: String in VueGlobale.CHAMPS_JOUEUR_ENTIERS_FACULTATIFS:
 			entree.erase(cle)
 	for copie: Dictionary in _copies_entree_abimee(d, "joueurs"):
 		verifier_nul(VueGlobale.from_dict(copie), "joueur abîmé")

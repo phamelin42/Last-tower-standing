@@ -66,6 +66,17 @@ func marquer_pret(id: int, pret: bool) -> bool:
 	return true
 
 
+## Le skin de tour de `id` (index déjà borné au catalogue par l'appelant) ; refusé une fois la
+## partie lancée. Il n'est pas diffusé avec le salon : il rejoint la partie au lancement.
+func definir_skin(id: int, index: int) -> bool:
+	if lancee:
+		return _refuser("La partie a déjà commencé.")
+	if not joueurs.has(id):
+		return _refuser("Ce joueur n'est pas dans le salon.")
+	joueurs[id]["skin"] = index
+	return true
+
+
 ## `id_hote` est l'émetteur de la demande, `id` le joueur dont on règle la partie : seul l'hôte
 ## actuel passe, et il ne peut agir qu'en son nom.
 func regler(id_hote: int, id: int, v: float, g: int, fixe: bool) -> bool:
