@@ -11,6 +11,7 @@ const CONF: Dictionary = {
 	"fps": 8.0,
 	"tour": PI,
 	"bosse": 0.15,
+	"explosion": true,
 }
 
 

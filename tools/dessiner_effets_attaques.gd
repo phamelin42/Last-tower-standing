@@ -21,6 +21,8 @@ const DESSINS: Array[GDScript] = [
 	preload("res://tools/dessin/dessins_arcane.gd"),
 	preload("res://tools/dessin/dessins_acier.gd"),
 	preload("res://tools/dessin/dessins_carreau.gd"),
+	preload("res://tools/dessin/dessins_magique.gd"),
+	preload("res://tools/dessin/dessins_siege.gd"),
 	preload("res://tools/dessin/dessins_partages.gd"),
 ]
 const ECHELLE_CONTACT: int = 4
@@ -45,6 +47,10 @@ const PROJECTILES: PackedStringArray = [
 	"chausse_trape",
 	"pique",
 	"aiguille",
+	"etoile_astrale",
+	"petard",
+	"rocher",
+	"mine_forge",
 ]
 
 

@@ -8,8 +8,9 @@ Les images de ce dossier sont des créations du projet, mises en CC0 1.0 (domain
 Sprites d'effets des attaques (boule de feu, explosion, éclat et brisure de glace, givre, bombe,
 fiole, nuage et éclaboussure de poison, rune, étincelle, éclair de départ, croissant,
 entaille, faucille, balayage, disque de scie, lames de cuivre et tournantes, arc de lame, vapeur et éclats
-d'acier, carreaux, chausse-trape, pique de herse, aiguille, carreau planté, gerbe d'éclats et pointes
-du sol), dessinés par
+d'acier, carreaux, chausse-trape, pique de herse, aiguille, carreau planté, gerbe d'éclats, pointes
+du sol, vague d'ambre, étoile et éclat astraux, pétard et son pop, rocher, cratère de poussière
+et mine de forge), dessinés par
 `tools/dessiner_effets_attaques.gd` dans le style et la palette de Tiny Swords : aplats, gros
 pixels, contour sombre. Aucun fichier de Tiny Swords n'est copié : seules quelques teintes de
 `Effects/Fire/Fire.png` et `Effects/Explosion/Explosions.png` ont été relevées. Le script fait foi :
