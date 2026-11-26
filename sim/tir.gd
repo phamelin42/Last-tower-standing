@@ -362,7 +362,44 @@ static func _effet(ctx: Contexte, kind: String, effet: Dictionary) -> bool:
 			return _lancer_onde(ctx, effet)
 		"mine", "piege":
 			return _poser_mine(ctx, effet)
+		"tournant":
+			return _tournant(ctx, effet)
 	return false
+
+
+# --- Tir tournant ------------------------------------------------------------------------------
+
+
+## `branches` rayons partent de la tour à des angles régulièrement répartis, décalés de la phase de
+## l'arme ; chaque rayon frappe les ennemis dont la distance au segment (tour → portée) est au plus
+## `largeur`. Un ennemi n'est frappé qu'une fois par tir. La phase avance ensuite de `pas_deg`
+## dans le sens de l'arme. Vrai si un tir a eu lieu : il en faut un ennemi à portée, comme pour les
+## autres effets qui visent. Aucun hasard hors critique (un seul tirage par rayon, s'il y a une
+## chance).
+static func _tournant(ctx: Contexte, effet: Dictionary) -> bool:
+	var portee := float(ctx.arme.def["portee"])
+	if not _existe(ctx, ctx.centre, portee):
+		return false
+	var branches := int(effet["branches"])
+	var largeur := float(effet["largeur"])
+	var ennemis := ctx.ennemis
+	var deja: Dictionary = {}
+	var phase := ctx.arme.phase_deg
+	for k: int in branches:
+		var angle := deg_to_rad(phase + 360.0 * float(k) / float(branches))
+		var bout := ctx.centre + Vector2(cos(angle), sin(angle)) * portee
+		_evenement(ctx, "tir", ctx.centre, bout, largeur)
+		var degats := ctx.degats_base * _critique(ctx)
+		for i: int in ennemis.ids.size():
+			if ennemis.mort[i] != 0 or deja.has(ennemis.ids[i]):
+				continue
+			var proche := Geometry2D.get_closest_point_to_segment(ennemis.pos[i], ctx.centre, bout)
+			if proche.distance_to(ennemis.pos[i]) <= largeur:
+				deja[ennemis.ids[i]] = true
+				_frapper(ctx, i, degats)
+	var sens := -1.0 if String(effet["sens"]) == "antihoraire" else 1.0
+	ctx.arme.phase_deg = fposmod(phase + sens * float(effet["pas_deg"]), 360.0)
+	return true
 
 
 # --- Effets qui visent : un tir par cible distincte ----------------------------------------------
