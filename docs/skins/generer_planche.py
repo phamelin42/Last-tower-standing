@@ -19,12 +19,11 @@ TINY = {
     "gob_house": ("Factions/Goblins/Buildings/Wood_House/Goblin_House.png", None),
     "kn_construction": ("Factions/Knights/Buildings/Tower/Tower_Construction.png", None),
     "kn_ruin": ("Factions/Knights/Buildings/Tower/Tower_Destroyed.png", None),
-    "kn_castle": ("Factions/Knights/Buildings/Castle/Castle_Blue.png", None),
     "kn_house": ("Factions/Knights/Buildings/House/House_Blue.png", None),
     "gold_mine": ("Resources/Gold Mine/GoldMine_Active.png", None),
 }
 # Sprites qui portent déjà la couleur du joueur (bleu de Tiny Swords, teintable) : pas de fanion posé.
-MARQUE_D_ORIGINE = {"gob_tower", "kn_castle", "kn_house", "kn_construction", "S1a1", "S1a2", "S1a3"}
+MARQUE_D_ORIGINE = {"gob_tower", "kn_house", "kn_construction", "S1a1", "S1a2", "S1a3"}
 
 # skin -> (candidat, B bon | P partiel | R rapprochement). Un candidat déjà pris est signalé « réemploi ».
 CHOIX = {
@@ -75,15 +74,10 @@ CHOIX = {
     "tour_comptoir": ("gob_house", "R"),
     "tour_eternelle": ("S2a2", "R"),
     "tour_de_la_table_ronde": ("kn_construction", "P"),
-    "tour_du_dernier_rempart": ("kn_castle", "P"),
-    "tour_zone_posee": ("S4a2", "R"),
-    "tour_bombe": ("S2b3", "R"),
+    "tour_du_dernier_rempart": ("S4b3", "R"),
+    "tour_cratere": ("S4a2", "R"),
+    "tour_artificier": ("S2b3", "R"),
 }
-# Skins dont le défi n'est pas encore dans docs/defis.md (PR #85) : identifiants provisoires.
-PROVISOIRES = [
-    ("seul_zone_posee", "tour_zone_posee", "disque de zone posé au pied (provisoire)"),
-    ("seul_bombe", "tour_bombe", "bombes rondes à mèche (provisoire)"),
-]
 COUL = {"B": (60, 160, 80), "P": (220, 170, 40), "R": (210, 110, 40)}
 LIB = {"B": "bon", "P": "partiel", "R": "rapproché"}
 
@@ -94,7 +88,7 @@ def lire_skins() -> list[tuple[str, str, str]]:
     return [
         (m[0], m[1], m[2].strip())
         for m in re.findall(r"^\| `(\w+)`\s*\| `(\w+)`\s*\| (.+?)\s*\|$", section, re.M)
-    ] + PROVISOIRES
+    ]
 
 
 def image(cle: str) -> Image.Image:
