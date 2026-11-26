@@ -868,7 +868,12 @@ func test_palier_sur_les_tables_reelles_de_chaque_fichier() -> void:
 	verifier_proche(d.palier(prime, 9, "valeur"), 1.0)
 	verifier_proche(d.palier(prime, 10, "valeur"), 1.5)
 	var diff: Array = d.difficulte["paliers"]
-	verifier_proche(d.palier(diff, 3, "pv"), 1.0)
+	var ligne_3: Dictionary = {}
+	for entree: Dictionary in diff:
+		if int(entree["manche"]) == 3:
+			ligne_3 = entree
+	verifier_proche(d.palier(diff, 3, "pv"), float(ligne_3["pv"]))
+	verifier_proche(d.palier(diff, 3, "degats"), float(ligne_3["degats"]))
 	var poids: Array = d.boutique["poids"]
 	verifier_proche(d.palier(poids, 1, "commune"), 70.0)
 

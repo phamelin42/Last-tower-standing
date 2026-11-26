@@ -10,6 +10,7 @@ const HAUTEUR_MIN := 48.0
 const TAILLE_MIN := 16
 const NB_OFFRES := 4
 const NB_ARMES := 8
+const MAX_ARMES := 255
 const ACTIONS_OFFRES: Array[String] = [
 	"boutique_offre_1", "boutique_offre_2", "boutique_offre_3", "boutique_offre_4"
 ]
@@ -37,6 +38,7 @@ func avant_chaque() -> void:
 	for i: int in NB_OFFRES:
 		_lier_action(ACTIONS_OFFRES[i], TOUCHES_OFFRES[i])
 	_lier_action(BoutiqueUi.ACTION_RELANCER, KEY_R)
+	_lier_action(BoutiqueUi.ACTION_REPLIER, KEY_B)
 	_donnees = Donnees.charger()
 	_source = SourceFactice.new()
 	arbre.root.add_child(_source)
@@ -51,7 +53,7 @@ func apres_chaque() -> void:
 			noeud.get_parent().remove_child(noeud)
 			noeud.free()
 	_champ = null
-	for action: String in ACTIONS_OFFRES + [BoutiqueUi.ACTION_RELANCER]:
+	for action: String in ACTIONS_OFFRES + [BoutiqueUi.ACTION_RELANCER, BoutiqueUi.ACTION_REPLIER]:
 		if InputMap.has_action(action):
 			InputMap.erase_action(action)
 	InputMap.load_from_project_settings()
@@ -285,13 +287,15 @@ func test_offre_trop_chere_reste_cliquable_et_annonce_or_insuffisant() -> void:
 	verifier_egal(_appels("acheter").size(), 1, "l'achat part quand même, la source tranche")
 
 
-func test_armes_pleines_annonce_sur_une_arme_et_pas_sur_une_amelioration() -> void:
-	_ui.afficher(_vue_armes(NB_ARMES))
+func test_au_maximum_d_armes_l_achat_d_une_arme_le_dit_et_pas_celui_d_une_amelioration() -> void:
+	_ui.afficher(_vue_armes(MAX_ARMES))
 	for i: int in range(0, 3):
-		verifier(_texte_carte(i).contains("Emplacements pleins"), "arme %d" % i)
-	verifier_faux(_texte_carte(3).contains("Emplacements pleins"), "pas sur une amélioration")
-	_ui.afficher(_vue_armes(NB_ARMES - 1))
-	verifier_faux(_texte_carte(0).contains("Emplacements pleins"), "un emplacement libre")
+		verifier(_texte_carte(i).contains("Maximum d’armes atteint"), "arme %d" % i)
+	verifier_faux(_texte_carte(3).contains("Maximum d’armes"), "pas sur une amélioration")
+	_ui.afficher(_vue_armes(MAX_ARMES - 1))
+	verifier_faux(_texte_carte(0).contains("Maximum d’armes"), "une arme de plus est permise")
+	_ui.afficher(_vue_armes(NB_ARMES))
+	verifier_faux(_texte_carte(0).contains("Emplacements"), "plus d'emplacements de huit armes")
 
 
 # --- Intentions ------------------------------------------------------------------------------
@@ -405,42 +409,83 @@ func test_relance_a_zero_or_annonce_or_insuffisant_et_reste_cliquable() -> void:
 # --- Armes équipées --------------------------------------------------------------------------
 
 
-func test_chaque_arme_equipee_a_son_bouton_vendre_et_son_prix_en_boucle() -> void:
+## Donne à l'interface la taille d'une fenêtre (les ancres de la racine sont celles d'un plein
+## écran : on les fixe pour que la taille tienne).
+func _dimensionner(taille: Vector2) -> void:
+	_ui.anchor_right = 0.0
+	_ui.anchor_bottom = 0.0
+	_ui.offset_right = taille.x
+	_ui.offset_bottom = taille.y
+
+
+func _cases_armes() -> Array[Button]:
+	var sortie: Array[Button] = []
+	var grille := _ui.find_child("GrilleArmes", true, false)
+	for enfant: Node in grille.get_children():
+		if enfant is Button:
+			sortie.append(enfant as Button)
+	return sortie
+
+
+func test_la_vente_a_50_pour_cent_depuis_la_grille_envoie_le_bon_index() -> void:
+	var ratio: float = float(_donnees.partie["vente_ratio"])
+	verifier_proche(ratio, 0.5, 0.0001, "les données vendent à 50 %")
 	var vue := _vue_armes(NB_ARMES)
 	_ui.afficher(vue)
-	var ventes := _boutons("Vendre")
-	verifier_egal(ventes.size(), NB_ARMES, "un bouton Vendre par arme")
-	var ratio: float = float(_donnees.partie["vente_ratio"])
-	for i: int in ventes.size():
+	var cases := _cases_armes()
+	verifier_egal(cases.size(), NB_ARMES, "une case par arme")
+	verifier_egal(_boutons("Vendre").size(), 0, "rien ne se vend sans avoir choisi une arme")
+	for i: int in cases.size():
+		cases[i].pressed.emit()
+		var vente := _boutons("Vendre")
+		verifier_egal(vente.size(), 1, "un bouton Vendre pour l'arme choisie %d" % i)
 		var arme: Dictionary = _donnees.armes[vue.armes[i]["id"]]
 		var prix: int = floori(float(int(arme["prix"])) * ratio)
-		var nom: String = arme["nom"]
-		var ligne := ventes[i].get_parent()
-		var texte := ""
-		for l: Node in ligne.find_children("*", "Label", true, false):
-			texte += (l as Label).text
-		texte += ventes[i].text
-		verifier(texte.contains(Nombres.groupe(prix)), "prix de vente de l'arme %d" % i)
-		verifier(texte.contains(nom), "le nom de l'arme %d est sur sa ligne" % i)
-		ventes[i].pressed.emit()
-		verifier_egal(_source.appels[i], {"nom": "vendre", "args": [i]}, "arme %d" % i)
+		verifier(vente[0].text.contains(Nombres.groupe(prix)), "prix de vente de l'arme %d" % i)
+		vente[0].pressed.emit()
+		verifier_egal(_source.appels.back(), {"nom": "vendre", "args": [i]}, "arme %d" % i)
+		verifier_egal(_boutons("Vendre").size(), 0, "le choix est levé après la vente")
+	verifier_egal(_appels("vendre").size(), NB_ARMES, "une vente par arme, pas plus")
 
 
-func test_sans_arme_aucun_bouton_vendre() -> void:
+func test_un_index_de_vente_hors_de_la_grille_ne_vend_rien() -> void:
+	_ui.afficher(_vue_armes(NB_ARMES))
+	for index: int in [-1, NB_ARMES, NB_ARMES + 1, 255, 1000000]:
+		_ui.vendre(index)
+	_ui.vendre_selection()
+	verifier_egal(_appels("vendre").size(), 0, "aucune intention")
+	var cases := _cases_armes()
+	cases[0].pressed.emit()
+	cases[0].pressed.emit()
+	verifier_egal(_boutons("Vendre").size(), 0, "toucher deux fois la même arme lève le choix")
+
+
+func test_sans_arme_aucun_bouton_vendre_et_le_panneau_lateral_s_efface() -> void:
 	_ui.afficher(_vue())
 	verifier_egal(_boutons("Vendre").size(), 0)
-	_affiche_partie("Aucune arme", "la liste vide est dite en texte")
+	verifier_egal(_cases_armes().size(), 0, "aucune case")
+	var vide := _ui.find_child("AucuneArme", true, false) as Label
+	verifier_non_nul(vide, "la liste vide est dite en texte")
+	verifier_faux((_ui.find_child("Cote", true, false) as Control).visible, "rien à montrer")
+	var vue := _vue_armes(1)
+	_ui.afficher(vue)
+	verifier(
+		(_ui.find_child("Cote", true, false) as Control).visible, "une arme : le panneau paraît"
+	)
+	vue.armes = []
+	_ui.afficher(vue)
+	verifier_faux(
+		(_ui.find_child("Cote", true, false) as Control).visible, "plus d'arme : il s'efface"
+	)
+	verifier_non_nul(_ui.find_child("AucuneArme", true, false), "et la liste dit qu'elle est vide")
 
 
 # --- Marché noir -----------------------------------------------------------------------------
 
 
-func test_marche_noir_ferme_pas_de_liste() -> void:
+func test_marche_noir_ferme_sans_liste_puis_ouvert_liste_les_choix_et_appelle_le_choix() -> void:
 	_ui.afficher(_vue())
-	verifier_egal(_boutons("Choisir").size(), 0, "aucun choix visible")
-
-
-func test_marche_noir_ouvert_liste_les_choix_et_appelle_le_choix() -> void:
+	verifier_egal(_boutons("Choisir").size(), 0, "fermé : aucun choix visible")
 	var vue := _vue()
 	vue.marche_noir_ouvert = true
 	_ui.afficher(vue)
@@ -516,7 +561,9 @@ func test_une_arme_ou_offre_inconnue_ne_plante_pas() -> void:
 	vue.offres[0] = _offre("inconnue", Types.Genre.ARME, Types.Rarete.COMMUNE, 10)
 	vue.armes = [{"id": "fantome", "recharge_ratio": 0.0}]
 	_ui.afficher(vue)
+	_cases_armes()[0].pressed.emit()
 	verifier_egal(_boutons("Vendre").size(), 1)
+	verifier_egal(_cases_armes().size(), 1, "la case existe même sans données")
 
 
 # --- Lisibilité ------------------------------------------------------------------------------
@@ -546,6 +593,248 @@ func test_les_noms_passent_a_la_ligne_sans_deborder() -> void:
 					l.autowrap_mode != TextServer.AUTOWRAP_OFF, "%s revient à la ligne" % nom_noeud
 				)
 				verifier(l.custom_minimum_size.x > 0.0, "%s a une largeur bornée" % nom_noeud)
+
+
+# --- Catégories -----------------------------------------------------------------------------
+
+
+func _mot_du_ruban(noeud: Node) -> String:
+	var mot := noeud.find_child("Mot", true, false) as Label
+	return "" if mot == null else mot.text
+
+
+func test_chaque_carte_porte_en_tete_le_ruban_de_sa_categorie_d_apres_les_donnees() -> void:
+	var amelios := _ids_amelios()
+	var armes := _ids_armes()
+	var ids: Array[String] = []
+	for id: String in armes.slice(0, 4):
+		ids.append(id)
+	for id: String in amelios:
+		ids.append(id)
+	# Chaque catégorie d'amélioration du catalogue passe par la carte 0, jamais un effectif figé.
+	for id: String in ids:
+		var vue := _vue()
+		var genre: int = Types.Genre.ARME if _donnees.armes.has(id) else Types.Genre.AMELIORATION
+		vue.offres[0] = _offre(id, genre, Types.Rarete.COMMUNE, 10)
+		_ui.afficher(vue)
+		var attendu := CategorieOffre.mot(_donnees.categorie_de(id))
+		verifier_egal(_mot_du_ruban(_ui.find_child("Carte0", true, false)), attendu, id)
+		verifier(attendu in ["Arme", "Amélioration", "Revenu"], "mot connu pour %s" % id)
+	var vue := _vue()
+	_ui.afficher(vue)
+	var carte := _ui.find_child("Carte0", true, false)
+	var ruban := carte.find_child("Ruban0", true, false) as Control
+	verifier_non_nul(ruban, "le ruban est dans la carte")
+	var colonne := carte.get_child(0)
+	verifier_egal(colonne.get_child(0).name, &"Repere0", "le ruban est en tête de la carte")
+
+
+func test_une_offre_vide_ou_de_categorie_inconnue_n_affiche_pas_de_ruban_et_ne_leve_rien() -> void:
+	var vue := _vue()
+	vue.offres[0] = {}
+	vue.offres[1] = _offre("inconnue", 99, Types.Rarete.COMMUNE, 10)
+	vue.offres[2] = _offre("inconnue", Types.Genre.ARME, Types.Rarete.COMMUNE, 10)
+	_ui.afficher(vue)
+	verifier_egal(_mot_du_ruban(_ui.find_child("Carte0", true, false)), "", "offre vide : rien")
+	verifier_egal(_mot_du_ruban(_ui.find_child("Carte1", true, false)), "", "genre inconnu : rien")
+	verifier_egal(
+		_mot_du_ruban(_ui.find_child("Carte2", true, false)),
+		"Arme",
+		"id inconnu : genre de l'offre"
+	)
+	var nu := BoutiqueUi.new()
+	arbre.root.add_child(nu)
+	nu.afficher(vue)
+	nu.get_parent().remove_child(nu)
+	nu.free()
+
+
+func test_chaque_arme_de_la_grille_a_une_infobulle_et_son_repere_de_categorie() -> void:
+	var ids := _ids_armes()
+	var vue := _vue()
+	for id: String in ids:
+		vue.armes.append({"id": id, "recharge_ratio": 0.0})
+	_ui.afficher(vue)
+	var cases := _cases_armes()
+	verifier_egal(cases.size(), ids.size(), "une case par arme du catalogue")
+	for i: int in cases.size():
+		var entree: Dictionary = _donnees.armes[ids[i]]
+		verifier(
+			cases[i].tooltip_text.contains(str(entree["nom"])), "nom en infobulle : %s" % ids[i]
+		)
+		verifier(cases[i].tooltip_text.contains("Arme"), "mot de la catégorie : %s" % ids[i])
+		verifier(cases[i].tooltip_text.contains(str(entree["description"])), "détail : %s" % ids[i])
+		var repere := cases[i].find_child("Repere", true, false) as TextureRect
+		verifier_non_nul(repere, "repère de %s" % ids[i])
+		if repere != null:
+			verifier_egal(repere.texture, CategorieOffre.icone(Types.Categorie.ARME), ids[i])
+		verifier(cases[i].custom_minimum_size.y >= HAUTEUR_MIN, "case de 48 px : %s" % ids[i])
+
+
+func test_la_grille_des_armes_defile_et_tient_255_armes_sans_deborder() -> void:
+	_dimensionner(Vector2(1152.0, 648.0))
+	_ui.definir_zone_libre(Rect2(0.0, 40.0, 1152.0, 400.0))
+	for n: int in [MAX_ARMES, 1, 0]:
+		_ui.afficher(_vue_armes(n))
+		await attendre_images(2)
+		var cote := _ui.find_child("Cote", true, false) as Control
+		var defilement := cote.get_child(0) as ScrollContainer
+		verifier_egal(
+			defilement.horizontal_scroll_mode, ScrollContainer.SCROLL_MODE_DISABLED, "pas de barre"
+		)
+		var libre := Rect2(0.0, 40.0, 1152.0, 400.0)
+		verifier(
+			cote.get_global_rect().end.y <= libre.end.y + 1.0,
+			"%d armes : le panneau reste dans la zone libre (%s)" % [n, cote.get_global_rect()]
+		)
+		var colonne := defilement.get_child(0) as Control
+		verifier(
+			colonne.get_combined_minimum_size().x <= cote.get_global_rect().size.x,
+			"%d armes : rien ne dépasse en largeur" % n
+		)
+		verifier_egal(_cases_armes().size(), n, "%d cases" % n)
+		verifier_egal(
+			_boutons("Vendre").size(), 0, "%d armes : aucune vente tant que rien n'est choisi" % n
+		)
+		if n == MAX_ARMES:
+			verifier(
+				colonne.get_combined_minimum_size().y > defilement.size.y,
+				"255 armes : la liste défile"
+			)
+
+
+func test_le_panneau_se_replie_et_se_deplie_a_la_touche_b_et_au_bouton() -> void:
+	_ui.afficher(_vue_armes(NB_ARMES))
+	verifier_faux(_ui.est_replie(), "déplié au départ")
+	var signaux: Array[bool] = []
+	_ui.repli_change.connect(func(replie: bool) -> void: signaux.append(replie))
+	_ui._unhandled_input(_touche(KEY_B))
+	verifier(_ui.est_replie(), "la touche B replie")
+	_ui._unhandled_input(_touche(KEY_B))
+	verifier_faux(_ui.est_replie(), "la touche B déplie")
+	var bouton := _ui.find_child("BoutonRepli", true, false) as Button
+	verifier_non_nul(bouton, "le bouton existe")
+	bouton.pressed.emit()
+	verifier(_ui.est_replie(), "le bouton replie")
+	bouton.pressed.emit()
+	verifier_faux(_ui.est_replie(), "le bouton déplie")
+	verifier_egal(signaux, [true, false, true, false], "chaque changement est annoncé")
+	_ui._unhandled_input(_touche(KEY_B, false))
+	_ui._unhandled_input(_touche(KEY_B, true, true))
+	verifier_faux(_ui.est_replie(), "une touche relâchée ou répétée ne replie pas")
+
+
+func test_touche_b_ignoree_pendant_la_saisie_d_un_champ() -> void:
+	_ui.afficher(_vue())
+	_champ = LineEdit.new()
+	arbre.root.add_child(_champ)
+	_champ.grab_focus()
+	_ui._unhandled_input(_touche(KEY_B))
+	verifier_faux(_ui.est_replie(), "taper un B dans un champ ne replie rien")
+
+
+func test_replie_le_panneau_laisse_le_bouton_pour_le_deplier_et_libere_la_zone() -> void:
+	_dimensionner(Vector2(1152.0, 648.0))
+	_ui.afficher(_vue_armes(NB_ARMES))
+	await attendre_images(2)
+	var haut := _ui.rect_bandeau_minimal().y
+	verifier(haut > 0.0, "déplié, le bandeau prend de la place")
+	var bouton := _ui.find_child("BoutonRepli", true, false) as Button
+	verifier_contient(bouton.text, "Replier", "le bouton propose de replier")
+	_ui.definir_replie(true)
+	await attendre_images(2)
+	verifier_faux((_ui.find_child("Bandeau", true, false) as Control).visible, "bandeau masqué")
+	verifier_faux((_ui.find_child("Cote", true, false) as Control).visible, "armes masquées")
+	verifier_egal(_ui.rect_bandeau_minimal(), Vector2.ZERO, "la zone d'arène est libérée")
+	verifier(bouton.is_visible_in_tree(), "le bouton de dépliage reste visible")
+	verifier_contient(bouton.text, "Déplier", "le bouton propose de déplier")
+	verifier(bouton.get_global_rect().size.y >= HAUTEUR_MIN, "bouton de 48 px")
+	verifier(
+		Rect2(Vector2.ZERO, _ui.size).encloses(bouton.get_global_rect()), "bouton dans la fenêtre"
+	)
+	verifier_egal(_ui.panneaux().size(), 0, "aucun panneau replié ne prend de place")
+	_ui.definir_replie(false)
+	await attendre_images(2)
+	verifier_egal(_ui.rect_bandeau_minimal().y, haut, "déplié, le bandeau reprend sa hauteur")
+	verifier(
+		bouton.get_global_rect().end.y <= _ui.rect_bandeau().position.y + 1.0,
+		"le bouton ne couvre pas le bandeau"
+	)
+
+
+func test_replier_pendant_le_marche_noir_garde_le_choix_accessible() -> void:
+	var vue := _vue_armes(NB_ARMES)
+	vue.marche_noir_ouvert = true
+	_ui.afficher(vue)
+	_ui.definir_replie(true)
+	verifier(_boutons("Choisir").size() > 0, "les choix du marché noir restent visibles")
+	verifier_egal(_boutons("Vendre").size(), 0)
+	verifier_faux(
+		(_ui.find_child("SectionArmes", true, false) as Control).visible, "armes repliées"
+	)
+	_boutons("Choisir")[0].pressed.emit()
+	verifier_egal(_appels("choisir_marche_noir").size(), 1, "le choix part toujours")
+	vue.marche_noir_ouvert = false
+	_ui.afficher(vue)
+	verifier_faux((_ui.find_child("Cote", true, false) as Control).visible, "tout est replié")
+	_ui.definir_replie(false)
+	verifier((_ui.find_child("Bandeau", true, false) as Control).visible, "déplié à nouveau")
+
+
+func test_les_raccourcis_1_a_4_et_r_restent() -> void:
+	_ui.afficher(_vue())
+	for replie: bool in [false, true]:
+		_ui.definir_replie(replie)
+		_source.appels.clear()
+		for i: int in NB_OFFRES:
+			_ui._unhandled_input(_touche(TOUCHES_OFFRES[i]))
+			verifier_egal(_source.appels[i], {"nom": "acheter", "args": [i]}, "touche %d" % (i + 1))
+		_ui._unhandled_input(_touche(KEY_R))
+		verifier_egal(_appels("relancer").size(), 1, "R relance (replié : %s)" % replie)
+
+
+func test_le_marche_noir_et_les_ameliorations_achetees_portent_leurs_reperes() -> void:
+	var vue := _vue()
+	vue.marche_noir_ouvert = true
+	var achetees: Dictionary = {}
+	for id: String in _ids_amelios():
+		achetees[id] = 1
+	achetees[_ids_amelios()[0]] = 3
+	vue.ameliorations = achetees
+	_ui.afficher(vue)
+	var choix := _boutons("Choisir")
+	verifier(choix.size() > 0, "des choix au marché noir")
+	for bouton: Button in choix:
+		var ruban := bouton.get_parent().find_child("Mot", true, false) as Label
+		verifier_non_nul(ruban, "ruban au-dessus de « %s »" % bouton.text)
+		if ruban != null:
+			var ids_amelio := bouton.tooltip_text.split("\n")
+			verifier(
+				ruban.text in ["Amélioration", "Revenu"], "mot du marché noir : %s" % ruban.text
+			)
+			verifier(ids_amelio.size() > 1 and ids_amelio[1] == ruban.text, "même mot en infobulle")
+	var grille := _ui.find_child("GrilleAmeliorations", true, false)
+	verifier_egal(grille.get_child_count(), achetees.size(), "une case par amélioration achetée")
+	for case: Node in grille.get_children():
+		var id := String(case.name).trim_prefix("Amelioration_")
+		var attendu := CategorieOffre.mot(_donnees.categorie_de(id))
+		var repere := case.find_child("Repere", true, false) as TextureRect
+		verifier_non_nul(repere, "repère de %s" % id)
+		if repere != null:
+			verifier_egal(
+				repere.texture, CategorieOffre.icone(_donnees.categorie_de(id)), "icône de %s" % id
+			)
+		verifier((case as Control).tooltip_text.contains(attendu), "mot en infobulle de %s" % id)
+	var premiere := grille.get_child(0)
+	verifier(
+		premiere.find_child("Quantite", true, false) != null, "le nombre d'achats s'écrit (×3)"
+	)
+	vue.ameliorations = {}
+	_ui.afficher(vue)
+	verifier_faux(
+		(_ui.find_child("SectionAmeliorations", true, false) as Control).visible,
+		"sans amélioration achetée, pas de liste vide"
+	)
 
 
 # --- Textes ----------------------------------------------------------------------------------

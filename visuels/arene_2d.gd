@@ -85,6 +85,11 @@ var _morts: Array[Sprite2D] = []
 var _morts_debut: PackedFloat64Array = PackedFloat64Array()
 var _texture_mort: Texture2D = null
 var _effets: Effets = null
+## Ennemis touchés : flash et recul, par id d'ennemi (purement visuel).
+var _reactions: ReactionsCoups = ReactionsCoups.new()
+## L'échantillon affiché cette image (positions lissées) : une seule fois par image, partagé entre
+## l'affichage des sprites et le choix des ennemis qu'un impact fait réagir.
+var _echantillon_affiche: Dictionary = {}
 var _barres: BarresArene = null
 ## Teinte posée sur chaque ennemi affiché, par famille puis par rang dans la famille.
 var _teintes: Array[PackedColorArray] = []
@@ -133,6 +138,7 @@ func _assurer_construite() -> void:
 	_effets.parent_sol = _ennemis
 	if donnees != null:
 		_effets.catalogue = donnees.ids_catalogue
+	_effets.impact_visible.connect(_sur_impact_visible)
 	add_child(_effets)
 	_construire_tour()
 	_barres = BarresArene.new()
@@ -179,6 +185,8 @@ func reinitialiser() -> void:
 	_dernier_tick = -1
 	_vue_precedente = null
 	_effets.vider()
+	_reactions.reinitialiser()
+	_echantillon_affiche = {}
 	_barres.reinitialiser()
 	_afficher_echantillon()
 
@@ -189,6 +197,7 @@ func afficher(vue: VueArene, temps_rendu: float) -> void:
 	if vue == null:
 		return
 	_horloge = temps_rendu
+	_echantillon_affiche = {}
 	_interpolation.reinitialiser()
 	_dernier_tick = -1
 	_recevoir(vue, temps_rendu)
@@ -199,6 +208,7 @@ func afficher(vue: VueArene, temps_rendu: float) -> void:
 func afficher_courant(temps_rendu: float) -> void:
 	_assurer_construite()
 	_horloge = temps_rendu
+	_echantillon_affiche = {}
 	_afficher_echantillon()
 
 
@@ -263,6 +273,8 @@ func _vider_les_vues() -> void:
 	_dernier_tick = -1
 	_vue_precedente = null
 	_effets.vider()
+	_reactions.reinitialiser()
+	_echantillon_affiche = {}
 	_barres.reinitialiser()
 	_afficher_echantillon()
 
@@ -367,7 +379,9 @@ static func teinte_statut(octet: int) -> Color:
 func _process(delta: float) -> void:
 	_assurer_construite()
 	_horloge += delta
+	_echantillon_affiche = {}
 	_effets.avancer(delta)
+	_reactions.avancer(delta)
 	_sol.avancer(delta)
 	_afficher_echantillon()
 	_ajuster_nom()
@@ -391,6 +405,7 @@ func _recevoir(vue: VueArene, temps: float) -> void:
 		return
 	_dernier_tick = vue.tick
 	_interpolation.pousser(vue, temps)
+	_echantillon_affiche = {}
 	var explosifs: Array[Vector2] = []
 	var cherche: bool = false
 	for evenement: Dictionary in vue.evenements:
@@ -444,8 +459,20 @@ func _plus_proche(positions: Array[Vector2], ou: Vector2) -> int:
 	return meilleur
 
 
+## Un impact devient visible : les ennemis affichés à cet endroit réagissent (flash et recul).
+func _sur_impact_visible(ou: Vector2, rayon: float) -> void:
+	var echantillon: Dictionary = _echantillon_courant()
+	_reactions.toucher(ou, rayon, echantillon["ids"], echantillon["pos"])
+
+
+func _echantillon_courant() -> Dictionary:
+	if _echantillon_affiche.is_empty():
+		_echantillon_affiche = _interpolation.echantillon(_horloge)
+	return _echantillon_affiche
+
+
 func _afficher_echantillon() -> void:
-	var echantillon: Dictionary = _interpolation.echantillon(_horloge)
+	var echantillon: Dictionary = _echantillon_courant()
 	var vue: VueArene = echantillon["vue"] as VueArene
 	var positions: PackedVector2Array = echantillon["pos"]
 	var ids: PackedInt32Array = echantillon["ids"]
@@ -473,7 +500,7 @@ func _afficher_echantillon() -> void:
 		var sprite: Sprite2D = pool[decompte[f]]
 		decompte[f] += 1
 		var p: Vector2 = positions[i]
-		sprite.position = Apparence.vers_pixels(p)
+		sprite.position = Apparence.vers_pixels(p) + _reactions.recul(ids[i])
 		var miroir: bool = p.x > 0.0
 		var cle: int = f * NB_ANIMATIONS + _animation(f, p)
 		var image: int = _lignes[cle] * _colonnes[f] + (image_courante + ids[i]) % _images[cle]
@@ -487,7 +514,10 @@ func _afficher_echantillon() -> void:
 		var alpha: float = ALPHA_RECOUVRE if couvre else 1.0
 		var teinte: Color = teinte_statut(statuts[i] if i < statuts.size() else 0)
 		var base: Color = _entrees[f]["couleur"]
-		var voulue := Color(base.r * teinte.r, base.g * teinte.g, base.b * teinte.b, alpha)
+		var eclat: float = _reactions.eclat(ids[i])
+		var voulue := Color(
+			base.r * teinte.r * eclat, base.g * teinte.g * eclat, base.b * teinte.b * eclat, alpha
+		)
 		if sprite.modulate != voulue:
 			sprite.modulate = voulue
 		var teintes: PackedColorArray = _teintes[f]
