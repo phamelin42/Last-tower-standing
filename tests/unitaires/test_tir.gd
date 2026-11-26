@@ -590,3 +590,96 @@ func test_barrage_frappe_autour_de_la_cible_avec_dispersion_tiree_par_le_rng() -
 	_placer(Vector2(300, 0))
 	var bilan3 := _pas(arme3)
 	verifier_egal(bilan2.evenements, bilan3.evenements, "reproductible")
+
+
+# --- Statuts du lot 9 : vulnérabilité, malédictions, repoussement -------------------------------
+
+
+func test_chaque_nouveau_kind_de_statut_est_pose_par_le_tir() -> void:
+	var effet: Dictionary = {"kind": "cible_unique"}
+	var cas: Array[Dictionary] = [
+		{"kind": "vulnerabilite", "ratio": 0.2, "duree": 4.0},
+		{"kind": "malediction_degats", "ratio": 0.3, "duree": 4.0},
+		{"kind": "malediction_toucher", "ratio": 0.3, "duree": 4.0},
+		{"kind": "repoussement", "distance": 50.0},
+	]
+	for statut: Dictionary in cas:
+		avant_chaque()
+		var cible := _placer(Vector2(300, 0))
+		var arme := ArmeEquipee.new(_def(effet, [statut]))
+		var bilan := _pas(arme)
+		verifier(bilan.degats > 0.0, "%s : l'arme frappe" % statut["kind"])
+		var i := e.indice_de(cible)
+		match String(statut["kind"]):
+			"vulnerabilite":
+				_p(
+					e.vulnerabilite[i * 5 + Types.TypeDegats.CHAOS],
+					0.2,
+					"type de l'arme par défaut"
+				)
+				verifier((e.statuts[i] & Types.STATUT_VULNERABLE) != 0)
+			"malediction_degats":
+				_p(e.maudit_degats[i], 0.3)
+				verifier((e.statuts[i] & Types.STATUT_MAUDIT) != 0)
+			"malediction_toucher":
+				_p(e.maudit_toucher[i], 0.3)
+				verifier((e.statuts[i] & Types.STATUT_MAUDIT) != 0)
+			"repoussement":
+				_p(e.pos[i].x, 350.0, "reculé de 50 loin de la tour")
+		var evenements_statut := VueArene.statut_depuis_nom(String(statut["kind"]))
+		verifier(evenements_statut > 0, "le statut a son index d'événement")
+		for ev: Dictionary in bilan.evenements:
+			verifier_egal(int(ev["statut"]), evenements_statut, "l'événement porte le statut")
+
+
+func test_la_vulnerabilite_peut_viser_un_autre_type_que_celui_de_l_arme() -> void:
+	var statut: Dictionary = {
+		"kind": "vulnerabilite", "ratio": 0.2, "duree": 4.0, "type_degats": Types.TypeDegats.MAGIQUE
+	}
+	var cible := _placer(Vector2(300, 0))
+	_pas(ArmeEquipee.new(_def({"kind": "cible_unique"}, [statut])))
+	var i := e.indice_de(cible)
+	_p(e.vulnerabilite[i * 5 + Types.TypeDegats.MAGIQUE], 0.2)
+	_p(e.vulnerabilite[i * 5 + Types.TypeDegats.CHAOS], 0.0)
+
+
+func test_cent_coups_de_vingt_armes_gardent_les_plafonds_et_des_valeurs_finies() -> void:
+	var plafond_vuln := float((d.partie["vulnerabilite"] as Dictionary)["plafond"])
+	var plafond_maud := float((d.partie["malediction"] as Dictionary)["plafond"])
+	var cible := _placer(Vector2(300, 0), 1.0e9)
+	var statuts: Array = [
+		{"kind": "vulnerabilite", "ratio": 0.05, "duree": 3.0},
+		{"kind": "malediction_degats", "ratio": 0.2, "duree": 3.0},
+		{"kind": "malediction_toucher", "ratio": 0.2, "duree": 3.0},
+	]
+	var armes: Array[ArmeEquipee] = []
+	for _k: int in 20:
+		armes.append(ArmeEquipee.new(_def({"kind": "cible_unique"}, statuts, 10.0, 0.1)))
+	for _coup: int in 100:
+		for arme: ArmeEquipee in armes:
+			_pas(arme)
+	var i := e.indice_de(cible)
+	for t: int in 5:
+		var v := e.vulnerabilite[i * 5 + t]
+		verifier(is_finite(v) and v >= 0.0 and v <= plafond_vuln + 0.00001, "vulnérabilité %d" % t)
+	_p(e.vulnerabilite[i * 5 + Types.TypeDegats.CHAOS], plafond_vuln)
+	verifier(e.maudit_degats[i] <= plafond_maud + 0.00001 and e.maudit_degats[i] > 0.0)
+	verifier(e.maudit_toucher[i] <= plafond_maud + 0.00001 and e.maudit_toucher[i] > 0.0)
+	verifier(is_finite(e.pv[i]) and e.pv[i] > 0.0)
+
+
+func test_un_coup_qui_tue_ne_pose_aucun_statut() -> void:
+	var cible := _placer(Vector2(300, 0), 1.0)
+	var statut: Dictionary = {"kind": "vulnerabilite", "ratio": 0.2, "duree": 4.0}
+	_pas(ArmeEquipee.new(_def({"kind": "cible_unique"}, [statut])))
+	var i := e.indice_de(cible)
+	verifier_egal(e.mort[i], 1)
+	verifier_egal(e.vulnerabilite[i * 5 + Types.TypeDegats.CHAOS], 0.0)
+
+
+func test_le_boss_n_est_pas_repousse_par_defaut() -> void:
+	var boss := _placer(Vector2(300, 0), PV, Types.Armure.BOSS)
+	var statut: Dictionary = {"kind": "repoussement", "distance": 50.0}
+	_pas(ArmeEquipee.new(_def({"kind": "cible_unique"}, [statut])))
+	var facteur := float((d.partie["repoussement"] as Dictionary)["facteur_boss"])
+	_p(e.pos[e.indice_de(boss)].x, 300.0 + 50.0 * facteur, "recul × facteur_boss")

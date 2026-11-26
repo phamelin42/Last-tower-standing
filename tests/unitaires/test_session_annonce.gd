@@ -260,3 +260,186 @@ func test_fermer_pendant_une_annonce_en_cours_ne_laisse_aucun_salon() -> void:
 	_fausse.finir(1, true)
 	await attendre_images(20)
 	verifier_egal(_noeud.service.salons().size(), 0, "aucun salon fantôme")
+
+
+## Les émissions de `tentative_upnp_terminee` d'une session, dans l'ordre.
+func _ecouter_upnp(s: SessionReseau) -> Array[int]:
+	var emis: Array[int] = []
+	s.tentative_upnp_terminee.connect(func(p: int) -> void: emis.append(p))
+	return emis
+
+
+func _a_ete_annonce(port_annonce: int) -> bool:
+	for lancee: Dictionary in _fausse.lancees:
+		if lancee["port"] == port_annonce:
+			return true
+	return false
+
+
+func _attendre_s(secondes: float) -> void:
+	await arbre.create_timer(secondes).timeout
+
+
+func test_le_delai_par_defaut_est_celui_de_phil() -> void:
+	# Décision 21 (26/11/2026) : 10 s, ni plus ni moins.
+	verifier_egal(SessionReseau.DELAI_UPNP_MAX_S, 10.0)
+	var neuve := SessionReseau.new()
+	verifier_egal(neuve.delai_upnp_max, 10.0, "une session neuve a le délai de Phil")
+	neuve.free()
+
+
+func test_une_box_qui_se_fige_n_empeche_pas_l_annonce_du_port_local() -> void:
+	var box := TestUpnp.Double.new()
+	box.barrage = Semaphore.new()
+	var s := _session(box)
+	s.delai_upnp_max = 0.5
+	var emis := _ecouter_upnp(s)
+	var port := _port_libre()
+	_heberger(s, port)
+	verifier(await _jusqua(func() -> bool: return _fausse.lancees.size() >= 1))
+	verifier_egal(_fausse.lancees[0]["port"], port, "port local : la box n'a pas répondu")
+	verifier_egal(s.port_externe, 0)
+	verifier_egal(emis, [0] as Array[int], "l'hôte est prévenu une fois que la box n'a rien ouvert")
+	box.barrage.post()
+
+
+func test_une_box_qui_repond_avant_le_delai_ne_change_rien() -> void:
+	var box := TestUpnp.Double.new()
+	box.barrage = Semaphore.new()
+	var s := _session(box)
+	s.delai_upnp_max = 1.0
+	var emis := _ecouter_upnp(s)
+	var port := _port_libre()
+	_heberger(s, port)
+	await attendre_images(20)
+	verifier_egal(emis.size(), 0, "aucun échec annoncé avant la réponse de la box")
+	box.barrage.post()
+	verifier(await _jusqua(func() -> bool: return _fausse.lancees.size() >= 1))
+	verifier_egal(emis, [port] as Array[int], "seul le port obtenu est émis")
+	verifier_egal(_fausse.lancees[0]["port"], port)
+	await _attendre_s(1.3)
+	verifier_egal(emis, [port] as Array[int], "l'échéance passée ne dit plus rien")
+
+
+func test_fermer_avant_l_echeance_n_annonce_ni_n_emet_rien() -> void:
+	var box := TestUpnp.Double.new()
+	box.barrage = Semaphore.new()
+	var s := _session(box)
+	s.delai_upnp_max = 1.0
+	var emis := _ecouter_upnp(s)
+	_heberger(s, _port_libre())
+	s.fermer()
+	await _attendre_s(1.4)
+	verifier_egal(emis.size(), 0, "aucun 0 émis après la fermeture")
+	verifier_egal(_fausse.lancees.size(), 0, "rien n'est annoncé après la fermeture")
+	box.barrage.post()
+
+
+func test_heberger_a_nouveau_avant_l_echeance_ne_laisse_pas_le_decompte_de_la_premiere() -> void:
+	var premiere := TestUpnp.Double.new()
+	premiere.barrage = Semaphore.new()
+	var seconde := TestUpnp.Double.new()
+	seconde.barrage = Semaphore.new()
+	var boites: Array[UpnpHote.Passerelle] = [premiere, seconde]
+	var s := _session(premiere)
+	s.fabrique_passerelle = func() -> UpnpHote.Passerelle:
+		var b: UpnpHote.Passerelle = boites.pop_front()
+		return b
+	s.delai_upnp_max = 1.0
+	var emis := _ecouter_upnp(s)
+	_heberger(s, _port_libre())
+	await _attendre_s(0.6)
+	_heberger(s, _port_libre(), "Second")
+	await _attendre_s(0.7)
+	verifier_egal(emis.size(), 0, "l'échéance de la première tentative est morte avec elle")
+	verifier_egal(_fausse.lancees.size(), 0, "rien n'est annoncé avant l'échéance de la seconde")
+	verifier(await _jusqua(func() -> bool: return emis.size() == 1), "la seconde a son échéance")
+	premiere.barrage.post()
+	seconde.barrage.post()
+
+
+func test_une_reussite_tardive_de_la_box_met_le_port_externe_dans_les_annonces_suivantes() -> void:
+	var box := TestUpnp.Double.new()
+	box.barrage = Semaphore.new()
+	box.reponses_ajout = [UPNP.UPNP_RESULT_CONFLICT_WITH_OTHER_MAPPING]
+	var s := _session(box)
+	s.delai_upnp_max = 0.5
+	var emis := _ecouter_upnp(s)
+	var port := _port_libre()
+	_heberger(s, port)
+	verifier(await _jusqua(func() -> bool: return _fausse.lancees.size() == 1))
+	verifier_egal(_fausse.lancees[0]["port"], port, "la première annonce part avec le port local")
+	verifier_egal(emis, [0] as Array[int])
+	# Deux appels à `ajouter` : le port demandé (conflit), puis un port tiré à l'exécution.
+	box.barrage.post()
+	box.barrage.post()
+	verifier(await _jusqua(func() -> bool: return s.port_externe >= 49152))
+	verifier_egal(emis.size(), 2, "la réussite tardive est dite à l'hôte")
+	verifier_egal(emis[1], s.port_externe)
+	s.annuaire.periode_ms = 200
+	s.annuaire.intervalle_min_ms = 0
+	verifier(
+		await _jusqua(func() -> bool: return _a_ete_annonce(s.port_externe)),
+		"une annonce suivante déclare le port externe obtenu en retard"
+	)
+
+
+func test_un_echec_tardif_ne_repete_pas_le_zero() -> void:
+	var box := TestUpnp.Double.new()
+	box.resultat_decouverte = UPNP.UPNP_RESULT_NO_GATEWAY
+	box.barrage_decouverte = Semaphore.new()
+	var s := _session(box)
+	s.delai_upnp_max = 0.5
+	var emis := _ecouter_upnp(s)
+	_heberger(s, _port_libre())
+	verifier(await _jusqua(func() -> bool: return emis.size() == 1))
+	verifier_egal(emis, [0] as Array[int])
+	box.barrage_decouverte.post()
+	await _attendre_s(0.5)
+	verifier_egal(emis, [0] as Array[int], "l'échec de la box n'émet pas un second 0")
+
+
+func test_l_echeance_avant_l_enregistrement_de_l_hote_attend_l_hote_puis_annonce_le_port_local(
+) -> void:
+	var box := TestUpnp.Double.new()
+	box.barrage = Semaphore.new()
+	var s := _session(box)
+	# Une échéance de 20 ms sonne bien avant l'aller-retour du client local vers le serveur.
+	s.delai_upnp_max = 0.02
+	var ordre: Array[String] = []
+	s.tentative_upnp_terminee.connect(func(_p: int) -> void: ordre.append("upnp"))
+	s.hote_enregistre.connect(func() -> void: ordre.append("hote"))
+	var port := _port_libre()
+	_heberger(s, port)
+	verifier(await _jusqua(func() -> bool: return _fausse.lancees.size() >= 1))
+	verifier_egal(ordre, ["upnp", "hote"] as Array[String], "l'échéance a sonné avant l'hôte")
+	verifier_egal(_fausse.lancees[0]["port"], port, "port local une fois l'hôte enregistré")
+	box.barrage.post()
+
+
+func test_une_partie_non_publique_dit_quand_meme_a_l_hote_que_la_box_n_a_pas_repondu() -> void:
+	var box := TestUpnp.Double.new()
+	box.barrage = Semaphore.new()
+	var s := _session(box, false)
+	s.delai_upnp_max = 0.3
+	var emis := _ecouter_upnp(s)
+	_heberger(s, _port_libre())
+	verifier(await _jusqua(func() -> bool: return emis.size() == 1))
+	verifier_egal(emis, [0] as Array[int])
+	await attendre_images(30)
+	verifier_nul(s.annuaire, "rien n'est annoncé pour une partie non publique")
+	verifier_egal(_fausse.lancees.size(), 0)
+	box.barrage.post()
+
+
+func test_sans_passerelle_aucun_decompte_n_est_lance() -> void:
+	var s := SessionReseau.new()
+	s.fabrique_passerelle = func() -> UpnpHote.Passerelle: return null
+	arbre.root.add_child(s)
+	_sessions.append(s)
+	_heberger(s, _port_libre())
+	var timers: Array[Timer] = []
+	for enfant: Node in s.get_children():
+		if enfant is Timer:
+			timers.append(enfant as Timer)
+	verifier_egal(timers.size(), 0, "pas de box, pas d'échéance")

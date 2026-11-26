@@ -984,7 +984,7 @@ avant l'écran « Rejoindre »).
 
 ### Task 7.5 : Délai maximal de la tentative UPnP — `sonnet`
 
-- [ ] **Objectif :** la première annonce n'attend la tentative UPnP que **10 s au plus** (décision 21
+- [x] **Objectif :** la première annonce n'attend la tentative UPnP que **10 s au plus** (décision 21
       de Phil, 26/11/2026). Passé ce délai, elle part avec le port de jeu local et l'hôte voit un
       message ; une tentative qui finit avant 10 s ne change rien au comportement d'aujourd'hui.
 - **Lire :** `docs/adr-001-annuaire.md` (Cycle de vie de l'hôte, UPnP chez l'hôte, décisions 20 et
@@ -994,7 +994,8 @@ avant l'écran « Rejoindre »).
 - **Test :** double de `UPNP` qui ne répond jamais : annonce envoyée avec le port local après 10 s
   (temps simulé), message affiché ; tentative rapide : annonce inchangée.
 - **À signaler dans la PR, non tranché :** tentative qui réussit après les 10 s sur un port externe
-  différent du port local.
+  différent du port local. Fait : l'annonce suivante déclare le port externe ; l'entrée au port
+  local, refusée par la sonde ou ouverte à la main, expire seule en 30 s.
 
 ---
 
@@ -1451,7 +1452,7 @@ func id_regarde() -> int                # -1 si aucune
 
 ### Task 8.20 : Mini-carte et câblage de la partie — `sonnet`
 
-- [ ] **Objectif :** mini-carte en bas à droite : sa propre arène (tour, ennemis en points de la couleur de leur palier, cercle d'apparition, cadre de la vue), un clic y déplace la vue ; les arènes des autres joueurs en vignettes (nom, barre de PV, densité), un clic sur une vignette affiche cette arène dans la vue principale, **Espace** revient à la sienne (le HUD et la boutique restent ceux du joueur) ; pas de vignette en solo. Câble dans `app/jeu.gd` tout ce que le lot ajoute : caméra, mini-carte, taille de l'interface, vitesse de caméra, barre du haut, boutique repliable, `regarder`.
+- [x] **Objectif :** mini-carte en bas à droite : sa propre arène (tour, ennemis en points de la couleur de leur palier, cercle d'apparition, cadre de la vue), un clic y déplace la vue ; les arènes des autres joueurs en vignettes (nom, barre de PV, densité), un clic sur une vignette affiche cette arène dans la vue principale, **Espace** revient à la sienne (le HUD et la boutique restent ceux du joueur) ; pas de vignette en solo. Câble dans `app/jeu.gd` tout ce que le lot ajoute : caméra, mini-carte, taille de l'interface, vitesse de caméra, barre du haut, boutique repliable, `regarder`.
 - **Conception :** §6.9, §6.10, D4.
 - **Fichiers :** `ui/minicarte.gd` (nouveau), `app/jeu.gd`, `i18n/textes_minicarte.csv` (nouveau) ; tests nouveau `test_minicarte.gd`, `test_observation_ui.gd`, `tests/integration/test_solo.gd`, `test_mise_en_page.gd`.
 - **Lire :** `app/jeu.gd` (`_monter`, `_sur_arene`, `_sur_globale`, `_unhandled_input`, `placer_dans`), `ui/observation_ui.gd`, `visuels/camera_arene.gd`.
@@ -1506,7 +1507,7 @@ func id_regarde() -> int                # -1 si aucune
 - **Annuaire** : lot 7 terminé le 25/11/2026 (T7.0 à T7.4, T7.3 en dernier, décision de Phil). Reste
   à Phil le lancement du service sur le VPS (liste dans la PR de T7.4). Délai maximal de la
   tentative UPnP : 10 s puis annonce du port local avec un message (Phil, 26/11/2026, décision 21
-  de l'ADR), à faire par T7.5. UPnP et annuaire restent désactivés en mode sans fenêtre (décision
+  de l'ADR), fait par T7.5. UPnP et annuaire restent désactivés en mode sans fenêtre (décision
   22).
 - **Images des offres** : 17 offres sur 70 ont une image approchante (Ravenmore et LudicArts n’ont
   pas leur objet : sablier, tirelire, trébuchet…), validée telle quelle par Phil le 25/11/2026. Liste
@@ -1744,7 +1745,7 @@ ameliorations.json — champ obligatoire « famille » (Types.FAMILLES_AMELIORAT
 
 ### Task 9.3 : Vulnérabilité cumulable, malédiction et repoussement (M1, M2, M3) — `sonnet`
 
-- [ ] **Objectif :** trois statuts d'ennemi posés par les armes. **Vulnérabilité** : chaque application ajoute `ratio` aux dégâts subis du type, **cumulable entre armes et entre coups**, la somme **plafonnée** par `vulnerabilite.plafond` (par type et par ennemi), la durée rafraîchie jusqu'à `duree_max` ; elle multiplie le montant **avant** l'efficacité contre l'armure (`Ennemis.infliger`), jamais le poison ni la brûlure. **Malédiction** : deux statuts distincts, chacun non cumulable (le plus fort l'emporte, la durée se rafraîchit), plafonnés par `malediction.plafond` ; la réduction de dégâts s'applique **avant** l'esquive, l'armure et la mana de la tour ; la réduction de chances de toucher est une **réduction moyenne** des dégâts (`× (1 − chance)`, sans tirage : le déterminisme n'en dépend pas) appliquée au même endroit. **Repoussement** : l'ennemi recule de `distance` loin de la tour, jamais au-delà de `distance_max`, multiplié par `facteur_boss` pour le boss.
+- [x] **Objectif :** trois statuts d'ennemi posés par les armes. **Vulnérabilité** : chaque application ajoute `ratio` aux dégâts subis du type, **cumulable entre armes et entre coups**, la somme **plafonnée** par `vulnerabilite.plafond` (par type et par ennemi), la durée rafraîchie jusqu'à `duree_max` ; elle multiplie le montant **avant** l'efficacité contre l'armure (`Ennemis.infliger`), jamais le poison ni la brûlure. **Malédiction** : deux statuts distincts, chacun non cumulable (le plus fort l'emporte, la durée se rafraîchit), plafonnés par `malediction.plafond` ; la réduction de dégâts s'applique **avant** l'esquive, l'armure et la mana de la tour ; la réduction de chances de toucher est une **réduction moyenne** des dégâts (`× (1 − chance)`, sans tirage : le déterminisme n'en dépend pas) appliquée au même endroit. **Repoussement** : l'ennemi recule de `distance` loin de la tour, jamais au-delà de `distance_max`, multiplié par `facteur_boss` pour le boss.
 - **Conception :** §6.13, « Choix du plan » 10.
 - **Fichiers :** `sim/ennemis.gd` (tableaux et durées, `_recalculer_bits`, `infliger`, `avancer`), `sim/tir.gd` (`_frapper` : les trois `kind`), `sim/arene.gd` si la tour doit lire les dégâts réduits ; tests nouveaux `test_ennemis_vulnerabilite.gd`, `test_ennemis_malediction.gd`, `test_repoussement.gd`, plus `test_tir.gd`.
 - **Lire :** `sim/ennemis.gd` `infliger`, `etourdir`, `_avancer_statuts`, `avancer` ; `sim/tir.gd` `_frapper` ; `sim/arene.gd` `_pas_tour_et_ennemis`.
