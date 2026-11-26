@@ -406,7 +406,9 @@ func test_en_solo_la_minicarte_est_la_carte_seule_et_suit_la_partie() -> void:
 	jeu.placer_dans(Vector2(1280.0, 720.0))
 	verifier(jeu.minicarte.visible, "la mini-carte est affichée")
 	verifier(jeu.minicarte.vignettes.is_empty(), "aucune vignette en solo")
-	verifier_egal(jeu.minicarte.taille_voulue(), Vector2(Minicarte.COTE_CARTE, Minicarte.COTE_CARTE))
+	verifier_egal(
+		jeu.minicarte.taille_voulue(), Vector2(Minicarte.COTE_CARTE, Minicarte.COTE_CARTE)
+	)
 	verifier(jeu.minicarte.points_positions.size() > 0, "les ennemis de la partie sont des points")
 	jeu.minicarte.cliquer(jeu.minicarte.rect_carte().position + Vector2(20.0, 30.0))
 	verifier(jeu.camera.decalage_unites != Vector2.ZERO, "un clic déplace la vue")

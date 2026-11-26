@@ -51,8 +51,8 @@ const CERCLE := Color(0.94, 0.8, 0.48, 0.55)
 const CADRE := Color("#ffffff")
 const TOUR := ThemeJeu.LAITON_CLAIR
 
-## Données de la carte principale, lisibles par les tests : points agrégés (position locale et
-## couleur), rectangle du cadre de la vue et de la carte.
+## Données de la carte principale, lisibles par les tests : points agrégés (coin de la cellule,
+## relatif à la carte, et couleur), rectangle du cadre de la vue et de la carte.
 var points_positions: PackedVector2Array = PackedVector2Array()
 var points_couleurs: PackedColorArray = PackedColorArray()
 var cadre_local: Rect2 = Rect2()
@@ -221,7 +221,6 @@ func _agreger(vue: VueArene) -> void:
 	var classes := COULEURS_CLASSES.size()
 	_cellules.resize(cote * cote * classes)
 	_cellules.fill(0)
-	var carte := rect_carte()
 	var echelle := _echelle()
 	var nombre := mini(vue.ennemis_pos.size(), vue.ennemis_famille.size())
 	for i: int in nombre:
@@ -246,7 +245,7 @@ func _agreger(vue: VueArene) -> void:
 			if meilleure < 0:
 				continue
 			var coin := Vector2(cx, cy) * COTE_CELLULE
-			points_positions.append(carte.position + coin)
+			points_positions.append(coin)
 			points_couleurs.append(COULEURS_CLASSES[meilleure])
 
 
@@ -266,15 +265,18 @@ func _construire_vignettes(globale: VueGlobale) -> void:
 		)
 		var vivant: bool = joueur["vivant"]
 		var densite: PackedByteArray = _reduire(globale.densites.get(id, PackedByteArray()))
-		vignettes.append(
-			{
-				"id": id,
-				"nom": str(joueur["nom"]),
-				"rect": Rect2(coin, Vector2(LARGEUR_VIGNETTE, HAUTEUR_VIGNETTE)),
-				"vivant": vivant,
-				"pv": 0.0 if not vivant else float(_pv_connus.get(id, -1.0)),
-				"densite": densite,
-			}
+		(
+			vignettes
+			. append(
+				{
+					"id": id,
+					"nom": str(joueur["nom"]),
+					"rect": Rect2(coin, Vector2(LARGEUR_VIGNETTE, HAUTEUR_VIGNETTE)),
+					"vivant": vivant,
+					"pv": 0.0 if not vivant else float(_pv_connus.get(id, -1.0)),
+					"densite": densite,
+				}
+			)
 		)
 		rang += 1
 
@@ -345,16 +347,11 @@ func _get_tooltip(at_position: Vector2) -> String:
 func _draw() -> void:
 	var carte := rect_carte()
 	draw_rect(carte, FOND)
+	var cellule := Vector2(COTE_CELLULE, COTE_CELLULE)
 	for i: int in points_positions.size():
-		draw_rect(Rect2(points_positions[i], Vector2(COTE_CELLULE, COTE_CELLULE)), points_couleurs[i])
+		draw_rect(Rect2(carte.position + points_positions[i], cellule), points_couleurs[i])
 	draw_arc(
-		carte.get_center(),
-		CameraArene.RAYON_APPARITION * _echelle(),
-		0.0,
-		TAU,
-		48,
-		CERCLE,
-		1.0
+		carte.get_center(), CameraArene.RAYON_APPARITION * _echelle(), 0.0, TAU, 48, CERCLE, 1.0
 	)
 	draw_circle(carte.get_center(), 3.0, TOUR)
 	if cadre_local.size.x > 0.0 and cadre_local.size.y > 0.0:
@@ -412,10 +409,12 @@ func _nom_court(nom: String, largeur: float, police: Font) -> String:
 	if _noms_courts.has(cle):
 		return _noms_courts[cle]
 	var court := nom
-	while court.length() > 1 and police.get_string_size(court, 0, -1, TAILLE_TEXTE).x > largeur:
-		court = court.substr(0, court.length() - 1)
-		if police.get_string_size(court + "…", 0, -1, TAILLE_TEXTE).x <= largeur:
-			court += "…"
-			break
+	if police.get_string_size(nom, 0, -1, TAILLE_TEXTE).x > largeur:
+		while (
+			court.length() > 1
+			and police.get_string_size(court + "…", 0, -1, TAILLE_TEXTE).x > largeur
+		):
+			court = court.substr(0, court.length() - 1)
+		court += "…"
 	_noms_courts[cle] = court
 	return court

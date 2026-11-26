@@ -99,8 +99,8 @@ func afficher(vue: VueGlobale, id_local: int, cible: int) -> void:
 		_demander(_suivant_apres(cible))
 
 
-## Page précédente et suivante n'agissent que si l'écran est visible et qu'aucun champ de saisie n'a le focus :
-## taper un nom ne doit pas changer d'arène.
+## Page précédente et suivante n'agissent que si l'écran est visible et qu'aucun champ de saisie
+## n'a le focus : taper un nom ne doit pas changer d'arène.
 func _unhandled_input(event: InputEvent) -> void:
 	if not visible or not event.is_pressed() or event.is_echo():
 		return

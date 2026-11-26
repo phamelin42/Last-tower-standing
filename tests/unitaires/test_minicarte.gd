@@ -45,17 +45,21 @@ func _id(i: int) -> int:
 func _globale(nombre: int, densites: bool = false) -> VueGlobale:
 	var g := VueGlobale.new()
 	for i: int in nombre:
-		g.joueurs.append(
-			{
-				"id": _id(i),
-				"nom": "Joueuse %d" % i if i == 0 else "Adversaire numéro %d" % i,
-				"manche": 3,
-				"eliminations": 0,
-				"degats": 5.0,
-				"revenu": 10,
-				"vivant": true,
-				"victorieux": false,
-			}
+		(
+			g
+			. joueurs
+			. append(
+				{
+					"id": _id(i),
+					"nom": "Joueuse %d" % i if i == 0 else "Adversaire numéro %d" % i,
+					"manche": 3,
+					"eliminations": 0,
+					"degats": 5.0,
+					"revenu": 10,
+					"vivant": true,
+					"victorieux": false,
+				}
+			)
 		)
 		if densites and i > 0:
 			var carte := PackedByteArray()
@@ -87,11 +91,16 @@ func _famille_du_palier(palier: int) -> int:
 	return -1
 
 
-func _jeu(nombre: int, zone: Vector2 = Vector2(1280.0, 720.0)) -> Jeu:
+func _nouveau_jeu() -> Jeu:
 	var jeu := (load("res://scenes/jeu.tscn") as PackedScene).instantiate() as Jeu
 	jeu.chemin_reglages = dossier_temporaire().path_join("reglages.cfg")
 	jeu.nom_joueur = "Mina"
 	arbre.root.add_child(jeu)
+	return jeu
+
+
+func _jeu(nombre: int, zone: Vector2 = Vector2(1280.0, 720.0)) -> Jeu:
+	var jeu := _nouveau_jeu()
 	_source = SourceFactice.new()
 	_source.regler(LOCAL, LOCAL)
 	jeu.add_child(_source)
@@ -175,7 +184,8 @@ func test_les_ennemis_ont_la_couleur_de_leur_palier() -> void:
 		var palier := int((_donnees.familles[f] as Dictionary)["indice_palier"])
 		verifier_egal(m.couleur_famille(f), Minicarte.COULEURS_CLASSES[palier], "famille %d" % f)
 	verifier_egal(
-		m.couleur_famille(_donnees.familles.size()), Minicarte.COULEURS_CLASSES[Minicarte.CLASSE_CONVOI]
+		m.couleur_famille(_donnees.familles.size()),
+		Minicarte.COULEURS_CLASSES[Minicarte.CLASSE_CONVOI]
 	)
 	verifier_egal(
 		m.couleur_famille(_donnees.familles.size() + 1),
@@ -190,7 +200,9 @@ func test_les_ennemis_ont_la_couleur_de_leur_palier() -> void:
 	for i: int in NB_ENNEMIS:
 		var palier := i % paliers
 		var signe := Vector2(-1.0 if palier % 2 == 0 else 1.0, -1.0 if palier < 2 else 1.0)
-		var p := signe * Vector2(hasard.randf_range(150.0, 1000.0), hasard.randf_range(150.0, 1000.0))
+		var p := (
+			signe * Vector2(hasard.randf_range(150.0, 1000.0), hasard.randf_range(150.0, 1000.0))
+		)
 		vue.ennemis_id.append(i)
 		vue.ennemis_pos.append(p)
 		vue.ennemis_famille.append(_famille_du_palier(palier))
@@ -204,7 +216,9 @@ func test_les_ennemis_ont_la_couleur_de_leur_palier() -> void:
 	)
 	var vus: Array[int] = [0, 0, 0, 0]
 	for i: int in m.points_positions.size():
-		var local := m.points_positions[i] - m.rect_carte().get_center()
+		var local := (
+			m.points_positions[i] - Vector2(Minicarte.COTE_CARTE, Minicarte.COTE_CARTE) * 0.5
+		)
 		var palier := (0 if local.y < 0.0 else 2) + (0 if local.x < 0.0 else 1)
 		# Quadrant (x <0, y <0) = palier 0, (x >0, y <0) = palier 1, etc.
 		verifier_egal(
@@ -306,7 +320,8 @@ func test_une_densite_qui_n_a_pas_256_octets_n_est_pas_dessinee() -> void:
 
 
 ## Review Focus 5.
-func test_un_clic_hors_de_la_carte_ou_non_fini_ne_deplace_pas_la_vue_et_espace_revient_toujours() -> void:
+func test_un_clic_hors_de_la_carte_ou_non_fini_ne_deplace_pas_la_vue_et_espace_revient_toujours(
+) -> void:
 	var jeu := await _jeu(3)
 	var m := jeu.minicarte
 	var camera := jeu.camera
@@ -368,7 +383,8 @@ func test_un_clic_sur_une_vignette_regarde_cette_arene_et_espace_revient_a_la_si
 		verifier_egal(jeu.camera.decalage_unites, Vector2.ZERO)
 
 
-func test_la_minicarte_ne_couvre_ni_la_boutique_ni_la_barre_du_haut_aux_trois_resolutions_et_aux_cinq_echelles() -> void:
+func test_la_minicarte_ne_couvre_ni_la_boutique_ni_la_barre_du_haut_aux_resolutions_et_echelles(
+) -> void:
 	for echelle: float in Reglages.ECHELLES:
 		for resolution: Vector2 in RESOLUTIONS:
 			var zone := resolution / echelle
@@ -420,10 +436,7 @@ func test_la_taille_de_l_interface_et_la_vitesse_de_camera_des_reglages_sont_app
 	r.echelle_ui = 1.25
 	r.vitesse_camera = 2.0
 	verifier(r.sauver(dossier_temporaire().path_join("reglages.cfg")))
-	var jeu := (load("res://scenes/jeu.tscn") as PackedScene).instantiate() as Jeu
-	jeu.chemin_reglages = dossier_temporaire().path_join("reglages.cfg")
-	jeu.nom_joueur = "Mina"
-	arbre.root.add_child(jeu)
+	var jeu := _nouveau_jeu()
 	verifier(jeu.demarrer_solo(_donnees, GRAINE, 0.5))
 	verifier_proche(jeu.get_window().content_scale_factor, 1.25, 0.001, "taille de l'interface")
 	verifier_proche(jeu.camera.vitesse_relative, 2.0, 0.001, "vitesse de caméra")
