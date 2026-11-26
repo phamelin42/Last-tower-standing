@@ -142,6 +142,7 @@ static func _scripts() -> Array[GDScript]:
 		AttaqueCercleGivre,
 		AttaqueNova,
 		AttaqueTempete,
+		AttaquePetard,
 	]
 
 
@@ -638,6 +639,9 @@ func poser(effet: Dictionary) -> void:
 			alpha = ALPHA_MAX * (1.0 - t)
 		"piege":
 			echelle *= MecaniquesGenres.poser_piege(effet, n, age)
+			# L'objet posé peut s'animer (la mèche qui crépite) ; figé en mouvement réduit.
+			if float(effet["fps"]) > 0.0 and not mouvement_reduit:
+				_image(effet, int(age * float(effet["fps"])) % _images_planche(effet))
 		"image":
 			n.position = effet["depart"]
 			var seq: Array[int] = effet["seq"]
@@ -677,6 +681,11 @@ func _poser_vol(effet: Dictionary, n: Sprite2D, t: float, age: float) -> void:
 			n.texture.get_width() / float((planches()[effet["planche"]] as Vector2i).x)
 		)
 		_image(effet, int(age * fps) % images)
+
+
+func _images_planche(effet: Dictionary) -> int:
+	var texture: Texture2D = (effet["n"] as Sprite2D).texture
+	return int(texture.get_width() / float((planches()[effet["planche"]] as Vector2i).x))
 
 
 func _image(effet: Dictionary, i: int) -> void:

@@ -45,7 +45,7 @@ const ENNEMIS_DANS_BANDE: Array[Vector2] = [
 const INDEX_TIRE: int = 1
 
 const PERIODE: float = 1.2
-## Un piège se déclenche quand un ennemi passe : la vitrine laisse le piège posé ce temps-là.
+## Un piège ou une mine se déclenche quand un ennemi passe : la vitrine le laisse posé ce temps-là.
 const DELAI_PIEGE: float = 0.6
 const DECALAGE: float = 0.1
 const GRAINE: int = 20261126
@@ -217,8 +217,9 @@ func _tirer(bande: int) -> void:
 	var id: String = armes[bande]
 	var avant: int = _en_jeu()
 	var piege: int = VueArene.genre_depuis_nom("piege")
+	var mine: int = VueArene.genre_depuis_nom("mine")
 	for evenement: Dictionary in evenements_du_cycle(id):
-		if evenement["k"] == "impact" and int(evenement["genre"]) == piege:
+		if evenement["k"] == "impact" and int(evenement["genre"]) in [piege, mine]:
 			_en_retard.append({"reste": DELAI_PIEGE, "evenement": evenement})
 		else:
 			effets.ajouter(evenement)
