@@ -76,10 +76,6 @@ const CASE_FEU: int = 128
 const IMAGES_FEU: int = 7
 ## Où les flammes touchent le sol dans leur case : le pied du boss.
 const PIED_FEU: float = 106.0
-## La flamme dépasse sous les pieds du boss, que son corps large cacherait sinon.
-const DECALAGE_FLAMME: float = 10.0
-const ECHELLE_FLAMME_BOSS: float = 0.5
-const IMAGES_FEU_PAR_SECONDE: float = 10.0
 const CASE_EXPLOSION: int = 192
 const IMAGES_EXPLOSION: int = 9
 ## Diamètre visible de l'explosion à son plus grand, en pixels de feuille.
@@ -142,9 +138,6 @@ const FORMES_STATUT: Dictionary = {
 	"vol_de_vie": "soin"
 }
 
-## Textures de formes simples, dessinées une fois pour toutes (blanches : `modulate` les teinte).
-static var _formes: Dictionary = {}
-
 ## Où poser les objets au sol (mines, pièges, flammes). Sans valeur : sous les autres effets.
 var parent_sol: Node2D = null
 ## `Donnees.ids_catalogue` (posé par `Arene2D`) : traduit l'index `arme` d'un événement en arme,
@@ -157,7 +150,7 @@ var _libres: Array = [[], []]
 var _vivants: Array[Dictionary] = []
 var _nb_noeuds: int = 0
 var _tous: Array[Sprite2D] = []
-var _textures: Dictionary = {}
+var _tex: TexturesEffets = TexturesEffets.new()
 ## Projectiles en vol, qu'un impact de la même arme au même point attend : `{type, genre, arme,
 ## arrivee, reste}`.
 var _tirs_en_vol: Array[Dictionary] = []
@@ -174,29 +167,15 @@ var _coup_fort: bool = false
 ## Temps avant la prochaine absorption admise.
 var _pause_absorption: float = 0.0
 var _etincelles: Etincelles = Etincelles.new(self)
+## Les attaques des armes qui ont un élément (`ElementsArmes`) : leur pool compte dans `PLAFOND`.
+var _elementaires: AttaquesElementaires = AttaquesElementaires.new()
+## Rang du projectile dans le barrage en cours (entre deux `avancer`).
+var _rang_barrage: int = 0
 
 
-## Une flamme en boucle, posée derrière l'unité qui la porte (le boss). Elle s'anime seule.
-class Flamme:
-	extends Sprite2D
-	var _temps: float = 0.0
-
-	func _process(delta: float) -> void:
-		_temps += delta
-		var image: int = int(_temps * Effets.IMAGES_FEU_PAR_SECONDE) % Effets.IMAGES_FEU
-		region_rect = Rect2(image * Effets.CASE_FEU, 0.0, Effets.CASE_FEU, Effets.CASE_FEU)
-
-
+## Une flamme en boucle, posée derrière l'unité qui la porte (le boss).
 static func creer_flamme() -> Sprite2D:
-	var flamme := Flamme.new()
-	flamme.name = "Flamme"
-	flamme.texture = load(Apparence.RACINE + FEUILLE_FEU) as Texture2D
-	flamme.region_enabled = true
-	flamme.region_rect = Rect2(0.0, 0.0, CASE_FEU, CASE_FEU)
-	flamme.offset = Vector2(0.0, CASE_FEU * 0.5 - PIED_FEU + DECALAGE_FLAMME)
-	flamme.show_behind_parent = true
-	flamme.scale = Vector2.ONE * ECHELLE_FLAMME_BOSS
-	return flamme
+	return FlammeBoss.creer()
 
 
 ## Chemins des images du pack citées par les effets.
@@ -233,8 +212,18 @@ static func rendu(type_degats: int, genre: String) -> Dictionary:
 	return {"projectile": projectile, "impact": impact, "sol": sol}
 
 
+func _init() -> void:
+	_elementaires.name = "Elementaires"
+	add_child(_elementaires)
+
+
+## Le pool des attaques élémentaires (lecture, pour les vitrines et les tests).
+func elementaires() -> AttaquesElementaires:
+	return _elementaires
+
+
 func nombre_vivants() -> int:
-	return _vivants.size()
+	return _vivants.size() + _elementaires.nombre_vivants()
 
 
 ## Temps de gel d'impact qui reste au plus long gel en cours (0 sans gel).
@@ -242,7 +231,7 @@ func gel_restant() -> float:
 	var reste: float = 0.0
 	for e: Dictionary in _vivants:
 		reste = maxf(reste, float(e["gel"]))
-	return reste
+	return maxf(reste, _elementaires.gel_restant())
 
 
 func taille_pool() -> int:
@@ -350,6 +339,7 @@ func vider() -> void:
 	_en_attente.clear()
 	_chaine_active = false
 	_etincelles.vider()
+	_elementaires.vider()
 
 
 ## `evenement` : {k, de, vers, type_degats, rayon} d'une `VueArene`, avec `genre` et `statut` en
@@ -401,6 +391,7 @@ func exploser(ou: Vector2) -> bool:
 
 func avancer(delta: float) -> void:
 	_chaine_active = false
+	_rang_barrage = 0
 	_pause_absorption = maxf(_pause_absorption - delta, 0.0)
 	for i: int in range(_vivants.size() - 1, -1, -1):
 		var effet: Dictionary = _vivants[i]
@@ -412,6 +403,7 @@ func avancer(delta: float) -> void:
 			_poser(effet)
 	_avancer_attentes(delta)
 	_etincelles.avancer(delta)
+	_elementaires.avancer(delta)
 
 
 ## La part de `delta` qui fait vieillir l'effet : le gel d'impact en retient le début.
@@ -455,7 +447,8 @@ func _avancer_attentes(delta: float) -> void:
 			attente["vers"],
 			float(attente["rayon"]),
 			String(attente["statut"]),
-			attente["signature"]
+			attente["signature"],
+			int(attente["arme"])
 		)
 		_age_initial = 0.0
 
@@ -472,6 +465,9 @@ func _tir(
 	arme: int = -1
 ) -> bool:
 	var rendu_arme: Dictionary = rendu(type_degats, genre)
+	var element: String = _element(arme)
+	if element != "" and rendu_arme["sol"] == "":
+		return _tir_element(element, type_degats, genre, de, vers, arme)
 	var couleur: Color = COULEURS[type_degats]
 	if not signature.is_empty():
 		couleur = signature["couleur"]
@@ -518,6 +514,39 @@ func _tir(
 	return true
 
 
+## Le tir d'une arme à élément : l'impact attend l'arrivée du projectile (anticipation comprise).
+## Un barrage ne tire pas ici : chaque boule part avec son impact (`_impact`).
+func _tir_element(
+	element: String, type_degats: int, genre: String, de: Vector2, vers: Vector2, arme: int
+) -> bool:
+	if genre == "barrage":
+		return false
+	var arrivee: Vector2 = Apparence.vers_pixels(vers)
+	var duree: float = _el().tirer(element, Apparence.vers_pixels(de), arrivee)
+	if duree < 0.0:
+		return false
+	if _tirs_en_vol.size() < PLAFOND:
+		var tir := {"type": type_degats, "genre": genre, "arme": arme}
+		tir["arrivee"] = arrivee
+		tir["reste"] = duree
+		_tirs_en_vol.append(tir)
+	return true
+
+
+## L'élément de l'arme d'index `arme` du catalogue, `""` si elle garde son rendu.
+func _element(arme: int) -> String:
+	if arme < 0 or arme >= catalogue.size():
+		return ""
+	return ElementsArmes.de(catalogue[arme])
+
+
+## Le pool des attaques élémentaires, à jour de ce que le pool d'`Effets` laisse de place.
+func _el() -> AttaquesElementaires:
+	_elementaires.place = PLAFOND - _vivants.size()
+	_elementaires.mouvement_reduit = mouvement_reduit
+	return _elementaires
+
+
 ## La traînée de la signature : un bandeau tendu du départ à l'arrivée, qui s'efface.
 func _trainee(forme: String, depart: Vector2, arrivee: Vector2, couleur: Color) -> void:
 	var effet: Dictionary = _creer(forme, "trait", DUREE_TIR, couleur, COUCHE_DESSUS)
@@ -544,6 +573,14 @@ func _impact(
 	var depart: Vector2 = Apparence.vers_pixels(de)
 	var arrivee: Vector2 = Apparence.vers_pixels(vers)
 	var attente: float = _reprendre_tir(type_degats, genre, arme, arrivee)
+	var element: String = _element(arme)
+	if element != "" and genre == "barrage" and attente < 0.0:
+		var retard: float = _rang_barrage * AttaquesElementaires.RETARD_BARRAGE
+		attente = _el().tirer(element, depart, arrivee, retard)
+		# Une seule marque de brûlure par barrage : quatre colonnes de feu cachaient la cible.
+		if _rang_barrage > 0:
+			statut = ""
+		_rang_barrage += 1
 	var saut: bool = genre == "rebond" or (genre == "" and rayon <= 0.0 and de.length() >= 1.0)
 	if saut:
 		if attente < 0.0 and _chaine_active and _chaine_vers.distance_to(depart) <= TOLERANCE_LIEN:
@@ -553,7 +590,7 @@ func _impact(
 			_chaine_vers = arrivee
 			_chaine_reste = attente
 	if attente <= EPSILON_TEMPS:
-		return _impact_maintenant(type_degats, genre, de, vers, rayon, statut, signature)
+		return _impact_maintenant(type_degats, genre, de, vers, rayon, statut, signature, arme)
 	if _en_attente.size() >= PLAFOND:
 		return false
 	(
@@ -568,6 +605,7 @@ func _impact(
 				"rayon": rayon,
 				"statut": statut,
 				"signature": signature,
+				"arme": arme,
 			}
 		)
 	)
@@ -598,8 +636,10 @@ func _impact_maintenant(
 	vers: Vector2,
 	rayon: float,
 	statut: String,
-	signature: Dictionary = {}
+	signature: Dictionary = {},
+	arme: int = -1
 ) -> bool:
+	var element: String = _element(arme)
 	var couleur: Color = COULEURS[type_degats]
 	if not signature.is_empty():
 		couleur = signature["couleur"]
@@ -621,8 +661,12 @@ func _impact_maintenant(
 			cree = true
 	elif saut:
 		# Le premier saut part de la tour, que le tir a déjà tracée : seul le trait des suivants.
-		if de.length() >= 1.0:
+		if element != "":
+			cree = _el().impacter(element, arrivee, 0.0, false, depart, _age_initial)
+		elif de.length() >= 1.0:
 			cree = _trait(type_degats, depart, arrivee, couleur, signature)
+	elif element != "":
+		cree = _impact_element(element, type_degats, arrivee, rayon)
 	else:
 		cree = _burst(type_degats, genre, arrivee, rayon, couleur, signature)
 	if statut != "" and FORMES_STATUT.has(statut):
@@ -636,9 +680,21 @@ func _impact_maintenant(
 		or String(signature.get("impact", "")) == "explosion"
 	)
 	var nombre: int = Etincelles.NOMBRE_ZONE if zone else Etincelles.NOMBRE_COUP
-	if not mouvement_reduit:
+	if not mouvement_reduit and element == "":
 		_etincelles.lancer(arrivee, nombre, couleur, _age_initial)
 	impact_visible.emit(vers, rayon, _coup_fort)
+	return cree
+
+
+## L'impact d'une arme à élément, au rayon de sa zone. Un coup de siège gèle ; la bombe garde
+## l'explosion du pack, que ses débris accompagnent.
+func _impact_element(element: String, type_degats: int, ou: Vector2, rayon: float) -> bool:
+	var fort: bool = type_degats == Types.TypeDegats.SIEGE
+	_coup_fort = fort
+	var rayon_px: float = rayon * Apparence.PX_PAR_UNITE
+	var cree: bool = _el().impacter(element, ou, rayon_px, fort, ou, _age_initial)
+	if element == ElementsArmes.BOMBE:
+		cree = not _explosion(ou, rayon).is_empty() or cree
 	return cree
 
 
@@ -767,10 +823,10 @@ func _retirer_objet_sol(ou: Vector2) -> void:
 
 ## Prend un nœud du pool et le prépare pour `forme`. Vide si le plafond est atteint.
 func _creer(forme: String, anim: String, duree: float, couleur: Color, couche: int) -> Dictionary:
-	if _vivants.size() >= PLAFOND or _age_initial >= duree:
+	if nombre_vivants() >= PLAFOND or _age_initial >= duree:
 		return {}
 	var noeud: Sprite2D = _prendre(couche)
-	_habiller(noeud, forme)
+	_tex.habiller(noeud, forme)
 	noeud.modulate = Color(couleur, ALPHA_MAX)
 	noeud.visible = true
 	var effet := {
@@ -790,43 +846,6 @@ func _creer(forme: String, anim: String, duree: float, couleur: Color, couche: i
 	}
 	_vivants.append(effet)
 	return effet
-
-
-## Texture, région et ancrage d'une forme. Les images du pack restent nettes, les formes dessinées
-## sont lissées.
-func _habiller(noeud: Sprite2D, forme: String) -> void:
-	noeud.rotation = 0.0
-	noeud.offset = Vector2.ZERO
-	noeud.region_enabled = false
-	noeud.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
-	match forme:
-		"fleche":
-			noeud.texture = _feuille(FEUILLE_FLECHE)
-			noeud.region_enabled = true
-			noeud.region_rect = REGION_FLECHE
-		"dynamite", "mine":
-			noeud.texture = _feuille(FEUILLE_DYNAMITE)
-			noeud.region_enabled = true
-			noeud.region_rect = REGION_DYNAMITE
-		"explosion":
-			noeud.texture = _feuille(FEUILLE_EXPLOSION)
-			noeud.region_enabled = true
-			noeud.region_rect = Rect2(0.0, 0.0, CASE_EXPLOSION, CASE_EXPLOSION)
-			noeud.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-		"feu":
-			noeud.texture = _feuille(FEUILLE_FEU)
-			noeud.region_enabled = true
-			noeud.region_rect = Rect2(0.0, 0.0, CASE_FEU, CASE_FEU)
-			noeud.offset = Vector2(0.0, CASE_FEU * 0.5 - PIED_FEU)
-			noeud.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-		_:
-			noeud.texture = _forme(forme)
-
-
-func _feuille(chemin: String) -> Texture2D:
-	if not _textures.has(chemin):
-		_textures[chemin] = load(Apparence.RACINE + chemin) as Texture2D
-	return _textures[chemin]
 
 
 # --- Mouvement ---------------------------------------------------------------------------------
@@ -970,15 +989,3 @@ func _liberer(i: int) -> void:
 	noeud.visible = false
 	(_libres[int(effet["couche"])] as Array).append(noeud)
 	_vivants.remove_at(i)
-
-
-# --- Formes dessinées --------------------------------------------------------------------------
-
-
-func _forme(nom: String) -> Texture2D:
-	if not _formes.has(nom):
-		var image: Image = (
-			FormesEffets.image(nom) if FORMES_PROPRES.has(nom) else FormesSignatures.image(nom)
-		)
-		_formes[nom] = ImageTexture.create_from_image(image)
-	return _formes[nom]
