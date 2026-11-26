@@ -1180,7 +1180,7 @@ func id_regarde() -> int                # -1 si aucune
 
 ### Task 8.6 : Vagues mêlées — `sonnet`
 
-- [ ] **Objectif :** `Planning` tire pour chaque manche 2 ou 3 familles dont une majoritaire (60 % des apparitions, le reste partagé), parmi celles qu'autorisent les paliers de couleur et l'Archer (manche 5). Le budget (nombre d'apparitions, cadence) ne change pas, seule la composition. Même tirage pour tous les joueurs (graine de partie), jamais la même famille majoritaire deux manches de suite. La vue annonce les familles et leurs armures. Mode sans fin : tous les paliers restent dans le tirage.
+- [x] **Objectif :** `Planning` tire pour chaque manche 2 ou 3 familles dont une majoritaire (60 % des apparitions, le reste partagé), parmi celles qu'autorisent les paliers de couleur et l'Archer (manche 5). Le budget (nombre d'apparitions, cadence) ne change pas, seule la composition. Même tirage pour tous les joueurs (graine de partie), jamais la même famille majoritaire deux manches de suite. La vue annonce les familles et leurs armures. Mode sans fin : tous les paliers restent dans le tirage.
 - **Conception :** §6.1 (vagues mêlées, budget, annonce), §6.11.
 - **Fichiers :** `sim/composition.gd` (nouveau), `sim/planning.gd`, `sim/arene.gd` (`demarrer_manche`, `_apparaitre`), `sim/partie.gd`, `sim/joueur_partie.gd`, `sim/donnees.gd` (clé `vagues`) ; tests `test_planning.gd`, `test_partie.gd`, `test_partie_sans_fin.gd`, `test_arene.gd`, `test_equilibrage.gd`.
 - **Lire :** `sim/planning.gd` (69 lignes), `sim/partie.gd` `_commencer_manche`, `_famille_annoncee`, `vue_arene` ; `sim/arene.gd` `demarrer_manche`, `_apparaitre`.

@@ -290,7 +290,11 @@ func test_une_mort_n_a_pas_de_cle_arme() -> void:
 	var a := Arene.new(_d, GRAINE)
 	a.inventaire.ajouter("de_pipe")
 	a.synchroniser()
-	a.demarrer_manche(1, 0, {"pv": 1.0, "degats": 1.0, "vitesse": 1.0, "resistance_controle": 1.0})
+	a.demarrer_manche(
+		1,
+		Composition.unique(0),
+		{"pv": 1.0, "degats": 1.0, "vitesse": 1.0, "resistance_controle": 1.0}
+	)
 	var morts := 0
 	var tirs := 0
 	for _pas: int in 2400:

@@ -1,6 +1,6 @@
 class_name Planning
 extends RefCounted
-## Ce que la partie décide pour toutes les arènes à la fois : la famille de chaque manche et la
+## Ce que la partie décide pour toutes les arènes à la fois : la composition de chaque manche et la
 ## difficulté. Séparé de `Partie` pour se tester sans simuler une seule manche.
 
 ## Tolérance sur la comparaison d'un temps à un palier : le temps vient d'un compte de pas.
@@ -18,30 +18,54 @@ func _init(donnees: Donnees, graine: int) -> void:
 	_rng.seed = graine
 
 
-## Famille de la manche `manche` : un index de `Donnees.familles`, ou `familles.size()` pour le
-## convoi. À appeler une fois par manche, dans l'ordre. La famille n'est jamais celle de la
-## dernière manche normale, convoi intercalé compris ; le convoi ne vient jamais deux manches de
-## suite et pas avant `convoi.manche_min`.
-func tirer(manche: int) -> int:
+## Composition de la manche `manche` : deux ou trois familles (`vagues` de `data/partie.json`)
+## dont une majoritaire (`part_majoritaire` des apparitions, le reste partagé), tirées parmi celles
+## que leur palier et leur modèle autorisent ; ou le convoi (composition unique d'index
+## `familles.size()`). À appeler une fois par manche, dans l'ordre. La majoritaire n'est jamais
+## celle de la dernière manche normale, convoi intercalé compris ; le convoi ne vient jamais deux
+## manches de suite et pas avant `convoi.manche_min`.
+func tirer(manche: int) -> Composition:
 	var n := _donnees.familles.size()
 	if n == 0:
-		return -1
+		return Composition.unique(-1)
 	var convoi: Dictionary = _donnees.partie["convoi"]
 	var possible := manche >= int(convoi["manche_min"]) and not _dernier_etait_convoi
 	if possible and _rng.randf() < float(convoi["probabilite"]):
 		_dernier_etait_convoi = true
-		return n
+		return Composition.unique(n)
 	_dernier_etait_convoi = false
 	var candidates := _familles_disponibles(manche)
-	var choix := candidates[0]
-	if candidates.size() > 1:
-		var sans_derniere: Array[int] = []
-		for i: int in candidates:
-			if i != _derniere_famille:
-				sans_derniere.append(i)
-		choix = sans_derniere[_rng.randi_range(0, sans_derniere.size() - 1)]
-	_derniere_famille = choix
-	return choix
+	var pool: Array[int] = []
+	for i: int in candidates:
+		if i != _derniere_famille:
+			pool.append(i)
+	if pool.is_empty():
+		pool = candidates.duplicate()
+	var majoritaire := pool[_rng.randi_range(0, pool.size() - 1)]
+	_derniere_famille = majoritaire
+	var vagues: Dictionary = _donnees.partie["vagues"]
+	var nombre := _rng.randi_range(int(vagues["familles_min"]), int(vagues["familles_max"]))
+	var autres: Array[int] = []
+	for i: int in candidates:
+		if i != majoritaire:
+			autres.append(i)
+	nombre = mini(nombre, autres.size() + 1)
+	var composition := Composition.new()
+	composition.graine = _rng.randi()
+	composition.familles.append(majoritaire)
+	for _k: int in range(1, nombre):
+		var tiree := _rng.randi_range(0, autres.size() - 1)
+		composition.familles.append(autres[tiree])
+		autres.remove_at(tiree)
+	var part := float(vagues["part_majoritaire"])
+	if composition.familles.size() == 1:
+		composition.poids.append(1.0)
+	else:
+		composition.poids.append(part)
+		var reste := (1.0 - part) / float(composition.familles.size() - 1)
+		for _k: int in range(1, composition.familles.size()):
+			composition.poids.append(reste)
+	return composition
 
 
 ## Index des familles qui peuvent sortir à la manche `manche` : leur palier est entré

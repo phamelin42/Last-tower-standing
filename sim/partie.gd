@@ -47,7 +47,7 @@ var _pas_phase: int = 0
 var _pas_preparation: int
 var _pas_manche: int
 var _manche_boss: int
-var _famille_suivante: int = -1
+var _composition_suivante: Composition = null
 var _classement: Array[int] = []
 var _dernier_rempart: int = -1
 
@@ -104,7 +104,7 @@ func demarrer() -> bool:
 	for rang: int in _ordre.size():
 		var j := _ordre[rang]
 		j.arene = Arene.new(_donnees, _graine + PAS_GRAINE_ARENE * rang)
-	_famille_suivante = _planning.tirer(1) if _manche_boss > 1 else -1
+	_composition_suivante = _planning.tirer(1) if _manche_boss > 1 else null
 	return true
 
 
@@ -169,22 +169,22 @@ func _commencer_manche(numero: int) -> void:
 				j.arene.demarrer_boss(mult)
 	else:
 		_phase = Types.Phase.MANCHE
-		var famille := _famille_suivante
-		_famille_suivante = _planning.tirer(numero + 1) if numero + 1 < _manche_boss else -1
+		var composition := _composition_suivante
+		_composition_suivante = _planning.tirer(numero + 1) if numero + 1 < _manche_boss else null
 		for j: JoueurPartie in _ordre:
 			if j.arene != null and not j.fige and not j.sans_fin:
-				j.arene.demarrer_manche(numero, famille, mult)
+				j.arene.demarrer_manche(numero, composition, mult)
 	manche_commencee.emit(numero)
 
 
-## Manche suivante d'un joueur en sans fin : sa famille annoncée, puis la suivante tirée.
+## Manche suivante d'un joueur en sans fin : sa composition annoncée, puis la suivante tirée.
 func _commencer_manche_sans_fin(j: JoueurPartie) -> void:
 	j.manche_sans_fin += 1
 	j.pas_manche_sans_fin = 0
 	var mult := Planning.multiplicateurs(_donnees, j.manche_sans_fin, temps_ecoule())
-	var famille := j.famille_suivante_sans_fin
-	j.famille_suivante_sans_fin = j.planning_sans_fin.tirer(j.manche_sans_fin + 1)
-	j.arene.demarrer_manche(j.manche_sans_fin, famille, mult)
+	var composition := j.composition_suivante_sans_fin
+	j.composition_suivante_sans_fin = j.planning_sans_fin.tirer(j.manche_sans_fin + 1)
+	j.arene.demarrer_manche(j.manche_sans_fin, composition, mult)
 
 
 # --- Fin de joueur, fin de partie --------------------------------------------------------------
@@ -303,7 +303,7 @@ func intention_continuer_sans_fin(id: int) -> int:
 		_donnees, _graine + DECALAGE_GRAINE_PARTIE + PAS_GRAINE_ARENE * (_ordre.find(j) + 1)
 	)
 	j.manche_sans_fin = _manche_boss
-	j.famille_suivante_sans_fin = j.planning_sans_fin.tirer(_manche_boss + 1)
+	j.composition_suivante_sans_fin = j.planning_sans_fin.tirer(_manche_boss + 1)
 	_commencer_manche_sans_fin(j)
 	return Types.Resultat.OK
 
@@ -352,7 +352,14 @@ func vue_arene(demandeur: int, cible: int) -> VueArene:
 	var c := _joueur(cible)
 	if d == null or c == null or c.arene == null:
 		return null
-	var v := c.arene.vue(_phase_vue(c), _temps_restant(c), _famille_annoncee(c), c.sans_fin)
+	var annoncee := _composition_annoncee(c)
+	var v := c.arene.vue(
+		_phase_vue(c),
+		_temps_restant(c),
+		annoncee.majoritaire() if annoncee != null else -1,
+		c.sans_fin,
+		annoncee
+	)
 	_enregistrer(c, v)
 	var attente := c.evenements_en_attente
 	if not attente.is_empty():
@@ -426,12 +433,12 @@ func _temps_restant(j: JoueurPartie) -> float:
 	return float(duree - _pas_phase) * _pas_s
 
 
-func _famille_annoncee(j: JoueurPartie) -> int:
+func _composition_annoncee(j: JoueurPartie) -> Composition:
 	if j.sans_fin:
-		return j.famille_suivante_sans_fin
+		return j.composition_suivante_sans_fin
 	if _phase == Types.Phase.PREPARATION or _phase == Types.Phase.MANCHE:
-		return _famille_suivante
-	return -1
+		return _composition_suivante
+	return null
 
 
 ## Met à jour les statistiques d'un joueur depuis une vue qu'on vient de lire.
@@ -443,7 +450,14 @@ func _enregistrer(j: JoueurPartie, v: VueArene) -> void:
 
 
 func _lire_statistiques(j: JoueurPartie) -> void:
-	var v := j.arene.vue(_phase_vue(j), _temps_restant(j), _famille_annoncee(j), j.sans_fin)
+	var annoncee := _composition_annoncee(j)
+	var v := j.arene.vue(
+		_phase_vue(j),
+		_temps_restant(j),
+		annoncee.majoritaire() if annoncee != null else -1,
+		j.sans_fin,
+		annoncee
+	)
 	_enregistrer(j, v)
 	var place := Arene.EVENEMENTS_MAX - j.evenements_en_attente.size()
 	if place > 0:

@@ -46,7 +46,10 @@ var _tick: int = 0
 var _temps: float = 0.0
 var _manche: int = 0
 var _manche_max: int = 0
-var _famille: int = -1
+var _composition: Composition = null
+## Tire la famille de chaque apparition : graine de la composition, donc la même suite chez tous les
+## joueurs ; à part de `_rng` (positions) pour ne pas décaler leur suite.
+var _rng_familles := RandomNumberGenerator.new()
 var _mult_pv: float = 1.0
 var _mult_degats: float = 1.0
 var _mult_vitesse: float = 1.0
@@ -100,14 +103,17 @@ func _init(donnees: Donnees, graine: int) -> void:
 # --- Manches -----------------------------------------------------------------------------------
 
 
-## `famille` : index dans `Donnees.familles`, ou `familles.size()` pour le convoi ; négatif, aucune
-## apparition. `mult` : {pv, degats, vitesse, resistance_controle}, lu une fois pour la manche.
-func demarrer_manche(numero: int, famille: int, mult: Dictionary) -> void:
+## `composition` : les familles de la manche et leurs poids (`Composition.unique(familles.size())`
+## pour le convoi) ; une composition sans famille ne fait rien apparaître. `mult` : {pv, degats,
+## vitesse, resistance_controle}, lu une fois pour la manche.
+func demarrer_manche(numero: int, composition: Composition, mult: Dictionary) -> void:
 	if _detruite:
 		return
 	_manche = maxi(numero, 0)
 	_manche_max = maxi(_manche_max, _manche)
-	_famille = famille
+	_composition = composition
+	if composition != null:
+		_rng_familles.seed = composition.graine
 	_lire_mult(mult)
 	_boss_en_cours = false
 	# Sans fin : le boss tombé ne doit pas redonner la victoire à chaque pas.
@@ -125,7 +131,7 @@ func demarrer_boss(mult: Dictionary) -> void:
 	_manche_max = maxi(_manche_max, _manche)
 	_lire_mult(mult)
 	_boss_en_cours = true
-	_famille = -1
+	_composition = null
 	_cumul_apparition = 0.0
 	var b: Dictionary = _donnees.boss
 	_boss_id = ennemis.ajouter(
@@ -225,7 +231,7 @@ func carte_densite() -> PackedByteArray:
 
 
 func _faire_apparaitre(dt: float) -> void:
-	if _boss_en_cours or _manche < 1 or _famille < 0:
+	if _boss_en_cours or _manche < 1 or _composition == null or _composition.majoritaire() < 0:
 		return
 	_cumul_apparition += dt
 	var intervalle := maxf(_plancher, _intervalle_depart - _baisse_par_manche * (_manche - 1))
@@ -241,7 +247,8 @@ func _faire_apparaitre(dt: float) -> void:
 
 func _apparaitre() -> void:
 	var position := _point_d_apparition()
-	if _famille >= _donnees.familles.size():
+	var famille := _composition.tirer(_rng_familles)
+	if famille >= _donnees.familles.size():
 		# Convoi : il marche vers la tour sans jamais attaquer, et sa prime est élevée.
 		var c: Dictionary = _donnees.convoi
 		ennemis.ajouter(
@@ -256,9 +263,9 @@ func _apparaitre() -> void:
 			Types.Armure.AUCUNE
 		)
 		return
-	var f: Dictionary = _donnees.familles[_famille]
+	var f: Dictionary = _donnees.familles[famille]
 	ennemis.ajouter(
-		_famille,
+		famille,
 		position,
 		float(f["pv"]) * _mult_pv,
 		float(f["vitesse"]) * _mult_vitesse,
@@ -430,14 +437,31 @@ func synchroniser() -> void:
 
 
 ## La vue publique, puis les évènements sont vidés : chacun n'est lu qu'une fois.
-func vue(phase: int, temps_restant: float, prochaine_famille: int, sans_fin: bool) -> VueArene:
+## `composition` : celle de la manche annoncée (familles et armures de la vue) ; sans elle, la seule
+## famille `prochaine_famille` (négative : aucune) est annoncée.
+func vue(
+	phase: int,
+	temps_restant: float,
+	prochaine_famille: int,
+	sans_fin: bool,
+	composition: Composition = null
+) -> VueArene:
 	var v := VueArene.new()
 	v.tick = _tick
 	v.manche = _manche
 	v.phase = Types.Phase.DEFAITE if _detruite else phase
 	v.temps_restant = temps_restant
-	v.prochaine_famille = prochaine_famille
-	v.prochaine_armure = _armure_de_famille(prochaine_famille)
+	var annoncees := PackedInt32Array()
+	if composition != null:
+		annoncees = composition.familles
+	elif prochaine_famille >= 0:
+		annoncees = PackedInt32Array([prochaine_famille])
+	for f: int in annoncees:
+		if f >= 0:
+			v.prochaines_familles.append(f)
+			v.prochaines_armures.append(_armure_de_famille(f))
+	v.prochaine_famille = v.prochaines_familles[0] if not v.prochaines_familles.is_empty() else -1
+	v.prochaine_armure = _armure_de_famille(v.prochaine_famille)
 	v.sans_fin = sans_fin
 	v.tour_pv = pv
 	v.tour_pv_max = _pv_max()

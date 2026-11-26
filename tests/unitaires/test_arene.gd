@@ -30,7 +30,7 @@ func _vue(a: Arene) -> VueArene:
 ## Une arène immobile : les ennemis apparaissent sur le cercle et n'en bougent plus.
 func _arene_immobile(manche: int, graine: int = GRAINE) -> Arene:
 	var a := Arene.new(d, graine)
-	a.demarrer_manche(manche, 0, _mult(0.0))
+	a.demarrer_manche(manche, Composition.unique(0), _mult(0.0))
 	return a
 
 
@@ -116,7 +116,7 @@ func test_graines_differentes_donnent_des_apparitions_differentes() -> void:
 
 func test_les_ennemis_recoivent_les_multiplicateurs_de_la_manche() -> void:
 	var a := Arene.new(d, GRAINE)
-	a.demarrer_manche(3, 1, _mult(2.0, 3.0, 5.0))
+	a.demarrer_manche(3, Composition.unique(1), _mult(2.0, 3.0, 5.0))
 	_avancer(a, 40)
 	var fam: Dictionary = d.familles[1]
 	verifier_egal(a.nombre_ennemis(), 1)
@@ -133,7 +133,7 @@ func test_les_ennemis_recoivent_les_multiplicateurs_de_la_manche() -> void:
 
 ## Mêmes intentions aux mêmes pas : achat, relance, vente, nouvelle manche.
 func _jouer(a: Arene, vues: Array[Dictionary]) -> void:
-	a.demarrer_manche(1, 0, _mult(8.0))
+	a.demarrer_manche(1, Composition.unique(0), _mult(8.0))
 	for pas: int in 2000:
 		if pas == 10:
 			a.acheter(0)
@@ -146,7 +146,7 @@ func _jouer(a: Arene, vues: Array[Dictionary]) -> void:
 		if pas == 900:
 			a.vendre(0)
 		if pas == 1000:
-			a.demarrer_manche(2, 3, _mult(8.0))
+			a.demarrer_manche(2, Composition.unique(3), _mult(8.0))
 		a.avancer(DT)
 		if (pas + 1) % 100 == 0:
 			vues.append(_vue(a).to_dict())
@@ -223,7 +223,7 @@ func test_arene_detruite_est_figee() -> void:
 
 func test_boss_arrete_les_apparitions_normales() -> void:
 	var a := Arene.new(d, GRAINE)
-	a.demarrer_manche(31, 0, _mult(0.0))
+	a.demarrer_manche(31, Composition.unique(0), _mult(0.0))
 	_avancer(a, 100)
 	var avant := a.nombre_ennemis()
 	verifier(avant > 0, "des ennemis normaux étaient apparus")
@@ -247,7 +247,7 @@ func test_boss_porte_les_donnees_du_boss() -> void:
 
 func test_convoi_verse_une_prime_elevee_et_n_inflige_aucun_degat() -> void:
 	var a := Arene.new(d, GRAINE)
-	a.demarrer_manche(5, d.familles.size(), _mult(10.0))
+	a.demarrer_manche(5, Composition.unique(d.familles.size()), _mult(10.0))
 	_avancer(a, 100)
 	verifier_egal(a.nombre_ennemis(), 2, "un convoi toutes les 1,68 s")
 	verifier_egal(int(a.ennemis.famille[0]), d.familles.size(), "famille convoi")
@@ -270,7 +270,7 @@ func test_convoi_verse_une_prime_elevee_et_n_inflige_aucun_degat() -> void:
 
 func test_vue_quatre_offres_huit_armes_tableaux_alignes() -> void:
 	var a := Arene.new(d, GRAINE)
-	a.demarrer_manche(1, 0, _mult(1.0))
+	a.demarrer_manche(1, Composition.unique(0), _mult(1.0))
 	for _i: int in 8:
 		a.inventaire.ajouter("de_pipe")
 	a.synchroniser()
@@ -352,7 +352,7 @@ func test_les_evenements_ne_s_accumulent_pas_sans_fin() -> void:
 	for _i: int in 8:
 		a.inventaire.ajouter("de_pipe")
 	a.synchroniser()
-	a.demarrer_manche(40, 0, _mult(5.0))
+	a.demarrer_manche(40, Composition.unique(0), _mult(5.0))
 	_avancer(a, 4000)
 	verifier_egal(_vue(a).evenements.size(), 2000, "des milliers de tirs, la file reste bornée")
 

@@ -210,11 +210,11 @@ func test_la_preparation_dure_30_s_puis_les_manches_30_s() -> void:
 	verifier_egal(manches, [1, 2], "manche_commencee à chaque manche, pas à la préparation")
 
 
-func test_la_famille_annoncee_est_celle_qui_apparait() -> void:
+func test_les_familles_annoncees_sont_celles_qui_apparaissent() -> void:
 	var solide := AidesPartie.donnees({"partie.json": [[["tour", "pv"], 1000000.0]]})
 	for graine: int in range(1, 6):
 		var p := AidesPartie.partie(solide, graine, 1)
-		var annoncee := p.vue_arene(1, 1).prochaine_famille
+		var annoncee := p.vue_arene(1, 1).prochaines_familles
 		AidesPartie.pas(p, 600)
 		for manche: int in range(1, 5):
 			var avant := p.vue_arene(1, 1)
@@ -226,11 +226,15 @@ func test_la_famille_annoncee_est_celle_qui_apparait() -> void:
 				if v.ennemis_id[i] in avant.ennemis_id:
 					continue
 				nouveaux += 1
-				verifier_egal(
-					v.ennemis_famille[i], annoncee, "graine %d manche %d" % [graine, manche]
+				verifier(
+					v.ennemis_famille[i] in annoncee,
+					(
+						"graine %d manche %d : famille %d hors de %s"
+						% [graine, manche, v.ennemis_famille[i], annoncee]
+					)
 				)
 			verifier(nouveaux > 0, "des ennemis de la manche %d sont apparus" % manche)
-			annoncee = v.prochaine_famille
+			annoncee = v.prochaines_familles
 			AidesPartie.pas(p, 540)
 
 
