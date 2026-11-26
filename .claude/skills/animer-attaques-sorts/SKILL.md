@@ -20,9 +20,11 @@ pas des normes : on les ajuste à l'œil, sur une capture. Sources complètes et
 - `visuels/effets.gd` : tirs, impacts, anneaux, traits, explosions, objets au sol, dans un pool
   plafonné (`PLAFOND`). Chaque type de dégâts a sa **forme** (on le reconnaît sans la couleur, qui
   ne fait que la souligner) et aucun effet n'est opaque (`ALPHA_MAX`) : la tour reste lisible.
-  Ces trois garanties sont testées ; un nouvel effet les respecte.
+  Ces trois garanties sont testées ; un nouvel effet les respecte. Le fichier frôle la limite de
+  1 000 lignes de gdlint : un nouvel effet va dans un fichier à part, comme `courbes_effets.gd`,
+  `etincelles.gd`, `formes_effets.gd` et `reactions_coups.gd` (flash et recul de l'ennemi touché).
 - `visuels/apparence.gd` (entité vers sprites), `visuels/interpolation.gd` (positions lissées entre
-  deux vues d'arène), `visuels/teinte_tour.gdshader`. Planches du pack : `assets/tiny_swords/`
+  deux vues d'arène, en retard d'un intervalle entre vues), `visuels/teinte_tour.gdshader`. Planches du pack : `assets/tiny_swords/`
   (crédits dans `CREDITS.md`).
 - Un effet naît d'un événement d'arène (`VueArene.evenements`, clés `genre` et `statut`). `visuels/`
   lit l'état ; il n'écrit jamais dans `sim/` et ne retarde rien côté réseau.
@@ -105,7 +107,9 @@ d'effets du pack (`assets/tiny_swords/Effects/`).
   taille du projet (`--write-movie` ignore `--resolution` ; `--taille` réduit après coup) ; ce qui
   suit `--` va au jeu. Une cadence fixe et des particules à graine fixe (`use_fixed_seed`, `seed`)
   donnent des images identiques d'un rendu à l'autre : une différence entre deux captures vient
-  alors de ton changement, pas du hasard ni de l'horloge.
+  alors de ton changement, pas du hasard ni de l'horloge. Un déplacement se juge sur
+  `tools/vitrines/vitrine_mouvement.tscn` (`--fps 60 -- --hz 15`), pas sur le banc, trop lent pour
+  montrer un saut.
 - **Sprites d'effets générés** : un script `tools/*.gd` typé (API `Image` de Godot, comme
   `tools/composer_images_offres.gd`) qui dessine l'effet sur la palette du pack et écrit la planche
   PNG ; il se relance partout où Godot tourne. Le PNG produit est une création du projet : une

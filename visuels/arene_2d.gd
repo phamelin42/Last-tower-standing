@@ -467,7 +467,7 @@ func _sur_impact_visible(ou: Vector2, rayon: float) -> void:
 
 func _echantillon_courant() -> Dictionary:
 	if _echantillon_affiche.is_empty():
-		_echantillon_affiche = _interpolation.echantillon(_horloge + Interpolation.DELAI_S)
+		_echantillon_affiche = _interpolation.echantillon(_horloge)
 	return _echantillon_affiche
 
 
