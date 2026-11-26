@@ -540,6 +540,8 @@ func _tir_element(
 ) -> bool:
 	if genre == "barrage":
 		return false
+	if genre == "onde":
+		return _el().onde(element, Apparence.vers_pixels(de))
 	var arrivee: Vector2 = Apparence.vers_pixels(vers)
 	var duree: float = _el().tirer(element, Apparence.vers_pixels(de), arrivee)
 	if duree < 0.0:
@@ -609,6 +611,10 @@ func _impact(
 	if saut:
 		if attente < 0.0 and _chaine_active and _chaine_vers.distance_to(depart) <= TOLERANCE_LIEN:
 			attente = _chaine_reste + DECALAGE_SAUT
+			if element != "":
+				# Un élément qui lance un projectile par saut attend son arrivée, pas 3 images.
+				var vol: float = _el().saut(element, depart, arrivee, _chaine_reste)
+				attente = vol if vol >= 0.0 else attente
 		if attente >= 0.0:
 			_chaine_active = true
 			_chaine_vers = arrivee
@@ -680,7 +686,12 @@ func _impact_maintenant(
 		genre == "aura" or genre == "onde" or (genre == "" and rayon > 0.0 and de == vers)
 	)
 	var saut: bool = genre == "rebond" or (genre == "" and rayon <= 0.0 and de.length() >= 1.0)
-	if anneau:
+	if element != "" and (genre == "aura" or genre == "onde"):
+		# L'onde est dessinée tout entière à son départ (`_tir_element`) : ses impacts n'ajoutent
+		# rien ; l'aura se dessine à chaque coup.
+		if genre == "aura":
+			cree = _el().aura(element, arrivee, rayon * Apparence.PX_PAR_UNITE, _age_initial)
+	elif anneau:
 		var effet: Dictionary = _creer("anneau", "anneau", DUREE_ANNEAU, couleur, COUCHE_DESSUS)
 		if not effet.is_empty():
 			effet["depart"] = arrivee

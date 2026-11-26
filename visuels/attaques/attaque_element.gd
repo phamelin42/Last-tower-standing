@@ -17,7 +17,8 @@ func id() -> String:
 ## La fiche : `couleur`, `projectile` (planche, `""` sans projectile), `cloche` (hauteur du sommet
 ## en fraction de la distance, 0 en direct), `fps` (animation du projectile, 0 sans), et au besoin
 ## `anticipation` (couleur de la bouffée de départ), `tour` (rotation sur le vol, radians),
-## `bosse` (grossissement au sommet).
+## `bosse` (grossissement au sommet), `vrille` (tours par seconde d'un projectile qui tourne sur
+## lui-même, 0 sans) et `saut` (vrai : un projectile par saut d'un rebond).
 func conf() -> Dictionary:
 	return {}
 
@@ -59,4 +60,16 @@ func impacter_en_groupe(
 ## La zone d'un barrage, dessinée une seule fois, centrée en `centre` (le point d'impact moyen),
 ## au rayon réel `rayon_px` ; par défaut rien.
 func zone(_m: AttaquesElementaires, _centre: Vector2, _rayon_px: float, _age: float) -> bool:
+	return false
+
+
+## Une aura : une couronne qui naît de la tour (`centre`) et s'étend jusqu'au rayon réel
+## `rayon_px` ; par défaut rien.
+func aura(_m: AttaquesElementaires, _centre: Vector2, _rayon_px: float, _age: float) -> bool:
+	return false
+
+
+## Le départ d'une onde : un front qui part de la tour (`centre`) et s'étend à la vitesse de
+## l'onde jusqu'à son rayon ; par défaut rien.
+func onde(_m: AttaquesElementaires, _centre: Vector2, _age: float) -> bool:
 	return false
