@@ -342,7 +342,8 @@ func _signature(evenement: Dictionary) -> Dictionary:
 	var rang: int = index
 	if rang < 0 or rang >= catalogue.size():
 		return {}
-	return SignaturesArmes.de(catalogue[rang])
+	# Une signature seulement proposée (T9.18) n'est pas utilisée avant la validation de Phil.
+	return SignaturesArmes.de(catalogue[rang]) if SignaturesArmes.en_jeu(catalogue[rang]) else {}
 
 
 func taille_du_premier() -> float:

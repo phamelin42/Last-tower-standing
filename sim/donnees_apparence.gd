@@ -7,6 +7,8 @@ extends RefCounted
 const STATS: Array[String] = [
 	"epines", "pv_max", "mana", "armure", "esquive", "regen", "vol_de_vie"
 ]
+## Celles qui ont une image : la tour qui grandit (`pv_max`) n'a qu'un facteur.
+const SUPERPOSITIONS: Array[String] = ["epines", "mana", "armure", "esquive", "regen", "vol_de_vie"]
 const PALIERS := 3
 ## Agrandissement maximal de la tour (purement visuel, A3).
 const AGRANDISSEMENT_MAX := 0.25
@@ -80,3 +82,36 @@ static func _en_flottants(liste: Array) -> Array[float]:
 	for x: Variant in liste:
 		sortie.append(float(x))
 	return sortie
+
+
+## Skins de la tour (`data/skins_tour.json`, B7) : id → `{sprite, ancrages}`. Un skin donne le
+## sprite de la tour et, pour chaque superposition, le point (en pixels du sprite) où son centre se
+## pose. Un fichier non vide contient au moins le skin `defaut`.
+static func valider_skins(skins: Dictionary, err: Array[String]) -> void:
+	var f := "skins_tour.json"
+	if skins.is_empty():
+		return
+	if not skins.has("defaut"):
+		Donnees._err(err, f, "defaut", "le skin par défaut est obligatoire")
+	for id: Variant in skins:
+		var chemin := str(id)
+		if not skins[id] is Dictionary:
+			Donnees._err(err, f, chemin, "attendu un objet, reçu %s" % Donnees._decrire(skins[id]))
+			continue
+		var skin: Dictionary = skins[id]
+		if not skin.get("sprite") is String or String(skin["sprite"]).is_empty():
+			Donnees._err(err, f, "%s.sprite" % chemin, "chemin d'image attendu")
+		if not skin.get("ancrages") is Dictionary:
+			Donnees._err(err, f, "%s.ancrages" % chemin, "objet attendu")
+			continue
+		var ancrages: Dictionary = skin["ancrages"]
+		for stat: String in SUPERPOSITIONS:
+			var ch := "%s.ancrages.%s" % [chemin, stat]
+			if not ancrages.get(stat) is Dictionary:
+				Donnees._err(err, f, ch, "ancrage manquant")
+				continue
+			var a: Dictionary = ancrages[stat]
+			for axe: String in ["x", "y"]:
+				var v: Variant = a.get(axe)
+				if not (v is float or v is int) or not is_finite(float(v)):
+					Donnees._err(err, f, "%s.%s" % [ch, axe], "nombre fini attendu")

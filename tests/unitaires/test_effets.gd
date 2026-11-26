@@ -3,6 +3,7 @@ extends CasDeTest
 ## effet reconnaissable à sa forme et pas seulement à sa couleur, la rafale ne dépasse jamais le
 ## plafond, et tout s'éteint sans laisser de nœud actif.
 
+const ArmesLot8 := preload("res://tests/unitaires/armes_lot_8.gd")
 const SCENE := "res://scenes/arene_2d.tscn"
 const TYPES: Array[int] = [
 	Types.TypeDegats.TRANCHANT,
@@ -414,13 +415,60 @@ func _avec_catalogue() -> void:
 	_effets.rendu_par_element = false
 
 
+## Les armes dont la signature est validée : seules celles-là changent le rendu en jeu.
+func _ids_en_jeu() -> PackedStringArray:
+	var ids: PackedStringArray = []
+	for id: String in SignaturesArmes.ids():
+		if SignaturesArmes.en_jeu(id):
+			ids.append(id)
+	return ids
+
+
+## Les formes, la couleur et la taille de ce que `Effets` dessine pour `evenement`.
+func _rendu_de(evenement: Dictionary) -> String:
+	_effets.vider()
+	_effets.ajouter(evenement)
+	var formes: Array[String] = []
+	for forme: String in _effets.formes_vivantes():
+		formes.append(forme)
+	formes.sort()
+	var couleur: Color = _sans_alpha(_effets.couleur_du_premier())
+	return "%s|%s|%.1f" % [",".join(formes), couleur.to_html(false), _effets.taille_du_premier()]
+
+
+func test_les_trente_signatures_du_lot_8_sont_en_jeu() -> void:
+	var vues: int = 0
+	for id: String in ArmesLot8.IDS:
+		verifier(SignaturesArmes.en_jeu(id), "%s : signature en jeu" % id)
+		vues += 1
+	verifier_egal(vues, 30)
+	verifier(not SignaturesArmes.en_jeu("arme_qui_n_existe_pas"))
+
+
+## Une signature proposée (T9.18) n'est pas encore validée : l'arme garde le rendu par type, tir
+## comme impact, tant que `en_jeu` est faux (T9.19 le lèvera).
+func test_une_signature_proposee_ne_change_pas_le_rendu_en_jeu() -> void:
+	_avec_catalogue()
+	var vues: int = 0
+	for id: String in SignaturesArmes.ids():
+		if SignaturesArmes.en_jeu(id):
+			continue
+		vues += 1
+		for k: String in ["tir", "impact"]:
+			var avec: Dictionary = _evenement_arme(k, id, Vector2.ZERO, Vector2(300, -200))
+			var sans: Dictionary = avec.duplicate()
+			sans.erase("arme")
+			verifier_egal(_rendu_de(avec), _rendu_de(sans), "%s : %s par type" % [id, k])
+	verifier(vues >= 27, "les 27 signatures proposées : %d" % vues)
+
+
 func _sans_alpha(c: Color) -> Color:
 	return Color(c.r, c.g, c.b, 1.0)
 
 
 func test_chaque_arme_produit_un_tir_aux_formes_et_a_la_couleur_de_sa_signature() -> void:
 	_avec_catalogue()
-	for id: String in SignaturesArmes.ids():
+	for id: String in _ids_en_jeu():
 		_effets.vider()
 		var sig: Dictionary = SignaturesArmes.de(id)
 		verifier(_effets.ajouter(_evenement_arme("tir", id, Vector2.ZERO, Vector2(300, -200))), id)
@@ -445,7 +493,7 @@ func _rendu_du_tir(id: String) -> String:
 
 func test_deux_armes_ne_produisent_jamais_le_meme_rendu() -> void:
 	_avec_catalogue()
-	var ids: PackedStringArray = SignaturesArmes.ids()
+	var ids: PackedStringArray = _ids_en_jeu()
 	var rendus: Dictionary = {}
 	for id: String in ids:
 		rendus[id] = _rendu_du_tir(id)
@@ -456,7 +504,7 @@ func test_deux_armes_ne_produisent_jamais_le_meme_rendu() -> void:
 
 func test_l_impact_suit_la_signature_de_l_arme() -> void:
 	_avec_catalogue()
-	for id: String in SignaturesArmes.ids():
+	for id: String in _ids_en_jeu():
 		_effets.vider()
 		var sig: Dictionary = SignaturesArmes.de(id)
 		verifier(
@@ -567,7 +615,7 @@ func test_le_vol_de_vie_remonte_vers_la_tour_en_vert() -> void:
 
 func test_le_plafond_de_200_effets_tient_avec_40_armes_qui_tirent() -> void:
 	_avec_catalogue()
-	var ids: PackedStringArray = SignaturesArmes.ids()
+	var ids: PackedStringArray = _ids_en_jeu()
 	for tour: int in 10:
 		for k: int in 40:
 			var id: String = ids[(tour * 40 + k) % ids.size()]
