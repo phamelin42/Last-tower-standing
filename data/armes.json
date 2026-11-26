@@ -245,8 +245,8 @@
   "id": "etincelle_runique",
   "nom": "Étincelle runique",
   "description": "Une étincelle gravée de runes jaillit droit vers sa cible.",
-  "rarete": "commune",
-  "prix": 70,
+  "rarete": "peu_commune",
+  "prix": 200,
   "type_degats": "magique",
   "degats": 30.3,
   "recharge": 0.9,
@@ -1132,5 +1132,244 @@
    }
   ],
   "statuts": []
+ },
+ {
+  "id": "rune_de_veille",
+  "nom": "Rune de veille",
+  "description": "Une rune gravée brûle d’un feu froid sous le groupe.",
+  "rarete": "peu_commune",
+  "prix": 270,
+  "type_degats": "magique",
+  "degats": 56.3,
+  "recharge": 2.5,
+  "portee": 750,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "zone_posee",
+    "rayon": 150,
+    "duree": 4.0,
+    "periode": 0.5,
+    "ratio": 0.35,
+    "max_actives": 2
+   }
+  ],
+  "statuts": []
+ },
+ {
+  "id": "eclat_siphonneur",
+  "nom": "Éclat siphonneur",
+  "description": "Un éclat avide qui boit la mana de sa cible et la rend à la tour.",
+  "rarete": "peu_commune",
+  "prix": 250,
+  "type_degats": "magique",
+  "degats": 227.5,
+  "recharge": 1.3,
+  "portee": 1000,
+  "ciblage": "plus_fort",
+  "effets": [
+   {
+    "kind": "cible_unique"
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "siphon",
+    "ressource": "mana",
+    "par_seconde": 6.0,
+    "duree": 4.0
+   },
+   {
+    "kind": "mana_au_coup",
+    "valeur": 3.0
+   }
+  ]
+ },
+ {
+  "id": "lueur_vagabonde",
+  "nom": "Lueur vagabonde",
+  "description": "Trois lueurs tournent et brûlent ce qu’elles frôlent.",
+  "rarete": "peu_commune",
+  "prix": 260,
+  "type_degats": "magique",
+  "degats": 66.7,
+  "recharge": 1.1,
+  "portee": 500,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "tournant",
+    "branches": 3,
+    "pas_deg": 45,
+    "largeur": 50,
+    "sens": "horaire"
+   }
+  ],
+  "statuts": []
+ },
+ {
+  "id": "prisme_de_faille",
+  "nom": "Prisme de faille",
+  "description": "Un prisme fendu : la cible touchée se craquelle.",
+  "rarete": "rare",
+  "prix": 530,
+  "type_degats": "magique",
+  "degats": 678.4,
+  "recharge": 1.6,
+  "portee": 1250,
+  "ciblage": "plus_fort",
+  "effets": [
+   {
+    "kind": "cible_unique"
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "vulnerabilite",
+    "ratio": 0.15,
+    "duree": 5.0
+   }
+  ]
+ },
+ {
+  "id": "orage_en_cage",
+  "nom": "Orage en cage",
+  "description": "Un orage captif gronde au sol et brûle tout ce qui s’y attarde.",
+  "rarete": "rare",
+  "prix": 550,
+  "type_degats": "magique",
+  "degats": 146.7,
+  "recharge": 3.0,
+  "portee": 1000,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "zone_posee",
+    "rayon": 200,
+    "duree": 5.0,
+    "periode": 0.5,
+    "ratio": 0.3,
+    "max_actives": 2
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "brulure",
+    "ratio": 0.2,
+    "duree": 3.0
+   }
+  ]
+ },
+ {
+  "id": "couronne_d_etoiles",
+  "nom": "Couronne d’étoiles",
+  "description": "Cinq étoiles tournent et nourrissent la tour.",
+  "rarete": "rare",
+  "prix": 540,
+  "type_degats": "magique",
+  "degats": 146.9,
+  "recharge": 1.7,
+  "portee": 1000,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "tournant",
+    "branches": 5,
+    "pas_deg": 24,
+    "largeur": 55,
+    "sens": "antihoraire"
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "mana_au_coup",
+    "valeur": 2.0
+   }
+  ]
+ },
+ {
+  "id": "vasque_d_arcanes",
+  "nom": "Vasque d’arcanes",
+  "description": "Une vasque qui aspire la mana de tous les ennemis proches.",
+  "rarete": "rare",
+  "prix": 520,
+  "type_degats": "magique",
+  "degats": 110.9,
+  "recharge": 0.8,
+  "portee": 500,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "aura",
+    "rayon": 320,
+    "periode": 0.8
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "siphon",
+    "ressource": "mana",
+    "par_seconde": 5.0,
+    "duree": 3.0
+   }
+  ]
+ },
+ {
+  "id": "nuee_d_etincelles",
+  "nom": "Nuée d’étincelles",
+  "description": "Des étincelles dispersées nourrissent la tour.",
+  "rarete": "rare",
+  "prix": 550,
+  "type_degats": "magique",
+  "degats": 264.0,
+  "recharge": 1.8,
+  "portee": 750,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "barrage",
+    "projectiles": 6,
+    "dispersion_deg": 40,
+    "rayon": 50
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "mana_au_coup",
+    "valeur": 1.5
+   }
+  ]
+ },
+ {
+  "id": "nova_celeste",
+  "nom": "Nova céleste",
+  "description": "Une onde céleste fissure les défenses et pompe la mana de la foule.",
+  "rarete": "epique",
+  "prix": 1150,
+  "type_degats": "magique",
+  "degats": 776.3,
+  "recharge": 3.0,
+  "portee": 1250,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "onde",
+    "rayon_max": 550,
+    "vitesse": 550
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "vulnerabilite",
+    "ratio": 0.15,
+    "duree": 6.0
+   },
+   {
+    "kind": "siphon",
+    "ressource": "mana",
+    "par_seconde": 8.0,
+    "duree": 4.0
+   }
+  ]
  }
 ]
