@@ -2,67 +2,74 @@
 
 Mesure : `godot --headless --path . --script res://tools/equilibrage.gd -- --graines 50 --strategie <passive|raisonnable|bonne|toutes>`.
 Un joueur seul, une partie complète à pleine vitesse, graines 1 à 50. Les robots vivent dans
-`tests/outils/strategies_joueur.gd` ; `tests/unitaires/test_equilibrage_partie.gd` garde la
-cible grossière dans la suite.
+`tests/outils/strategies_joueur.gd` ; `tests/unitaires/test_equilibrage_partie.gd` garde les
+cibles dans la suite. Compter une vingtaine de minutes pour « raisonnable » et une demi-heure
+pour « bonne » à 50 graines (les parties longues vont jusqu'au boss) : essayer un réglage sur les
+graines 1 à 10 d'abord.
 
-## Cible
+## Cibles et résultats (T8.21, 26/11/2026)
 
-| Stratégie   | Cible                                                   |
-| ----------- | ------------------------------------------------------- |
-| passive     | tombe vers la manche 4 à 5                              |
-| raisonnable | manche médiane de 18 à 25                               |
-| bonne       | bat le boss de la manche 31 sur 10 à 30 % des graines   |
-| toutes      | aucune ne survit indéfiniment (PV ennemis exponentiels) |
+| Robot       | Cible                                                            | Mesuré (50 graines)                                       |
+| ----------- | ---------------------------------------------------------------- | --------------------------------------------------------- |
+| passive     | tombe au plus tard à la fin de la manche 3 (D16, T8.8)           | manche 3 pour les 50 graines (min 3, médiane 3, max 3)    |
+| raisonnable | manche médiane de 18 à 25                                        | min 7, **médiane 20**, max 31, victoires 2/50 (4 %)       |
+| bonne       | bat le boss sur 10 à 30 % des graines ; ne tombe pas avant la 20 | min **13**, médiane 30, max 31, victoires 9/50 (**18 %**) |
+| toutes      | aucune ne survit indéfiniment (mur de PV après la manche 20)     | atteint : 14 des 50 parties « bonne » meurent au boss     |
 
-## Résultats (50 graines)
+**Écart à la cible de la conception (§6.12) : le robot « bonne » n'est pas éliminé avant la manche
+20 sur la plupart des graines, mais pas sur toutes.** Sur les graines 1 à 10 il atteint les manches
+31 (victoire), 31 (victoire), 31, 24, 17, 31, 25, 31 (victoire), 17, 31 : minimum 17 (écart de 3
+manches), médiane 31. Sur 50 graines, le minimum est la manche 13. Le test de garde pose donc :
+médiane ≥ 20 et minimum ≥ 12 sur les graines 1 à 10. La cible « manche 20 pour tous » vient de la
+conception, pas d'une décision de Phil.
 
-Résultat : manches min / médiane / max, victoires sur le boss.
+## Historique des réglages (le robot « bonne » sur les graines 1 à 10)
 
-| Réglage                                   | passive        | raisonnable        | bonne             |
-| ----------------------------------------- | -------------- | ------------------ | ----------------- |
-| 0. Données d'origine                      | 2 / 2 / 2, 0 % | 2 / 3 / 8, 0 %     | 2 / 3 / 8, 0 %    |
-| 1. Dégâts des armes ×3 (20 graines)       | 2 / 2 / 2, 0 % | 2 / 11 / 25, 0 %   | 2 / 6 / 20, 0 %   |
-| 2. Dégâts ennemis 3 % → 100 % (manche 10) | 4 / 5 / 7, 0 % | 11 / 18 / 31, 15 % | 8 / 18 / 31, 15 % |
-| 3. Robot « bonne » spécialisé, remplace   | idem           | idem               | 8 / 31 / 31, 83 % |
-| 4. PV ennemis ×1,08/manche puis ×1,35     | idem           | 11 / 19 / 31, 13 % | 8 / 31 / 31, 70 % |
-| 5. PV ennemis ×2,0 après la manche 20     | 4 / 5 / 7, 0 % | 11 / 19 / 31, 7 %  | 8 / 26 / 31, 33 % |
-| 6. **PV ennemis ×2,2 après la manche 20** | 4 / 5 / 7, 0 % | 7 / 19 / 31, 8 %   | 7 / 25 / 31, 22 % |
+| Réglage                                                          | Manches atteintes                   |
+| ---------------------------------------------------------------- | ----------------------------------- |
+| T8.8 : dégâts ×0,2 → ×1,79, PV ×1 → ×2,16 sur les manches 1 à 20 | min 6, médiane 14                   |
+| Dégâts ×1,05 puis ×1,03 par manche, PV inchangés                 | min 6 (graine 6 tombe en manche 6)  |
+| Rampes presque plates (dégâts ×1,01, PV ×1,002)                  | min 8 : la graine 6 manque d'or     |
+| Prime des ennemis jaunes ×2,0, rampes ×1,03                      | min 9 ; graine 6 tient jusqu'à 31   |
+| **Prime jaune ×3,0, rampes ×1,03, PV ×3,0 après la manche 20**   | **min 17, médiane 31, 3 victoires** |
 
-Les lignes 1 et 2 portent sur 20 à 30 graines ; la ligne 3 sur 30. Les robots ont évolué
-entre les lignes 0 et 3 (la ligne 0 est mesurée avec le robot « bonne » d'avant la
-spécialisation : sa différence avec « raisonnable » y était nulle).
+Les rampes de dégâts et de PV ne sont pas le levier des morts précoces : avec des rampes presque
+plates, une graine tombait encore en manche 8, faute d'or pour armer la tour. Les **primes** du
+palier jaune sont ce qui compte, parce que les premières manches décident de l'arsenal.
 
-## Réglages retenus (ligne 6)
+## Réglages retenus
 
-- `data/armes.json` : dégâts de toutes les armes ×3 ; puis ×0,8 pour les rares et ×0,7 pour
-  les épiques (le rendement moyen reste croissant : 0,46 / 0,64 / 0,71 / 0,78).
-- `data/difficulte.json` :
-  - T8.8 : une ligne par manche de 1 à 20, strictement croissante (D17) : PV ×1 à ×2,16
-    (progression géométrique, ×1,0413 par manche), dégâts ×0,2 à ×1,79 (×1,0975 par manche),
-    vitesse ×1,01 par manche dès la 11 et résistance ×0,97 environ par manche dès la 11 ;
-  - `apres_table` : PV ×2,2 par manche (dégâts ×1,06, vitesse ×1,01, résistance ×0,97) ;
-  - accélérations temporelles inchangées.
-- `data/ennemis.json`, `data/economie.json`, `data/boutique.json`, `data/partie.json` : inchangés.
+- `data/difficulte.json` (T8.21) :
+  - dégâts : ×0,2, ×0,224 et ×0,252 aux manches 1 à 3 (inchangés : D16, le joueur passif tombe en
+    manche 3), puis ×1,03 par manche, soit ×0,417 à la manche 20 ;
+  - PV : ×1,03 par manche, soit ×1,754 à la manche 20 ; table strictement croissante pour les PV
+    et les dégâts (D17, gardée par `test_pv_et_degats_des_ennemis_augmentent_a_chaque_manche`) ;
+  - vitesse ×1,01 par manche et résistance ×0,97 environ par manche dès la manche 11 (T8.8) ;
+  - `apres_table` : PV ×3,0 par manche après la 20 (le mur), dégâts ×1,06, vitesse ×1,01,
+    résistance ×0,97 ; accélérations temporelles inchangées.
+- `data/ennemis.json` : prime du palier jaune ×3,0 (elle était à ×1,0) ; le Guerrier apparaît à
+  la manche 2 et le Tonneau à la manche 4 (manche 1 pour les deux avant). Les autres paliers et
+  modèles sont inchangés.
+- `data/partie.json` : la clé `emplacements_armes` est supprimée (plus de plafond d'armes depuis
+  le lot 8) ; `test_emplacements_armes_n_est_plus_lu_nulle_part` garde qu'aucun fichier ne la lit.
+- `tests/outils/strategies_joueur.gd` : le robot « bonne » achète d'abord trois armes avant de
+  privilégier l'économie (`ARMES_MINIMUM_BONNE`).
+- Armes, améliorations, boutique, économie : inchangées.
 
-## Causes de mort
+## Causes de mort (50 graines)
 
-- Passive : sans achat, la tour tombe au plus tard à la fin de la manche 3 sur les graines 1 à 10 (D16, dégâts ×0,2 à la manche 1).
-- Raisonnable : les manches 11 à 25, quand les PV ennemis dépassent ce que quatre à six armes
-  communes et peu communes tuent avant qu'ils n'arrivent ; les archers (portée 450) et les
-  spectres (portée 250) frappent hors de portée des armes de 300.
-- Bonne : surtout après la manche 22, par le mur de PV ; quelques morts précoces (manche 7 à 8)
-  quand l'économie passe avant les armes.
+- Passive : sans achat, la tour tombe au plus tard à la fin de la manche 3.
+- Raisonnable : surtout après la manche 11 ; des archers (portée 450) et des artificiers
+  (portée 350) frappent hors de portée des armes de 300 ; 8 parties sur 50 meurent au boss.
+- Bonne : le boss (14 parties sur 50), puis les archers violets et bleus ; quelques morts
+  précoces (manche 13 et suivantes) quand le tirage de la boutique n'offre pas d'arme.
 
-## Points douteux
+## Points ouverts
 
-- T8.8 : robots `raisonnable` et `bonne` sur les graines 1 à 10, médianes 12 à 14 et minimum 6 ;
-  la cible « un robot qui achète ne tombe pas avant la manche 20 » reste à la passe finale (T8.21).
-- Le mur de PV (×2,2 par manche) est démesuré (×2 000 à la manche 31) : le joueur bien
-  construit dépasse déjà 10⁵ dégâts par seconde. Le vrai problème est la croissance de la
-  puissance du joueur : améliorations de dégâts multiplicatives, or inutilisé (plusieurs
-  milliers de pièces) une fois les huit emplacements d'épiques remplis. Une solution plus propre
-  serait de plafonner ou de renchérir les empilements tardifs ; elle sort du périmètre de cette passe.
-- Le boss est peu dangereux : retenu à distance par les gels et étourdissements, il meurt sans
-  atteindre la tour. Un boss à 400 000 PV n'a pas changé le taux de victoire.
+- Le mur de PV après la manche 20 (×3,0 par manche) est démesuré : la puissance du joueur croît
+  sans plafond (améliorations multiplicatives, or inutilisé une fois l'arsenal plein). Plafonner
+  ou renchérir les empilements tardifs sort du périmètre de cette passe.
+- Le boss est retenu par les gels et les étourdissements.
 - Les armes de portée 300 sont trop courtes face aux archers : à vérifier si c'est voulu.
-- Les robots sont approximatifs ; une bonne stratégie humaine pourrait faire nettement mieux ou pire.
+- Les robots sont approximatifs ; une bonne stratégie humaine peut faire nettement mieux ou pire.
+- Le lot 9 ajoute 66 armes et 47 améliorations : refaire une mesure à 50 graines après T9.22.
