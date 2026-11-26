@@ -78,6 +78,8 @@ les compteurs `armes_genre_*` et `armes_statut_*` ne s'excluent pas entre eux.
 | `armes_genre_mine`              | Armes achetées ayant un effet de genre `mine` (une arme compte pour chacun de ses genres)                                                                    | armes         | champ `kind` des `effets` de l'arme                           |
 | `armes_genre_aura`              | Armes achetées ayant un effet de genre `aura` (une arme compte pour chacun de ses genres)                                                                    | armes         | champ `kind` des `effets` de l'arme                           |
 | `armes_genre_tournant`          | Armes achetées ayant un effet de genre `tournant` (une arme compte pour chacun de ses genres)                                                                | armes         | champ `kind` des `effets` de l'arme                           |
+| `armes_genre_zone_posee`        | Armes achetées ayant un effet de genre `zone_posee` (une arme compte pour chacun de ses genres)                                                              | armes         | champ `kind` des `effets` de l'arme                           |
+| `armes_genre_bombe`             | Armes achetées ayant un effet de genre `bombe` (une arme compte pour chacun de ses genres)                                                                   | armes         | champ `kind` des `effets` de l'arme                           |
 | `armes_statut_poison`           | Armes achetées ayant le statut `poison` (une arme compte pour chacun de ses statuts)                                                                         | armes         | champ `kind` des `statuts` de l'arme                          |
 | `armes_statut_brulure`          | Armes achetées ayant le statut `brulure` (une arme compte pour chacun de ses statuts)                                                                        | armes         | champ `kind` des `statuts` de l'arme                          |
 | `armes_statut_givre`            | Armes achetées ayant le statut `givre` (une arme compte pour chacun de ses statuts)                                                                          | armes         | champ `kind` des `statuts` de l'arme                          |
@@ -101,7 +103,7 @@ Les défis cumulés se jouent sur plusieurs parties. Le bilan reste **par partie
 
 ## 4. Les défis proposés
 
-48 défis en 10 familles : tenir (4), uniquement un type de dégâts (5), uniquement un genre d'arme (9), uniquement un statut (5), une seule arme (2), revenu (6), survie (5), construction (3), multijoueur (1), cumulés (8). Chacun vaut en **solo et en
+50 défis en 10 familles : tenir (4), uniquement un type de dégâts (5), uniquement un genre d'arme (11), uniquement un statut (5), une seule arme (2), revenu (6), survie (5), construction (3), multijoueur (1), cumulés (8). Chacun vaut en **solo et en
 multijoueur** (B4) sauf ceux qui parlent de la dernière tour debout ; en multijoueur, chaque joueur présent le valide
 pour lui-même. Les seuils sont des valeurs de départ ; ils ne reprennent aucun chiffre de la map. Un défi « uniquement… »
 se gagne en vainquant le boss : il demande donc au moins une arme achetée.
@@ -126,6 +128,8 @@ se gagne en vainquant le boss : il demande donc au moins une arme achetée.
 | `seul_mine`             | Poseur de mines      | Vainquez le boss en n’achetant que des armes de mine.                                                | `victoire` = 1 et `armes_achetees` ≥ 1 et `armes_genre_mine` = `armes_achetees`            | `armes_achetees`, `armes_genre_mine`, `victoire`                     | les deux    |
 | `seul_aura`             | Rayonnement          | Vainquez le boss en n’achetant que des armes d’aura.                                                 | `victoire` = 1 et `armes_achetees` ≥ 1 et `armes_genre_aura` = `armes_achetees`            | `armes_achetees`, `armes_genre_aura`, `victoire`                     | les deux    |
 | `seul_tournant`         | Danse des lames      | Vainquez le boss en n’achetant que des armes à tir tournant.                                         | `victoire` = 1 et `armes_achetees` ≥ 1 et `armes_genre_tournant` = `armes_achetees`        | `armes_achetees`, `armes_genre_tournant`, `victoire`                 | les deux    |
+| `seul_zone_posee`       | Terre brûlée         | Vainquez le boss en n’achetant que des armes de zone posée.                                          | `victoire` = 1 et `armes_achetees` ≥ 1 et `armes_genre_zone_posee` = `armes_achetees`      | `armes_achetees`, `armes_genre_zone_posee`, `victoire`               | les deux    |
+| `seul_bombe`            | Artificier           | Vainquez le boss en n’achetant que des armes à bombe.                                                | `victoire` = 1 et `armes_achetees` ≥ 1 et `armes_genre_bombe` = `armes_achetees`           | `armes_achetees`, `armes_genre_bombe`, `victoire`                    | les deux    |
 | `seul_poison`           | Venin pur            | Vainquez le boss en n’achetant que des armes empoisonnantes.                                         | `victoire` = 1 et `armes_achetees` ≥ 1 et `armes_statut_poison` = `armes_achetees`         | `armes_achetees`, `armes_statut_poison`, `victoire`                  | les deux    |
 | `seul_brulure`          | Braise pure          | Vainquez le boss en n’achetant que des armes incendiaires.                                           | `victoire` = 1 et `armes_achetees` ≥ 1 et `armes_statut_brulure` = `armes_achetees`        | `armes_achetees`, `armes_statut_brulure`, `victoire`                 | les deux    |
 | `seul_givre`            | Gel pur              | Vainquez le boss en n’achetant que des armes glaçantes.                                              | `victoire` = 1 et `armes_achetees` ≥ 1 et `armes_statut_givre` = `armes_achetees`          | `armes_achetees`, `armes_statut_givre`, `victoire`                   | les deux    |
@@ -159,7 +163,7 @@ se gagne en vainquant le boss : il demande donc au moins une arme achetée.
 
 ## 5. Un skin par défi
 
-Chaque défi débloque **un** skin de tour (B5), purement cosmétique : 48 skins (51 à la fin du lot 9, un par genre ajouté ; la map en annonce jusqu'à 42). Les sprites
+Chaque défi débloque **un** skin de tour (B5), purement cosmétique : 50 skins (51 à la fin du lot 9, un par genre ajouté ; la map en annonce jusqu'à 42). Les sprites
 restent à trouver ou à dessiner sous licence CC0 ou CC-BY (B6) ; ce tableau fixe seulement le nombre de skins, un
 identifiant et une idée de silhouette, pour que T11.6 sache quoi chercher. Les tours Gobelin de Tiny Swords
 (`Wood_Tower_{couleur}`) sont candidates pour un ou deux d'entre eux ; les autres demandent un pack à trouver.
@@ -184,6 +188,8 @@ identifiant et une idée de silhouette, pour que T11.6 sache quoi chercher. Les 
 | `seul_mine`             | `tour_sapeur`             | tonneaux de poudre empilés au pied               |
 | `seul_aura`             | `tour_halo`               | cercle lumineux gravé au sol, rayons de pierre   |
 | `seul_tournant`         | `tour_manege`             | bras de pierre articulés autour du fût           |
+| `seul_zone_posee`       | `tour_cratere`            | sol criblé de cratères et de braises             |
+| `seul_bombe`            | `tour_artificier`         | caisses de mèches et de poudre au pied           |
 | `seul_poison`           | `tour_venimeuse`          | pierre verdie, gouttes sombres                   |
 | `seul_brulure`          | `tour_braise`             | pierre rougeoyante, fumerolles                   |
 | `seul_givre`            | `tour_gelee`              | glace et givre sur les créneaux                  |
@@ -238,20 +244,16 @@ Décisions de Phil du 26/11/2026 (validation de la liste) :
 2. **Des défis « uniquement… » pour les pièges aussi** : « Maître des pièges » et « Poseur de mines » s'ajoutent aux genres d'arme.
 3. **Des défis « une seule arme »**, comme dans la map : un défi générique (« Arme unique », vaincre le boss avec les
    exemplaires d'une seule arme) et une variante à la vingtième manche (« Duelliste endurant »). Pas un défi par arme.
-4. **Un sprite par skin, pour tous** (B6) : le nombre de skins suit celui des défis, soit 46 à la validation, 48 avec l’aura et le tir tournant du lot 9, 51 à la fin du lot.
+4. **Un sprite par skin, pour tous** (B6) : le nombre de skins suit celui des défis, soit 46 à la validation, 50 avec l’aura, le tir tournant, la zone posée et la bombe du lot 9, 51 à la fin du lot.
 
 Points ouverts (valeur par défaut retenue) :
 
-1. **L'aura** (deux armes, comme les pièges et les mines) n'a **pas** de défi « uniquement » : elle n'a pas été citée par Phil.
-   Défaut : pas de défi ; à ajouter en une ligne si Phil le veut.
-2. **Les seuils** sont des valeurs de départ à ajuster après quelques parties.
-3. **Les genres du lot 9** (tir tournant, zone posée, bombe, invocation) recevront un défi « uniquement » à la livraison de
-   leurs armes.
-4. **Le statut « givre »** n'a que deux armes aujourd'hui : le défi « Gel pur » devient jouable surtout après les armes du
+1. **Les seuils** sont des valeurs de départ à ajuster après quelques parties.
+2. **Le statut « givre »** n'a que deux armes aujourd'hui : le défi « Gel pur » devient jouable surtout après les armes du
    lot 9.
 
 Décision de Phil du 26/11/2026 (lot 9) : **un défi « uniquement… » pour chaque nouveau genre d'arme, aucun pour les statuts.**
-L'aura et le tir tournant ont le leur (`seul_aura`, `seul_tournant`) ; la zone posée, la bombe et l'invocation recevront
-le leur à la livraison de leurs armes (51 défis et 51 skins à la fin du lot).
+L'aura, le tir tournant, la zone posée et la bombe ont le leur (`seul_aura`, `seul_tournant`, `seul_zone_posee`,
+`seul_bombe`) ; l'invocation recevra le sien à la livraison de ses armes (51 défis et 51 skins à la fin du lot).
 
 Statuts sans défi (Phil, 26/11) : `vulnerabilite`, `malediction_toucher`, `repoussement`, `siphon`, `mana_au_coup`.

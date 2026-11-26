@@ -387,8 +387,8 @@
   "id": "bombarde_de_poche",
   "nom": "Bombarde de poche",
   "description": "Un petit canon qui lance ses boulets sur les groupes.",
-  "rarete": "commune",
-  "prix": 120,
+  "rarete": "peu_commune",
+  "prix": 200,
   "type_degats": "siège",
   "degats": 48.0,
   "recharge": 2.5,
@@ -1371,5 +1371,239 @@
     "duree": 4.0
    }
   ]
+ },
+ {
+  "id": "baril_a_retardement",
+  "nom": "Baril à retardement",
+  "description": "Un baril roulé au pied du groupe, dont la mèche brûle trop lentement.",
+  "rarete": "peu_commune",
+  "prix": 260,
+  "type_degats": "siège",
+  "degats": 57.2,
+  "recharge": 2.0,
+  "portee": 750,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "bombe",
+    "delai": 2.0,
+    "rayon": 140,
+    "ratio": 2.0,
+    "max_actives": 3
+   }
+  ],
+  "statuts": []
+ },
+ {
+  "id": "maillet_de_rempart",
+  "nom": "Maillet de rempart",
+  "description": "Plus la tour est solide, plus le maillet tombe lourd.",
+  "rarete": "peu_commune",
+  "prix": 270,
+  "type_degats": "siège",
+  "degats": 60.0,
+  "recharge": 2.2,
+  "portee": 500,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "zone",
+    "rayon": 120
+   }
+  ],
+  "statuts": [],
+  "degats_par_pv_max": 0.07
+ },
+ {
+  "id": "catapulte_a_contrepoids",
+  "nom": "Catapulte à contrepoids",
+  "description": "Chaque amélioration de cadence ajoute du poids à la pierre.",
+  "rarete": "peu_commune",
+  "prix": 280,
+  "type_degats": "siège",
+  "degats": 291.8,
+  "recharge": 3.0,
+  "portee": 1250,
+  "ciblage": "plus_fort",
+  "effets": [
+   {
+    "kind": "cible_unique"
+   }
+  ],
+  "statuts": [],
+  "degats_par_amelioration": {
+   "stat": "cadence",
+   "ratio": 0.3
+  }
+ },
+ {
+  "id": "obusier_de_breche",
+  "nom": "Obusier de brèche",
+  "description": "Son obus s’enfonce, éclate, et les murs ne tiennent plus.",
+  "rarete": "rare",
+  "prix": 540,
+  "type_degats": "siège",
+  "degats": 164.2,
+  "recharge": 3.0,
+  "portee": 1250,
+  "ciblage": "plus_fort",
+  "effets": [
+   {
+    "kind": "bombe",
+    "delai": 1.5,
+    "rayon": 180,
+    "ratio": 2.5,
+    "max_actives": 2
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "vulnerabilite",
+    "ratio": 0.12,
+    "duree": 5.0
+   }
+  ]
+ },
+ {
+  "id": "braise_de_siege",
+  "nom": "Braise de siège",
+  "description": "Un brasier jeté au sol, qui dévore tout le groupe.",
+  "rarete": "rare",
+  "prix": 550,
+  "type_degats": "siège",
+  "degats": 154.8,
+  "recharge": 4.0,
+  "portee": 1000,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "zone_posee",
+    "rayon": 220,
+    "duree": 6.0,
+    "periode": 1.0,
+    "ratio": 0.6,
+    "max_actives": 2
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "brulure",
+    "ratio": 0.25,
+    "duree": 4.0
+   }
+  ]
+ },
+ {
+  "id": "ecrasement_de_tour",
+  "nom": "Écrasement de tour",
+  "description": "Toute la masse de la tour s’abat sur un seul ennemi.",
+  "rarete": "rare",
+  "prix": 520,
+  "type_degats": "siège",
+  "degats": 150.0,
+  "recharge": 1.8,
+  "portee": 1250,
+  "ciblage": "plus_fort",
+  "effets": [
+   {
+    "kind": "cible_unique"
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "etourdissement",
+    "duree": 0.5
+   }
+  ],
+  "degats_par_pv_max": 0.56
+ },
+ {
+  "id": "champ_de_ruines",
+  "nom": "Champ de ruines",
+  "description": "Le sol se hérisse de gravats qui fragilisent ce qui les traverse.",
+  "rarete": "rare",
+  "prix": 530,
+  "type_degats": "siège",
+  "degats": 209.8,
+  "recharge": 5.0,
+  "portee": 750,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "zone_posee",
+    "rayon": 260,
+    "duree": 8.0,
+    "periode": 1.0,
+    "ratio": 0.4,
+    "max_actives": 2
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "vulnerabilite",
+    "ratio": 0.08,
+    "duree": 3.0
+   }
+  ]
+ },
+ {
+  "id": "salve_du_rempart",
+  "nom": "Salve du rempart",
+  "description": "Une salve lente, dont la bombe retombe sur le gros de la troupe.",
+  "rarete": "rare",
+  "prix": 550,
+  "type_degats": "siège",
+  "degats": 162.6,
+  "recharge": 3.5,
+  "portee": 1000,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "bombe",
+    "delai": 3.0,
+    "rayon": 200,
+    "ratio": 3.0,
+    "max_actives": 2
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "brulure",
+    "ratio": 0.2,
+    "duree": 3.0
+   }
+  ]
+ },
+ {
+  "id": "colosse_de_pierre",
+  "nom": "Colosse de pierre",
+  "description": "Un bloc de pierre qui grossit à chaque amélioration de cadence.",
+  "rarete": "epique",
+  "prix": 1100,
+  "type_degats": "siège",
+  "degats": 1640.0,
+  "recharge": 4.0,
+  "portee": 1250,
+  "ciblage": "plus_fort",
+  "effets": [
+   {
+    "kind": "cible_unique"
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "vulnerabilite",
+    "ratio": 0.15,
+    "duree": 6.0
+   },
+   {
+    "kind": "etourdissement",
+    "duree": 0.8
+   }
+  ],
+  "degats_par_amelioration": {
+   "stat": "cadence",
+   "ratio": 0.4
+  }
  }
 ]

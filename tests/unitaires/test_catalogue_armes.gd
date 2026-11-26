@@ -4,7 +4,7 @@ extends CasDeTest
 ## Chaque tâche de type (T9.13 à T9.17) ajoute son type à `TYPES_TERMINES`.
 
 const TYPES: Array[String] = ["tranchant", "perçant", "magique", "siège", "chaos"]
-const TYPES_TERMINES: Array[String] = ["tranchant", "perçant", "magique"]
+const TYPES_TERMINES: Array[String] = ["tranchant", "perçant", "magique", "siège"]
 const RARETES: Array[String] = ["commune", "peu_commune", "rare", "epique"]
 const REPARTITION: Array[int] = [1, 6, 6, 2]
 const MANA_MAX_REFERENCE := 100.0
@@ -42,6 +42,14 @@ const MECANIQUES_IMPOSEES: Dictionary = {
 		["M4", "statut", "siphon"],
 		["M7", "effet", "tournant"],
 		["M8", "effet", "zone_posee"],
+	],
+	"siège":
+	[
+		["M1", "vulnerabilite_du_type", ""],
+		["M5", "champ", "degats_par_pv_max"],
+		["M5", "champ", "degats_par_amelioration"],
+		["M8", "effet", "zone_posee"],
+		["M9", "effet", "bombe"],
 	],
 	"perçant":
 	[
@@ -271,3 +279,15 @@ func test_toute_zone_posee_a_une_periode_d_au_moins_un_quart_de_seconde() -> voi
 					"%s : période %s sous 0,25 s" % [arme["id"], effet["periode"]]
 				)
 	verifier(zones >= 2, "au moins deux zones posées dans le catalogue")
+
+
+func test_le_siege_a_deux_zones_posees_et_une_bombe_a_retardement_parmi_les_nouvelles() -> void:
+	var zones := 0
+	var bombes := 0
+	for arme: Dictionary in _nouvelles("siège"):
+		if _porte(arme, "effet", "zone_posee"):
+			zones += 1
+		if _porte(arme, "effet", "bombe"):
+			bombes += 1
+	verifier(zones >= 2, "siège : %d zones posées" % zones)
+	verifier(bombes >= 1, "siège : %d bombes" % bombes)
