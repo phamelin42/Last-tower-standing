@@ -1,8 +1,11 @@
 extends CasDeTest
 ## Le catalogue de sons : chaque identifiant a un fichier attendu sous `assets/sons/`, et un
 ## fichier absent devient un silence de substitution : le jeu reste jouable sans le son.
-## Chaque arme de `data/armes.json` a son son de tir, chaque type de dégâts son impact : les listes
-## viennent de `data/`, aucun effectif n'est figé.
+## Chaque type de dégâts a son impact. Chaque son de tir d'arme désigne une arme de
+## `data/armes.json` et les 30 armes du lot 8 gardent le leur ; une arme du lot 9 entre dans les
+## données avant son son (T9.20) et se fait entendre d'ici là par le son « tir ».
+
+const ArmesLot8 := preload("res://tests/unitaires/armes_lot_8.gd")
 
 ## Le pack n'a aucune boucle de fond : l'ambiance reste un silence de substitution.
 const SANS_FICHIER: Array[String] = [CatalogueSons.AMBIANCE]
@@ -83,15 +86,15 @@ func _origines() -> Dictionary:
 
 func _ids_a_fichier() -> PackedStringArray:
 	var ids: PackedStringArray = []
-	for id: String in _ids_armes():
+	for id: String in CatalogueSons.ids_armes():
 		ids.append(CatalogueSons.id_tir(id))
 	for type: int in TYPES_DEGATS.size():
 		ids.append(CatalogueSons.id_impact(type))
 	return ids
 
 
-func test_chaque_arme_a_son_fichier_de_tir() -> void:
-	for id: String in _ids_armes():
+func test_chaque_son_de_tir_d_arme_a_son_fichier() -> void:
+	for id: String in CatalogueSons.ids_armes():
 		var son: String = CatalogueSons.id_tir(id)
 		verifier_egal(son, "tir_" + id)
 		verifier(CatalogueSons.tous().has(son), "%s absent du catalogue" % son)
@@ -100,9 +103,17 @@ func test_chaque_arme_a_son_fichier_de_tir() -> void:
 		verifier(octets > 2000, "%s : fichier vide ou presque (%d octets)" % [son, octets])
 
 
+func test_une_arme_sans_son_propre_retombe_sur_le_son_tir_qui_a_son_fichier() -> void:
+	verifier_faux(CatalogueSons.est_substitution(CatalogueSons.TIR), "le repli « tir » s'entend")
+	var propres: PackedStringArray = CatalogueSons.ids_armes()
+	for id: String in _ids_armes():
+		if not propres.has(id):
+			verifier_egal(CatalogueSons.id_tir(id), CatalogueSons.TIR, "repli de %s" % id)
+
+
 func test_deux_armes_n_ont_jamais_le_meme_fichier() -> void:
 	var origines: Dictionary = _origines()
-	var ids: PackedStringArray = _ids_armes()
+	var ids: PackedStringArray = CatalogueSons.ids_armes()
 	for i: int in ids.size():
 		for j: int in range(i + 1, ids.size()):
 			var a: String = CatalogueSons.id_tir(ids[i])
@@ -176,9 +187,13 @@ func test_chaque_fichier_de_son_pese_moins_de_80_ko() -> void:
 		verifier(octets < TAILLE_MAX_OCTETS, "%s pèse %d octets" % [identifiant, octets])
 
 
-func test_la_liste_des_ids_d_armes_du_catalogue_suit_les_donnees() -> void:
-	var attendus: PackedStringArray = _ids_armes()
-	attendus.sort()
-	var presents: PackedStringArray = CatalogueSons.ids_armes()
-	presents.sort()
-	verifier_egal(presents, attendus)
+func test_chaque_son_de_tir_designe_une_arme_des_donnees() -> void:
+	var donnees: PackedStringArray = _ids_armes()
+	for id: String in CatalogueSons.ids_armes():
+		verifier(donnees.has(id), "son de tir orphelin : tir_%s" % id)
+
+
+func test_les_trente_armes_du_lot_8_gardent_leur_son_de_tir() -> void:
+	verifier_egal(ArmesLot8.IDS.size(), 30)
+	for id: String in ArmesLot8.IDS:
+		verifier_egal(CatalogueSons.id_tir(id), "tir_" + id, "son de tir de %s perdu" % id)

@@ -2023,6 +2023,7 @@ Tests du gabarit (écrits par T9.13, étendus par chaque tâche en ajoutant son 
   - `test_le_statut_de_la_signature_est_celui_de_l_arme_nouveaux_statuts_compris` ; `test_la_marque_correspond_a_la_mecanique_de_l_arme` : en boucle, une arme à effet `tournant`, `zone_posee`, `bombe` ou `invocation` a la marque correspondante, une arme à statut `vulnerabilite` la marque `vulnerabilite`, les autres `""`.
   - `test_les_signatures_d_avant_le_lot_ne_changent_pas` (les 30 de T8.14, comparées champ à champ).
   - `test_une_arme_inconnue_n_a_pas_de_signature`.
+  - **Rétablir l'égalité stricte** : le 26/11/2026, pour laisser entrer T9.13 à T9.17 avant leur rendu, `test_chaque_arme_a_une_signature_et_il_n_y_en_a_pas_d_autre` a cédé la place à `test_chaque_signature_designe_une_arme_des_donnees` et `test_les_trente_armes_du_lot_8_gardent_leur_signature` (liste figée `tests/unitaires/armes_lot_8.gd`). T9.18 remet le test strict ci-dessus et retire ces deux-là ; la dernière de T9.18 et T9.20 supprime `armes_lot_8.gd`.
 - **Vérif :** `T --filtre test_signatures_armes`, `godot --headless --path . --script res://tools/planche_signatures.gd`, puis `tools/verifier.sh`. Rapport : lien vers la planche.
 
 ### Task 9.19 : Mécaniques et signatures en jeu — `sonnet`
@@ -2054,6 +2055,7 @@ Tests du gabarit (écrits par T9.13, étendus par chaque tâche en ajoutant son 
   - `test_chaque_son_est_liste_dans_sources_md` ; `test_chaque_fichier_de_son_pese_moins_de_80_ko`.
   - `test_le_detecteur_choisit_le_son_de_l_arme_de_l_evenement` : en boucle sur le catalogue.
   - `test_la_liste_des_sons_de_tir_suit_les_donnees` (anti-dérive).
+  - **Rétablir l'égalité stricte** : le 26/11/2026, pour laisser entrer T9.13 à T9.17 avant leurs sons, `test_catalogue_sons.gd` ne boucle plus que sur `CatalogueSons.ids_armes()` (`test_chaque_son_de_tir_designe_une_arme_des_donnees`, `test_les_trente_armes_du_lot_8_gardent_leur_son_de_tir`, `test_une_arme_sans_son_propre_retombe_sur_le_son_tir_qui_a_son_fichier`) et `test_detecteur_sons.gd` admet le son « tir » pour une arme sans le sien. T9.20 remet la boucle sur `Donnees.armes` et l'égalité des listes, et retire ces exceptions ; la dernière de T9.18 et T9.20 supprime `tests/unitaires/armes_lot_8.gd`.
 - **Vérif :** `T --filtre test_catalogue_sons`, `test_detecteur_sons`, puis `tools/verifier.sh`.
 
 ## Session « Interface »
