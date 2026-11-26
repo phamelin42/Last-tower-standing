@@ -25,7 +25,7 @@ const PROJECTILES: Array[String] = [
 	"triangle",
 	"hexagone",
 	"spirale",
-]  # gdlint: ignore=max-line-length
+]
 const TRAINEES: Array[String] = ["filet", "ondule", "zigzag", "pointille", "etincelles", "double"]
 const IMPACTS: Array[String] = [
 	"entaille",
