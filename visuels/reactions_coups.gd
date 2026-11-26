@@ -31,13 +31,16 @@ var _gel: GelImpact = GelImpact.new()
 
 ## Fait réagir les ennemis touchés par un impact en `ou` (rayon `rayon`, 0 pour un coup simple).
 ## `ids` et `positions` sont ceux de l'échantillon affiché ; `tour` est la tour, dont on recule.
+## `fort` : un coup qui gèle son effet (zone, siège, explosion) retient aussi ceux qu'il touche ;
+## une aura ou une onde pulse sans cesse et ne gèle jamais.
 ## Rend le nombre d'ennemis qui ont réagi.
 func toucher(
 	ou: Vector2,
 	rayon: float,
 	ids: PackedInt32Array,
 	positions: PackedVector2Array,
-	tour: Vector2 = Vector2.ZERO
+	tour: Vector2 = Vector2.ZERO,
+	fort: bool = false
 ) -> int:
 	var portee: float = RAYON_TOUCHE_PX / Apparence.PX_PAR_UNITE
 	var zone: bool = rayon > 0.0
@@ -64,7 +67,7 @@ func toucher(
 			sens = Vector2.RIGHT
 		if mouvement_reduit:
 			sens = Vector2.ZERO
-		elif zone:
+		elif fort:
 			_gel.geler(id)
 		_suivis[id] = {"age": 0.0, "sens": sens}
 		reagi += 1

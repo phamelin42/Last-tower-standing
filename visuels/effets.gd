@@ -9,8 +9,9 @@ extends Node2D
 
 ## Un impact vient de devenir visible (à l'arrivée de son projectile, s'il en a un) : point en
 ## unités de jeu, rayon en unités de jeu (0 pour un coup simple). L'arène en fait réagir les
-## ennemis.
-signal impact_visible(ou: Vector2, rayon: float)
+## ennemis. `fort` : le coup gèle son effet (zone, siège, explosion) et donc ses ennemis ; jamais
+## une aura ni une onde.
+signal impact_visible(ou: Vector2, rayon: float, fort: bool)
 
 ## Un coup se joue en images à 60 i/s : les durées ci-dessous sont des nombres d'images.
 const IMAGE: float = 1.0 / 60.0
@@ -168,6 +169,8 @@ var _chaine_reste: float = 0.0
 var _chaine_active: bool = false
 ## Âge d'un effet qui naît en retard (un impact différé échu pendant un grand pas de temps).
 var _age_initial: float = 0.0
+## Le dernier impact joué est un coup fort : celui qui gèle son effet (voir `_burst`).
+var _coup_fort: bool = false
 ## Temps avant la prochaine absorption admise.
 var _pause_absorption: float = 0.0
 var _etincelles: Etincelles = Etincelles.new(self)
@@ -603,6 +606,7 @@ func _impact_maintenant(
 	var depart: Vector2 = Apparence.vers_pixels(de)
 	var arrivee: Vector2 = Apparence.vers_pixels(vers)
 	var cree: bool = false
+	_coup_fort = false
 	_retirer_objet_sol(arrivee)
 	var anneau: bool = (
 		genre == "aura" or genre == "onde" or (genre == "" and rayon > 0.0 and de == vers)
@@ -634,7 +638,7 @@ func _impact_maintenant(
 	var nombre: int = Etincelles.NOMBRE_ZONE if zone else Etincelles.NOMBRE_COUP
 	if not mouvement_reduit:
 		_etincelles.lancer(arrivee, nombre, couleur, _age_initial)
-	impact_visible.emit(vers, rayon)
+	impact_visible.emit(vers, rayon, _coup_fort)
 	return cree
 
 
@@ -657,6 +661,7 @@ func _burst(
 		or forme == "explosion"
 	)
 	var cree: bool = false
+	_coup_fort = explose
 	if explose:
 		cree = not _explosion(ou, taille * 0.5 / Apparence.PX_PAR_UNITE).is_empty()
 	# Le siège garde l'explosion du pack seule, sauf si sa signature a une autre forme d'impact.

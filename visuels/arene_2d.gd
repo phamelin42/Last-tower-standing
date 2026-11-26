@@ -469,9 +469,9 @@ func _plus_proche(positions: Array[Vector2], ou: Vector2) -> int:
 
 
 ## Un impact devient visible : les ennemis affichés à cet endroit réagissent (flash et recul).
-func _sur_impact_visible(ou: Vector2, rayon: float) -> void:
+func _sur_impact_visible(ou: Vector2, rayon: float, fort: bool) -> void:
 	var echantillon: Dictionary = _echantillon_courant()
-	_reactions.toucher(ou, rayon, echantillon["ids"], echantillon["pos"])
+	_reactions.toucher(ou, rayon, echantillon["ids"], echantillon["pos"], Vector2.ZERO, fort)
 
 
 func _echantillon_courant() -> Dictionary:

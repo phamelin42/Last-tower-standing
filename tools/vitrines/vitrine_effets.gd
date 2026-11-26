@@ -225,11 +225,11 @@ func _en_jeu() -> int:
 
 ## La cible de la cellule touchée réagit, comme un ennemi de l'arène : elle recule à l'opposé de la
 ## tour de sa cellule.
-func _sur_impact_visible(ou: Vector2, rayon: float) -> void:
+func _sur_impact_visible(ou: Vector2, rayon: float, fort: bool) -> void:
 	var pixels: Vector2 = ou * Apparence.PX_PAR_UNITE
 	var cellule := Vector2i(int(pixels.x / LARGEUR_CELLULE), int(pixels.y / HAUTEUR_CELLULE))
 	var tour: Vector2 = en_unites(coin(cellule.x, cellule.y) + TOUR_DANS_CELLULE)
-	var n: int = reactions.toucher(ou, rayon, _ids_cibles, _positions_cibles, tour)
+	var n: int = reactions.toucher(ou, rayon, _ids_cibles, _positions_cibles, tour, fort)
 	if n > 0 and _cle_par_cellule.has(cellule):
 		var cle: String = _cle_par_cellule[cellule]
 		reactions_par_cellule[cle] = int(reactions_par_cellule.get(cle, 0)) + n

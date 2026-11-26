@@ -67,7 +67,7 @@ func _sans_recul(courante: Vector2) -> Vector2:
 
 
 func _toucher_zone() -> void:
-	_reactions.toucher(IMPACT, 100.0, _ids(), _positions())
+	_reactions.toucher(IMPACT, 100.0, _ids(), _positions(), Vector2.ZERO, true)
 
 
 # --- Les ennemis touchés ---------------------------------------------------------------------
@@ -132,7 +132,7 @@ func test_au_plus_douze_ennemis_gelent() -> void:
 	for i: int in 20:
 		ids.append(i + 1)
 		pos.append(IMPACT + Vector2(i, 0))
-	_reactions.toucher(IMPACT, 100.0, ids, pos)
+	_reactions.toucher(IMPACT, 100.0, ids, pos, Vector2.ZERO, true)
 	var geles: int = 0
 	for i: int in 20:
 		var tenue: Vector2 = _reactions.position_affichee(i + 1, Vector2(1, 1))
@@ -174,6 +174,70 @@ func test_le_recul_et_le_flash_attendent_la_fin_du_gel() -> void:
 	for f: int in 12:
 		_reactions.avancer(IMAGE)
 	verifier(_reactions.nombre_suivis() <= 1, "tout finit par s'éteindre")
+
+
+func test_une_aura_ou_une_onde_ne_gele_jamais_ses_ennemis() -> void:
+	# Une aura pulse en continu : un gel à chaque pulsation ferait saccader ses ennemis.
+	for genre: String in ["aura", "onde"]:
+		var effets_forts: Array[bool] = []
+		_effets.impact_visible.connect(
+			func(_ou: Vector2, _rayon: float, fort: bool) -> void: effets_forts.append(fort)
+		)
+		for pulsation: int in 6:
+			var evenement: Dictionary = _evenement(Types.TypeDegats.MAGIQUE, 100.0, genre)
+			evenement["vers"] = Vector2.ZERO
+			_effets.ajouter(evenement)
+			_avancer_effets(int(0.5 / IMAGE))
+		verifier_egal(effets_forts.size(), 6, "%s : six pulsations" % genre)
+		verifier(not effets_forts.has(true), "%s : jamais un coup fort" % genre)
+		for fort: bool in effets_forts:
+			_reactions = ReactionsCoups.new()
+			_reactions.toucher(IMPACT, 100.0, _ids(), _positions(), Vector2.ZERO, fort)
+			for f: int in 5:
+				var vive := Vector2(10.0 * f, 0.0)
+				verifier_egal(
+					_sans_recul(vive), vive, "%s : l'ennemi bouge dès l'image %d" % [genre, f]
+				)
+				_reactions.avancer(IMAGE)
+
+
+func test_le_signal_dit_quels_coups_sont_forts() -> void:
+	var forts: Array[bool] = []
+	_effets.impact_visible.connect(
+		func(_ou: Vector2, _rayon: float, fort: bool) -> void: forts.append(fort)
+	)
+	var cas: Array = [
+		[Types.TypeDegats.MAGIQUE, 120.0, "zone", true],
+		[Types.TypeDegats.SIEGE, 0.0, "", true],
+		[Types.TypeDegats.TRANCHANT, 100.0, "mine", true],
+		[Types.TypeDegats.MAGIQUE, 100.0, "aura", false],
+		[Types.TypeDegats.TRANCHANT, 100.0, "mine", true],
+		[Types.TypeDegats.MAGIQUE, 100.0, "onde", false],
+		[Types.TypeDegats.TRANCHANT, 0.0, "", false],
+		[Types.TypeDegats.CHAOS, 0.0, "", false],
+	]
+	for c: Array in cas:
+		forts.clear()
+		_effets.vider()
+		_effets.ajouter(_evenement(int(c[0]), float(c[1]), String(c[2])))
+		verifier_egal(forts.size(), 1, "%s : un impact" % c[2])
+		if forts.size() == 1:
+			verifier_egal(forts[0], bool(c[3]), "type %d genre « %s »" % [c[0], c[2]])
+
+
+func test_un_siege_sans_rayon_gele_sa_cible_la_plus_proche_et_elle_seule() -> void:
+	var ids := PackedInt32Array([1, 2])
+	var pos := PackedVector2Array([IMPACT, IMPACT + Vector2(5, 0)])
+	_reactions.toucher(IMPACT, 0.0, ids, pos, Vector2.ZERO, true)
+	var tenue: Vector2 = _sans_recul(_courante(0))
+	for f: int in 5:
+		verifier_egal(_sans_recul(_courante(f)), tenue, "image %d : la cible est retenue" % f)
+		verifier_egal(
+			_reactions.position_affichee(2, Vector2(10.0 * f, 0.0)),
+			Vector2(10.0 * f, 0.0),
+			"image %d : sa voisine non" % f
+		)
+		_reactions.avancer(IMAGE)
 
 
 # --- L'effet d'impact ------------------------------------------------------------------------

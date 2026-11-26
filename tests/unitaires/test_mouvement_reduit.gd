@@ -214,7 +214,7 @@ func test_la_bascule_en_cours_de_partie_n_affecte_que_les_effets_suivants() -> v
 func _toucher(reactions: ReactionsCoups, rayon: float) -> void:
 	var ids := PackedInt32Array([1, 2])
 	var pos := PackedVector2Array([Vector2(500, 0), Vector2(520, 0)])
-	reactions.toucher(Vector2(500, 0), rayon, ids, pos)
+	reactions.toucher(Vector2(500, 0), rayon, ids, pos, Vector2.ZERO, true)
 
 
 func test_la_cible_ne_recule_ni_ne_gele_mais_son_flash_reste() -> void:

@@ -99,3 +99,16 @@ func test_le_reglage_change_en_cours_de_partie() -> void:
 		_images(1)
 		recul_max = maxf(recul_max, _ecart().length())
 	verifier(recul_max > 3.0, "remis à faux : le recul revient (%f)" % recul_max)
+
+
+func test_une_aura_ne_retient_pas_l_ennemi_qu_elle_touche() -> void:
+	_arene.afficher(_vue([]), 1.0)
+	var aura := _zone()
+	aura["genre"] = "aura"
+	aura["type_degats"] = 2
+	_arene.afficher(_vue([aura]), 1.0)
+	var recul_max: float = 0.0
+	for i: int in 3:
+		_images(1)
+		recul_max = maxf(recul_max, _ecart().length())
+	verifier(recul_max > 3.0, "l'ennemi recule aussitôt, sans gel : %f" % recul_max)
