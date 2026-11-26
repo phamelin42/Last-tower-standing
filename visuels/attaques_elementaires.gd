@@ -43,6 +43,12 @@ const GRAINE: int = 20261127
 const EPSILON: float = 0.000001
 ## Un coup à cible unique reste petit.
 const DIAMETRE_PETIT: float = 40.0
+## Un piège posé reste au sol tant qu'il n'a pas servi.
+const DUREE_PIEGE: float = 3600.0
+## Écart (px) en deçà duquel un déclenchement « est » l'endroit d'un piège.
+const TOLERANCE_PIEGE: float = 2.0
+const IMAGES_POSE_PIEGE: float = 3.0
+const ECHELLE_POSE_PIEGE: float = 1.3
 
 ## Les planches partagées par plusieurs éléments ; celles d'un élément sont dans son fichier.
 const PLANCHES_COMMUNES: Dictionary = {
@@ -110,6 +116,12 @@ var _carre: Texture2D = null
 var _degrade: Gradient = null
 
 
+## Le décalage entre deux projectiles d'un barrage d'`element` : 2 images, sauf mention `retard`.
+static func retard_barrage(element: String) -> float:
+	var e: AttaqueElement = registre().get(element)
+	return RETARD_BARRAGE if e == null else float(e.conf().get("retard", 2.0)) * IMAGE
+
+
 ## Un élément par fichier sous `visuels/attaques/` : une ligne ici suffit à en ajouter un.
 static func _scripts() -> Array[GDScript]:
 	return [
@@ -125,6 +137,12 @@ static func _scripts() -> Array[GDScript]:
 		AttaqueMoulinet,
 		AttaqueGuillotine,
 		AttaqueTourbillon,
+		AttaqueArbalete,
+		AttaqueChausseTrape,
+		AttaqueRicochet,
+		AttaqueHerse,
+		AttaqueBaliste,
+		AttaquePluie,
 	]
 
 
@@ -239,8 +257,14 @@ func tirer(element: String, depart: Vector2, arrivee: Vector2, retard: float = 0
 	if el == null:
 		return -1.0
 	var conf: Dictionary = el.conf()
+	# Une pluie tombe du haut : le projectile naît au-dessus de l'arrivée, pas à la tour.
+	var chute: float = float(conf.get("chute", 0.0))
+	if chute > 0.0:
+		depart = arrivee - Vector2(0.0, chute)
 	var cloche: bool = float(conf["cloche"]) > 0.0
-	var images_vol: int = IMAGES_VOL_CLOCHE if cloche else IMAGES_VOL_DIRECT
+	var images_vol: int = int(
+		conf.get("images_vol", IMAGES_VOL_CLOCHE if cloche else IMAGES_VOL_DIRECT)
+	)
 	var attente: float = retard + IMAGES_ANTICIPATION * IMAGE
 	var vol: float = images_vol * IMAGE
 	var sens: Vector2 = (arrivee - depart).normalized()
@@ -301,6 +325,23 @@ func saut(element: String, depart: Vector2, arrivee: Vector2, retard: float) -> 
 	poser(projectile)
 	el.suivre_vol(self, projectile, retard, vol)
 	return retard + vol
+
+
+## Un piège d'`element` lancé de `depart` vers `arrivee`, qui reste ensuite au sol (pixels).
+func piege(element: String, depart: Vector2, arrivee: Vector2) -> bool:
+	var el: AttaqueElement = registre().get(element)
+	return false if el == null else el.piege(self, depart, arrivee)
+
+
+## Le piège posé en `ou` a servi : ses objets au sol disparaissent, ceux d'un autre piège restent.
+func retirer_pieges(ou: Vector2) -> void:
+	for i: int in range(_vivants.size() - 1, -1, -1):
+		var effet: Dictionary = _vivants[i]
+		if (
+			String(effet["kind"]) == "piege"
+			and (effet["arrivee"] as Vector2).distance_to(ou) <= TOLERANCE_PIEGE
+		):
+			_liberer(i)
 
 
 ## L'aura d'`element` en `centre` (pixels du monde), au rayon réel `rayon_px`.
@@ -653,6 +694,12 @@ func poser(effet: Dictionary) -> void:
 		"sol":
 			n.position = effet["depart"]
 			alpha = ALPHA_MAX * (1.0 - t)
+		"piege":
+			# Posé, il retombe de 1,3 à 1 en trois images, puis ne bouge plus.
+			n.position = effet["depart"]
+			n.rotation = float(effet["tour"])
+			var pose: float = clampf(age / (IMAGES_POSE_PIEGE * IMAGE), 0.0, 1.0)
+			echelle *= lerpf(ECHELLE_POSE_PIEGE, 1.0, pose)
 		"image":
 			n.position = effet["depart"]
 			var seq: Array[int] = effet["seq"]

@@ -485,7 +485,7 @@ func _tir(
 ) -> bool:
 	var rendu_arme: Dictionary = rendu(type_degats, genre)
 	var element: String = _element(arme)
-	if element != "" and rendu_arme["sol"] == "":
+	if element != "" and (rendu_arme["sol"] == "" or genre == "piege"):
 		return _tir_element(element, type_degats, genre, de, vers, arme)
 	var couleur: Color = COULEURS[type_degats]
 	if not signature.is_empty():
@@ -540,6 +540,8 @@ func _tir_element(
 ) -> bool:
 	if genre == "barrage":
 		return false
+	if genre == "piege":
+		return _el().piege(element, Apparence.vers_pixels(de), Apparence.vers_pixels(vers))
 	if genre == "onde":
 		return _el().onde(element, Apparence.vers_pixels(de))
 	var arrivee: Vector2 = Apparence.vers_pixels(vers)
@@ -597,7 +599,7 @@ func _impact(
 	var element: String = _element(arme)
 	var groupe: Dictionary = {}
 	if element != "" and genre == "barrage" and attente < 0.0:
-		var retard: float = _rang_barrage * AttaquesElementaires.RETARD_BARRAGE
+		var retard: float = _rang_barrage * AttaquesElementaires.retard_barrage(element)
 		attente = _el().tirer(element, depart, arrivee, retard)
 		if _rang_barrage == 0:
 			_groupe_barrage = {"points": [] as Array[Vector2], "dessine": false}
@@ -682,6 +684,7 @@ func _impact_maintenant(
 	var cree: bool = false
 	_coup_fort = false
 	_retirer_objet_sol(arrivee)
+	_elementaires.retirer_pieges(arrivee)
 	var anneau: bool = (
 		genre == "aura" or genre == "onde" or (genre == "" and rayon > 0.0 and de == vers)
 	)

@@ -18,8 +18,34 @@ const DISQUE: String = "disque"
 const MOULINET: String = "moulinet"
 const GUILLOTINE: String = "guillotine"
 const TOURBILLON: String = "tourbillon"
+## La famille du carreau (armes perçantes) : un élément par arme, comme l'acier.
+const ARBALETE: String = "arbalete"
+const CHAUSSE_TRAPE: String = "chausse_trape"
+const RICOCHET: String = "ricochet"
+const HERSE: String = "herse"
+const BALISTE: String = "baliste"
+const PLUIE: String = "pluie"
 
-const ELEMENTS: Array[String] = [FEU, GLACE, BOMBE, POISON, FOUDRE, ARCANE, LAME]
+const ELEMENTS: Array[String] = [
+	FEU,
+	GLACE,
+	BOMBE,
+	POISON,
+	FOUDRE,
+	ARCANE,
+	LAME,
+	FAUCILLE,
+	DISQUE,
+	MOULINET,
+	GUILLOTINE,
+	TOURBILLON,
+	ARBALETE,
+	CHAUSSE_TRAPE,
+	RICOCHET,
+	HERSE,
+	BALISTE,
+	PLUIE,
+]
 
 ## id d'arme → élément.
 const TABLE: Dictionary = {
@@ -35,6 +61,12 @@ const TABLE: Dictionary = {
 	"moulinet_de_cuivre": MOULINET,
 	"guillotine_a_vapeur": GUILLOTINE,
 	"tourbillon_d_acier": TOURBILLON,
+	"arbalete_de_bureau": ARBALETE,
+	"chausse_trape": CHAUSSE_TRAPE,
+	"carreau_ricochet": RICOCHET,
+	"herse_de_ressorts": HERSE,
+	"baliste_de_guet": BALISTE,
+	"pluie_d_aiguilles": PLUIE,
 }
 
 
