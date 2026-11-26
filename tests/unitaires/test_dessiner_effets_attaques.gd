@@ -33,6 +33,17 @@ const PROJECTILES: PackedStringArray = [
 	"sablier",
 	"eclat_miroir",
 	"engrenage",
+	"couperet",
+	"rasoir",
+	"serpe",
+	"hache",
+	"javeline",
+	"fleche_marquante",
+	"lance_epineuse",
+	"siphon",
+	"prisme",
+	"lueur",
+	"vasque",
 ]
 
 
@@ -51,8 +62,17 @@ func _images(nom: String) -> int:
 	return Dessin.PLANCHES[nom]["images"]
 
 
-func test_la_liste_des_planches_compte_les_cinquante_deux_effets() -> void:
-	verifier_egal(Dessin.PLANCHES.size(), 52, "planches")
+## Chaque planche de la liste a son dessin dans un fichier de dessins, et chaque dessin sa planche :
+## l'effectif n'est écrit nulle part (les lots d'armes en ajoutent).
+func test_chaque_planche_a_un_fichier_de_dessins_et_inversement() -> void:
+	var noms: Dictionary = {}
+	for dessins: GDScript in Dessin.DESSINS:
+		for nom: String in dessins.get_script_constant_map()["NOMS"]:
+			verifier(not noms.has(nom), "%s dessinée deux fois" % nom)
+			verifier(Dessin.PLANCHES.has(nom), "%s : dessin sans planche" % nom)
+			noms[nom] = true
+	for nom: String in Dessin.PLANCHES:
+		verifier(noms.has(nom), "%s : planche sans dessin" % nom)
 
 
 func test_chaque_planche_existe_a_la_taille_taille_fois_nombre_d_images() -> void:
