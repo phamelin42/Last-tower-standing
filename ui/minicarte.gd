@@ -123,8 +123,8 @@ func definir_cadre(cadre: Rect2) -> void:
 	queue_redraw()
 
 
-## Les PV de tour d'un joueur, connus quand on regarde son arène : la vue globale ne les porte
-## pas, sa vignette n'a donc de barre que pour la dernière arène regardée.
+## Les PV de tour d'un joueur vus en regardant son arène : repli d'une vue globale sans PV (avant
+## le protocole 6), dont la vignette n'a alors de barre que pour la dernière arène regardée.
 func definir_pv(id_joueur: int, pv: float, pv_max: float) -> void:
 	_pv_connus[id_joueur] = _ratio(pv, pv_max)
 	for v: Dictionary in vignettes:
@@ -273,12 +273,24 @@ func _construire_vignettes(globale: VueGlobale) -> void:
 					"nom": str(joueur["nom"]),
 					"rect": Rect2(coin, Vector2(LARGEUR_VIGNETTE, HAUTEUR_VIGNETTE)),
 					"vivant": vivant,
-					"pv": 0.0 if not vivant else float(_pv_connus.get(id, -1.0)),
+					"pv": _pv_de_vignette(joueur, vivant),
 					"densite": densite,
 				}
 			)
 		)
 		rang += 1
+
+
+## PV d'une vignette (0 à 1, -1 s'il est inconnu) : ceux de la vue globale pour tous les joueurs,
+## même d'une arène jamais regardée (S14) ; à défaut (`pv_max` à 0 : un état qui ne les porte pas),
+## les derniers PV vus en regardant son arène.
+func _pv_de_vignette(joueur: Dictionary, vivant: bool) -> float:
+	if not vivant:
+		return 0.0
+	var maximum: float = joueur.get("pv_max", 0.0)
+	if maximum > 0.0:
+		return _ratio(float(joueur.get("pv", 0.0)), maximum)
+	return float(_pv_connus.get(int(joueur["id"]), -1.0))
 
 
 ## Carte 16 × 16 → 8 × 8 (somme de quatre cases, saturée à 255). Vide si la carte est absente ou

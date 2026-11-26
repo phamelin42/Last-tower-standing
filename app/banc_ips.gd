@@ -24,7 +24,6 @@ const VITESSE_APPROCHE := 30.0
 ## Graine fixe : deux bancs voient la même foule, donc des mesures comparables.
 const GRAINE := 7
 const HAUTEUR_BANDEAU := 56.0
-const TAILLE_TEXTE := 20
 const PV_PLEINS := 255
 
 ## Durée de la mesure ; les tests la raccourcissent.
@@ -241,7 +240,6 @@ func _construire_interface() -> void:
 	_texte.name = "Texte"
 	_texte.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_texte.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_texte.add_theme_font_size_override("font_size", TAILLE_TEXTE)
 	_texte.add_theme_color_override("font_color", ThemeJeu.PARCHEMIN)
 	bandeau.add_child(_texte)
 
