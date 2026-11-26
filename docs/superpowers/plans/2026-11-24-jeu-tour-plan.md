@@ -1364,7 +1364,7 @@ func id_regarde() -> int                # -1 si aucune
 
 ### Task 8.16 : Signatures d'armes en jeu et statuts visibles — `sonnet`
 
-- [ ] **Objectif :** après la validation de Phil de la planche (T8.14), l'effet de tir et d'impact suit la signature de l'arme de l'événement ; les cinq statuts sont tous visibles, **vol de vie compris** (un soin vert qui remonte de l'ennemi vers la tour) ; plafond d'effets simultanés conservé ; taille et luminosité suffisantes au zoom le plus lointain.
+- [x] **Objectif :** après la validation de Phil de la planche (T8.14), l'effet de tir et d'impact suit la signature de l'arme de l'événement ; les cinq statuts sont tous visibles, **vol de vie compris** (un soin vert qui remonte de l'ennemi vers la tour) ; plafond d'effets simultanés conservé ; taille et luminosité suffisantes au zoom le plus lointain.
 - **Conception :** §6.5, D5.
 - **Fichiers :** `visuels/effets.gd`, `visuels/arene_2d.gd` (catalogue, teinte des ennemis à statut) ; tests `test_effets.gd`, `test_evenements_genre.gd`, `test_arene_2d.gd`.
 - **Lire :** `visuels/effets.gd` `rendu`, `_tir`, `_impact`, `_statut` ; `visuels/signatures_armes.gd` ; la planche validée.
