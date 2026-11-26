@@ -9,6 +9,11 @@ const MANCHE_MEDIANE_RAISONNABLE_MIN := 12
 const MANCHE_PASSIVE_MAX := 3
 const MANCHE_ACHAT_MIN := 6
 const GRAINES_SEUIL_BAS: Array[int] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+## Robot de référence : mesuré sur les graines 1 à 10 (docs/equilibrage.md), minimum 17 et médiane
+## 31 ; les seuils laissent de la marge aux réglages des lots suivants. La cible de la conception
+## (manche 20 pour tous) n'est pas tenue : l'écart est consigné dans la PR de T8.21.
+const MANCHE_REFERENCE_MEDIANE := 20
+const MANCHE_REFERENCE_MIN := 12
 
 
 func _manches(strategie: String) -> Array[int]:
@@ -112,3 +117,22 @@ func test_emplacements_armes_n_est_plus_lu_nulle_part() -> void:
 			not FileAccess.get_file_as_string(chemin).contains(cle),
 			"%s mentionne encore %s" % [chemin, cle]
 		)
+
+
+func test_le_robot_de_reference_atteint_la_manche_20_en_mediane_et_ne_tombe_pas_avant_la_12() -> void:
+	var d := AidesPartie.donnees()
+	var manches: Array[int] = []
+	for graine: int in GRAINES_SEUIL_BAS:
+		var r := SimulationEquilibrage.jouer(
+			d, graine, StrategiesJoueur.BONNE, MANCHE_REFERENCE_MEDIANE
+		)
+		manches.append(int(r["manche"]))
+	manches.sort()
+	verifier(
+		manches[0] >= MANCHE_REFERENCE_MIN,
+		"bonne : minimum %d (manches %s) sous %d" % [manches[0], manches, MANCHE_REFERENCE_MIN]
+	)
+	verifier(
+		manches[manches.size() / 2] >= MANCHE_REFERENCE_MEDIANE,
+		"bonne : médiane %d (manches %s)" % [manches[manches.size() / 2], manches]
+	)
