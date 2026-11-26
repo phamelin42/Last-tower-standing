@@ -86,7 +86,6 @@ func _prefixes(b: PackedByteArray) -> Array[PackedByteArray]:
 
 
 func test_un_bonjour_de_version_4_est_refuse_avec_un_motif() -> void:
-	verifier(Protocole.VERSION >= 5)
 	var b := Protocole.encoder_bonjour("Phil", 42)
 	b[1] = 4
 	verifier_egal(Protocole.version_bonjour(b), 4)

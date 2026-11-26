@@ -25,9 +25,8 @@ func _jeton_de(n: int) -> PackedByteArray:
 	return j
 
 
-func test_la_version_du_protocole_est_au_moins_5() -> void:
-	# Le jeton date de la version 4 ; chaque version suivante le garde.
-	verifier(Protocole.VERSION >= 5)
+func test_la_version_du_protocole_depasse_celle_du_jeton() -> void:
+	verifier(Protocole.VERSION >= 5, "version %d" % Protocole.VERSION)
 
 
 func test_bonjour_sans_jeton_donne_un_jeton_vide() -> void:

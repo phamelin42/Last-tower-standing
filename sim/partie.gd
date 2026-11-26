@@ -394,6 +394,8 @@ func vue_globale(avec_densites: bool = false) -> VueGlobale:
 			"vivant": j.en_jeu(),
 			"victorieux": j.victorieux,
 			"dps": j.arene.dps() if j.arene != null and not j.fige else 0.0,
+			"pv": j.arene.pv if j.arene != null else 0.0,
+			"pv_max": j.arene.tour_pv_max() if j.arene != null else 0.0,
 		}
 		g.joueurs.append(entree)
 		if avec_densites and j.arene != null:

@@ -26,10 +26,12 @@ enum Intention {
 ## 5 : armes jusqu'à 255, mana, familles suivantes (jusqu'à 3), arme et événement `absorption`
 ##     dans les événements (14 octets), `dps` et densités dans l'état global, état d'arène
 ##     regardée, intention `REGARDER` (lot 8).
-## 6 : alliés (5 octets), zones posées (7) et bombes (6) dans l'état d'arène, trois compteurs de
+## 6 : l'état global porte les PV et les PV max de la tour de chaque joueur (8 octets de plus
+##     par joueur, suivi S14).
+## 7 : alliés (5 octets), zones posées (7) et bombes (6) dans l'état d'arène, trois compteurs de
 ##     plus ; les genres et statuts d'événement du lot 9 (4 bits chacun, format inchangé) ne sont
 ##     lisibles que par cette version (lot 9).
-const VERSION: int = 6
+const VERSION: int = 7
 ## Taille du jeton d'hôte ; un bonjour sans jeton en porte 0.
 const JETON_OCTETS: int = 8
 const MAX_ENNEMIS: int = 2000
@@ -72,7 +74,7 @@ const OFFSET_NB_JOUEURS: int = 10
 
 const _OCTETS_ENNEMI: int = 9
 const _OCTETS_EVENEMENT: int = 14
-const _OCTETS_JOUEUR_MIN: int = 22
+const _OCTETS_JOUEUR_MIN: int = 30
 ## Octets d'une carte de densité diffusée : identifiant (i32) et 256 cases.
 const _OCTETS_DENSITE: int = 4 + VueGlobale.DENSITE_OCTETS
 const _SANS_ARME: int = 0xFFFF
@@ -257,9 +259,10 @@ static func type_de(b: PackedByteArray) -> int:
 
 
 ## `u8 type · f32 temps · u8 flags · i32 dernier_rempart · u8 n_joueurs` puis par joueur
-## `[i32 id · u8 n + nom · u16 manche · u16 eliminations · f32 degats · f32 dps · i32 revenu ·
-## u8 flags]`, `u8 n_classement · n × i32`, `u8 n_densites · n × [i32 id · 256 octets]`. Vide si
-## plus de 16 joueurs, 16 rangs ou 16 cartes, ou si une carte n'a pas 256 octets.
+## `[i32 id · u8 n + nom · u16 manche · u16 eliminations · f32 degats · f32 dps · f32 pv ·
+## f32 pv_max · i32 revenu · u8 flags]`, `u8 n_classement · n × i32`,
+## `u8 n_densites · n × [i32 id · 256 octets]`. Vide si plus de 16 joueurs, 16 rangs ou 16
+## cartes, ou si une carte n'a pas 256 octets.
 static func encoder_etat_global(v: VueGlobale) -> PackedByteArray:
 	if v.joueurs.size() > MAX_JOUEURS or v.classement.size() > MAX_JOUEURS:
 		return PackedByteArray()
@@ -288,6 +291,8 @@ static func encoder_etat_global(v: VueGlobale) -> PackedByteArray:
 		e.u16(int(j["eliminations"]))
 		e.f32(float(j["degats"]))
 		e.f32(float(j.get("dps", 0.0)))
+		e.f32(float(j.get("pv", 0.0)))
+		e.f32(float(j.get("pv_max", 0.0)))
 		e.i32(int(j["revenu"]))
 		e.u8((1 if bool(j["vivant"]) else 0) | (2 if bool(j["victorieux"]) else 0))
 	e.u8(v.classement.size())
@@ -326,6 +331,8 @@ static func decoder_etat_global(b: PackedByteArray) -> VueGlobale:
 		var eliminations := l.u16()
 		var degats := l.f32()
 		var dps := l.f32()
+		var pv := l.f32()
+		var pv_max := l.f32()
 		var revenu := l.i32()
 		var drapeaux := l.u8()
 		if not l.ok or drapeaux & ~3 != 0:
@@ -341,6 +348,8 @@ static func decoder_etat_global(b: PackedByteArray) -> VueGlobale:
 					"eliminations": eliminations,
 					"degats": degats,
 					"dps": dps,
+					"pv": pv,
+					"pv_max": pv_max,
 					"revenu": revenu,
 					"vivant": drapeaux & 1 != 0,
 					"victorieux": drapeaux & 2 != 0,

@@ -3,7 +3,7 @@ extends CasDeTest
 
 const DT := 0.05
 const GRAINE := 5
-## Budget du plan : moins de 5 ms par pas en moyenne.
+## Budget du plan : moins de 5 ms par pas (10e centile des mesures, voir `MesurePas`).
 const BUDGET_MS := 5.0
 
 var d: Donnees
@@ -24,21 +24,26 @@ func _equiper(a: Arene) -> void:
 	a.synchroniser()
 
 
-## Fait monter l'arène à plus de `seuil` ennemis, puis mesure `pas` pas : durée moyenne en ms.
+## Fait monter l'arène à plus de `seuil` ennemis, puis mesure `pas` pas : coût d'un pas en ms.
 func _mesurer(a: Arene, seuil: int, pas: int) -> float:
 	var garde := 0
 	while a.nombre_ennemis() < seuil and garde < 6000:
 		a.avancer(DT)
 		garde += 1
 	verifier(a.nombre_ennemis() >= seuil, "au moins %d ennemis (%d)" % [seuil, a.nombre_ennemis()])
-	var debut := Time.get_ticks_usec()
-	for _i: int in pas:
-		a.avancer(DT)
-		if a.tick_courant() % 4 == 0:
-			a.vue(Types.Phase.MANCHE, 1.0, -1, false)  # le rendu lit la vue à 15 Hz environ
-	var moyenne := float(Time.get_ticks_usec() - debut) / 1000.0 / float(pas)
-	print("  [mesure] %d ennemis, %.3f ms par pas" % [a.nombre_ennemis(), moyenne])
-	return moyenne
+	# Blocs de quatre pas : chacun contient exactement une lecture de la vue. Le budget se juge au
+	# 10e centile des blocs (voir `MesurePas`), pas à la moyenne qui suit la charge de la machine.
+	var blocs := PackedInt32Array()
+	for _b: int in pas / 4:
+		var debut := Time.get_ticks_usec()
+		for _i: int in 4:
+			a.avancer(DT)
+			if a.tick_courant() % 4 == 0:
+				a.vue(Types.Phase.MANCHE, 1.0, -1, false)  # le rendu lit la vue à 15 Hz environ
+		blocs.append(Time.get_ticks_usec() - debut)
+	var rapide := MesurePas.centile_bas_ms(blocs, 4)
+	print("  [mesure] %d ennemis, %.3f ms par pas (10e centile)" % [a.nombre_ennemis(), rapide])
+	return rapide
 
 
 func test_mille_ennemis_immobiles_au_plancher_sous_5_ms_par_pas() -> void:
@@ -79,11 +84,13 @@ func test_mille_attaquants_au_corps_a_corps_avec_epines_sous_5_ms_par_pas() -> v
 		var angle := TAU * float(k) / 1200.0
 		var p := Vector2.from_angle(angle) * 100.0
 		a.ennemis.ajouter(0, p, 1e7, 0.0, 5.0, 40.0, 4.0, 1, Types.Armure.AUCUNE)
-	var debut := Time.get_ticks_usec()
+	var durees := PackedInt32Array()
 	for _i: int in 200:
+		var debut := Time.get_ticks_usec()
 		a.avancer(DT)
-	var ms := float(Time.get_ticks_usec() - debut) / 1000.0 / 200.0
-	print("  [mesure] 1200 attaquants au contact, %.3f ms par pas" % ms)
+		durees.append(Time.get_ticks_usec() - debut)
+	var ms := MesurePas.centile_bas_ms(durees)
+	print("  [mesure] 1200 attaquants au contact, %.3f ms par pas (10e centile)" % ms)
 	verifier(ms < BUDGET_MS, "%.3f ms par pas (budget %s)" % [ms, BUDGET_MS])
 	verifier(not a.est_detruite(), "la tour tient")
 

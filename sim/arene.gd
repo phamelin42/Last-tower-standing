@@ -217,6 +217,11 @@ func _noter_degats(degats: float) -> void:
 		_histo_degats = _histo_degats.slice(perimes)
 
 
+## PV maximum de la tour au moment de l'appel (lu par la vue globale).
+func tour_pv_max() -> float:
+	return _pv_max()
+
+
 ## Dégâts infligés par seconde sur les `FENETRE_DPS_S` dernières secondes, épines comprises ;
 ## avant la fin de la première fenêtre, on divise par le temps écoulé.
 func dps() -> float:
