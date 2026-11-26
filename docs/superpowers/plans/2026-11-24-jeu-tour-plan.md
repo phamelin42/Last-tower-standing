@@ -1407,7 +1407,7 @@ func id_regarde() -> int                # -1 si aucune
 - **Conception :** §6.7 (barre du haut), §6.8, D1, D10, D11.
 - **Fichiers :** `ui/hud.gd`, `ui/scores.gd`, `ui/theme.gd` (icônes citées ici : `ICONES`, `TEXTURES`), `assets/icones/…` (sablier et sa `LICENCE.md`), `i18n/textes_hud.csv`, `i18n/textes_communs.csv` si besoin ; tests `test_hud.gd`, `test_fin_ui.gd`, `test_garde_ressources.gd`, `test_contraste.gd`. `emplacements_armes` n'est plus lu (le nombre d'armes est un compte, sans capacité). `CREDITS.md` : voir T8.21.
 - **Lire :** `ui/hud.gd` (215 lignes), `ui/scores.gd`, `ui/theme.gd` `ICONES`.
-- **Interfaces :** consomme `VueArene.prochaines_familles`, `prochaines_armures`, `armes` (jusqu'à 255), `VueGlobale.joueurs[i].dps`, `.revenu`, `.degats`. Produit `Hud.hauteur_barre() -> float` (≈ 40) et `Scores.COLONNES` à 8.
+- **Interfaces :** consomme `VueArene.prochaines_familles`, `prochaines_armures`, `armes` (jusqu'à 255), `VueGlobale.joueurs[i].dps`, `.revenu`, `.degats`. Produit `Hud.hauteur_barre() -> float` (≈ 40) et `TableauScores.COLONNES` à 7 (joueur, manche, éliminations, revenu, DPS, dégâts totaux, état). _Écart au plan, décision de pilotage du 26/11/2026 : D10 n'ajoute qu'une colonne, le DPS ; « Revenu » et « Dégâts » existaient et sont précisés en « Revenu / 10 s » et « Dégâts totaux » (§6.8). Le « 8 » du plan était une erreur._
 - **Tests :**
   - `test_la_barre_n_affiche_plus_les_pv_et_montre_six_informations_avec_icone`.
   - `test_chaque_icone_a_un_nom_accessible_et_une_infobulle` : l'information ne repose jamais sur l'icône ou la couleur seule.
