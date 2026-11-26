@@ -145,6 +145,9 @@ var parent_sol: Node2D = null
 var catalogue: PackedStringArray = PackedStringArray()
 ## Mouvement réduit (D21) : ni gel, ni rebond d'échelle, ni étincelles ; un éclat bref reste.
 var mouvement_reduit: bool = false
+## Faux : les armes à élément sont rendues par leur signature, comme avant D22 (le repli que les
+## tests gardent vivant maintenant que les 30 armes du lot 8 ont leur élément).
+var rendu_par_element: bool = true
 
 var _libres: Array = [[], []]
 var _vivants: Array[Dictionary] = []
@@ -485,7 +488,7 @@ func _tir(
 ) -> bool:
 	var rendu_arme: Dictionary = rendu(type_degats, genre)
 	var element: String = _element(arme)
-	if element != "" and (rendu_arme["sol"] == "" or genre == "piege"):
+	if element != "" and (rendu_arme["sol"] == "" or genre == "piege" or genre == "mine"):
 		return _tir_element(element, type_degats, genre, de, vers, arme)
 	var couleur: Color = COULEURS[type_degats]
 	if not signature.is_empty():
@@ -540,7 +543,7 @@ func _tir_element(
 ) -> bool:
 	if genre == "barrage":
 		return false
-	if genre == "piege":
+	if genre == "piege" or genre == "mine":
 		return _el().piege(element, Apparence.vers_pixels(de), Apparence.vers_pixels(vers))
 	if genre == "onde":
 		return _el().onde(element, Apparence.vers_pixels(de))
@@ -558,7 +561,7 @@ func _tir_element(
 
 ## L'élément de l'arme d'index `arme` du catalogue, `""` si elle garde son rendu.
 func _element(arme: int) -> String:
-	if arme < 0 or arme >= catalogue.size():
+	if not rendu_par_element or arme < 0 or arme >= catalogue.size():
 		return ""
 	return ElementsArmes.de(catalogue[arme])
 
@@ -749,7 +752,7 @@ func _impact_element(
 			for point: Vector2 in points:
 				centre += point
 			cree = _el().zone(element, centre / points.size(), rayon_px, _age_initial) or cree
-	if element == ElementsArmes.BOMBE:
+	if AttaquesElementaires.explosion_du_pack(element):
 		cree = not _explosion(ou, rayon).is_empty() or cree
 	return cree
 

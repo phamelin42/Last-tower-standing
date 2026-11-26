@@ -25,6 +25,24 @@ const RICOCHET: String = "ricochet"
 const HERSE: String = "herse"
 const BALISTE: String = "baliste"
 const PLUIE: String = "pluie"
+## Les armes magiques et de siège : un élément par arme, comme l'acier et le carreau.
+const CERCLE_GIVRE: String = "cercle_givre"
+const NOVA: String = "nova"
+const TEMPETE: String = "tempete"
+const PETARD: String = "petard"
+const TREBUCHET: String = "trebuchet"
+const MINE_FORGE: String = "mine_forge"
+const GRANDE_BOMBE: String = "grande_bombe"
+
+const DE_PIPE: String = "de_pipe"
+
+const SABLIER: String = "sablier"
+
+const MIROIR: String = "miroir"
+
+const VORTEX: String = "vortex"
+
+const HORLOGE: String = "horloge"
 
 const ELEMENTS: Array[String] = [
 	FEU,
@@ -45,6 +63,18 @@ const ELEMENTS: Array[String] = [
 	HERSE,
 	BALISTE,
 	PLUIE,
+	CERCLE_GIVRE,
+	NOVA,
+	TEMPETE,
+	PETARD,
+	MINE_FORGE,
+	TREBUCHET,
+	GRANDE_BOMBE,
+	DE_PIPE,
+	SABLIER,
+	MIROIR,
+	VORTEX,
+	HORLOGE,
 ]
 
 ## id d'arme → élément.
@@ -67,6 +97,18 @@ const TABLE: Dictionary = {
 	"herse_de_ressorts": HERSE,
 	"baliste_de_guet": BALISTE,
 	"pluie_d_aiguilles": PLUIE,
+	"cercle_de_givre": CERCLE_GIVRE,
+	"nova_d_ambre": NOVA,
+	"tempete_astrale": TEMPETE,
+	"petard_de_rempart": PETARD,
+	"mine_de_forge": MINE_FORGE,
+	"trebuchet_de_chambre": TREBUCHET,
+	"grande_bombarde": GRANDE_BOMBE,
+	"de_pipe": DE_PIPE,
+	"sablier_fele": SABLIER,
+	"miroir_brise": MIROIR,
+	"vortex_de_verre": VORTEX,
+	"horloge_folle": HORLOGE,
 }
 
 

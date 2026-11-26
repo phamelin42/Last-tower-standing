@@ -49,6 +49,15 @@ const CUIVRE := Color("d9843b")
 const CUIVRE_BRUN := Color("7a431f")
 const VAPEUR_CLAIR := Color("f2f4f8")
 const VAPEUR := Color("aab2c0")
+## Magie : ambre (nova), étoile astrale (tempête) ; roche et fer (siège).
+const AMBRE_CLAIR := Color("ffd470")
+const AMBRE := Color("e8982b")
+const AMBRE_BRUN := Color("7a3a12")
+const ASTRAL_OR := Color("ffe27a")
+const ROCHE_CLAIRE := Color("b3a28e")
+const ROCHE := Color("7f7160")
+const ROCHE_CONTOUR := Color("2e2822")
+const RUNE_FORGE := Color("ff7a3a")
 ## Éclair de départ, teinté par élément dans le jeu.
 const GRIS_CLAIR := Color("d5dae3")
 
@@ -56,6 +65,15 @@ const GRIS_CLAIR := Color("d5dae3")
 const BOIS := Color("a8743b")
 const BOIS_SOMBRE := Color("5c3a1e")
 const PLUME := Color("d24a43")
+
+## Chaos : violet, magenta, or et verre bleuté.
+const CHAOS_VIOLET := Color("8a3fd0")
+const CHAOS_MAGENTA := Color("e0409a")
+const CHAOS_NUIT := Color("2a1245")
+const CHAOS_OR := Color("ffd24a")
+const CHAOS_OR_BRUN := Color("a8631a")
+const VERRE_PALE := Color("d9f2ff")
+const VERRE_BLEU := Color("7fb8e0")
 
 ## Nom de la planche : taille d'une image et nombre d'images.
 const PLANCHES: Dictionary = {
@@ -93,6 +111,24 @@ const PLANCHES: Dictionary = {
 	"plante": {"taille": Vector2i(12, 12), "images": 2},
 	"gerbe": {"taille": Vector2i(24, 24), "images": 4},
 	"pointes_sol": {"taille": Vector2i(32, 32), "images": 6},
+	"vague_ambre": {"taille": Vector2i(12, 32), "images": 1},
+	"etoile_astrale": {"taille": Vector2i(12, 12), "images": 4},
+	"eclat_astral": {"taille": Vector2i(24, 24), "images": 5},
+	"petard": {"taille": Vector2i(10, 16), "images": 2},
+	"pop_petard": {"taille": Vector2i(32, 32), "images": 6},
+	"rocher": {"taille": Vector2i(14, 12), "images": 1},
+	"cratere": {"taille": Vector2i(32, 32), "images": 6},
+	"mine_forge": {"taille": Vector2i(16, 12), "images": 2},
+	"de_pipe": {"taille": Vector2i(12, 12), "images": 4},
+	"eclat_des": {"taille": Vector2i(24, 24), "images": 4},
+	"sablier": {"taille": Vector2i(10, 16), "images": 2},
+	"tourbillon_sable": {"taille": Vector2i(32, 32), "images": 6},
+	"eclat_miroir": {"taille": Vector2i(12, 12), "images": 4},
+	"gerbe_verre": {"taille": Vector2i(24, 24), "images": 5},
+	"vague_verre": {"taille": Vector2i(16, 32), "images": 1},
+	"eclat_verre": {"taille": Vector2i(4, 4), "images": 2},
+	"engrenage": {"taille": Vector2i(12, 12), "images": 2},
+	"eclat_engrenage": {"taille": Vector2i(24, 24), "images": 4},
 }
 
 
