@@ -142,9 +142,6 @@ const FORMES_STATUT: Dictionary = {
 	"vol_de_vie": "soin"
 }
 
-## Textures de formes simples, dessinées une fois pour toutes (blanches : `modulate` les teinte).
-static var _formes: Dictionary = {}
-
 ## Où poser les objets au sol (mines, pièges, flammes). Sans valeur : sous les autres effets.
 var parent_sol: Node2D = null
 ## `Donnees.ids_catalogue` (posé par `Arene2D`) : traduit l'index `arme` d'un événement en arme,
@@ -157,7 +154,7 @@ var _libres: Array = [[], []]
 var _vivants: Array[Dictionary] = []
 var _nb_noeuds: int = 0
 var _tous: Array[Sprite2D] = []
-var _textures: Dictionary = {}
+var _tex: TexturesEffets = TexturesEffets.new()
 ## Projectiles en vol, qu'un impact de la même arme au même point attend : `{type, genre, arme,
 ## arrivee, reste}`.
 var _tirs_en_vol: Array[Dictionary] = []
@@ -770,7 +767,7 @@ func _creer(forme: String, anim: String, duree: float, couleur: Color, couche: i
 	if _vivants.size() >= PLAFOND or _age_initial >= duree:
 		return {}
 	var noeud: Sprite2D = _prendre(couche)
-	_habiller(noeud, forme)
+	_tex.habiller(noeud, forme)
 	noeud.modulate = Color(couleur, ALPHA_MAX)
 	noeud.visible = true
 	var effet := {
@@ -790,43 +787,6 @@ func _creer(forme: String, anim: String, duree: float, couleur: Color, couche: i
 	}
 	_vivants.append(effet)
 	return effet
-
-
-## Texture, région et ancrage d'une forme. Les images du pack restent nettes, les formes dessinées
-## sont lissées.
-func _habiller(noeud: Sprite2D, forme: String) -> void:
-	noeud.rotation = 0.0
-	noeud.offset = Vector2.ZERO
-	noeud.region_enabled = false
-	noeud.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
-	match forme:
-		"fleche":
-			noeud.texture = _feuille(FEUILLE_FLECHE)
-			noeud.region_enabled = true
-			noeud.region_rect = REGION_FLECHE
-		"dynamite", "mine":
-			noeud.texture = _feuille(FEUILLE_DYNAMITE)
-			noeud.region_enabled = true
-			noeud.region_rect = REGION_DYNAMITE
-		"explosion":
-			noeud.texture = _feuille(FEUILLE_EXPLOSION)
-			noeud.region_enabled = true
-			noeud.region_rect = Rect2(0.0, 0.0, CASE_EXPLOSION, CASE_EXPLOSION)
-			noeud.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-		"feu":
-			noeud.texture = _feuille(FEUILLE_FEU)
-			noeud.region_enabled = true
-			noeud.region_rect = Rect2(0.0, 0.0, CASE_FEU, CASE_FEU)
-			noeud.offset = Vector2(0.0, CASE_FEU * 0.5 - PIED_FEU)
-			noeud.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-		_:
-			noeud.texture = _forme(forme)
-
-
-func _feuille(chemin: String) -> Texture2D:
-	if not _textures.has(chemin):
-		_textures[chemin] = load(Apparence.RACINE + chemin) as Texture2D
-	return _textures[chemin]
 
 
 # --- Mouvement ---------------------------------------------------------------------------------
@@ -970,15 +930,3 @@ func _liberer(i: int) -> void:
 	noeud.visible = false
 	(_libres[int(effet["couche"])] as Array).append(noeud)
 	_vivants.remove_at(i)
-
-
-# --- Formes dessinées --------------------------------------------------------------------------
-
-
-func _forme(nom: String) -> Texture2D:
-	if not _formes.has(nom):
-		var image: Image = (
-			FormesEffets.image(nom) if FORMES_PROPRES.has(nom) else FormesSignatures.image(nom)
-		)
-		_formes[nom] = ImageTexture.create_from_image(image)
-	return _formes[nom]
