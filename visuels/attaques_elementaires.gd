@@ -236,6 +236,14 @@ func diametre_max() -> float:
 	return d
 
 
+## Temps de gel d'impact qui reste au plus long gel en cours.
+func gel_restant() -> float:
+	var reste: float = 0.0
+	for e: Dictionary in _vivants:
+		reste = maxf(reste, float(e["gel"]))
+	return reste
+
+
 func opacite_max() -> float:
 	var alpha: float = 0.0
 	for e: Dictionary in _vivants:
