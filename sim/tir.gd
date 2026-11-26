@@ -36,6 +36,8 @@ class Lecture:
 	var exemplaires: Dictionary = {}
 	## stat d'amélioration → nombre d'améliorations possédées qui la portent (chaque achat compte).
 	var ameliorations_par_stat: Dictionary = {}
+	## Zones et bombes de l'arène : sans elles (tests de tir), une arme qui pose ne pose rien.
+	var poses: Poses = null
 
 
 ## Ce qui est commun à toutes les résolutions d'un même pas.
@@ -63,6 +65,9 @@ class Contexte:
 	## Part du repoussement qui s'applique au boss (`partie.json` `repoussement.facteur_boss`).
 	var facteur_boss_repoussement: float
 	var pv_max_tour: float = 0.0
+	var poses: Poses = null
+	## `proprietaire` des poses de cette arme (`ArmeEquipee.get_instance_id()`).
+	var proprietaire: int = 0
 
 
 static func avancer_arme(
@@ -126,6 +131,8 @@ static func _creer(
 	var mana_max := float(donnees.partie["tour"]["mana_max"]) + stats.mana_max_bonus
 	var vue_tour := lecture if lecture != null else Lecture.new()
 	ctx.pv_max_tour = vue_tour.pv_max_tour
+	ctx.poses = vue_tour.poses
+	ctx.proprietaire = arme.get_instance_id()
 	var plafond: float = float(donnees.partie["armes"]["bonus_selon_stat_max"])
 	var brut := degats_de_base(
 		arme.def,
@@ -362,7 +369,114 @@ static func _effet(ctx: Contexte, kind: String, effet: Dictionary) -> bool:
 			return _lancer_onde(ctx, effet)
 		"mine", "piege":
 			return _poser_mine(ctx, effet)
+		"tournant":
+			return _tournant(ctx, effet)
+		"zone_posee", "bombe":
+			return _poser(ctx, kind, effet)
 	return false
+
+
+# --- Zones posées et bombes -----------------------------------------------------------------------
+
+
+## Pose une zone ou une bombe sur la cible choisie par le ciblage de l'arme. Les dégâts, le critique
+## et les bonus sont figés à la pose ; la pose ne frappe pas.
+static func _poser(ctx: Contexte, kind: String, effet: Dictionary) -> bool:
+	if ctx.poses == null:
+		return false
+	var i := _choisir(ctx, float(ctx.arme.def["portee"]), [])
+	if i < 0:
+		return false
+	var position := ctx.ennemis.pos[i]
+	var pose: Dictionary = {
+		"pos": position,
+		"rayon": float(effet["rayon"]),
+		"degats": ctx.degats_base * _critique(ctx) * float(effet["ratio"]),
+		"type_degats": ctx.type_degats,
+		"statuts": ctx.statuts,
+		"statut": ctx.statut,
+		"arme": maxi(ctx.index_arme, 0),
+		"proprietaire": ctx.proprietaire,
+	}
+	if kind == "zone_posee":
+		pose["duree"] = float(effet["duree"])
+		pose["periode"] = float(effet["periode"])
+		ctx.poses.ajouter_zone(pose, int(effet["max_actives"]))
+	else:
+		pose["delai"] = float(effet["delai"])
+		ctx.poses.ajouter_bombe(pose, int(effet["max_actives"]))
+	_evenement(ctx, "tir", ctx.centre, position, float(effet["rayon"]))
+	return true
+
+
+## Le contexte d'une pose qui frappe : ses dégâts, son type et ses statuts sont ceux de l'arme au
+## moment de la pose ; le reste (vol de vie, résistance) est celui de la tour maintenant.
+static func contexte_pose(
+	pose: Dictionary,
+	genre: int,
+	ennemis: Ennemis,
+	stats: StatsTour,
+	centre: Vector2,
+	donnees: Donnees,
+	resistance: float,
+	bilan: Bilan
+) -> Contexte:
+	var ctx := Contexte.new()
+	ctx.stats = stats
+	ctx.ennemis = ennemis
+	ctx.centre = centre
+	ctx.resistance = resistance
+	ctx.bilan = bilan
+	ctx.type_degats = int(pose["type_degats"])
+	ctx.statuts = pose["statuts"]
+	ctx.statut = int(pose["statut"])
+	ctx.genre = genre
+	ctx.index_arme = int(pose["arme"])
+	var repousse: Dictionary = donnees.partie["repoussement"]
+	ctx.facteur_boss_repoussement = float(repousse["facteur_boss"])
+	return ctx
+
+
+## Une impulsion de zone ou l'explosion d'une bombe : frappe tous les ennemis du rayon, puis
+## l'événement `impact`.
+static func impulsion(ctx: Contexte, point: Vector2, rayon: float, degats: float) -> void:
+	_zone(ctx, point, rayon, degats, -1)
+	_evenement(ctx, "impact", ctx.centre, point, rayon)
+
+
+# --- Tir tournant ------------------------------------------------------------------------------
+
+
+## `branches` rayons partent de la tour à des angles régulièrement répartis, décalés de la phase de
+## l'arme ; chaque rayon frappe les ennemis dont la distance au segment (tour → portée) est au plus
+## `largeur`. Un ennemi n'est frappé qu'une fois par tir. La phase avance ensuite de `pas_deg`
+## dans le sens de l'arme. Vrai si un tir a eu lieu : il en faut un ennemi à portée, comme pour les
+## autres effets qui visent. Aucun hasard hors critique (un seul tirage par rayon, s'il y a une
+## chance).
+static func _tournant(ctx: Contexte, effet: Dictionary) -> bool:
+	var portee := float(ctx.arme.def["portee"])
+	if not _existe(ctx, ctx.centre, portee):
+		return false
+	var branches := int(effet["branches"])
+	var largeur := float(effet["largeur"])
+	var ennemis := ctx.ennemis
+	var deja: Dictionary = {}
+	var phase := ctx.arme.phase_deg
+	for k: int in branches:
+		var angle := deg_to_rad(phase + 360.0 * float(k) / float(branches))
+		var bout := ctx.centre + Vector2(cos(angle), sin(angle)) * portee
+		_evenement(ctx, "tir", ctx.centre, bout, largeur)
+		var degats := ctx.degats_base * _critique(ctx)
+		for i: int in ennemis.ids.size():
+			if ennemis.mort[i] != 0 or deja.has(ennemis.ids[i]):
+				continue
+			var proche := Geometry2D.get_closest_point_to_segment(ennemis.pos[i], ctx.centre, bout)
+			if proche.distance_to(ennemis.pos[i]) <= largeur:
+				deja[ennemis.ids[i]] = true
+				_frapper(ctx, i, degats)
+	var sens := -1.0 if String(effet["sens"]) == "antihoraire" else 1.0
+	ctx.arme.phase_deg = fposmod(phase + sens * float(effet["pas_deg"]), 360.0)
+	return true
 
 
 # --- Effets qui visent : un tir par cible distincte ----------------------------------------------

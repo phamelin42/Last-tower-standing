@@ -74,5 +74,16 @@ static func _cibles_effet(effet: Dictionary) -> float:
 			return projectiles * 0.5
 		"mine", "piege":
 			return 2.0
+		"zone_posee":
+			var impulsions: float = (
+				float(effet.get("duree", 1.0))
+				/ maxf(float(effet.get("periode", 1.0)), RECHARGE_MIN)
+			)
+			return 3.0 * impulsions * float(effet.get("ratio", 1.0))
+		"bombe":
+			return 3.0 * float(effet.get("ratio", 1.0))
+		"tournant":
+			var branches: float = effet.get("branches", 1)
+			return branches * 1.0
 		_:
 			return 1.0
