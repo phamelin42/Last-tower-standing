@@ -749,7 +749,7 @@ func _impact_element(
 			for point: Vector2 in points:
 				centre += point
 			cree = _el().zone(element, centre / points.size(), rayon_px, _age_initial) or cree
-	if element == ElementsArmes.BOMBE:
+	if AttaquesElementaires.explosion_du_pack(element):
 		cree = not _explosion(ou, rayon).is_empty() or cree
 	return cree
 

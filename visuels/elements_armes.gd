@@ -57,6 +57,7 @@ const ELEMENTS: Array[String] = [
 	NOVA,
 	TEMPETE,
 	PETARD,
+	MINE_FORGE,
 ]
 
 ## id d'arme → élément.
@@ -83,6 +84,7 @@ const TABLE: Dictionary = {
 	"nova_d_ambre": NOVA,
 	"tempete_astrale": TEMPETE,
 	"petard_de_rempart": PETARD,
+	"mine_de_forge": MINE_FORGE,
 }
 
 

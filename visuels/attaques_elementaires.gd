@@ -143,6 +143,7 @@ static func _scripts() -> Array[GDScript]:
 		AttaqueNova,
 		AttaqueTempete,
 		AttaquePetard,
+		AttaqueMineForge,
 	]
 
 
@@ -168,6 +169,12 @@ static func planches() -> Dictionary:
 ## Vrai si `element` a des attaques dessinées ici.
 static func connait(element: String) -> bool:
 	return registre().has(element)
+
+
+## Vrai si l'explosion de `element` est celle du pack, dessinée par `Effets` au rayon réel.
+static func explosion_du_pack(element: String) -> bool:
+	var e: AttaqueElement = registre().get(element)
+	return false if e == null else bool(e.conf().get("explosion", false))
 
 
 ## Nom de la planche du projectile de `element`, `""` sans projectile.
