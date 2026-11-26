@@ -16,7 +16,7 @@ func avant_chaque() -> void:
 		brut[nom] = JSON.parse_string(FileAccess.get_file_as_string("res://data/" + nom))
 	brut["armes.json"] = []
 	brut["ameliorations.json"] = []
-	brut["ennemis.json"] = {"familles": [], "convoi": {}, "boss": {}}
+	brut["ennemis.json"] = {"modeles": [], "paliers": [], "convoi": {}, "boss": {}}
 	e = Ennemis.new(Donnees.depuis_brut(brut))
 
 
@@ -28,14 +28,13 @@ func _ajouter(
 	pos: Vector2 = Vector2(500, 0),
 	pv: float = 100.0,
 	armure: int = Types.Armure.LEGERE,
-	volant: bool = false,
 	portee: float = 40.0,
 	degats: float = 4.0,
 	cadence: float = 1.0,
 	prime: int = 2,
 	vitesse: float = 60.0
 ) -> int:
-	return e.ajouter(0, pos, pv, vitesse, degats, portee, cadence, prime, volant, armure)
+	return e.ajouter(0, pos, pv, vitesse, degats, portee, cadence, prime, armure)
 
 
 ## Avance de `n` pas et cumule les indices tués par statut, lus avant la purge.
@@ -65,7 +64,7 @@ func test_zero_ennemi_aucune_methode_ne_plante() -> void:
 	verifier_egal(e.choisir(CENTRE, 1200.0, Types.Ciblage.PLUS_PROCHE), -1)
 	verifier_egal(e.choisir(CENTRE, 1200.0, Types.Ciblage.PLUS_FORT), -1)
 	verifier_egal(e.choisir(CENTRE, 1200.0, Types.Ciblage.PLUS_FAIBLE), -1)
-	verifier_egal(e.dans_rayon(CENTRE, 1000.0, true).size(), 0)
+	verifier_egal(e.dans_rayon(CENTRE, 1000.0).size(), 0)
 	verifier_egal(e.purger().size(), 0)
 	verifier_egal(e.indice_de(0), -1)
 	var vue := VueArene.new()
@@ -242,7 +241,7 @@ func test_type_de_degats_inconnu_ne_plante_pas() -> void:
 
 
 func test_deux_coups_mortels_dans_le_meme_pas_comptent_une_mort() -> void:
-	var id := _ajouter(Vector2(500, 0), 50.0, Types.Armure.LEGERE, false, 40.0, 4.0, 1.0, 7)
+	var id := _ajouter(Vector2(500, 0), 50.0, Types.Armure.LEGERE, 40.0, 4.0, 1.0, 7)
 	var premier := e.infliger(_i(id), 100.0, Types.TypeDegats.CHAOS)
 	var second := e.infliger(_i(id), 100.0, Types.TypeDegats.PERCANT)
 	verifier(premier > 0.0)
@@ -288,18 +287,16 @@ func test_poison_et_brulure_mortels_ensemble_comptent_une_mort() -> void:
 # --- Zones et ciblage --------------------------------------------------------------------------
 
 
-func test_dans_rayon_selon_le_drapeau_volant() -> void:
-	var sol := _ajouter(Vector2(100, 0))
-	var air := _ajouter(Vector2(0, 150), 100.0, Types.Armure.LEGERE, true)
-	var loin := _ajouter(Vector2(0, 1000))
-	var avec := e.dans_rayon(CENTRE, 300.0, true)
-	var sans := e.dans_rayon(CENTRE, 300.0, false)
-	verifier_egal(avec.size(), 2)
-	verifier_egal(sans.size(), 1)
-	verifier_egal(e.ids[sans[0]], sol)
-	verifier_egal(e.ids[avec[0]], sol)
-	verifier_egal(e.ids[avec[1]], air)
-	verifier_egal(e.indice_de(loin) >= 0, true)
+func test_dans_rayon_rend_tous_les_ennemis_du_rayon_sans_distinction() -> void:
+	# Plus aucun ennemi n'échappe aux zones : seule la distance compte.
+	var a := _ajouter(Vector2(100, 0))
+	var b := _ajouter(Vector2(0, 150), 100.0, Types.Armure.LEGERE)
+	var c := _ajouter(Vector2(0, 1000))
+	var trouves := e.dans_rayon(CENTRE, 300.0)
+	verifier_egal(trouves.size(), 2)
+	verifier_egal(e.ids[trouves[0]], a)
+	verifier_egal(e.ids[trouves[1]], b)
+	verifier(e.indice_de(c) >= 0, "l'ennemi hors rayon existe toujours")
 
 
 func test_dans_rayon_est_rendu_par_id_croissant_apres_des_purges() -> void:
@@ -308,7 +305,7 @@ func test_dans_rayon_est_rendu_par_id_croissant_apres_des_purges() -> void:
 	for k: int in [0, 3, 7, 19, 11]:
 		e.infliger(_i(k), 1e6, Types.TypeDegats.CHAOS)
 	e.purger()
-	var res := e.dans_rayon(CENTRE, 500.0, true)
+	var res := e.dans_rayon(CENTRE, 500.0)
 	var ids: Array[int] = []
 	for i: int in res:
 		ids.append(e.ids[i])
@@ -322,14 +319,14 @@ func test_dans_rayon_ignore_les_morts_en_attente_de_purge() -> void:
 	var a := _ajouter(Vector2(100, 0))
 	_ajouter(Vector2(120, 0))
 	e.infliger(_i(a), 1e6, Types.TypeDegats.CHAOS)
-	verifier_egal(e.dans_rayon(CENTRE, 500.0, true).size(), 1)
+	verifier_egal(e.dans_rayon(CENTRE, 500.0).size(), 1)
 	verifier_egal(e.choisir(CENTRE, 500.0, Types.Ciblage.PLUS_PROCHE), _i(1))
 
 
 func test_rayon_et_portee_invalides_ne_plantent_pas() -> void:
 	_ajouter(Vector2(100, 0))
-	verifier_egal(e.dans_rayon(CENTRE, -5.0, true).size(), 0)
-	verifier_egal(e.dans_rayon(CENTRE, NAN, true).size(), 0)
+	verifier_egal(e.dans_rayon(CENTRE, -5.0).size(), 0)
+	verifier_egal(e.dans_rayon(CENTRE, NAN).size(), 0)
 	verifier_egal(e.choisir(CENTRE, -1.0, Types.Ciblage.PLUS_PROCHE), -1)
 	verifier_egal(e.choisir(CENTRE, NAN, Types.Ciblage.PLUS_PROCHE), -1)
 	verifier_egal(e.choisir(CENTRE, 500.0, 99), 0, "mode inconnu : le plus proche")
@@ -349,10 +346,10 @@ func test_choisir_aux_quatre_paliers_de_portee_et_a_la_limite() -> void:
 func test_choisir_les_trois_modes() -> void:
 	var a := _ajouter(Vector2(300, 0), 50.0)
 	var b := _ajouter(Vector2(100, 0), 80.0)
-	var c := _ajouter(Vector2(200, 0), 20.0, Types.Armure.LEGERE, true)
+	var c := _ajouter(Vector2(200, 0), 20.0, Types.Armure.LEGERE)
 	verifier_egal(e.choisir(CENTRE, 1000.0, Types.Ciblage.PLUS_PROCHE), _i(b))
 	verifier_egal(e.choisir(CENTRE, 1000.0, Types.Ciblage.PLUS_FORT), _i(b))
-	verifier_egal(e.choisir(CENTRE, 1000.0, Types.Ciblage.PLUS_FAIBLE), _i(c), "volant inclus")
+	verifier_egal(e.choisir(CENTRE, 1000.0, Types.Ciblage.PLUS_FAIBLE), _i(c), "le plus faible est choisi")
 	verifier_egal(e.choisir(CENTRE, 150.0, Types.Ciblage.PLUS_FAIBLE), _i(b), "c hors portée")
 	verifier(a >= 0)
 
@@ -376,7 +373,7 @@ func test_choisir_egalites_exactes_au_plus_petit_id() -> void:
 
 
 func test_corps_a_corps_s_arrete_au_contact_et_est_liste() -> void:
-	var id := _ajouter(Vector2(200, 0), 100.0, Types.Armure.LEGERE, false, 40.0, 5.0, 1.0)
+	var id := _ajouter(Vector2(200, 0), 100.0, Types.Armure.LEGERE, 40.0, 5.0, 1.0)
 	var i := _i(id)
 	var tour := 0.0
 	var vu_attaquant := false
@@ -393,7 +390,7 @@ func test_corps_a_corps_s_arrete_au_contact_et_est_liste() -> void:
 
 
 func test_ennemi_a_distance_s_arrete_a_sa_portee_et_n_est_pas_cac() -> void:
-	var id := _ajouter(Vector2(900, 0), 100.0, Types.Armure.LEGERE, false, 200.0, 5.0, 1.0)
+	var id := _ajouter(Vector2(900, 0), 100.0, Types.Armure.LEGERE, 200.0, 5.0, 1.0)
 	var i := _i(id)
 	var tour := 0.0
 	for _k: int in 400:
@@ -405,14 +402,14 @@ func test_ennemi_a_distance_s_arrete_a_sa_portee_et_n_est_pas_cac() -> void:
 
 
 func test_ne_depasse_jamais_le_point_d_arret_meme_avec_un_gros_pas() -> void:
-	var id := _ajouter(Vector2(150, 0), 100.0, Types.Armure.LEGERE, false, 40.0)
+	var id := _ajouter(Vector2(150, 0), 100.0, Types.Armure.LEGERE, 40.0)
 	e.avancer(5.0, CENTRE, RAYON_TOUR, 1.0, 1.0)
 	_p(e.pos[_i(id)].length(), RAYON_TOUR + 40.0, 0.01)
 
 
 func test_gele_ou_etourdi_n_avance_ni_n_attaque() -> void:
-	var a := _ajouter(Vector2(RAYON_TOUR + 40.0, 0), 100.0, Types.Armure.LEGERE, false, 40.0)
-	var b := _ajouter(Vector2(RAYON_TOUR + 40.0, 5), 100.0, Types.Armure.LEGERE, false, 40.0)
+	var a := _ajouter(Vector2(RAYON_TOUR + 40.0, 0), 100.0, Types.Armure.LEGERE, 40.0)
+	var b := _ajouter(Vector2(RAYON_TOUR + 40.0, 5), 100.0, Types.Armure.LEGERE, 40.0)
 	for _k: int in 8:
 		e.givrer(_i(a), 1.0)
 	e.etourdir(_i(b), 1.0, 1.0)
@@ -440,7 +437,7 @@ func test_ennemi_deja_au_centre_ne_produit_pas_de_nan() -> void:
 
 
 func test_convoi_sans_degats_ne_frappe_pas() -> void:
-	var id := _ajouter(Vector2(200, 0), 400.0, Types.Armure.AUCUNE, false, 40.0, 0.0, 1.0, 120)
+	var id := _ajouter(Vector2(200, 0), 400.0, Types.Armure.AUCUNE, 40.0, 0.0, 1.0, 120)
 	var tour := 0.0
 	for _k: int in 200:
 		var r := e.avancer(DT, CENTRE, RAYON_TOUR, 1.0, 1.0)
@@ -454,7 +451,7 @@ func test_convoi_sans_degats_ne_frappe_pas() -> void:
 
 func test_vers_vue_copie_300_ennemis_sans_partage_de_memoire() -> void:
 	for k: int in 300:
-		e.ajouter(k % 8, Vector2(500 + k, k), 100.0, 60.0, 4.0, 40.0, 1.0, 2, false, 0)
+		e.ajouter(k % 8, Vector2(500 + k, k), 100.0, 60.0, 4.0, 40.0, 1.0, 2, 0)
 	e.infliger(10, 25.0, Types.TypeDegats.CHAOS)
 	e.etourdir(11, 5.0, 1.0)
 	var vue := VueArene.new()
@@ -502,7 +499,7 @@ func test_performance_1000_ennemis_100_pas_sous_500_ms() -> void:
 		var angle := k * 0.6283
 		var pos := Vector2(1300.0, 0.0).rotated(angle)
 		var portee := 40.0 if k % 3 != 0 else 300.0
-		var id := e.ajouter(k % 8, pos, 500.0, 60.0, 4.0, portee, 1.0, 2, k % 5 == 0, k % 6)
+		var id := e.ajouter(k % 8, pos, 500.0, 60.0, 4.0, portee, 1.0, 2, k % 6)
 		if k % 7 == 0:
 			e.empoisonner(e.indice_de(id), 50.0, 20.0)
 		if k % 11 == 0:

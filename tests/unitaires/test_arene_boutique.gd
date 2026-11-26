@@ -78,7 +78,7 @@ func test_le_revenu_est_verse_pendant_la_preparation_et_l_etat_est_annonce() -> 
 
 func test_une_elimination_verse_la_prime_de_l_ennemi() -> void:
 	var a := Arene.new(d, GRAINE)
-	var i := a.ennemis.ajouter(0, Vector2(1300, 0), 10.0, 0.0, 0.0, 30.0, 1.0, 7, false, 4)
+	var i := a.ennemis.ajouter(0, Vector2(1300, 0), 10.0, 0.0, 0.0, 30.0, 1.0, 7, 4)
 	a.ennemis.infliger(a.ennemis.indice_de(i), 1e6, Types.TypeDegats.CHAOS)
 	a.avancer(DT)
 	verifier_egal(a.economie.argent, 507)
@@ -90,7 +90,7 @@ func test_la_prime_suit_le_palier_et_les_objets() -> void:
 	a.demarrer_manche(10, 0, _mult())  # prime ×1,5
 	a.inventaire.ameliorations["prime_du_guet"] = 1  # +0,15 → ×1,65
 	a.synchroniser()
-	var i := a.ennemis.ajouter(0, Vector2(1300, 0), 10.0, 0.0, 0.0, 30.0, 1.0, 10, false, 4)
+	var i := a.ennemis.ajouter(0, Vector2(1300, 0), 10.0, 0.0, 0.0, 30.0, 1.0, 10, 4)
 	a.ennemis.infliger(a.ennemis.indice_de(i), 1e6, Types.TypeDegats.CHAOS)
 	a.avancer(DT)
 	verifier_egal(a.economie.argent, 500 + roundi(10.0 * 1.5 * 1.15), "10 × 1,5 × 1,15")
@@ -107,7 +107,7 @@ func test_le_bonus_tous_les_n_est_verse_a_chaque_serie() -> void:
 	for serie: int in 3:
 		for _k: int in n:
 			var i := a.ennemis.ajouter(
-				0, Vector2(1300, 0), 10.0, 0.0, 0.0, 30.0, 1.0, prime, false, 4
+				0, Vector2(1300, 0), 10.0, 0.0, 0.0, 30.0, 1.0, prime, 4
 			)
 			a.ennemis.infliger(a.ennemis.indice_de(i), 1e6, Types.TypeDegats.CHAOS)
 			a.avancer(DT)
@@ -122,7 +122,7 @@ func test_le_bonus_est_verse_meme_si_la_serie_meurt_au_meme_pas() -> void:
 	a.inventaire.ameliorations["tirelire_d_honneur"] = 1
 	a.synchroniser()
 	for _k: int in n:
-		var i := a.ennemis.ajouter(0, Vector2(1300, 0), 10.0, 0.0, 0.0, 30.0, 1.0, 1, false, 4)
+		var i := a.ennemis.ajouter(0, Vector2(1300, 0), 10.0, 0.0, 0.0, 30.0, 1.0, 1, 4)
 		a.ennemis.infliger(a.ennemis.indice_de(i), 1e6, Types.TypeDegats.CHAOS)
 	a.avancer(DT)
 	verifier_egal(a.economie.argent, 500 + n + int(effet["or"]), "n primes + un bonus")
@@ -200,7 +200,7 @@ func test_vendre_une_arme_en_pleine_recharge_ne_derange_pas_les_autres() -> void
 	a.inventaire.ajouter("sablier_fele")  # recharge 2,5 s, portée 300
 	a.inventaire.ajouter("de_pipe")  # portée 600
 	a.synchroniser()
-	a.ennemis.ajouter(0, Vector2(250, 0), 4000.0, 0.0, 0.0, 30.0, 1.0, 1, false, 4)
+	a.ennemis.ajouter(0, Vector2(250, 0), 4000.0, 0.0, 0.0, 30.0, 1.0, 1, 4)
 	_avancer(a, 5)
 	var avant := _vue(a)
 	verifier_egal(avant.armes.size(), 2)

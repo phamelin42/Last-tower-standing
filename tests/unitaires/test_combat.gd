@@ -17,7 +17,7 @@ func _table() -> Array:
 	)
 	brut["armes.json"] = []
 	brut["ameliorations.json"] = []
-	brut["ennemis.json"] = {"familles": [], "convoi": {}, "boss": {}}
+	brut["ennemis.json"] = {"modeles": [], "paliers": [], "convoi": {}, "boss": {}}
 	var d := Donnees.depuis_brut(brut)
 	return d.efficacite
 

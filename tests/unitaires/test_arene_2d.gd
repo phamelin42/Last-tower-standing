@@ -233,24 +233,32 @@ func test_l_image_affichee_reste_dans_les_images_de_l_animation() -> void:
 				)
 
 
-func test_le_volant_flotte_et_les_autres_restent_au_sol() -> void:
+func test_aucun_sprite_ne_flotte_et_tous_posent_le_pied_au_sol() -> void:
 	for entite: int in _nb_entites():
 		var e := _entree(entite)
-		var amplitude: float = float(e["flottement"])
-		var ecart_max: float = 0.0
 		for t: int in 40:
 			_arene.afficher(_vue_un(entite, Vector2(300, 300)), 1.0 + float(t) * 0.1)
 			var image: int = _arene.image_instance(entite, 0)
 			var base: float = _placement(e, image, false).y
 			var decalage: float = _arene.sprite_instance(entite, 0).offset.y - base
-			ecart_max = maxf(ecart_max, absf(decalage))
-			verifier(absf(decalage) <= amplitude + 0.0001, "entité %d dans l'amplitude" % entite)
+			verifier_proche(decalage, 0.0, 0.0001, "entité %d ne flotte pas" % entite)
 			# L'ombre est dessinée sur la feuille : aucun sprite d'ombre en plus.
 			verifier_nul(_arene.sprite_instance(entite, 0).get_node_or_null("Ombre"))
-		if bool(e["volant"]):
-			verifier(ecart_max > amplitude * 0.5, "entité %d flotte vraiment" % entite)
-		else:
-			verifier_proche(ecart_max, 0.0, 0.0001, "entité %d ne bouge pas" % entite)
+
+
+func test_chaque_famille_s_affiche_dans_une_vue_a_25_familles() -> void:
+	var repartition: Dictionary = {}
+	for entite: int in _nb_entites():
+		repartition[entite] = 2
+	verifier_egal(_nb_entites(), 26, "24 familles, le convoi et le boss")
+	_arene.afficher(_vue(repartition), 1.0)
+	for entite: int in _nb_entites():
+		verifier_egal(_arene.nombre_instances_visibles(entite), 2, "entité %d" % entite)
+		verifier_non_nul(_arene.sprite_instance(entite, 0), "sprite de l'entité %d" % entite)
+	# Tous sortent : plus aucun sprite visible, sans erreur.
+	_arene.afficher(_vue({}), 2.0)
+	for entite: int in _nb_entites():
+		verifier_egal(_arene.nombre_instances_visibles(entite), 0, "entité %d retirée" % entite)
 
 
 func test_le_convoi_porte_son_sac_d_or() -> void:
@@ -395,20 +403,12 @@ func test_le_pied_reste_au_meme_point_de_l_ecran_apres_recadrage_pour_chaque_ima
 					),
 					s.offset.y + pied.y - centre.y
 				)
-				# Un volant flotte : on retire le flottement avant de comparer.
-				if bool(e["volant"]):
-					atterrit.y += _flottement(entite, s, image)
 				verifier_proche(
 					atterrit.x, 0.0, 0.001, "x du pied, entité %d image %d" % [entite, image]
 				)
 				verifier_proche(
 					atterrit.y, 0.0, 0.001, "y du pied, entité %d image %d" % [entite, image]
 				)
-
-
-## Part du décalage vertical due au flottement : la différence avec le placement de base.
-func _flottement(entite: int, s: Sprite2D, image: int) -> float:
-	return -(s.offset.y - _placement(_entree(entite), image, false).y)
 
 
 func test_un_ennemi_qui_recouvre_la_tour_devient_translucide_et_la_retrouve_en_s_eloignant(
@@ -449,7 +449,7 @@ func test_tailles_a_l_ecran_au_zoom_par_defaut() -> void:
 	)
 	for entite: int in _donnees.familles.size():
 		var e := _entree(entite)
-		if float(e["echelle"]) != 1.0 or bool(e["volant"]):
+		if float(e["echelle"]) != 1.0:
 			continue
 		_arene.afficher(_vue_un(entite, Vector2(RAYON_SPAWN, 0)), 1.0 + float(entite))
 		var s := _arene.sprite_instance(entite, 0)

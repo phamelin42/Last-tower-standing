@@ -179,7 +179,7 @@ func test_une_graine_differente_change_la_partie() -> void:
 func _arene_fragile() -> Arene:
 	var a := Arene.new(d, GRAINE)
 	a.pv = 5.0
-	a.ennemis.ajouter(1, Vector2(100, 0), 1000.0, 0.0, 10.0, 40.0, 1.0, 1, false, 4)
+	a.ennemis.ajouter(1, Vector2(100, 0), 1000.0, 0.0, 10.0, 40.0, 1.0, 1, 4)
 	return a
 
 
@@ -314,7 +314,7 @@ func test_les_evenements_sont_vides_apres_lecture() -> void:
 	var a := Arene.new(d, GRAINE)
 	a.inventaire.ajouter("de_pipe")
 	a.synchroniser()
-	a.ennemis.ajouter(0, Vector2(300, 0), 1000.0, 0.0, 0.0, 30.0, 1.0, 1, false, 4)
+	a.ennemis.ajouter(0, Vector2(300, 0), 1000.0, 0.0, 0.0, 30.0, 1.0, 1, 4)
 	a.avancer(DT)
 	var premiere := _vue(a)
 	verifier(premiere.evenements.size() > 0, "un tir est arrivé")
@@ -334,7 +334,7 @@ func test_les_evenements_ont_le_tick_courant_et_les_morts_sont_signales() -> voi
 	var a := Arene.new(d, GRAINE)
 	a.inventaire.ajouter("de_pipe")
 	a.synchroniser()
-	a.ennemis.ajouter(0, Vector2(300, 0), 1.0, 0.0, 0.0, 30.0, 1.0, 1, false, 4)
+	a.ennemis.ajouter(0, Vector2(300, 0), 1.0, 0.0, 0.0, 30.0, 1.0, 1, 4)
 	_avancer(a, 3)
 	var v := _vue(a)
 	var genres: Dictionary = {}

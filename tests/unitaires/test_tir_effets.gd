@@ -67,10 +67,8 @@ func _def_reelle(kind: String) -> Dictionary:
 	return {}
 
 
-func _placer(
-	pos: Vector2, pv: float = PV, volant: bool = false, armure: int = Types.Armure.AUCUNE
-) -> int:
-	return e.ajouter(0, pos, pv, 0.0, 0.0, 40.0, 1.0, 1, volant, armure)
+func _placer(pos: Vector2, pv: float = PV, armure: int = Types.Armure.AUCUNE) -> int:
+	return e.ajouter(0, pos, pv, 0.0, 0.0, 40.0, 1.0, 1, armure)
 
 
 func _pv(id: int) -> float:
@@ -112,12 +110,12 @@ func test_onde_touche_chaque_ennemi_une_seule_fois() -> void:
 		_placer(Vector2(60, 0)), _placer(Vector2(250, 0)), _placer(Vector2(0, 480))
 	]
 	var dehors := _placer(Vector2(0, 520))
-	var volant := _placer(Vector2(300, 0), PV, true)
+	var autre := _placer(Vector2(300, 0))
 	for _k: int in 60:
 		_pas(arme)
 	for id: int in dedans:
 		_p(PV - _pv(id), 76.4, "touché une seule fois", 0.01)
-	_p(PV - _pv(volant), 76.4, "volant touché aussi", 0.01)
+	_p(PV - _pv(autre), 76.4, "touché une seule fois", 0.01)
 	_p(_pv(dehors), PV, "au-delà de rayon_max : jamais")
 	verifier_egal(arme.ondes.size(), 0, "onde retirée à rayon_max")
 
@@ -170,29 +168,19 @@ func test_mine_se_pose_sur_un_fantassin_et_se_declenche_pour_lui() -> void:
 		verifier(bilan.degats > 0.0)
 
 
-func test_mine_ignore_un_volant() -> void:
+func test_les_mines_et_les_pieges_touchent_tous_les_ennemis() -> void:
+	# Inverse l'ancien test des volants : plus aucun ennemi n'échappe à une mine ou à un piège.
 	for kind: String in ["mine", "piege"]:
 		avant_chaque()
 		var arme := ArmeEquipee.new(_def({"kind": kind, "rayon": 100.0, "max_actives": 3}))
-		var air := _placer(Vector2(200, 0), PV, true)
-		var bilan := _pas(arme)
-		verifier_egal(arme.mines.size(), 0, "%s : rien à poser sous un volant" % kind)
-		_p(bilan.degats, 0.0)
-		arme.mines.append(Vector2(200, 0))
-		for _k: int in 5:
-			_pas(arme)
-		verifier_egal(arme.mines.size(), 1, "%s : le volant ne la déclenche pas" % kind)
-		_p(_pv(air), PV)
-
-
-func test_mine_n_atteint_pas_les_volants_de_son_explosion() -> void:
-	var arme := ArmeEquipee.new(_def({"kind": "mine", "rayon": 100.0, "max_actives": 3}))
-	var sol := _placer(Vector2(200, 0))
-	var air := _placer(Vector2(230, 0), PV, true)
-	_pas(arme)
-	_pas(arme)
-	_p(_pv(sol), PV - 10.0)
-	_p(_pv(air), PV, "volant dans le rayon de l'explosion : épargné")
+		var premier := _placer(Vector2(200, 0))
+		var voisin := _placer(Vector2(230, 0))
+		_pas(arme)
+		verifier_egal(arme.mines.size(), 1, "%s : posée sous l'ennemi" % kind)
+		_pas(arme)
+		_p(_pv(premier), PV - 10.0, "%s : l'ennemi déclenche" % kind)
+		_p(_pv(voisin), PV - 10.0, "%s : le voisin du rayon est touché" % kind)
+		verifier_egal(arme.mines.size(), 0, "%s : consommée" % kind)
 
 
 func test_mines_max_actives_respecte() -> void:
@@ -231,12 +219,12 @@ func test_mine_posee_sur_un_ennemi_qui_meurt_avant_le_declenchement() -> void:
 func test_aura_frappe_des_le_premier_pas_puis_a_chaque_periode() -> void:
 	var arme := ArmeEquipee.new(_def({"kind": "aura", "rayon": 280.0, "periode": 0.5}))
 	var proche := _placer(Vector2(200, 0))
-	var air := _placer(Vector2(0, 250), PV, true)
+	var autre := _placer(Vector2(0, 250))
 	var loin := _placer(Vector2(0, 300))
 	var premier := _pas(arme)
 	_p(premier.degats, 20.0, "premier pas : les deux à portée")
 	_p(_pv(proche), PV - 10.0)
-	_p(_pv(air), PV - 10.0, "volant inclus")
+	_p(_pv(autre), PV - 10.0, "tout ennemi du rayon est touché")
 	_p(_pv(loin), PV, "hors rayon")
 	for _k: int in 5:
 		_p(_pas(arme).degats, 0.0, "entre deux périodes")

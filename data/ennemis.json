@@ -116,7 +116,7 @@
    "portee_attaque": 650,
    "cadence_attaque": 1.5,
    "prime": 4,
-   "manche_min": 5,
+   "manche_min": 8,
    "explose": false,
    "raison_lenteur": ""
   }
