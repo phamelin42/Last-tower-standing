@@ -41,10 +41,10 @@ const OFFRES: Dictionary = {
 	"serpe_de_vigne": ["axe2", "brique"],
 	"rasoir_tournoyant": ["axeDouble", "brique"],
 	"couperet_a_epines": ["upg_hammer", "brique"],
-	"lame_de_brume": ["sword", "brique"],
+	"lame_de_brume": ["ludicarts/fiole_violette", "brique"],
 	"faucheuse_double": ["axeDouble2", "brique"],
 	"fleau_de_rasoirs": ["upg_dagger", "brique"],
-	"hache_de_garde": ["upg_sword", "brique"],
+	"hache_de_garde": ["shield", "brique"],
 	"scie_a_ruban": ["upg_spear", "brique"],
 	"moissonneuse_d_acier": ["swordWood", "brique"],
 	# Armes perçantes.
@@ -130,6 +130,7 @@ const OFFRES: Dictionary = {
 const RAPPROCHEMENTS_FAIBLES: PackedStringArray = [
 	"chausse_trape",
 	"couperet_a_epines",
+	"lame_de_brume",
 	"scie_a_ruban",
 	"moissonneuse_d_acier",
 	"trebuchet_de_chambre",
