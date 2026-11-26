@@ -245,8 +245,8 @@
   "id": "etincelle_runique",
   "nom": "Étincelle runique",
   "description": "Une étincelle gravée de runes jaillit droit vers sa cible.",
-  "rarete": "commune",
-  "prix": 70,
+  "rarete": "peu_commune",
+  "prix": 200,
   "type_degats": "magique",
   "degats": 30.3,
   "recharge": 0.9,
@@ -387,8 +387,8 @@
   "id": "bombarde_de_poche",
   "nom": "Bombarde de poche",
   "description": "Un petit canon qui lance ses boulets sur les groupes.",
-  "rarete": "commune",
-  "prix": 120,
+  "rarete": "peu_commune",
+  "prix": 200,
   "type_degats": "siège",
   "degats": 48.0,
   "recharge": 2.5,
@@ -516,8 +516,8 @@
   "id": "de_pipe",
   "nom": "Dé pipé",
   "description": "Un dé truqué roule vers l’ennemi et rend un peu de vie à la tour.",
-  "rarete": "commune",
-  "prix": 70,
+  "rarete": "peu_commune",
+  "prix": 180,
   "type_degats": "chaos",
   "degats": 23.4,
   "recharge": 0.7,
@@ -1132,5 +1132,702 @@
    }
   ],
   "statuts": []
+ },
+ {
+  "id": "rune_de_veille",
+  "nom": "Rune de veille",
+  "description": "Une rune gravée brûle d’un feu froid sous le groupe.",
+  "rarete": "peu_commune",
+  "prix": 270,
+  "type_degats": "magique",
+  "degats": 56.3,
+  "recharge": 2.5,
+  "portee": 750,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "zone_posee",
+    "rayon": 150,
+    "duree": 4.0,
+    "periode": 0.5,
+    "ratio": 0.35,
+    "max_actives": 2
+   }
+  ],
+  "statuts": []
+ },
+ {
+  "id": "eclat_siphonneur",
+  "nom": "Éclat siphonneur",
+  "description": "Un éclat avide qui boit la mana de sa cible et la rend à la tour.",
+  "rarete": "peu_commune",
+  "prix": 250,
+  "type_degats": "magique",
+  "degats": 227.5,
+  "recharge": 1.3,
+  "portee": 1000,
+  "ciblage": "plus_fort",
+  "effets": [
+   {
+    "kind": "cible_unique"
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "siphon",
+    "ressource": "mana",
+    "par_seconde": 6.0,
+    "duree": 4.0
+   },
+   {
+    "kind": "mana_au_coup",
+    "valeur": 3.0
+   }
+  ]
+ },
+ {
+  "id": "lueur_vagabonde",
+  "nom": "Lueur vagabonde",
+  "description": "Trois lueurs tournent et brûlent ce qu’elles frôlent.",
+  "rarete": "peu_commune",
+  "prix": 260,
+  "type_degats": "magique",
+  "degats": 66.7,
+  "recharge": 1.1,
+  "portee": 500,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "tournant",
+    "branches": 3,
+    "pas_deg": 45,
+    "largeur": 50,
+    "sens": "horaire"
+   }
+  ],
+  "statuts": []
+ },
+ {
+  "id": "prisme_de_faille",
+  "nom": "Prisme de faille",
+  "description": "Un prisme fendu : la cible touchée se craquelle.",
+  "rarete": "rare",
+  "prix": 530,
+  "type_degats": "magique",
+  "degats": 678.4,
+  "recharge": 1.6,
+  "portee": 1250,
+  "ciblage": "plus_fort",
+  "effets": [
+   {
+    "kind": "cible_unique"
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "vulnerabilite",
+    "ratio": 0.15,
+    "duree": 5.0
+   }
+  ]
+ },
+ {
+  "id": "orage_en_cage",
+  "nom": "Orage en cage",
+  "description": "Un orage captif gronde au sol et brûle tout ce qui s’y attarde.",
+  "rarete": "rare",
+  "prix": 550,
+  "type_degats": "magique",
+  "degats": 146.7,
+  "recharge": 3.0,
+  "portee": 1000,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "zone_posee",
+    "rayon": 200,
+    "duree": 5.0,
+    "periode": 0.5,
+    "ratio": 0.3,
+    "max_actives": 2
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "brulure",
+    "ratio": 0.2,
+    "duree": 3.0
+   }
+  ]
+ },
+ {
+  "id": "couronne_d_etoiles",
+  "nom": "Couronne d’étoiles",
+  "description": "Cinq étoiles tournent et nourrissent la tour.",
+  "rarete": "rare",
+  "prix": 540,
+  "type_degats": "magique",
+  "degats": 146.9,
+  "recharge": 1.7,
+  "portee": 1000,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "tournant",
+    "branches": 5,
+    "pas_deg": 24,
+    "largeur": 55,
+    "sens": "antihoraire"
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "mana_au_coup",
+    "valeur": 2.0
+   }
+  ]
+ },
+ {
+  "id": "vasque_d_arcanes",
+  "nom": "Vasque d’arcanes",
+  "description": "Une vasque qui aspire la mana de tous les ennemis proches.",
+  "rarete": "rare",
+  "prix": 520,
+  "type_degats": "magique",
+  "degats": 110.9,
+  "recharge": 0.8,
+  "portee": 500,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "aura",
+    "rayon": 320,
+    "periode": 0.8
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "siphon",
+    "ressource": "mana",
+    "par_seconde": 5.0,
+    "duree": 3.0
+   }
+  ]
+ },
+ {
+  "id": "nuee_d_etincelles",
+  "nom": "Nuée d’étincelles",
+  "description": "Des étincelles dispersées nourrissent la tour.",
+  "rarete": "rare",
+  "prix": 550,
+  "type_degats": "magique",
+  "degats": 264.0,
+  "recharge": 1.8,
+  "portee": 750,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "barrage",
+    "projectiles": 6,
+    "dispersion_deg": 40,
+    "rayon": 50
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "mana_au_coup",
+    "valeur": 1.5
+   }
+  ]
+ },
+ {
+  "id": "nova_celeste",
+  "nom": "Nova céleste",
+  "description": "Une onde céleste fissure les défenses et pompe la mana de la foule.",
+  "rarete": "epique",
+  "prix": 1150,
+  "type_degats": "magique",
+  "degats": 776.3,
+  "recharge": 3.0,
+  "portee": 1250,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "onde",
+    "rayon_max": 550,
+    "vitesse": 550
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "vulnerabilite",
+    "ratio": 0.15,
+    "duree": 6.0
+   },
+   {
+    "kind": "siphon",
+    "ressource": "mana",
+    "par_seconde": 8.0,
+    "duree": 4.0
+   }
+  ]
+ },
+ {
+  "id": "baril_a_retardement",
+  "nom": "Baril à retardement",
+  "description": "Un baril roulé au pied du groupe, dont la mèche brûle trop lentement.",
+  "rarete": "peu_commune",
+  "prix": 260,
+  "type_degats": "siège",
+  "degats": 57.2,
+  "recharge": 2.0,
+  "portee": 750,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "bombe",
+    "delai": 2.0,
+    "rayon": 140,
+    "ratio": 2.0,
+    "max_actives": 3
+   }
+  ],
+  "statuts": []
+ },
+ {
+  "id": "maillet_de_rempart",
+  "nom": "Maillet de rempart",
+  "description": "Plus la tour est solide, plus le maillet tombe lourd.",
+  "rarete": "peu_commune",
+  "prix": 270,
+  "type_degats": "siège",
+  "degats": 60.0,
+  "recharge": 2.2,
+  "portee": 500,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "zone",
+    "rayon": 120
+   }
+  ],
+  "statuts": [],
+  "degats_par_pv_max": 0.07
+ },
+ {
+  "id": "catapulte_a_contrepoids",
+  "nom": "Catapulte à contrepoids",
+  "description": "Chaque amélioration de cadence ajoute du poids à la pierre.",
+  "rarete": "peu_commune",
+  "prix": 280,
+  "type_degats": "siège",
+  "degats": 291.8,
+  "recharge": 3.0,
+  "portee": 1250,
+  "ciblage": "plus_fort",
+  "effets": [
+   {
+    "kind": "cible_unique"
+   }
+  ],
+  "statuts": [],
+  "degats_par_amelioration": {
+   "stat": "cadence",
+   "ratio": 0.3
+  }
+ },
+ {
+  "id": "obusier_de_breche",
+  "nom": "Obusier de brèche",
+  "description": "Son obus s’enfonce, éclate, et les murs ne tiennent plus.",
+  "rarete": "rare",
+  "prix": 540,
+  "type_degats": "siège",
+  "degats": 164.2,
+  "recharge": 3.0,
+  "portee": 1250,
+  "ciblage": "plus_fort",
+  "effets": [
+   {
+    "kind": "bombe",
+    "delai": 1.5,
+    "rayon": 180,
+    "ratio": 2.5,
+    "max_actives": 2
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "vulnerabilite",
+    "ratio": 0.12,
+    "duree": 5.0
+   }
+  ]
+ },
+ {
+  "id": "braise_de_siege",
+  "nom": "Braise de siège",
+  "description": "Un brasier jeté au sol, qui dévore tout le groupe.",
+  "rarete": "rare",
+  "prix": 550,
+  "type_degats": "siège",
+  "degats": 154.8,
+  "recharge": 4.0,
+  "portee": 1000,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "zone_posee",
+    "rayon": 220,
+    "duree": 6.0,
+    "periode": 1.0,
+    "ratio": 0.6,
+    "max_actives": 2
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "brulure",
+    "ratio": 0.25,
+    "duree": 4.0
+   }
+  ]
+ },
+ {
+  "id": "ecrasement_de_tour",
+  "nom": "Écrasement de tour",
+  "description": "Toute la masse de la tour s’abat sur un seul ennemi.",
+  "rarete": "rare",
+  "prix": 520,
+  "type_degats": "siège",
+  "degats": 150.0,
+  "recharge": 1.8,
+  "portee": 1250,
+  "ciblage": "plus_fort",
+  "effets": [
+   {
+    "kind": "cible_unique"
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "etourdissement",
+    "duree": 0.5
+   }
+  ],
+  "degats_par_pv_max": 0.56
+ },
+ {
+  "id": "champ_de_ruines",
+  "nom": "Champ de ruines",
+  "description": "Le sol se hérisse de gravats qui fragilisent ce qui les traverse.",
+  "rarete": "rare",
+  "prix": 530,
+  "type_degats": "siège",
+  "degats": 209.8,
+  "recharge": 5.0,
+  "portee": 750,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "zone_posee",
+    "rayon": 260,
+    "duree": 8.0,
+    "periode": 1.0,
+    "ratio": 0.4,
+    "max_actives": 2
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "vulnerabilite",
+    "ratio": 0.08,
+    "duree": 3.0
+   }
+  ]
+ },
+ {
+  "id": "salve_du_rempart",
+  "nom": "Salve du rempart",
+  "description": "Une salve lente, dont la bombe retombe sur le gros de la troupe.",
+  "rarete": "rare",
+  "prix": 550,
+  "type_degats": "siège",
+  "degats": 162.6,
+  "recharge": 3.5,
+  "portee": 1000,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "bombe",
+    "delai": 3.0,
+    "rayon": 200,
+    "ratio": 3.0,
+    "max_actives": 2
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "brulure",
+    "ratio": 0.2,
+    "duree": 3.0
+   }
+  ]
+ },
+ {
+  "id": "colosse_de_pierre",
+  "nom": "Colosse de pierre",
+  "description": "Un bloc de pierre qui grossit à chaque amélioration de cadence.",
+  "rarete": "epique",
+  "prix": 1100,
+  "type_degats": "siège",
+  "degats": 1640.0,
+  "recharge": 4.0,
+  "portee": 1250,
+  "ciblage": "plus_fort",
+  "effets": [
+   {
+    "kind": "cible_unique"
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "vulnerabilite",
+    "ratio": 0.15,
+    "duree": 6.0
+   },
+   {
+    "kind": "etourdissement",
+    "duree": 0.8
+   }
+  ],
+  "degats_par_amelioration": {
+   "stat": "cadence",
+   "ratio": 0.4
+  }
+ },
+ {
+  "id": "urne_des_ombres",
+  "nom": "Urne des ombres",
+  "description": "Une urne qui libère une sentinelle de braise le temps d’un combat.",
+  "rarete": "peu_commune",
+  "prix": 270,
+  "type_degats": "chaos",
+  "degats": 178.2,
+  "recharge": 4.0,
+  "portee": 500,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "invocation",
+    "unite": "sentinelle_de_braise",
+    "duree": 8.0,
+    "ratio_degats": 0.5,
+    "max_actives": 3
+   }
+  ],
+  "statuts": []
+ },
+ {
+  "id": "pacte_de_sang",
+  "nom": "Pacte de sang",
+  "description": "Ce que le coup arrache à l’ennemi, la tour le boit.",
+  "rarete": "peu_commune",
+  "prix": 250,
+  "type_degats": "chaos",
+  "degats": 214.5,
+  "recharge": 1.3,
+  "portee": 750,
+  "ciblage": "plus_fort",
+  "effets": [
+   {
+    "kind": "cible_unique"
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "siphon",
+    "ressource": "vie",
+    "par_seconde": 8.0,
+    "duree": 4.0
+   }
+  ]
+ },
+ {
+  "id": "engrenage_jumeau",
+  "nom": "Engrenage jumeau",
+  "description": "Chaque exemplaire de plus alourdit le coup de tous les autres.",
+  "rarete": "peu_commune",
+  "prix": 260,
+  "type_degats": "chaos",
+  "degats": 143.0,
+  "recharge": 1.5,
+  "portee": 1000,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "cible_unique"
+   }
+  ],
+  "statuts": [],
+  "degats_par_exemplaire": 0.4
+ },
+ {
+  "id": "serment_brise",
+  "nom": "Serment brisé",
+  "description": "Le coup trahit un serment : l’ennemi frappe moins fort.",
+  "rarete": "rare",
+  "prix": 520,
+  "type_degats": "chaos",
+  "degats": 553.3,
+  "recharge": 1.4,
+  "portee": 1000,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "cible_unique"
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "malediction_degats",
+    "ratio": 0.3,
+    "duree": 5.0
+   }
+  ]
+ },
+ {
+  "id": "archere_fantome",
+  "nom": "Archère fantôme",
+  "description": "Un spectre d’archère se lève, tire dans la brume et s’évanouit.",
+  "rarete": "rare",
+  "prix": 540,
+  "type_degats": "chaos",
+  "degats": 342.0,
+  "recharge": 5.0,
+  "portee": 750,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "invocation",
+    "unite": "archere_des_brumes",
+    "duree": 10.0,
+    "ratio_degats": 0.6,
+    "max_actives": 3
+   }
+  ],
+  "statuts": []
+ },
+ {
+  "id": "miroir_de_discorde",
+  "nom": "Miroir de discorde",
+  "description": "Un éclat sautille de cible en cible et laisse chacune à découvert.",
+  "rarete": "rare",
+  "prix": 550,
+  "type_degats": "chaos",
+  "degats": 222.9,
+  "recharge": 1.6,
+  "portee": 1250,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "rebond",
+    "cibles": 5,
+    "portee_saut": 260,
+    "decroissance": 0.88
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "vulnerabilite",
+    "ratio": 0.12,
+    "duree": 5.0
+   }
+  ]
+ },
+ {
+  "id": "coupe_d_oubli",
+  "nom": "Coupe d’oubli",
+  "description": "Une coupe qui aspire la vigueur de tous ceux qui s’approchent.",
+  "rarete": "rare",
+  "prix": 510,
+  "type_degats": "chaos",
+  "degats": 129.2,
+  "recharge": 1.0,
+  "portee": 500,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "aura",
+    "rayon": 300,
+    "periode": 1.0
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "siphon",
+    "ressource": "vie",
+    "par_seconde": 6.0,
+    "duree": 3.0
+   }
+  ]
+ },
+ {
+  "id": "legion_de_cendre",
+  "nom": "Légion de cendre",
+  "description": "Plus il y en a, plus la cendre pèse sur la foule.",
+  "rarete": "rare",
+  "prix": 530,
+  "type_degats": "chaos",
+  "degats": 134.3,
+  "recharge": 2.0,
+  "portee": 750,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "zone",
+    "rayon": 160
+   }
+  ],
+  "statuts": [],
+  "degats_par_exemplaire": 0.5
+ },
+ {
+  "id": "tempete_de_malefices",
+  "nom": "Tempête de maléfices",
+  "description": "Neuf maléfices s’abattent, affaiblissent et nourrissent la tour.",
+  "rarete": "epique",
+  "prix": 1150,
+  "type_degats": "chaos",
+  "degats": 523.9,
+  "recharge": 2.5,
+  "portee": 1250,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "barrage",
+    "projectiles": 9,
+    "dispersion_deg": 55,
+    "rayon": 60
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "vulnerabilite",
+    "ratio": 0.15,
+    "duree": 6.0
+   },
+   {
+    "kind": "malediction_degats",
+    "ratio": 0.3,
+    "duree": 5.0
+   },
+   {
+    "kind": "siphon",
+    "ressource": "vie",
+    "par_seconde": 10.0,
+    "duree": 4.0
+   }
+  ]
  }
 ]

@@ -1,10 +1,8 @@
 extends CasDeTest
 ## Le catalogue d'armes du lot 9 (D18) : quinze armes par type de dégâts, réparties 1 commune,
 ## 6 peu communes, 6 rares et 2 épiques, avec les mécaniques que le plan impose à chaque type.
-## Chaque tâche de type (T9.13 à T9.17) ajoute son type à `TYPES_TERMINES`.
+## Les cinq types sont terminés (T9.13 à T9.17) : boucle sur `Types.NOMS_TYPES`.
 
-const TYPES: Array[String] = ["tranchant", "perçant", "magique", "siège", "chaos"]
-const TYPES_TERMINES: Array[String] = ["tranchant", "perçant"]
 const RARETES: Array[String] = ["commune", "peu_commune", "rare", "epique"]
 const REPARTITION: Array[int] = [1, 6, 6, 2]
 const MANA_MAX_REFERENCE := 100.0
@@ -34,6 +32,30 @@ const MECANIQUES_IMPOSEES: Dictionary = {
 		["M2", "statut", "malediction_toucher"],
 		["M7", "effet", "tournant"],
 		["M10", "champ", "type_secondaire"],
+	],
+	"magique":
+	[
+		["M1", "vulnerabilite_du_type", ""],
+		["M4", "statut", "mana_au_coup"],
+		["M4", "statut", "siphon"],
+		["M7", "effet", "tournant"],
+		["M8", "effet", "zone_posee"],
+	],
+	"siège":
+	[
+		["M1", "vulnerabilite_du_type", ""],
+		["M5", "champ", "degats_par_pv_max"],
+		["M5", "champ", "degats_par_amelioration"],
+		["M8", "effet", "zone_posee"],
+		["M9", "effet", "bombe"],
+	],
+	"chaos":
+	[
+		["M1", "vulnerabilite_du_type", ""],
+		["M2", "statut", "malediction_degats"],
+		["M4", "siphon_de_vie", ""],
+		["M5", "champ", "degats_par_exemplaire"],
+		["M6", "effet", "invocation"],
 	],
 	"perçant":
 	[
@@ -91,6 +113,10 @@ func _porte(arme: Dictionary, genre: String, nom: String) -> bool:
 			return _kinds_statuts(arme).has(nom)
 		"champ":
 			return arme.has(nom)
+		"siphon_de_vie":
+			for statut: Dictionary in arme["statuts"]:
+				if statut["kind"] == "siphon" and statut["ressource"] == "vie":
+					return true
 		"vulnerabilite_du_type":
 			for statut: Dictionary in arme["statuts"]:
 				if (
@@ -105,7 +131,7 @@ func _porte(arme: Dictionary, genre: String, nom: String) -> bool:
 
 
 func test_la_cible_d18_quinze_armes_par_type_reparties_1_6_6_2() -> void:
-	for type_degats in TYPES_TERMINES:
+	for type_degats in Types.NOMS_TYPES:
 		var du_type := _du_type(type_degats)
 		verifier_egal(du_type.size(), 15, "%s : nombre d'armes" % type_degats)
 		for k in RARETES.size():
@@ -117,7 +143,7 @@ func test_la_cible_d18_quinze_armes_par_type_reparties_1_6_6_2() -> void:
 
 
 func test_la_commune_conservee_est_la_moins_rentable_des_deux_d_origine() -> void:
-	for type_degats in TYPES_TERMINES:
+	for type_degats in Types.NOMS_TYPES:
 		var d_origine: Array[Dictionary] = []
 		for arme in _du_type(type_degats):
 			if RENDEMENT_AVANT.has(arme["id"]):
@@ -144,7 +170,7 @@ func test_la_commune_conservee_est_la_moins_rentable_des_deux_d_origine() -> voi
 
 
 func test_repartition_imposee_des_mecaniques_du_type() -> void:
-	for type_degats in TYPES_TERMINES:
+	for type_degats in Types.NOMS_TYPES:
 		var attendues: Array = MECANIQUES_IMPOSEES[type_degats]
 		for mecanique: Array in attendues:
 			var trouvee := false
@@ -154,7 +180,7 @@ func test_repartition_imposee_des_mecaniques_du_type() -> void:
 
 
 func test_chaque_nouvelle_arme_agit_dans_une_arene() -> void:
-	for type_degats in TYPES_TERMINES:
+	for type_degats in Types.NOMS_TYPES:
 		for arme in _nouvelles(type_degats):
 			var d := AidesPartie.donnees()
 			var def: Dictionary = d.armes[arme["id"]]
@@ -171,8 +197,14 @@ func test_chaque_nouvelle_arme_agit_dans_une_arene() -> void:
 					e.indice_de(e.ajouter(0, pos, pv, 0.0, 0.0, 40.0, 1.0, 1, Types.Armure.AUCUNE))
 				)
 			var bilan := Tir.Bilan.new()
+			# Les zones, les bombes et les alliés vivent dans l'arène : sans eux, rien ne se pose.
+			var lecture := Tir.Lecture.new()
+			lecture.poses = Poses.new(d)
+			lecture.allies = Allies.new(d)
 			for pas in 100:
-				Tir.avancer_arme(equipee, 0.05, stats, e, Vector2.ZERO, d, rng, 1.0, bilan)
+				Tir.avancer_arme(equipee, 0.05, stats, e, Vector2.ZERO, d, rng, 1.0, bilan, lecture)
+				lecture.poses.avancer(0.05, e, stats, Vector2.ZERO, d, 1.0)
+				lecture.allies.avancer(0.05, e, Vector2.ZERO)
 			var perdu := 0.0
 			for i in ids:
 				perdu += pv - e.pv[i]
@@ -180,7 +212,7 @@ func test_chaque_nouvelle_arme_agit_dans_une_arene() -> void:
 
 
 func test_deux_armes_du_type_different_par_forme_statuts_mecanique_ou_portee() -> void:
-	for type_degats in TYPES_TERMINES:
+	for type_degats in Types.NOMS_TYPES:
 		var du_type := _du_type(type_degats)
 		for i in du_type.size():
 			for j in range(i + 1, du_type.size()):
@@ -196,8 +228,11 @@ func test_deux_armes_du_type_different_par_forme_statuts_mecanique_ou_portee() -
 
 
 func test_toute_nouvelle_arme_a_une_image_et_un_nom_original() -> void:
-	var noms := NomsOrigine.lire()
-	for type_degats in TYPES_TERMINES:
+	var noms := PackedStringArray()
+	for nom: String in NomsOrigine.lire():
+		if not NomsOrigine.HOMOGRAPHES_FRANCAIS.has(nom):
+			noms.append(nom)
+	for type_degats in Types.NOMS_TYPES:
 		for arme in _nouvelles(type_degats):
 			var id: String = arme["id"]
 			verifier(ImagesOffres.OFFRES.has(id), "%s : pas d'image" % id)
@@ -212,3 +247,110 @@ func test_toute_nouvelle_arme_a_une_image_et_un_nom_original() -> void:
 				"%s reprend un nom de la map d'origine" % id
 			)
 			verifier(PORTEES.has(int(arme["portee"])), "%s : portée hors palier" % id)
+
+
+## Les quatre armes de mana du lot 8 gardent leurs champs : seul le prix de la promue change.
+func test_les_armes_de_mana_du_lot_8_gardent_leurs_champs() -> void:
+	var attendues: Dictionary = {
+		"etincelle_runique": [30.3, 0.9, 0.08],
+		"chaine_d_arcanes": [77.7, 1.4, 0.2],
+		"nova_d_ambre": [247.0, 2.5, 0.6],
+		"tempete_astrale": [372.3, 2.0, 0.9],
+	}
+	for id: String in attendues:
+		var trouvee := false
+		for arme: Dictionary in armes:
+			if arme["id"] != id:
+				continue
+			trouvee = true
+			var voulu: Array = attendues[id]
+			verifier_proche(float(arme["degats"]), float(voulu[0]), 0.0001, "%s : dégâts" % id)
+			verifier_proche(float(arme["recharge"]), float(voulu[1]), 0.0001, "%s : recharge" % id)
+			verifier_proche(
+				float(arme["degats_par_mana_max"]), float(voulu[2]), 0.0001, "%s : mana" % id
+			)
+		verifier(trouvee, "%s a disparu" % id)
+	var avec_mana := 0
+	for arme: Dictionary in armes:
+		if arme.has("degats_par_mana_max"):
+			avec_mana += 1
+	verifier_egal(
+		avec_mana, 4, "seules les quatre armes de mana du lot 8 ont des dégâts selon la mana"
+	)
+
+
+## Une zone posée qui frappe à chaque pas de simulation coûte trop cher (T9.7) : période minimale.
+func test_toute_zone_posee_a_une_periode_d_au_moins_un_quart_de_seconde() -> void:
+	var zones := 0
+	for arme: Dictionary in armes:
+		for effet: Dictionary in arme["effets"]:
+			if effet["kind"] == "zone_posee":
+				zones += 1
+				verifier(
+					float(effet["periode"]) >= 0.25,
+					"%s : période %s sous 0,25 s" % [arme["id"], effet["periode"]]
+				)
+	verifier(zones >= 2, "au moins deux zones posées dans le catalogue")
+
+
+func test_le_siege_a_deux_zones_posees_et_une_bombe_a_retardement_parmi_les_nouvelles() -> void:
+	var zones := 0
+	var bombes := 0
+	for arme: Dictionary in _nouvelles("siège"):
+		if _porte(arme, "effet", "zone_posee"):
+			zones += 1
+		if _porte(arme, "effet", "bombe"):
+			bombes += 1
+	verifier(zones >= 2, "siège : %d zones posées" % zones)
+	verifier(bombes >= 1, "siège : %d bombes" % bombes)
+
+
+func test_chaos_a_deux_invocations_parmi_les_nouvelles_armes() -> void:
+	var n := 0
+	for arme: Dictionary in _nouvelles("chaos"):
+		if _porte(arme, "effet", "invocation"):
+			n += 1
+	verifier(n >= 2, "chaos : %d invocations" % n)
+
+
+func test_la_cible_d18_est_75_armes_quinze_par_type_1_6_6_2_en_boucle_sur_les_cinq_types() -> void:
+	verifier_egal(Types.NOMS_TYPES.size(), 5, "cinq types de dégâts")
+	verifier_egal(armes.size(), 75, "75 armes au catalogue")
+	for type_degats in Types.NOMS_TYPES:
+		verifier_egal(_du_type(type_degats).size(), 15, "%s : quinze armes" % type_degats)
+
+
+## M1 à M10 du lot 9 : chacune est portée par au moins une arme du catalogue.
+func test_chaque_mecanique_est_portee_par_au_moins_une_arme() -> void:
+	var mecaniques: Array = [
+		["M1", "vulnerabilite_du_type", ""],
+		["M2", "statut", "malediction_toucher"],
+		["M2", "statut", "malediction_degats"],
+		["M3", "statut", "repoussement"],
+		["M4", "statut", "mana_au_coup"],
+		["M4", "siphon_de_vie", ""],
+		["M5", "champ", "degats_par_pv_max"],
+		["M5", "champ", "degats_par_exemplaire"],
+		["M5", "champ", "degats_par_amelioration"],
+		["M6", "effet", "invocation"],
+		["M7", "effet", "tournant"],
+		["M8", "effet", "zone_posee"],
+		["M9", "effet", "bombe"],
+		["M10", "champ", "type_secondaire"],
+	]
+	for mecanique: Array in mecaniques:
+		var trouvee := false
+		for arme: Dictionary in armes:
+			trouvee = trouvee or _porte(arme, String(mecanique[1]), String(mecanique[2]))
+		verifier(trouvee, "%s (%s %s) n'est portée par aucune arme" % mecanique)
+
+
+func test_les_pieges_d_origine_du_jeu_sont_toujours_la() -> void:
+	for id: String in ["chausse_trape", "sablier_fele"]:
+		var trouvee := false
+		for arme: Dictionary in armes:
+			if arme["id"] == id:
+				trouvee = true
+				verifier_egal(_forme(arme), "piege", "%s reste un piège" % id)
+				verifier_egal(arme["rarete"], "commune", "%s reste commune" % id)
+		verifier(trouvee, "%s a disparu" % id)
