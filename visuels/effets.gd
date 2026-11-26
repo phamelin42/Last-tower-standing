@@ -7,12 +7,25 @@ extends Node2D
 ## L'événement d'arène (`VueArene.evenements`) peut porter deux clés facultatives : `genre` (le
 ## `kind` de l'effet d'arme) et `statut` ; sans elles, le genre se déduit de l'événement.
 
+## Un impact vient de devenir visible (à l'arrivée de son projectile, s'il en a un) : point en
+## unités de jeu, rayon en unités de jeu (0 pour un coup simple). L'arène en fait réagir les
+## ennemis.
+signal impact_visible(ou: Vector2, rayon: float)
+
+## Un coup se joue en images à 60 i/s : les durées ci-dessous sont des nombres d'images.
+const IMAGE: float = 1.0 / 60.0
+
 const PLAFOND: int = 200
 ## Aucun effet n'est opaque : la tour reste lisible dessous.
 const ALPHA_MAX: float = 0.85
-const DUREE_TIR: float = 0.18
+## Le projectile vole 7 images : l'impact attend son arrivée (`_impact`).
+const DUREE_TIR: float = 7.0 * IMAGE
 const DUREE_TRAIT: float = 0.2
-const DUREE_IMPACT: float = 0.35
+## L'impact : pic (images 0 à 3), retour à la taille normale (3 à 6), dissipation (6 à 18).
+const DUREE_IMPACT: float = 18.0 * IMAGE
+const DUREE_STATUT: float = 0.35
+## Un disque de 260 px à chaque coup encaissé : au plus un toutes les 0,34 s (WCAG 2.3.1).
+const INTERVALLE_ABSORPTION: float = 0.34
 const DUREE_ANNEAU: float = 0.45
 const DUREE_EXPLOSION: float = 0.5
 const DUREE_FEU: float = 0.5
@@ -40,6 +53,14 @@ const ECHELLE_DYNAMITE: float = 1.3
 const TOLERANCE_SOL: float = 2.0
 ## Rayon d'une explosion de mort, en unités de jeu.
 const RAYON_MORT: float = 110.0
+
+## Un saut de rebond démarre 3 images après le précédent ; son trait est blanc la première image.
+const DECALAGE_SAUT: float = 3.0 * IMAGE
+## Écart (px) en deçà duquel un impact « est » l'arrivée d'un tir, ou un saut part de l'arrivée du
+## précédent.
+const TOLERANCE_LIEN: float = 4.0
+## Au-delà de ce reste de temps (s), un événement différé n'est pas encore échu.
+const EPSILON_TEMPS: float = 0.000001
 
 const FEUILLE_FEU := "Effects/Fire/Fire.png"
 const FEUILLE_EXPLOSION := "Effects/Explosion/Explosions.png"
@@ -130,6 +151,20 @@ var _vivants: Array[Dictionary] = []
 var _nb_noeuds: int = 0
 var _tous: Array[Sprite2D] = []
 var _textures: Dictionary = {}
+## Projectiles en vol, qu'un impact de la même arme au même point attend : `{type, genre, arme,
+## arrivee, reste}`.
+var _tirs_en_vol: Array[Dictionary] = []
+## Impacts liés à un projectile ou à un saut précédent, pas encore visibles : `{reste, ...}`.
+var _en_attente: Array[Dictionary] = []
+## Chaîne de rebond du lot en cours (entre deux `avancer`) : arrivée et attente du dernier saut.
+var _chaine_vers: Vector2 = Vector2.ZERO
+var _chaine_reste: float = 0.0
+var _chaine_active: bool = false
+## Âge d'un effet qui naît en retard (un impact différé échu pendant un grand pas de temps).
+var _age_initial: float = 0.0
+## Temps avant la prochaine absorption admise.
+var _pause_absorption: float = 0.0
+var _etincelles: Etincelles = Etincelles.new(self)
 
 
 ## Une flamme en boucle, posée derrière l'unité qui la porte (le boss). Elle s'anime seule.
@@ -237,6 +272,29 @@ func trajet_de(forme: String) -> Array[Vector2]:
 	return trajet
 
 
+## Échelle du premier effet vivant de cette forme, 0 sans elle.
+func echelle_de(forme: String) -> float:
+	for e: Dictionary in _vivants:
+		if String(e["forme"]) == forme:
+			return (e["n"] as Sprite2D).scale.x
+	return 0.0
+
+
+## Impacts liés à un projectile ou à un saut précédent, qui ne sont pas encore visibles.
+func impacts_en_attente() -> int:
+	return _en_attente.size()
+
+
+## Les émetteurs d'étincelles créés (jamais plus de `PLAFOND_ETINCELLES`).
+func emetteurs_etincelles() -> Array[CPUParticles2D]:
+	return _etincelles.emetteurs()
+
+
+## Les émetteurs dont la salve est en cours.
+func etincelles_actives() -> Array[CPUParticles2D]:
+	return _etincelles.actifs()
+
+
 func couleur_de(forme: String) -> Color:
 	for e: Dictionary in _vivants:
 		if String(e["forme"]) == forme:
@@ -270,6 +328,11 @@ func taille_du_premier() -> float:
 func vider() -> void:
 	for i: int in range(_vivants.size() - 1, -1, -1):
 		_liberer(i)
+	_tirs_en_vol.clear()
+	_pause_absorption = 0.0
+	_en_attente.clear()
+	_chaine_active = false
+	_etincelles.vider()
 
 
 ## `evenement` : {k, de, vers, type_degats, rayon} d'une `VueArene`, avec `genre` et `statut` en
@@ -290,9 +353,10 @@ func ajouter(evenement: Dictionary) -> bool:
 	if type_degats < 0 or type_degats >= PROJECTILES.size():
 		return false
 	var signature: Dictionary = _signature(evenement)
+	var arme: int = evenement.get("arme", -1) if typeof(evenement.get("arme")) == TYPE_INT else -1
 	if k == "tir":
-		return _tir(type_degats, genre, de, vers, signature)
-	return _impact(type_degats, genre, de, vers, rayon, statut, signature)
+		return _tir(type_degats, genre, de, vers, signature, arme)
+	return _impact(type_degats, genre, de, vers, rayon, statut, signature, arme)
 
 
 ## Le genre et le statut arrivent en index (simulation, réseau) ; un nom est accepté tel quel. Une
@@ -319,6 +383,8 @@ func exploser(ou: Vector2) -> bool:
 
 
 func avancer(delta: float) -> void:
+	_chaine_active = false
+	_pause_absorption = maxf(_pause_absorption - delta, 0.0)
 	for i: int in range(_vivants.size() - 1, -1, -1):
 		var effet: Dictionary = _vivants[i]
 		var age: float = float(effet["age"]) + delta
@@ -327,13 +393,49 @@ func avancer(delta: float) -> void:
 			_liberer(i)
 		else:
 			_poser(effet)
+	_avancer_attentes(delta)
+	_etincelles.avancer(delta)
+
+
+## Les projectiles arrivent ; les impacts qu'ils retenaient (ou qu'un saut précédent retenait) se
+## jouent, avec l'âge qu'ils auraient eu s'ils étaient nés à l'heure.
+func _avancer_attentes(delta: float) -> void:
+	for i: int in range(_tirs_en_vol.size() - 1, -1, -1):
+		var tir: Dictionary = _tirs_en_vol[i]
+		tir["reste"] = float(tir["reste"]) - delta
+		if float(tir["reste"]) <= EPSILON_TEMPS:
+			_tirs_en_vol.remove_at(i)
+	var echus: Array[Dictionary] = []
+	for i: int in range(_en_attente.size() - 1, -1, -1):
+		var attente: Dictionary = _en_attente[i]
+		attente["reste"] = float(attente["reste"]) - delta
+		if float(attente["reste"]) <= EPSILON_TEMPS:
+			echus.push_front(attente)
+			_en_attente.remove_at(i)
+	for attente: Dictionary in echus:
+		_age_initial = maxf(-float(attente["reste"]), 0.0)
+		_impact_maintenant(
+			int(attente["type"]),
+			String(attente["genre"]),
+			attente["de"],
+			attente["vers"],
+			float(attente["rayon"]),
+			String(attente["statut"]),
+			attente["signature"]
+		)
+		_age_initial = 0.0
 
 
 # --- Création ----------------------------------------------------------------------------------
 
 
 func _tir(
-	type_degats: int, genre: String, de: Vector2, vers: Vector2, signature: Dictionary = {}
+	type_degats: int,
+	genre: String,
+	de: Vector2,
+	vers: Vector2,
+	signature: Dictionary = {},
+	arme: int = -1
 ) -> bool:
 	var rendu_arme: Dictionary = rendu(type_degats, genre)
 	var couleur: Color = COULEURS[type_degats]
@@ -364,6 +466,19 @@ func _tir(
 	effet["arrivee"] = arrivee
 	effet["taille"] = taille
 	_poser(effet)
+	if _tirs_en_vol.size() < PLAFOND:
+		(
+			_tirs_en_vol
+			. append(
+				{
+					"type": type_degats,
+					"genre": genre,
+					"arme": arme,
+					"arrivee": arrivee,
+					"reste": DUREE_TIR,
+				}
+			)
+		)
 	if not signature.is_empty():
 		_trainee(String(signature["trainee"]), depart, arrivee, couleur)
 	return true
@@ -379,7 +494,70 @@ func _trainee(forme: String, depart: Vector2, arrivee: Vector2, couleur: Color) 
 	_poser(effet)
 
 
+## Un impact qui répond à un tir du même lot attend l'arrivée du projectile ; un saut de rebond
+## attend en plus 3 images après le précédent de sa chaîne. Les autres (aura, onde, piège, mine)
+## partent tout de suite.
 func _impact(
+	type_degats: int,
+	genre: String,
+	de: Vector2,
+	vers: Vector2,
+	rayon: float,
+	statut: String,
+	signature: Dictionary = {},
+	arme: int = -1
+) -> bool:
+	var depart: Vector2 = Apparence.vers_pixels(de)
+	var arrivee: Vector2 = Apparence.vers_pixels(vers)
+	var attente: float = _reprendre_tir(type_degats, genre, arme, arrivee)
+	var saut: bool = genre == "rebond" or (genre == "" and rayon <= 0.0 and de.length() >= 1.0)
+	if saut:
+		if attente < 0.0 and _chaine_active and _chaine_vers.distance_to(depart) <= TOLERANCE_LIEN:
+			attente = _chaine_reste + DECALAGE_SAUT
+		if attente >= 0.0:
+			_chaine_active = true
+			_chaine_vers = arrivee
+			_chaine_reste = attente
+	if attente <= EPSILON_TEMPS:
+		return _impact_maintenant(type_degats, genre, de, vers, rayon, statut, signature)
+	if _en_attente.size() >= PLAFOND:
+		return false
+	(
+		_en_attente
+		. append(
+			{
+				"reste": attente,
+				"type": type_degats,
+				"genre": genre,
+				"de": de,
+				"vers": vers,
+				"rayon": rayon,
+				"statut": statut,
+				"signature": signature,
+			}
+		)
+	)
+	return true
+
+
+## Le temps de vol qui reste au projectile que cet impact attend, -1 s'il n'y en a pas. Un tir ne
+## retient qu'un impact.
+func _reprendre_tir(type_degats: int, genre: String, arme: int, arrivee: Vector2) -> float:
+	for i: int in _tirs_en_vol.size():
+		var tir: Dictionary = _tirs_en_vol[i]
+		if (
+			int(tir["type"]) == type_degats
+			and String(tir["genre"]) == genre
+			and int(tir["arme"]) == arme
+			and (tir["arrivee"] as Vector2).distance_to(arrivee) <= TOLERANCE_LIEN
+		):
+			var reste: float = tir["reste"]
+			_tirs_en_vol.remove_at(i)
+			return reste
+	return -1.0
+
+
+func _impact_maintenant(
 	type_degats: int,
 	genre: String,
 	de: Vector2,
@@ -414,6 +592,17 @@ func _impact(
 		cree = _burst(type_degats, genre, arrivee, rayon, couleur, signature)
 	if statut != "" and FORMES_STATUT.has(statut):
 		cree = _statut(statut, arrivee) or cree
+	var zone: bool = (
+		anneau
+		or rayon > 0.0
+		or genre == "zone"
+		or genre == "mine"
+		or type_degats == Types.TypeDegats.SIEGE
+		or String(signature.get("impact", "")) == "explosion"
+	)
+	var nombre: int = Etincelles.NOMBRE_ZONE if zone else Etincelles.NOMBRE_COUP
+	_etincelles.lancer(arrivee, nombre, couleur, _age_initial)
+	impact_visible.emit(vers, rayon)
 	return cree
 
 
@@ -458,7 +647,7 @@ func _trait(
 	var forme: String = TRAITS[type_degats]
 	if not signature.is_empty():
 		forme = signature["trainee"]
-	var effet: Dictionary = _creer(forme, "trait", DUREE_TRAIT, couleur, COUCHE_DESSUS)
+	var effet: Dictionary = _creer(forme, "saut", DUREE_TRAIT, couleur, COUCHE_DESSUS)
 	if effet.is_empty():
 		return false
 	effet["depart"] = depart
@@ -469,9 +658,14 @@ func _trait(
 
 ## L'éclat bleu de la mana qui encaisse un coup, sur la tour.
 func _absorption(ou: Vector2) -> bool:
-	var effet: Dictionary = _creer("halo", "burst", DUREE_IMPACT, COULEUR_ABSORPTION, COUCHE_DESSUS)
+	if _pause_absorption > 0.0:
+		return false
+	var effet: Dictionary = _creer(
+		"halo", "absorption", DUREE_IMPACT, COULEUR_ABSORPTION, COUCHE_DESSUS
+	)
 	if effet.is_empty():
 		return false
+	_pause_absorption = INTERVALLE_ABSORPTION
 	effet["depart"] = ou
 	effet["taille"] = TAILLE_ABSORPTION
 	_poser(effet)
@@ -499,7 +693,7 @@ func _statut(statut: String, ou: Vector2) -> bool:
 		_poser(feu)
 		return true
 	var couleur: Color = couleur_statut(statut)
-	var effet: Dictionary = _creer(forme, "burst", DUREE_IMPACT, couleur, COUCHE_DESSUS)
+	var effet: Dictionary = _creer(forme, "statut", DUREE_STATUT, couleur, COUCHE_DESSUS)
 	if effet.is_empty():
 		return false
 	effet["depart"] = ou
@@ -533,7 +727,7 @@ func _retirer_objet_sol(ou: Vector2) -> void:
 
 ## Prend un nœud du pool et le prépare pour `forme`. Vide si le plafond est atteint.
 func _creer(forme: String, anim: String, duree: float, couleur: Color, couche: int) -> Dictionary:
-	if _vivants.size() >= PLAFOND:
+	if _vivants.size() >= PLAFOND or _age_initial >= duree:
 		return {}
 	var noeud: Sprite2D = _prendre(couche)
 	_habiller(noeud, forme)
@@ -543,8 +737,9 @@ func _creer(forme: String, anim: String, duree: float, couleur: Color, couche: i
 		"n": noeud,
 		"forme": forme,
 		"anim": anim,
-		"age": 0.0,
+		"age": _age_initial,
 		"duree": duree,
+		"couleur": couleur,
 		"couche": couche,
 		"depart": Vector2.ZERO,
 		"arrivee": Vector2.ZERO,
@@ -597,27 +792,37 @@ func _feuille(chemin: String) -> Texture2D:
 
 func _poser(effet: Dictionary) -> void:
 	var noeud: Sprite2D = effet["n"]
-	var t: float = clampf(float(effet["age"]) / float(effet["duree"]), 0.0, 1.0)
+	var age: float = effet["age"]
+	var t: float = clampf(age / float(effet["duree"]), 0.0, 1.0)
 	var depart: Vector2 = effet["depart"]
 	var arrivee: Vector2 = effet["arrivee"]
 	var taille: float = effet["taille"]
 	var forme: String = effet["forme"]
+	var couleur: Color = effet["couleur"]
 	var alpha: float = ALPHA_MAX
 	match String(effet["anim"]):
 		"vol":
 			noeud.position = depart.lerp(arrivee, t)
 			var sens: Vector2 = arrivee - depart
 			_orienter_vol(noeud, forme, sens, t, taille)
-		"burst":
+			noeud.scale *= CourbesEffets.echelle_apparition_tir(age)
+		"burst", "absorption":
+			noeud.position = depart
+			noeud.scale = Vector2.ONE * _echelle(forme, taille) * CourbesEffets.echelle_impact(age)
+			if String(effet["anim"]) == "burst":
+				couleur = couleur.lerp(Color.WHITE, CourbesEffets.blanc_impact(age))
+			alpha = CourbesEffets.alpha_impact(age)
+		"statut":
 			noeud.position = depart
 			noeud.rotation = t * 0.8 if forme == "croix_plus" or forme == "flocon" else 0.0
 			noeud.scale = Vector2.ONE * _echelle(forme, taille) * lerpf(0.3, 1.0, t)
+			noeud.scale *= CourbesEffets.echelle_apparition_statut(age)
 			alpha = lerpf(ALPHA_MAX, 0.0, t)
 		"anneau":
 			noeud.position = depart
-			noeud.scale = Vector2.ONE * _echelle("anneau", taille) * lerpf(0.1, 1.0, t)
-			alpha = lerpf(ALPHA_MAX, 0.0, t)
-		"trait":
+			noeud.scale = Vector2.ONE * _echelle("anneau", taille) * CourbesEffets.echelle_anneau(t)
+			alpha = CourbesEffets.alpha_anneau(t)
+		"trait", "saut":
 			var sens: Vector2 = arrivee - depart
 			noeud.position = depart.lerp(arrivee, 0.5)
 			noeud.rotation = sens.angle()
@@ -628,17 +833,25 @@ func _poser(effet: Dictionary) -> void:
 				epaisseur = ECHELLE_TRAINEE
 			noeud.scale = Vector2(maxf(sens.length(), 1.0) / 64.0, epaisseur)
 			alpha = lerpf(ALPHA_MAX, 0.0, t)
+			if String(effet["anim"]) == "saut":
+				# Allumé blanc la première image, puis la couleur de l'arme qui s'éteint en t².
+				if age < IMAGE:
+					couleur = Color.WHITE
+				alpha = lerpf(ALPHA_MAX, 0.0, t * t)
 		"image":
 			noeud.position = depart
 			_image(effet, noeud, forme, t, taille)
+			if forme == "feu":
+				noeud.scale *= CourbesEffets.echelle_apparition_statut(age)
 		"sol":
 			noeud.position = depart
 			noeud.rotation = 0.0
 			noeud.scale = Vector2.ONE * _echelle(forme, taille)
-			var pouls: float = 0.5 + 0.5 * sin(float(effet["age"]) * 4.0)
+			var pouls: float = 0.5 + 0.5 * sin(age * 4.0)
 			alpha = lerpf(ALPHA_MAX * 0.6, ALPHA_MAX, pouls)
-	if noeud.modulate.a != alpha:
-		noeud.modulate.a = alpha
+	var voulue := Color(couleur, alpha)
+	if noeud.modulate != voulue:
+		noeud.modulate = voulue
 
 
 func _orienter_vol(noeud: Sprite2D, forme: String, sens: Vector2, t: float, taille: float) -> void:
@@ -716,73 +929,7 @@ func _liberer(i: int) -> void:
 func _forme(nom: String) -> Texture2D:
 	if not _formes.has(nom):
 		var image: Image = (
-			_dessiner(nom) if FORMES_PROPRES.has(nom) else FormesSignatures.image(nom)
+			FormesEffets.image(nom) if FORMES_PROPRES.has(nom) else FormesSignatures.image(nom)
 		)
 		_formes[nom] = ImageTexture.create_from_image(image)
 	return _formes[nom]
-
-
-static func _dessiner(nom: String) -> Image:
-	var taille := Vector2i(64, 8) if nom.begins_with("trait") else Vector2i(32, 32)
-	if nom == "anneau":
-		taille = Vector2i(64, 64)
-	var image := Image.create(taille.x, taille.y, false, Image.FORMAT_RGBA8)
-	var centre := Vector2(taille) * 0.5
-	for y: int in taille.y:
-		for x: int in taille.x:
-			var p := Vector2(x + 0.5, y + 0.5)
-			var plein: float = _couverture(nom, p, centre, taille)
-			if plein > 0.0:
-				image.set_pixel(x, y, Color(1.0, 1.0, 1.0, clampf(plein, 0.0, 1.0)))
-	return image
-
-
-## Opacité (0 à 1) de la forme `nom` au point `p`, bords adoucis sur un pixel.
-static func _couverture(nom: String, p: Vector2, centre: Vector2, taille: Vector2i) -> float:
-	var d: Vector2 = p - centre
-	var rayon: float = centre.x
-	match nom:
-		"disque", "halo":
-			var plein: float = rayon - d.length()
-			return plein if nom == "disque" else minf(plein, 0.5 + 0.5 * plein / rayon)
-		"anneau":
-			return minf(rayon - d.length(), d.length() - (rayon - 4.0))
-		"losange":
-			return rayon - (absf(d.x) + absf(d.y))
-		"trait":
-			return minf(centre.y - absf(d.y) + 0.5, minf(p.x, taille.x - p.x))
-		"trait_ondule":
-			var y: float = sin(p.x / taille.x * TAU * 2.0) * 2.5
-			return 1.6 - absf(d.y - y)
-		"trait_zigzag":
-			var y: float = absf(fposmod(p.x / taille.x * 6.0, 2.0) - 1.0) * 5.0 - 2.5
-			return 1.6 - absf(d.y - y)
-		"entaille":
-			return 2.0 - minf(absf(d.x - d.y), absf(d.x + d.y)) * 0.7 if d.length() < rayon else 0.0
-		"pointes", "piege":
-			return _rayons(d, rayon, 8, 0.0, 1.6)
-		"etoile":
-			return _rayons(d, rayon, 4, PI * 0.25, 2.6)
-		"flocon":
-			return _rayons(d, rayon, 6, 0.0, 1.6)
-		"croix_plus":
-			return maxf(_rayons(d, rayon * 0.85, 4, 0.0, 3.0), 3.0 - d.length())
-		"bulles":
-			var meilleur: float = -1.0
-			for c: Vector2 in [Vector2(-7, 5), Vector2(6, 2), Vector2(-1, -8)]:
-				meilleur = maxf(meilleur, 5.0 - (d - c).length())
-			return meilleur
-	return 0.0
-
-
-## Opacité d'une étoile à `n` branches : distance au plus proche rayon, de longueur `longueur`.
-static func _rayons(
-	d: Vector2, longueur: float, n: int, decalage: float, epaisseur: float
-) -> float:
-	var meilleur: float = -1.0
-	var angle_pas: float = TAU / float(n) if n != 6 else PI / 3.0
-	for k: int in n:
-		var sens := Vector2.from_angle(decalage + angle_pas * k)
-		var along: float = clampf(d.dot(sens), 0.0, longueur)
-		meilleur = maxf(meilleur, epaisseur * 0.5 - (d - sens * along).length() + 0.5)
-	return meilleur
