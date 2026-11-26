@@ -33,6 +33,7 @@ Spécification : `docs/superpowers/specs/2026-11-24-jeu-tour-design.md`. Plan :
   `partie.gd` est son API publique.
 - `reseau/` : ENet (serveur, client, protocole compact). Il n'appelle que l'API publique de `sim/partie.gd`.
 - `visuels/` : rendu 2D pixel art (Tiny Swords), caméra, décor, effets. La correspondance entité → sprites est dans `visuels/apparence.gd`.
+  Attaques d'élément (D22) : `attaques_elementaires.gd` aiguille, un fichier par élément sous `visuels/attaques/` (`AttaqueElement`) ; leurs sprites sont dessinés par `tools/dessiner_effets_attaques.gd` et un `tools/dessin/dessins_<élément>.gd` par élément. Ajouter un élément : un fichier de chaque côté et une ligne de table.
 - `ui/` : menus, salon, HUD, boutique, tableau des scores, écran de fin.
 - `i18n/*.csv` : tous les textes visibles (colonne `fr`).
 - `tests/` : `lanceur.gd`, `tests/unitaires/test_*.gd`, `tests/integration/`.
