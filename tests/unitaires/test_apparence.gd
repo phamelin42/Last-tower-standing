@@ -131,8 +131,10 @@ func test_la_couleur_de_l_entree_suit_le_palier() -> void:
 func test_aucune_trace_de_la_guepe_ni_du_vol() -> void:
 	# `assets/maison/` existe (sprites d'effets dessinés par script) : il ne doit rien garder de la
 	# guêpe ni du vol.
-	for dossier: String in DirAccess.get_directories_at("res://assets/maison"):
-		verifier_faux(dossier.to_lower().contains("guepe"), "assets/maison/%s" % dossier)
+	var entrees: PackedStringArray = DirAccess.get_directories_at("res://assets/maison")
+	entrees.append_array(DirAccess.get_files_at("res://assets/maison"))
+	for nom: String in entrees:
+		verifier_faux(nom.to_lower().contains("guepe"), "assets/maison/%s" % nom)
 	for dossier: String in ["res://visuels", "res://tools"]:
 		for nom: String in DirAccess.get_files_at(dossier):
 			if not nom.ends_with(".gd"):
