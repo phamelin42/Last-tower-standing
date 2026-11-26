@@ -126,7 +126,7 @@ const OFFRES: Dictionary = {
 	"meule_des_lames": ["tools", "brique"],
 	"carquois_des_siecles": ["scroll", "vert"],
 	"chaire_des_arcanes": ["upg_dagger", "violet"],
-	"arsenal_des_remparts": ["upg_shield", "brun"],
+	"arsenal_des_remparts": ["shieldSmall", "brun"],
 	"fracas_du_desordre": ["upg_axe", "pourpre"],
 	# Bonus général de dégâts.
 	"etincelle_d_ame": ["gemBlue", "dore"],

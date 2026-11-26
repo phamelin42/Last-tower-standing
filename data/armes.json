@@ -1416,7 +1416,7 @@
  },
  {
   "id": "catapulte_a_contrepoids",
-  "nom": "Catapulte à contrepoids",
+  "nom": "Catapulte lestée",
   "description": "Chaque amélioration de cadence ajoute du poids à la pierre.",
   "rarete": "peu_commune",
   "prix": 280,
