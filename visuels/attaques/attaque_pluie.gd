@@ -9,11 +9,15 @@ const CONF: Dictionary = {
 	"projectile": "aiguille",
 	"cloche": 0.0,
 	"fps": 0.0,
-	"chute": 110.0,
-	"echelle": 0.6667,
+	"chute": 150.0,
+	"echelle": 1.0,
+	"images_vol": 5,
+	"retard": 1.0,
 }
 const DIAMETRE_AIGUILLE: float = 22.0
 const IMAGES_PLANTE: int = 24
+## Le trait de chute suit l'aiguille avec ce retard, en images.
+const IMAGES_TRAINEE: int = 2
 const IMAGES_ANNEAU: int = 18
 const ECLATS: int = 2
 const DIAMETRE_GERBE: float = 26.0
@@ -28,11 +32,31 @@ func conf() -> Dictionary:
 
 
 func planches() -> Dictionary:
-	return PLANCHES_PERCANTES.merged({"aiguille": Vector2i(14, 4)})
+	return PLANCHES_PERCANTES.merged(
+		{"aiguille": Vector2i(14, 4), "trait_aiguille": Vector2i(12, 4)}
+	)
 
 
 func visibles() -> Dictionary:
 	return VISIBLES_PERCANTES
+
+
+## Un trait clair, deux images derrière l'aiguille, pour lire la chute ; rien en mouvement réduit.
+func suivre_vol(
+	m: AttaquesElementaires, vol: Dictionary, _attente: float, duree_vol: float
+) -> void:
+	if m.mouvement_reduit:
+		return
+	var trace: Dictionary = m.nouveau("vol", "trait_aiguille", duree_vol)
+	if trace.is_empty():
+		return
+	trace["age"] = float(vol["age"]) - IMAGES_TRAINEE * AttaquesElementaires.IMAGE
+	trace["depart"] = vol["depart"]
+	trace["arrivee"] = vol["arrivee"]
+	trace["couleur"] = Color.WHITE
+	trace["echelle"] = AttaquesElementaires.ECHELLE
+	trace["vol"] = duree_vol
+	m.poser(trace)
 
 
 func impacter(

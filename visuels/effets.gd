@@ -599,7 +599,7 @@ func _impact(
 	var element: String = _element(arme)
 	var groupe: Dictionary = {}
 	if element != "" and genre == "barrage" and attente < 0.0:
-		var retard: float = _rang_barrage * AttaquesElementaires.RETARD_BARRAGE
+		var retard: float = _rang_barrage * AttaquesElementaires.retard_barrage(element)
 		attente = _el().tirer(element, depart, arrivee, retard)
 		if _rang_barrage == 0:
 			_groupe_barrage = {"points": [] as Array[Vector2], "dessine": false}

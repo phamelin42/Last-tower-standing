@@ -89,6 +89,7 @@ const PLANCHES: Dictionary = {
 	"chausse_trape": {"taille": Vector2i(12, 12), "images": 1},
 	"pique": {"taille": Vector2i(12, 10), "images": 1},
 	"aiguille": {"taille": Vector2i(14, 4), "images": 1},
+	"trait_aiguille": {"taille": Vector2i(12, 4), "images": 1},
 	"plante": {"taille": Vector2i(12, 12), "images": 2},
 	"gerbe": {"taille": Vector2i(24, 24), "images": 4},
 	"pointes_sol": {"taille": Vector2i(32, 32), "images": 6},

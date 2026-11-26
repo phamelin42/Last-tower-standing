@@ -19,6 +19,7 @@ const NOMS: PackedStringArray = [
 	"chausse_trape",
 	"pique",
 	"aiguille",
+	"trait_aiguille",
 	"plante",
 	"gerbe",
 	"pointes_sol",
@@ -41,6 +42,8 @@ static func dessiner(nom: String) -> Image:
 			return _pique()
 		"aiguille":
 			return _aiguille()
+		"trait_aiguille":
+			return _trait_aiguille()
 		"plante":
 			return _plante()
 		"gerbe":
@@ -137,6 +140,20 @@ static func _aiguille() -> Image:
 	t.p(1, 1, PLUME)
 	t.p(0, 2, PLUME)
 	t.entourer(ENCRE)
+	return img
+
+
+## Le trait clair que laisse une aiguille qui tombe : sans contour, il s'effile vers l'arrière (la
+## gauche de la planche, tournée avec l'aiguille).
+static func _trait_aiguille() -> Image:
+	var img: Image = Commun.vierge("trait_aiguille")
+	var t: Commun.Toile = Commun.toile(img, "trait_aiguille", 0)
+	for x: int in range(2, 12):
+		t.p(x, 1, BLANC)
+		if x >= 5:
+			t.p(x, 2, CLAIR)
+	t.p(0, 1, CLAIR)
+	t.p(1, 1, CLAIR)
 	return img
 
 

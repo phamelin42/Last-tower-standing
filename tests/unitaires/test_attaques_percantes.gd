@@ -239,7 +239,9 @@ func test_l_impact_de_la_baliste_ajoute_des_gouttes_vertes_sans_depasser_huit_pa
 
 
 func test_les_aiguilles_tombent_du_haut_sur_la_zone() -> void:
-	verifier_proche(_a.tirer("pluie", TOUR, CIBLE) / IMAGE, 10.0, 0.01)
+	verifier(
+		_a.tirer("pluie", TOUR, CIBLE) / IMAGE <= 8.01, "une aiguille tombe en 8 images au plus"
+	)
 	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 1)
 	var aiguille: Dictionary = _a.etats("aiguille")[0]
 	verifier(aiguille["visible"], "l'aiguille tombe")
@@ -247,8 +249,46 @@ func test_les_aiguilles_tombent_du_haut_sur_la_zone() -> void:
 		(aiguille["position"] as Vector2).y < CIBLE.y - 40.0, "encore haut au début de la chute"
 	)
 	verifier_proche(aiguille["rotation"], PI / 2.0, 0.05, "pointe en bas")
-	_avancer(AttaquesElementaires.IMAGES_VOL_DIRECT)
+	_avancer(6)
 	verifier_egal(_a.etats("aiguille").size(), 0, "arrivée, elle disparaît")
+
+
+func test_les_aiguilles_sont_affichees_une_fois_et_demie_plus_grandes() -> void:
+	_a.tirer("pluie", TOUR, CIBLE)
+	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 1)
+	verifier_proche(
+		(_a.etats("aiguille")[0]["echelle"] as Vector2).x, AttaquesElementaires.ECHELLE, 0.01
+	)
+
+
+func test_chaque_aiguille_laisse_un_trait_clair_deux_images_derriere_elle() -> void:
+	_a.tirer("pluie", TOUR, CIBLE)
+	verifier_egal(_a.etats("trait_aiguille").size(), 1, "un trait par aiguille")
+	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 3)
+	var aiguille: Dictionary = _a.etats("aiguille")[0]
+	var trace: Dictionary = _a.etats("trait_aiguille")[0]
+	verifier(trace["visible"], "le trait est visible")
+	var retard: float = (aiguille["position"] as Vector2).y - (trace["position"] as Vector2).y
+	verifier(retard > 15.0, "il est au-dessus de l'aiguille, donc derrière elle : %.1f" % retard)
+	verifier_proche(trace["rotation"], PI / 2.0, 0.05, "vertical, comme la chute")
+	_avancer(40)
+	verifier_egal(_a.nombre_vivants(), 0, "le trait s'efface")
+
+
+func test_les_aiguilles_d_un_tir_partent_une_image_apres_la_precedente_et_se_voient_ensemble(
+) -> void:
+	verifier_proche(AttaquesElementaires.retard_barrage("pluie") / IMAGE, 1.0, 0.01)
+	verifier_proche(
+		AttaquesElementaires.retard_barrage("herse") / IMAGE, 2.0, 0.01, "la herse garde 2"
+	)
+	for k: int in 10:
+		_a.tirer("pluie", TOUR, CIBLE + Vector2(0.0, k * 5.0), k * IMAGE)
+	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 6)
+	var en_vol: int = 0
+	for aiguille: Dictionary in _a.etats("aiguille"):
+		if aiguille["visible"]:
+			en_vol += 1
+	verifier(en_vol >= 3, "plusieurs aiguilles à la fois : %d" % en_vol)
 
 
 func test_les_aiguilles_plantees_restent_visibles_puis_s_effacent() -> void:
@@ -273,7 +313,7 @@ func test_un_seul_anneau_au_rayon_reel_pour_toute_la_pluie() -> void:
 func test_le_plafond_tient_quand_toute_une_pluie_tombe() -> void:
 	_a.place = 40
 	for k: int in 40:
-		_a.tirer("pluie", TOUR, CIBLE, k * AttaquesElementaires.RETARD_BARRAGE)
+		_a.tirer("pluie", TOUR, CIBLE, k * IMAGE)
 		_a.impacter_en_groupe("pluie", CIBLE, 25.0)
 	verifier(_a.nombre_vivants() <= 40, "le pool reste borné")
 	verifier(_a.opacite_max() <= AttaquesElementaires.ALPHA_MAX + 0.001, "jamais opaque")
@@ -286,3 +326,4 @@ func test_mouvement_reduit_la_pluie_garde_ses_sprites_sans_particule() -> void:
 	_a.impacter_en_groupe("pluie", CIBLE, 25.0)
 	verifier_egal(_a.particules_actives(), 0)
 	verifier_egal(_a.etats("plante").size(), 1)
+	verifier_egal(_a.etats("trait_aiguille").size(), 0, "ni traînée de chute")

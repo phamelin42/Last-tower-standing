@@ -116,6 +116,12 @@ var _carre: Texture2D = null
 var _degrade: Gradient = null
 
 
+## Le décalage entre deux projectiles d'un barrage d'`element` : 2 images, sauf mention `retard`.
+static func retard_barrage(element: String) -> float:
+	var e: AttaqueElement = registre().get(element)
+	return RETARD_BARRAGE if e == null else float(e.conf().get("retard", 2.0)) * IMAGE
+
+
 ## Un élément par fichier sous `visuels/attaques/` : une ligne ici suffit à en ajouter un.
 static func _scripts() -> Array[GDScript]:
 	return [
@@ -256,7 +262,9 @@ func tirer(element: String, depart: Vector2, arrivee: Vector2, retard: float = 0
 	if chute > 0.0:
 		depart = arrivee - Vector2(0.0, chute)
 	var cloche: bool = float(conf["cloche"]) > 0.0
-	var images_vol: int = IMAGES_VOL_CLOCHE if cloche else IMAGES_VOL_DIRECT
+	var images_vol: int = int(
+		conf.get("images_vol", IMAGES_VOL_CLOCHE if cloche else IMAGES_VOL_DIRECT)
+	)
 	var attente: float = retard + IMAGES_ANTICIPATION * IMAGE
 	var vol: float = images_vol * IMAGE
 	var sens: Vector2 = (arrivee - depart).normalized()
