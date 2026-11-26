@@ -250,13 +250,22 @@ func test_tiny5_n_est_plus_cite() -> void:
 				verifier(not texte.to_lower().contains("tiny5"), "Tiny5 cité dans %s" % nom)
 
 
-func test_aucune_taille_de_texte_en_dur_dans_ui() -> void:
+func test_aucune_taille_de_texte_en_dur_dans_ui_et_app() -> void:
 	for nom: String in DirAccess.get_files_at("res://ui"):
 		if not nom.ends_with(".gd") or nom == "theme.gd":
 			continue
 		var texte := FileAccess.get_file_as_string("res://ui/" + nom)
 		verifier(not texte.contains("font_size"), "font_size local dans %s" % nom)
 		verifier(not texte.contains("const TAILLE_"), "TAILLE_* local dans %s" % nom)
+	# `app/` : les tailles viennent du thème (`ThemeJeu`, rôles « texte » et « titre »), donc de
+	# l'échelle de l'interface ; `reglages.gd` garde ses bornes de réglage, qui ne sont pas du rendu.
+	for nom: String in DirAccess.get_files_at("res://app"):
+		if not nom.ends_with(".gd"):
+			continue
+		var texte := FileAccess.get_file_as_string("res://app/" + nom)
+		verifier(not texte.contains("font_size"), "font_size local dans app/%s" % nom)
+		verifier(not texte.contains("const TAILLE_TEXTE :="), "TAILLE_TEXTE dans app/%s" % nom)
+		verifier(not texte.contains("const TAILLE_TITRE"), "TAILLE_TITRE dans app/%s" % nom)
 
 
 func test_la_taille_de_texte_suit_le_role_et_l_echelle() -> void:

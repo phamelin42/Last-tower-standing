@@ -272,7 +272,7 @@ func test_carte_vendue_est_grisee_et_marquee_en_texte() -> void:
 	verifier_egal(_appels("acheter").size(), 0, "une carte vendue n'envoie rien")
 
 
-func test_offre_trop_chere_reste_cliquable_et_annonce_or_insuffisant() -> void:
+func test_offre_trop_chere_reste_cliquable_parait_inactive_et_annonce_or_insuffisant() -> void:
 	var vue := _vue(100)
 	_ui.afficher(vue)
 	verifier_faux(_texte_carte(0).contains("insuffisant"), "80 or avec 100 : pas de motif")
@@ -285,6 +285,22 @@ func test_offre_trop_chere_reste_cliquable_et_annonce_or_insuffisant() -> void:
 		verifier(b.focus_mode == Control.FOCUS_ALL, "et focalisable")
 	achats[3].pressed.emit()
 	verifier_egal(_appels("acheter").size(), 1, "l'achat part quand même, la source tranche")
+	# S19 : trop cher, il parait inactif au survol, à l'appui et au clavier.
+	var inactif := (achats[0].get_theme_stylebox("disabled") as StyleBoxTexture).texture
+	for etat: String in ["normal", "hover", "pressed"]:
+		var abordable := (achats[0].get_theme_stylebox(etat) as StyleBoxTexture).texture
+		verifier(abordable != inactif, "l'offre à 80 or garde l'aspect actif (%s)" % etat)
+		for i: int in range(1, NB_OFFRES):
+			var trop_cher := (achats[i].get_theme_stylebox(etat) as StyleBoxTexture).texture
+			verifier(trop_cher == inactif, "carte %d : aspect inactif (%s)" % [i, etat])
+	for i: int in range(1, NB_OFFRES):
+		verifier_faux(achats[i].disabled, "le bouton reste actif")
+		verifier(achats[i].focus_mode == Control.FOCUS_ALL, "et focalisable au clavier")
+		verifier(achats[i].get_theme_stylebox("focus") is StyleBoxFlat, "avec son filet de focus")
+	_ui.afficher(_vue(100000))
+	for b: Button in _boutons("Acheter"):
+		var normal := (b.get_theme_stylebox("normal") as StyleBoxTexture).texture
+		verifier(normal != inactif, "avec assez d'or, il redevient actif")
 
 
 func test_au_maximum_d_armes_l_achat_d_une_arme_le_dit_et_pas_celui_d_une_amelioration() -> void:

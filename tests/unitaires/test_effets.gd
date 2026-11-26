@@ -220,9 +220,19 @@ func test_le_pool_revient_a_zero_noeud_actif_et_ne_fuit_pas() -> void:
 	verifier(_effets.taille_pool() <= Effets.PLAFOND, "pool %d" % _effets.taille_pool())
 	verifier_egal(
 		_effets.get_child_count(),
-		_effets.taille_pool() + _effets.emetteurs_etincelles().size(),
-		"aucun nœud perdu"
+		_effets.taille_pool() + _effets.emetteurs_etincelles().size() + 1,
+		"aucun nœud perdu (le pool des attaques élémentaires est le « + 1 »)"
 	)
+
+
+## Les armes à signature sans élément : les six armes de la proposition D22 ont leur rendu à part
+## (`test_effets_elementaires.gd`).
+func _ids_sans_element() -> PackedStringArray:
+	var ids := PackedStringArray()
+	for id: String in SignaturesArmes.ids():
+		if ElementsArmes.de(id) == "":
+			ids.append(id)
+	return ids
 
 
 func test_chaque_texture_citee_existe() -> void:
@@ -418,7 +428,7 @@ func _sans_alpha(c: Color) -> Color:
 
 func test_chaque_arme_produit_un_tir_aux_formes_et_a_la_couleur_de_sa_signature() -> void:
 	_avec_catalogue()
-	for id: String in SignaturesArmes.ids():
+	for id: String in _ids_sans_element():
 		_effets.vider()
 		var sig: Dictionary = SignaturesArmes.de(id)
 		verifier(_effets.ajouter(_evenement_arme("tir", id, Vector2.ZERO, Vector2(300, -200))), id)
@@ -443,7 +453,7 @@ func _rendu_du_tir(id: String) -> String:
 
 func test_deux_armes_ne_produisent_jamais_le_meme_rendu() -> void:
 	_avec_catalogue()
-	var ids: PackedStringArray = SignaturesArmes.ids()
+	var ids: PackedStringArray = _ids_sans_element()
 	var rendus: Dictionary = {}
 	for id: String in ids:
 		rendus[id] = _rendu_du_tir(id)
@@ -454,7 +464,7 @@ func test_deux_armes_ne_produisent_jamais_le_meme_rendu() -> void:
 
 func test_l_impact_suit_la_signature_de_l_arme() -> void:
 	_avec_catalogue()
-	for id: String in SignaturesArmes.ids():
+	for id: String in _ids_sans_element():
 		_effets.vider()
 		var sig: Dictionary = SignaturesArmes.de(id)
 		verifier(

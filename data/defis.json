@@ -1,0 +1,386 @@
+[
+ {
+  "id": "premier_rempart",
+  "nom": "Premier rempart",
+  "texte": "Tenez jusqu’à la dixième manche.",
+  "condition": "manche_atteinte ≥ 10",
+  "skin": "tour_de_guet",
+  "mode": "les_deux"
+ },
+ {
+  "id": "mi_parcours",
+  "nom": "Mi-parcours",
+  "texte": "Tenez jusqu’à la vingtième manche.",
+  "condition": "manche_atteinte ≥ 20",
+  "skin": "tour_de_pierre",
+  "mode": "les_deux"
+ },
+ {
+  "id": "siege_leve",
+  "nom": "Siège levé",
+  "texte": "Vainquez le boss.",
+  "condition": "victoire = 1",
+  "skin": "tour_du_vainqueur",
+  "mode": "les_deux"
+ },
+ {
+  "id": "au_dela_du_boss",
+  "nom": "Au-delà du boss",
+  "texte": "Atteignez la quarante-cinquième manche en mode sans fin.",
+  "condition": "manche_atteinte ≥ 45",
+  "skin": "tour_sans_horizon",
+  "mode": "les_deux"
+ },
+ {
+  "id": "seul_tranchant",
+  "nom": "Fil du rasoir",
+  "texte": "Vainquez le boss en n’achetant que des armes tranchantes.",
+  "condition": "victoire = 1 et armes_achetees ≥ 1 et armes_type_tranchant = armes_achetees",
+  "skin": "tour_lame",
+  "mode": "les_deux"
+ },
+ {
+  "id": "seul_percant",
+  "nom": "Pointe sèche",
+  "texte": "Vainquez le boss en n’achetant que des armes perçantes.",
+  "condition": "victoire = 1 et armes_achetees ≥ 1 et armes_type_percant = armes_achetees",
+  "skin": "tour_pointe",
+  "mode": "les_deux"
+ },
+ {
+  "id": "seul_magique",
+  "nom": "Magie pure",
+  "texte": "Vainquez le boss en n’achetant que des armes magiques.",
+  "condition": "victoire = 1 et armes_achetees ≥ 1 et armes_type_magique = armes_achetees",
+  "skin": "tour_arcane",
+  "mode": "les_deux"
+ },
+ {
+  "id": "seul_siege",
+  "nom": "Maître de siège",
+  "texte": "Vainquez le boss en n’achetant que des armes de siège.",
+  "condition": "victoire = 1 et armes_achetees ≥ 1 et armes_type_siege = armes_achetees",
+  "skin": "tour_bastion",
+  "mode": "les_deux"
+ },
+ {
+  "id": "seul_chaos",
+  "nom": "Chaos assumé",
+  "texte": "Vainquez le boss en n’achetant que des armes du chaos.",
+  "condition": "victoire = 1 et armes_achetees ≥ 1 et armes_type_chaos = armes_achetees",
+  "skin": "tour_fissure",
+  "mode": "les_deux"
+ },
+ {
+  "id": "seul_cible_unique",
+  "nom": "Œil unique",
+  "texte": "Vainquez le boss en n’achetant que des armes à cible unique.",
+  "condition": "victoire = 1 et armes_achetees ≥ 1 et armes_genre_cible_unique = armes_achetees",
+  "skin": "tour_oeil",
+  "mode": "les_deux"
+ },
+ {
+  "id": "seul_zone",
+  "nom": "Maître de zone",
+  "texte": "Vainquez le boss en n’achetant que des armes de zone.",
+  "condition": "victoire = 1 et armes_achetees ≥ 1 et armes_genre_zone = armes_achetees",
+  "skin": "tour_nuee",
+  "mode": "les_deux"
+ },
+ {
+  "id": "seul_rebond",
+  "nom": "Roi du ricochet",
+  "texte": "Vainquez le boss en n’achetant que des armes à rebond.",
+  "condition": "victoire = 1 et armes_achetees ≥ 1 et armes_genre_rebond = armes_achetees",
+  "skin": "tour_ricochet",
+  "mode": "les_deux"
+ },
+ {
+  "id": "seul_onde",
+  "nom": "Houle",
+  "texte": "Vainquez le boss en n’achetant que des armes à onde.",
+  "condition": "victoire = 1 et armes_achetees ≥ 1 et armes_genre_onde = armes_achetees",
+  "skin": "tour_sonore",
+  "mode": "les_deux"
+ },
+ {
+  "id": "seul_barrage",
+  "nom": "Pluie de traits",
+  "texte": "Vainquez le boss en n’achetant que des armes à barrage.",
+  "condition": "victoire = 1 et armes_achetees ≥ 1 et armes_genre_barrage = armes_achetees",
+  "skin": "tour_salve",
+  "mode": "les_deux"
+ },
+ {
+  "id": "seul_piege",
+  "nom": "Maître des pièges",
+  "texte": "Vainquez le boss en n’achetant que des armes de piège.",
+  "condition": "victoire = 1 et armes_achetees ≥ 1 et armes_genre_piege = armes_achetees",
+  "skin": "tour_embuscade",
+  "mode": "les_deux"
+ },
+ {
+  "id": "seul_mine",
+  "nom": "Poseur de mines",
+  "texte": "Vainquez le boss en n’achetant que des armes de mine.",
+  "condition": "victoire = 1 et armes_achetees ≥ 1 et armes_genre_mine = armes_achetees",
+  "skin": "tour_sapeur",
+  "mode": "les_deux"
+ },
+ {
+  "id": "seul_aura",
+  "nom": "Rayonnement",
+  "texte": "Vainquez le boss en n’achetant que des armes d’aura.",
+  "condition": "victoire = 1 et armes_achetees ≥ 1 et armes_genre_aura = armes_achetees",
+  "skin": "tour_halo",
+  "mode": "les_deux"
+ },
+ {
+  "id": "seul_tournant",
+  "nom": "Danse des lames",
+  "texte": "Vainquez le boss en n’achetant que des armes à tir tournant.",
+  "condition": "victoire = 1 et armes_achetees ≥ 1 et armes_genre_tournant = armes_achetees",
+  "skin": "tour_manege",
+  "mode": "les_deux"
+ },
+ {
+  "id": "seul_poison",
+  "nom": "Venin pur",
+  "texte": "Vainquez le boss en n’achetant que des armes empoisonnantes.",
+  "condition": "victoire = 1 et armes_achetees ≥ 1 et armes_statut_poison = armes_achetees",
+  "skin": "tour_venimeuse",
+  "mode": "les_deux"
+ },
+ {
+  "id": "seul_brulure",
+  "nom": "Braise pure",
+  "texte": "Vainquez le boss en n’achetant que des armes incendiaires.",
+  "condition": "victoire = 1 et armes_achetees ≥ 1 et armes_statut_brulure = armes_achetees",
+  "skin": "tour_braise",
+  "mode": "les_deux"
+ },
+ {
+  "id": "seul_givre",
+  "nom": "Gel pur",
+  "texte": "Vainquez le boss en n’achetant que des armes glaçantes.",
+  "condition": "victoire = 1 et armes_achetees ≥ 1 et armes_statut_givre = armes_achetees",
+  "skin": "tour_gelee",
+  "mode": "les_deux"
+ },
+ {
+  "id": "seul_etourdissement",
+  "nom": "Coup de tonnerre",
+  "texte": "Vainquez le boss en n’achetant que des armes étourdissantes.",
+  "condition": "victoire = 1 et armes_achetees ≥ 1 et armes_statut_etourdissement = armes_achetees",
+  "skin": "tour_tonnerre",
+  "mode": "les_deux"
+ },
+ {
+  "id": "seul_vol_de_vie",
+  "nom": "Soif de sang",
+  "texte": "Vainquez le boss en n’achetant que des armes vampiriques.",
+  "condition": "victoire = 1 et armes_achetees ≥ 1 et armes_statut_vol_de_vie = armes_achetees",
+  "skin": "tour_sanguine",
+  "mode": "les_deux"
+ },
+ {
+  "id": "arme_unique",
+  "nom": "Arme unique",
+  "texte": "Vainquez le boss avec les exemplaires d’une seule arme.",
+  "condition": "victoire = 1 et armes_achetees ≥ 1 et armes_distinctes ≤ 1",
+  "skin": "tour_monolame",
+  "mode": "les_deux"
+ },
+ {
+  "id": "arme_unique_endurante",
+  "nom": "Duelliste endurant",
+  "texte": "Atteignez la vingtième manche avec les exemplaires d’une seule arme.",
+  "condition": "manche_atteinte ≥ 20 et armes_achetees ≥ 1 et armes_distinctes ≤ 1",
+  "skin": "tour_du_duelliste",
+  "mode": "les_deux"
+ },
+ {
+  "id": "bourse_pleine",
+  "nom": "Bourse pleine",
+  "texte": "Détenez vingt mille pièces d’or en même temps.",
+  "condition": "or_max_detenu ≥ 20000",
+  "skin": "tour_du_tresor",
+  "mode": "les_deux"
+ },
+ {
+  "id": "sans_rente",
+  "nom": "Sans un sou de rente",
+  "texte": "Vainquez le boss sans acheter aucune amélioration de revenu.",
+  "condition": "victoire = 1 et ameliorations_revenu_achetees = 0",
+  "skin": "tour_ascete",
+  "mode": "les_deux"
+ },
+ {
+  "id": "source_unique",
+  "nom": "Source unique",
+  "texte": "Vainquez le boss en n’achetant qu’une seule sorte de revenu.",
+  "condition": "victoire = 1 et stats_revenu_distinctes ≤ 1",
+  "skin": "tour_du_puits",
+  "mode": "les_deux"
+ },
+ {
+  "id": "thesauriseur",
+  "nom": "Thésauriseur",
+  "texte": "Atteignez la vingtième manche en dépensant au plus mille pièces d’or.",
+  "condition": "manche_atteinte ≥ 20 et or_depense ≤ 1000",
+  "skin": "tour_du_dragon_avare",
+  "mode": "les_deux"
+ },
+ {
+  "id": "primes_en_cascade",
+  "nom": "Primes en cascade",
+  "texte": "Gagnez cinquante mille pièces d’or en primes d’élimination.",
+  "condition": "or_gagne_primes ≥ 50000",
+  "skin": "tour_du_chariot",
+  "mode": "les_deux"
+ },
+ {
+  "id": "grande_fortune",
+  "nom": "Grande fortune",
+  "texte": "Gagnez cent cinquante mille pièces d’or en une partie.",
+  "condition": "or_gagne_total ≥ 150000",
+  "skin": "tour_du_banquier",
+  "mode": "les_deux"
+ },
+ {
+  "id": "pierre_sans_fissure",
+  "nom": "Pierre sans fissure",
+  "texte": "Terminez dix manches de suite sans perdre un point de vie.",
+  "condition": "manches_sans_degats_de_suite ≥ 10",
+  "skin": "tour_de_granit",
+  "mode": "les_deux"
+ },
+ {
+  "id": "a_un_cheveu",
+  "nom": "À un cheveu",
+  "texte": "Vainquez le boss après être tombé sous un dixième de vos points de vie.",
+  "condition": "victoire = 1 et pv_min_ratio ≤ 0.1",
+  "skin": "tour_rafistolee",
+  "mode": "les_deux"
+ },
+ {
+  "id": "bouclier_intact",
+  "nom": "Bouclier intact",
+  "texte": "Dotez la tour de mana avant la première manche et atteignez la trentième sans que la mana tombe à 0.",
+  "condition": "mana_max_avant_manche_1 > 0 et manche_atteinte ≥ 30 et chutes_bouclier_mana = 0",
+  "skin": "tour_du_bouclier",
+  "mode": "les_deux"
+ },
+ {
+  "id": "sans_soin",
+  "nom": "Sans soin",
+  "texte": "Vainquez le boss sans que la tour ne récupère un seul point de vie.",
+  "condition": "victoire = 1 et pv_soignes = 0",
+  "skin": "tour_cicatrisee",
+  "mode": "les_deux"
+ },
+ {
+  "id": "mains_nues",
+  "nom": "Mains nues",
+  "texte": "Atteignez la vingtième manche sans acheter une seule amélioration.",
+  "condition": "manche_atteinte ≥ 20 et ameliorations_achetees = 0",
+  "skin": "tour_nue",
+  "mode": "les_deux"
+ },
+ {
+  "id": "fauchage",
+  "nom": "Fauchage",
+  "texte": "Éliminez cinquante ennemis en cinq secondes.",
+  "condition": "serie_eliminations_5s ≥ 50",
+  "skin": "tour_a_faux",
+  "mode": "les_deux"
+ },
+ {
+  "id": "arsenal_complet",
+  "nom": "Arsenal complet",
+  "texte": "Équipez huit armes en même temps.",
+  "condition": "armes_equipees_max ≥ 8",
+  "skin": "tour_arsenal",
+  "mode": "les_deux"
+ },
+ {
+  "id": "haie_d_epines",
+  "nom": "Haie d’épines",
+  "texte": "Renvoyez cinquante mille points de dégâts avec vos épines.",
+  "condition": "degats_epines ≥ 50000",
+  "skin": "tour_de_ronces",
+  "mode": "les_deux"
+ },
+ {
+  "id": "dernier_debout",
+  "nom": "Dernier debout",
+  "texte": "Soyez la dernière tour debout d’une partie à plusieurs.",
+  "condition": "dernier_rempart = 1",
+  "skin": "tour_survivante",
+  "mode": "multijoueur"
+ },
+ {
+  "id": "habitue",
+  "nom": "Habitué",
+  "texte": "Jouez dix parties.",
+  "condition": "parties ≥ 10",
+  "skin": "tour_familiere",
+  "mode": "les_deux"
+ },
+ {
+  "id": "veteran",
+  "nom": "Vétéran",
+  "texte": "Jouez cinquante parties.",
+  "condition": "parties ≥ 50",
+  "skin": "tour_veterane",
+  "mode": "les_deux"
+ },
+ {
+  "id": "conquerant",
+  "nom": "Conquérant",
+  "texte": "Vainquez cinq fois le boss.",
+  "condition": "cumul_victoires ≥ 5",
+  "skin": "tour_conquerante",
+  "mode": "les_deux"
+ },
+ {
+  "id": "faucheur_de_masse",
+  "nom": "Faucheur de masse",
+  "texte": "Éliminez cent mille ennemis, toutes parties confondues.",
+  "condition": "cumul_eliminations ≥ 100000",
+  "skin": "tour_ossuaire",
+  "mode": "les_deux"
+ },
+ {
+  "id": "banquier",
+  "nom": "Banquier",
+  "texte": "Gagnez un million de pièces d’or, toutes parties confondues.",
+  "condition": "cumul_or_gagne ≥ 1000000",
+  "skin": "tour_comptoir",
+  "mode": "les_deux"
+ },
+ {
+  "id": "endurant",
+  "nom": "Endurant",
+  "texte": "Survivez à cinq cents manches, toutes parties confondues.",
+  "condition": "cumul_manches ≥ 500",
+  "skin": "tour_eternelle",
+  "mode": "les_deux"
+ },
+ {
+  "id": "compagnon_de_table",
+  "nom": "Compagnon de table",
+  "texte": "Jouez dix parties à plusieurs.",
+  "condition": "cumul_parties_multijoueur ≥ 10",
+  "skin": "tour_de_la_table_ronde",
+  "mode": "multijoueur"
+ },
+ {
+  "id": "maitre_des_remparts",
+  "nom": "Maître des remparts",
+  "texte": "Soyez trois fois la dernière tour debout.",
+  "condition": "cumul_dernier_rempart ≥ 3",
+  "skin": "tour_du_dernier_rempart",
+  "mode": "multijoueur"
+ }
+]

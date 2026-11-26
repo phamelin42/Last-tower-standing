@@ -584,6 +584,9 @@ func _afficher_carte(i: int, offre: Dictionary, vue: VueArene) -> void:
 	_cartes[i].tooltip_text = _infobulle(entree, genre)
 	_prix[i].text = tr("BOUTIQUE_PRIX") % Nombres.groupe(prix)
 	var notes: Array[String] = []
+	_achats[i].theme_type_variation = (
+		ThemeJeu.TYPE_ACHAT_INSUFFISANT if not vendu and vue.argent < prix else ThemeJeu.TYPE_ACHAT
+	)
 	if vendu:
 		notes.append(tr("BOUTIQUE_VENDU"))
 		_cartes[i].modulate.a = OPACITE_VENDUE
