@@ -31,8 +31,8 @@ func avant_chaque() -> void:
 		_traduction.add_message(cle, texte)
 	TranslationServer.add_translation(_traduction)
 	TranslationServer.set_locale("fr")
-	_lier_action(ObservationUi.ACTION_SUIVANT, KEY_RIGHT)
-	_lier_action(ObservationUi.ACTION_PRECEDENT, KEY_LEFT)
+	_lier_action(ObservationUi.ACTION_SUIVANT, KEY_PAGEDOWN)
+	_lier_action(ObservationUi.ACTION_PRECEDENT, KEY_PAGEUP)
 	_source = SourceFactice.new()
 	arbre.root.add_child(_source)
 	_ui = (load(SCENE) as PackedScene).instantiate() as ObservationUi
@@ -228,11 +228,11 @@ func test_suivant_et_precedent_bouclent_sur_les_vivants() -> void:
 	_ui.afficher(_vue(8, vivants), LOCAL, 2)
 	_source.appels.clear()
 	for i: int in 4:
-		_toucher(KEY_RIGHT)
+		_toucher(KEY_PAGEDOWN)
 	verifier(_observations() == [4, 5, 8, 2], "suivant : reçu %s" % str(_observations()))
 	_source.appels.clear()
 	for i: int in 4:
-		_toucher(KEY_LEFT)
+		_toucher(KEY_PAGEUP)
 	verifier(_observations() == [8, 5, 4, 2], "précédent : reçu %s" % str(_observations()))
 
 
@@ -249,17 +249,45 @@ func test_touches_ignorees_si_un_champ_a_le_focus() -> void:
 	_champ = LineEdit.new()
 	arbre.root.add_child(_champ)
 	_ui.lecteur_focus = func() -> Control: return _champ
-	_toucher(KEY_RIGHT)
+	_toucher(KEY_PAGEDOWN)
 	verifier(_observations().is_empty(), "une saisie dans un champ ne change pas d'arène")
 	_ui.lecteur_focus = func() -> Control: return null
-	_toucher(KEY_RIGHT)
+	_toucher(KEY_PAGEDOWN)
 	verifier(_observations() == [3], "sans champ focalisé, la touche fonctionne")
+
+
+## T8.20 : les flèches et WASD déplacent la vue (`camera_*`) ; l'observation ne doit pas changer
+## d'arène en même temps. Les touches de `project.godot` ne se recoupent donc pas, et une flèche
+## ne fait jamais changer d'arène.
+func test_les_touches_d_observation_ne_sont_pas_celles_de_la_camera() -> void:
+	InputMap.load_from_project_settings()
+	var cameras: Array[String] = [
+		"camera_gauche", "camera_droite", "camera_haut", "camera_bas", "camera_recentrer"
+	]
+	var codes_camera: Array[Key] = []
+	for action: String in cameras:
+		verifier(InputMap.has_action(action), "action %s déclarée" % action)
+		for evenement: InputEvent in InputMap.action_get_events(action):
+			codes_camera.append((evenement as InputEventKey).physical_keycode)
+	for action: String in [ObservationUi.ACTION_SUIVANT, ObservationUi.ACTION_PRECEDENT]:
+		verifier(InputMap.has_action(action), "action %s déclarée" % action)
+		var evenements := InputMap.action_get_events(action)
+		verifier(not evenements.is_empty(), "%s a une touche" % action)
+		for evenement: InputEvent in evenements:
+			var code: Key = (evenement as InputEventKey).physical_keycode
+			verifier(not codes_camera.has(code), "%s partage une touche de la caméra" % action)
+	# Une flèche, même avec l'observation affichée, n'envoie aucune demande d'observation.
+	_ui.afficher(_vue(4, [2, 3, 4]), LOCAL, 2)
+	_source.appels.clear()
+	for touche: Key in [KEY_LEFT, KEY_RIGHT, KEY_UP, KEY_DOWN]:
+		_toucher(touche)
+	verifier(_observations().is_empty(), "les flèches ne changent pas d'arène")
 
 
 func test_touches_ignorees_tant_que_le_joueur_local_vit() -> void:
 	_ui.afficher(_vue(4, [1, 2, 3, 4]), LOCAL, 2)
-	_toucher(KEY_RIGHT)
-	_toucher(KEY_LEFT)
+	_toucher(KEY_PAGEDOWN)
+	_toucher(KEY_PAGEUP)
 	verifier(_source.appels.is_empty(), "aucune navigation pendant que la joueuse vit")
 
 
@@ -277,8 +305,8 @@ func test_tout_le_monde_elimine_le_dit_en_texte_sans_erreur() -> void:
 			message == TranslationServer.translate("OBSERVATION_PERSONNE"),
 			"%d joueurs éliminés : message attendu, reçu « %s »" % [n, message]
 		)
-		_toucher(KEY_RIGHT)
-		_toucher(KEY_LEFT)
+		_toucher(KEY_PAGEDOWN)
+		_toucher(KEY_PAGEUP)
 		verifier(_source.appels.is_empty(), "%d joueurs éliminés : pas d'intention" % n)
 
 

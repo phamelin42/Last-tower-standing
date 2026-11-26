@@ -25,5 +25,11 @@
 		"budget_octets_s": 50000
 	},
 	"vagues": {"part_majoritaire": 0.6, "familles_min": 2, "familles_max": 3},
-	"convoi": {"probabilite": 0.08, "manche_min": 4}
+	"convoi": {"probabilite": 0.08, "manche_min": 4},
+	"vulnerabilite": {"plafond": 0.5, "duree_max": 10.0},
+	"malediction": {"plafond": 0.75},
+	"repoussement": {"distance_max": 400.0, "facteur_boss": 0.0},
+	"limites": {"allies": 64, "zones": 32, "bombes": 32},
+	"armes": {"bonus_selon_stat_max": 4.0},
+	"ameliorations": {"facteur_degats_max": 20.0, "croissance_pas_s": 30.0}
 }

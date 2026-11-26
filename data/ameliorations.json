@@ -6,6 +6,7 @@
   "rarete": "commune",
   "prix": 70,
   "categorie": "amelioration",
+  "famille": "degats_type",
   "effets": [
    {
     "stat": "degats_type",
@@ -22,6 +23,7 @@
   "rarete": "commune",
   "prix": 70,
   "categorie": "amelioration",
+  "famille": "degats_type",
   "effets": [
    {
     "stat": "degats_type",
@@ -38,6 +40,7 @@
   "rarete": "commune",
   "prix": 75,
   "categorie": "amelioration",
+  "famille": "degats_type",
   "effets": [
    {
     "stat": "degats_type",
@@ -54,6 +57,7 @@
   "rarete": "commune",
   "prix": 75,
   "categorie": "amelioration",
+  "famille": "degats_type",
   "effets": [
    {
     "stat": "degats_type",
@@ -70,6 +74,7 @@
   "rarete": "commune",
   "prix": 70,
   "categorie": "amelioration",
+  "famille": "degats_type",
   "effets": [
    {
     "stat": "degats_type",
@@ -86,6 +91,7 @@
   "rarete": "rare",
   "prix": 450,
   "categorie": "amelioration",
+  "famille": "degats_type",
   "effets": [
    {
     "stat": "degats_type",
@@ -102,6 +108,7 @@
   "rarete": "rare",
   "prix": 450,
   "categorie": "amelioration",
+  "famille": "degats_type",
   "effets": [
    {
     "stat": "degats_type",
@@ -118,6 +125,7 @@
   "rarete": "rare",
   "prix": 460,
   "categorie": "amelioration",
+  "famille": "degats_type",
   "effets": [
    {
     "stat": "degats_type",
@@ -134,6 +142,7 @@
   "rarete": "rare",
   "prix": 460,
   "categorie": "amelioration",
+  "famille": "degats_type",
   "effets": [
    {
     "stat": "degats_type",
@@ -150,6 +159,7 @@
   "rarete": "rare",
   "prix": 450,
   "categorie": "amelioration",
+  "famille": "degats_type",
   "effets": [
    {
     "stat": "degats_type",
@@ -166,6 +176,7 @@
   "rarete": "peu_commune",
   "prix": 260,
   "categorie": "amelioration",
+  "famille": "degats_global",
   "effets": [
    {
     "stat": "degats_global",
@@ -181,6 +192,7 @@
   "rarete": "epique",
   "prix": 900,
   "categorie": "amelioration",
+  "famille": "degats_global",
   "effets": [
    {
     "stat": "degats_global",
@@ -196,6 +208,7 @@
   "rarete": "commune",
   "prix": 80,
   "categorie": "amelioration",
+  "famille": "pv_max",
   "effets": [
    {
     "stat": "pv_max",
@@ -210,6 +223,7 @@
   "rarete": "peu_commune",
   "prix": 240,
   "categorie": "amelioration",
+  "famille": "pv_max",
   "effets": [
    {
     "stat": "pv_max",
@@ -224,6 +238,7 @@
   "rarete": "commune",
   "prix": 90,
   "categorie": "amelioration",
+  "famille": "regeneration",
   "effets": [
    {
     "stat": "regen",
@@ -238,6 +253,7 @@
   "rarete": "rare",
   "prix": 480,
   "categorie": "amelioration",
+  "famille": "regeneration",
   "effets": [
    {
     "stat": "regen",
@@ -252,6 +268,7 @@
   "rarete": "commune",
   "prix": 90,
   "categorie": "amelioration",
+  "famille": "armure",
   "effets": [
    {
     "stat": "armure",
@@ -266,6 +283,7 @@
   "rarete": "peu_commune",
   "prix": 280,
   "categorie": "amelioration",
+  "famille": "armure",
   "effets": [
    {
     "stat": "armure",
@@ -280,6 +298,7 @@
   "rarete": "peu_commune",
   "prix": 260,
   "categorie": "amelioration",
+  "famille": "esquive",
   "effets": [
    {
     "stat": "esquive",
@@ -294,6 +313,7 @@
   "rarete": "commune",
   "prix": 100,
   "categorie": "amelioration",
+  "famille": "epines",
   "effets": [
    {
     "stat": "epines",
@@ -308,6 +328,7 @@
   "rarete": "rare",
   "prix": 440,
   "categorie": "amelioration",
+  "famille": "epines",
   "effets": [
    {
     "stat": "epines",
@@ -322,6 +343,7 @@
   "rarete": "peu_commune",
   "prix": 240,
   "categorie": "amelioration",
+  "famille": "critique",
   "effets": [
    {
     "stat": "critique_chance",
@@ -336,6 +358,7 @@
   "rarete": "rare",
   "prix": 500,
   "categorie": "amelioration",
+  "famille": "critique",
   "effets": [
    {
     "stat": "critique_chance",
@@ -350,6 +373,7 @@
   "rarete": "peu_commune",
   "prix": 250,
   "categorie": "amelioration",
+  "famille": "cadence",
   "effets": [
    {
     "stat": "cadence",
@@ -364,6 +388,7 @@
   "rarete": "epique",
   "prix": 850,
   "categorie": "amelioration",
+  "famille": "cadence",
   "effets": [
    {
     "stat": "cadence",
@@ -378,6 +403,7 @@
   "rarete": "rare",
   "prix": 520,
   "categorie": "amelioration",
+  "famille": "degats_classe",
   "effets": [
    {
     "stat": "tirs_multiples",
@@ -392,6 +418,7 @@
   "rarete": "peu_commune",
   "prix": 270,
   "categorie": "amelioration",
+  "famille": "degats_classe",
   "effets": [
    {
     "stat": "eclaboussure",
@@ -406,6 +433,7 @@
   "rarete": "peu_commune",
   "prix": 250,
   "categorie": "amelioration",
+  "famille": "degats_classe",
   "effets": [
    {
     "stat": "focalisation",
@@ -420,6 +448,7 @@
   "rarete": "peu_commune",
   "prix": 280,
   "categorie": "amelioration",
+  "famille": "regeneration",
   "effets": [
    {
     "stat": "vol_de_vie_coup",
@@ -434,6 +463,7 @@
   "rarete": "rare",
   "prix": 400,
   "categorie": "amelioration",
+  "famille": "regeneration",
   "effets": [
    {
     "stat": "vol_de_vie_mort",
@@ -448,6 +478,7 @@
   "rarete": "commune",
   "prix": 90,
   "categorie": "revenu",
+  "famille": "revenu",
   "effets": [
    {
     "stat": "revenu_fixe",
@@ -462,6 +493,7 @@
   "rarete": "rare",
   "prix": 450,
   "categorie": "revenu",
+  "famille": "revenu",
   "effets": [
    {
     "stat": "revenu_fixe",
@@ -476,6 +508,7 @@
   "rarete": "peu_commune",
   "prix": 280,
   "categorie": "revenu",
+  "famille": "revenu",
   "effets": [
    {
     "stat": "revenu_croissant",
@@ -490,6 +523,7 @@
   "rarete": "rare",
   "prix": 480,
   "categorie": "revenu",
+  "famille": "revenu",
   "effets": [
    {
     "stat": "revenu_mult",
@@ -504,6 +538,7 @@
   "rarete": "epique",
   "prix": 900,
   "categorie": "revenu",
+  "famille": "revenu",
   "effets": [
    {
     "stat": "revenu_mult",
@@ -518,6 +553,7 @@
   "rarete": "peu_commune",
   "prix": 270,
   "categorie": "revenu",
+  "famille": "revenu",
   "effets": [
    {
     "stat": "prime_mult",
@@ -532,6 +568,7 @@
   "rarete": "rare",
   "prix": 500,
   "categorie": "revenu",
+  "famille": "revenu",
   "effets": [
    {
     "stat": "prime_mult",
@@ -546,6 +583,7 @@
   "rarete": "peu_commune",
   "prix": 260,
   "categorie": "revenu",
+  "famille": "revenu",
   "effets": [
    {
     "stat": "bonus_elim",
@@ -561,6 +599,7 @@
   "rarete": "commune",
   "prix": 110,
   "categorie": "amelioration",
+  "famille": "boutique",
   "effets": [
    {
     "stat": "relance_gratuite",
@@ -575,6 +614,7 @@
   "rarete": "peu_commune",
   "prix": 300,
   "categorie": "amelioration",
+  "famille": "boutique",
   "effets": [
    {
     "stat": "marche_noir",
@@ -589,6 +629,7 @@
   "rarete": "commune",
   "prix": 80,
   "categorie": "amelioration",
+  "famille": "mana",
   "effets": [
    {
     "stat": "mana_max",
@@ -603,6 +644,7 @@
   "rarete": "peu_commune",
   "prix": 240,
   "categorie": "amelioration",
+  "famille": "mana",
   "effets": [
    {
     "stat": "mana_max",
@@ -617,6 +659,7 @@
   "rarete": "commune",
   "prix": 90,
   "categorie": "amelioration",
+  "famille": "mana",
   "effets": [
    {
     "stat": "mana_regen",

@@ -462,18 +462,21 @@ func _construire_carte(i: int) -> PanelContainer:
 	rarete.autowrap_mode = TextServer.AUTOWRAP_OFF
 	prix.add_theme_color_override("font_color", ThemeJeu.LAITON_CLAIR)
 	haut.add_child(rarete)
-	haut.add_child(prix)
 	# La colonne de texte n'a plus que la largeur laissée par l'image : le nom passe à la ligne.
 	nom.custom_minimum_size = Vector2(LARGEUR_MOT_NOM, _hauteur_ligne())
 	nom.add_theme_color_override("font_color", ThemeJeu.LAITON_CLAIR)
 	textes.add_child(nom)
-	# La note (vendu, déjà équipée…) n'occupe de place que lorsqu'elle a un texte.
-	note.autowrap_mode = TextServer.AUTOWRAP_OFF
+	# Le prix se range sous le nom, dans la colonne à droite de l'image : la rangée de la rareté
+	# ne le fait plus passer à la ligne, et la note « Or insuffisant » trouve sa place sous
+	# l'en-tête sans rendre le bandeau plus haut que 45 % de la fenêtre.
+	textes.add_child(prix)
+	# La note (vendu, déjà équipée, or insuffisant…) n'occupe de place que lorsqu'elle a un texte. Elle
+	# prend la largeur de la carte, sous l'en-tête : dans la colonne à droite de l'image, « Or
+	# insuffisant » se rognait (« Or insuffi… ») à 125 %, et à la ligne il coûtait deux lignes.
+	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	note.custom_minimum_size.x = 0.0
-	note.clip_text = true
-	note.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	note.add_theme_color_override("font_color", ThemeJeu.PARCHEMIN_ATTENU)
-	textes.add_child(note)
+	colonne.add_child(note)
 	# Carte compacte (D13) : l'effet entier et l'ambiance se lisent dans l'infobulle de la carte.
 	var achat := _bouton(Callable(self, "acheter_offre").bind(i))
 	achat.text = tr("BOUTIQUE_ACHETER")

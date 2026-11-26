@@ -9,8 +9,10 @@ signal salon_mis_a_jour(salon: Salon)
 signal partie_demarree
 ## Refus, serveur injoignable ou perdu. Une seule émission par session.
 signal connexion_perdue(motif: String)
-## La redirection UPnP est tentée (réussie ou non) : le port externe obtenu, 0 si échec. Émis une
-## seule fois par `heberger`.
+## La redirection UPnP est tentée (réussie ou non) : le port externe obtenu, 0 si échec, et 0 aussi
+## quand la box n'a pas répondu dans `delai_upnp_max` (l'annonce part alors avec le port local).
+## Une réponse tardive réussie émet une seconde fois, avec le port obtenu ; un échec tardif
+## n'émet rien de plus.
 signal tentative_upnp_terminee(port_externe: int)
 ## Le client local est dans le salon et en est l'hôte. Émis une seule fois par `heberger` : c'est
 ## le feu vert de l'annuaire (un salon listé a un hôte présent).
@@ -21,6 +23,8 @@ signal hote_enregistre
 signal annonce_repondue(statut: int)
 
 const ADRESSE_LOCALE := "127.0.0.1"
+## Combien de temps la première annonce attend la tentative UPnP (ADR 001, décision 21).
+const DELAI_UPNP_MAX_S := 10.0
 
 var client: Client = null
 var serveur: Serveur = null
@@ -40,6 +44,8 @@ var port_externe: int = 0
 ## valeur nulle (aucune redirection) est celle du mode sans fenêtre : ni les tests ni un serveur
 ## sans écran n'interrogent le réseau de la machine.
 var fabrique_passerelle: Callable = _passerelle_par_defaut
+## Attente maximale de la tentative UPnP avant d'annoncer le port local : réglable par les tests.
+var delai_upnp_max: float = DELAI_UPNP_MAX_S
 ## `hote:port` de l'annuaire et choix « Partie publique » : réglés avant `heberger`. Sans adresse
 ## ou sans la case, rien n'est jamais envoyé.
 var annuaire_adresse: String = ""
@@ -52,6 +58,11 @@ var _apis: Array[SceneMultiplayer] = []
 var _perdue: bool = false
 var _hote_enregistre: bool = false
 var _upnp_terminee: bool = false
+## Le délai a déjà dit « 0 » à l'hôte : un échec tardif de la box ne le répète pas.
+var _delai_upnp_depasse: bool = false
+## Décompte de la tentative UPnP. Un `Timer` enfant plutôt qu'un `SceneTreeTimer` : ce dernier ne
+## s'annule pas, et son échéance réveillerait une session fermée ou hébergée à nouveau.
+var _decompte_upnp: Timer = null
 
 
 ## Le motif lisible d'une erreur de création (port occupé, port invalide, données absentes).
@@ -87,6 +98,7 @@ func heberger(
 	fermer()
 	_hote_enregistre = false
 	_upnp_terminee = false
+	_delai_upnp_depasse = false
 	var tirage: Variant = source_octets.call(Protocole.JETON_OCTETS)
 	# Un jeton absent ou de mauvaise taille ferait retomber le salon sur « le premier pair est
 	# hôte » : on n'ouvre rien plutôt que de laisser un pair distant prendre le rôle.
@@ -136,6 +148,7 @@ func fermer() -> void:
 	_arreter_annonce_annuaire()
 	_hote_enregistre = false
 	_upnp_terminee = false
+	_delai_upnp_depasse = false
 	if decouverte != null:
 		decouverte.arreter()
 		remove_child(decouverte)
@@ -180,10 +193,16 @@ func _ouvrir_port(port_jeu: int) -> void:
 	upnp.tentative_terminee.connect(_sur_tentative_upnp)
 	add_child(upnp)
 	upnp.demarrer(port_jeu)
+	_decompte_upnp = Timer.new()
+	_decompte_upnp.one_shot = true
+	_decompte_upnp.timeout.connect(_sur_delai_upnp)
+	add_child(_decompte_upnp)
+	_decompte_upnp.start(delai_upnp_max)
 
 
 func _fermer_port() -> void:
 	port_externe = 0
+	_arreter_decompte_upnp()
 	if upnp == null:
 		return
 	var u := upnp
@@ -195,7 +214,33 @@ func _fermer_port() -> void:
 	u.queue_free()
 
 
+func _arreter_decompte_upnp() -> void:
+	if _decompte_upnp == null:
+		return
+	var d := _decompte_upnp
+	_decompte_upnp = null
+	d.stop()
+	remove_child(d)
+	d.queue_free()
+
+
+## La box n'a pas fini à temps (décision 21) : on la tient pour muette, l'hôte le voit, et le salon
+## est annoncé avec le port local. Sa réponse tardive, si elle vient, met le port à jour.
+func _sur_delai_upnp() -> void:
+	_arreter_decompte_upnp()
+	if _upnp_terminee:
+		return
+	_delai_upnp_depasse = true
+	_upnp_terminee = true
+	port_externe = 0
+	tentative_upnp_terminee.emit(0)
+	_essayer_annonce_annuaire()
+
+
 func _sur_tentative_upnp(port_obtenu: int) -> void:
+	_arreter_decompte_upnp()
+	if _delai_upnp_depasse and port_obtenu <= 0:
+		return
 	port_externe = port_obtenu
 	_upnp_terminee = true
 	tentative_upnp_terminee.emit(port_obtenu)

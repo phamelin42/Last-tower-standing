@@ -53,6 +53,16 @@ var gel: PackedFloat32Array = PackedFloat32Array()
 var etourdi: PackedFloat32Array = PackedFloat32Array()
 var givre_cumuls: PackedInt32Array = PackedInt32Array()
 var givre_t: PackedFloat32Array = PackedFloat32Array()
+## Bonus de dégâts subis par type (`Types.TypeDegats`), cinq valeurs par ennemi rangées à plat
+## (`i × 5 + type`) ; `vuln_reste` est la durée commune qui leur reste, à zéro ils retombent tous.
+var vulnerabilite: PackedFloat32Array = PackedFloat32Array()
+var vuln_reste: PackedFloat32Array = PackedFloat32Array()
+## Réduction des dégâts de l'ennemi et réduction moyenne de ses chances de toucher, avec la durée
+## qui reste à chacune.
+var maudit_degats: PackedFloat32Array = PackedFloat32Array()
+var maudit_degats_t: PackedFloat32Array = PackedFloat32Array()
+var maudit_toucher: PackedFloat32Array = PackedFloat32Array()
+var maudit_toucher_t: PackedFloat32Array = PackedFloat32Array()
 
 var _donnees: Donnees
 var _table_efficacite: Array
@@ -60,6 +70,11 @@ var _gel_max: float
 var _cumuls_max: int
 var _givre_par_cumul: float
 var _givre_plafond: float
+var _vuln_plafond: float
+var _vuln_duree_max: float
+var _maudit_plafond: float
+var _repousse_max: float
+var _rayon_spawn: float
 var _suivant: int = 0
 ## Plus petit carré de distance d'un vivant à `_centre_d2` (-1 : à recalculer). Les armes prêtes
 ## mais sans cible rebalayaient chaque pas tous les ennemis : avec quarante armes, cela coûtait
@@ -80,6 +95,14 @@ func _init(donnees: Donnees) -> void:
 	_cumuls_max = int(givre["cumuls_max"])
 	_givre_par_cumul = float(givre["ralentissement_par_cumul"])
 	_givre_plafond = float(givre["plafond"])
+	var vuln: Dictionary = donnees.partie["vulnerabilite"]
+	_vuln_plafond = float(vuln["plafond"])
+	_vuln_duree_max = float(vuln["duree_max"])
+	var maudit: Dictionary = donnees.partie["malediction"]
+	_maudit_plafond = float(maudit["plafond"])
+	var repousse: Dictionary = donnees.partie["repoussement"]
+	_repousse_max = float(repousse["distance_max"])
+	_rayon_spawn = float(donnees.partie["rayon_spawn"])
 
 
 ## Identifiant stable et croissant, jamais réutilisé ; -1 (sans consommer d'identifiant) si
@@ -130,6 +153,13 @@ func ajouter(
 	etourdi.append(0.0)
 	givre_cumuls.append(0)
 	givre_t.append(0.0)
+	for _t: int in 5:
+		vulnerabilite.append(0.0)
+	vuln_reste.append(0.0)
+	maudit_degats.append(0.0)
+	maudit_degats_t.append(0.0)
+	maudit_toucher.append(0.0)
+	maudit_toucher_t.append(0.0)
 	return id
 
 
@@ -168,14 +198,75 @@ func _tuer(i: int) -> void:
 func infliger(i: int, montant: float, type_degats: int) -> float:
 	if not _vivant(i) or not montant > 0.0:
 		return 0.0
+	# La vulnérabilité du type passe avant l'efficacité contre l'armure.
+	var vuln := 0.0
+	if type_degats >= 0 and type_degats < 5:
+		vuln = vulnerabilite[i * 5 + type_degats]
 	var apres := (
-		minf(montant, DEGATS_MAX) * Combat.efficacite(_table_efficacite, type_degats, armure[i])
+		minf(montant * (1.0 + vuln), DEGATS_MAX)
+		* Combat.efficacite(_table_efficacite, type_degats, armure[i])
 	)
 	var reels := minf(apres, pv[i])
 	pv[i] -= apres
 	if pv[i] <= 0.0:
 		_tuer(i)
 	return reels
+
+
+## Vulnérabilité : `ratio` s'ajoute aux dégâts subis du type, la somme est plafonnée par type et par
+## ennemi ; la durée commune se rafraîchit (jamais additionnée) jusqu'à `duree_max`. Un ratio ou une
+## durée non finis, nuls ou négatifs, un mort et un type inconnu sont ignorés.
+func vulnerabiliser(i: int, type_degats: int, ratio: float, duree: float) -> void:
+	if not _vivant(i) or type_degats < 0 or type_degats >= 5:
+		return
+	if not _dot_valide(ratio, duree):
+		return
+	var k := i * 5 + type_degats
+	vulnerabilite[k] = minf(vulnerabilite[k] + ratio, _vuln_plafond)
+	vuln_reste[i] = maxf(vuln_reste[i], minf(duree, _vuln_duree_max))
+	_recalculer_bits(i)
+
+
+## Malédiction de dégâts : l'ennemi inflige `1 − ratio` de ses dégâts. Non cumulable : le plus fort
+## l'emporte (plafond `malediction.plafond`), la durée se rafraîchit.
+func maudire_degats(i: int, ratio: float, duree: float) -> void:
+	if not _vivant(i) or not _dot_valide(ratio, duree):
+		return
+	maudit_degats[i] = maxf(maudit_degats[i], minf(ratio, _maudit_plafond))
+	maudit_degats_t[i] = maxf(maudit_degats_t[i], duree)
+	_recalculer_bits(i)
+
+
+## Malédiction de toucher : ses attaques échouent `ratio` du temps, en moyenne (réduction des
+## dégâts, sans tirage). Mêmes règles que `maudire_degats`.
+func maudire_toucher(i: int, ratio: float, duree: float) -> void:
+	if not _vivant(i) or not _dot_valide(ratio, duree):
+		return
+	maudit_toucher[i] = maxf(maudit_toucher[i], minf(ratio, _maudit_plafond))
+	maudit_toucher_t[i] = maxf(maudit_toucher_t[i], duree)
+	_recalculer_bits(i)
+
+
+## Recul immédiat de `distance` (au plus `distance_max`, multipliée par `facteur`) à l'opposé de
+## `depuis` (la tour). Jamais hors du cercle d'apparition : un ennemi déjà au-delà ne bouge pas.
+## Sur la tour, la direction est fixe (vers la droite) plutôt qu'indéfinie.
+func repousser(i: int, distance: float, depuis: Vector2, facteur: float) -> void:
+	if not _vivant(i) or not distance > 0.0 or not is_finite(distance):
+		return
+	if not facteur > 0.0 or not is_finite(facteur):
+		return
+	if not is_finite(depuis.x) or not is_finite(depuis.y):
+		return
+	var recul := minf(distance, _repousse_max) * facteur
+	var depart := pos[i]
+	var direction := depart - depuis
+	var loin := direction.length()
+	direction = direction / loin if loin > 0.0 else Vector2.RIGHT
+	var place := _rayon_spawn - loin
+	if place <= 0.0:
+		return
+	pos[i] = depart + direction * minf(recul, place)
+	_d2_min = -1.0
 
 
 func empoisonner(i: int, total: float, duree: float) -> void:
@@ -241,6 +332,10 @@ func _recalculer_bits(i: int) -> void:
 		bits |= Types.STATUT_BRULE
 	if etourdi[i] > 0.0:
 		bits |= Types.STATUT_ETOURDI
+	if vuln_reste[i] > 0.0:
+		bits |= Types.STATUT_VULNERABLE
+	if maudit_degats_t[i] > 0.0 or maudit_toucher_t[i] > 0.0:
+		bits |= Types.STATUT_MAUDIT
 	statuts[i] = bits
 
 
@@ -278,6 +373,23 @@ func _avancer_statuts(i: int, dt: float) -> void:
 			givre_t[i] -= 1.0
 		if givre_cumuls[i] == 0:
 			givre_t[i] = 0.0
+	if vuln_reste[i] > 0.0:
+		vuln_reste[i] = vuln_reste[i] - dt if vuln_reste[i] - dt > EPSILON_TEMPS else 0.0
+		if vuln_reste[i] == 0.0:
+			for t: int in 5:
+				vulnerabilite[i * 5 + t] = 0.0
+	if maudit_degats_t[i] > 0.0:
+		maudit_degats_t[i] = (
+			maudit_degats_t[i] - dt if maudit_degats_t[i] - dt > EPSILON_TEMPS else 0.0
+		)
+		if maudit_degats_t[i] == 0.0:
+			maudit_degats[i] = 0.0
+	if maudit_toucher_t[i] > 0.0:
+		maudit_toucher_t[i] = (
+			maudit_toucher_t[i] - dt if maudit_toucher_t[i] - dt > EPSILON_TEMPS else 0.0
+		)
+		if maudit_toucher_t[i] == 0.0:
+			maudit_toucher[i] = 0.0
 	_recalculer_bits(i)
 	if perdu > 0.0:
 		pv[i] -= perdu
@@ -339,20 +451,34 @@ func avancer(
 			# Au contact : un seul coup, tout de suite, puis l'ennemi disparaît sans prime. Il n'est
 			# pas un attaquant au corps à corps : ses dégâts rejoignent ceux à distance (une
 			# esquive possible, aucune épine).
-			degats_tour += degats[i] * deg_mult
+			degats_tour += degats[i] * deg_mult * _facteur_malediction(i)
 			explosions.append(i)
 			sans_prime[i] = 1
 			_tuer(i)
 			continue
 		var cd: float = attaque_cd[i] - dt
 		if cd <= 0.0 and degats[i] > 0.0 and intervalle[i] > 0.0:
-			degats_tour += degats[i] * deg_mult
+			degats_tour += degats[i] * deg_mult * _facteur_malediction(i)
 			if corps_a_corps:
 				attaquants.append(i)
 			cd = intervalle[i]
 		attaque_cd[i] = maxf(cd, 0.0)
 	resultat["degats_tour"] = degats_tour
 	return resultat
+
+
+## Dégâts d'une attaque de l'ennemi `i` une fois maudit : ce que l'arène compte pour chaque
+## attaquant au corps à corps, d'accord avec `degats_tour`.
+func degats_effectifs(i: int) -> float:
+	if not _vivant(i):
+		return 0.0
+	return degats[i] * _facteur_malediction(i)
+
+
+## Part des dégâts de l'ennemi qui passe encore : `(1 − réduction) × (1 − chances de toucher
+## perdues)`, jamais négative.
+func _facteur_malediction(i: int) -> float:
+	return (1.0 - maudit_degats[i]) * (1.0 - maudit_toucher[i])
 
 
 ## Indices des vivants à portée du centre, par identifiant croissant (l'ordre des indices ne
@@ -480,6 +606,13 @@ func _copier(de: int, vers: int) -> void:
 	etourdi[vers] = etourdi[de]
 	givre_cumuls[vers] = givre_cumuls[de]
 	givre_t[vers] = givre_t[de]
+	for t: int in 5:
+		vulnerabilite[vers * 5 + t] = vulnerabilite[de * 5 + t]
+	vuln_reste[vers] = vuln_reste[de]
+	maudit_degats[vers] = maudit_degats[de]
+	maudit_degats_t[vers] = maudit_degats_t[de]
+	maudit_toucher[vers] = maudit_toucher[de]
+	maudit_toucher_t[vers] = maudit_toucher_t[de]
 
 
 func _redimensionner(n: int) -> void:
@@ -507,6 +640,12 @@ func _redimensionner(n: int) -> void:
 	etourdi.resize(n)
 	givre_cumuls.resize(n)
 	givre_t.resize(n)
+	vulnerabilite.resize(n * 5)
+	vuln_reste.resize(n)
+	maudit_degats.resize(n)
+	maudit_degats_t.resize(n)
+	maudit_toucher.resize(n)
+	maudit_toucher_t.resize(n)
 
 
 ## Remplit les cinq tableaux `ennemis_*` de la vue avec des copies des vivants (les morts en
