@@ -138,7 +138,10 @@ func _brancher(src: SourceVue) -> void:
 ## Le bilan de la partie finie : il alimente la progression de ce poste (défis, skins, cumuls).
 func _sur_bilan(bilan: Dictionary) -> void:
 	var nb_joueurs := _globale.joueurs.size() if _globale != null else 1
-	ProgressionLocale.enregistrer_fin(bilan, nb_joueurs, _donnees, chemin_progression)
+	var nouveaux := ProgressionLocale.enregistrer_fin(
+		bilan, nb_joueurs, _donnees, chemin_progression
+	)
+	fin.afficher_progression(nouveaux, _donnees)
 
 
 ## Replié, le bandeau ne prend plus de place : l'arène visible et la mini-carte reprennent la

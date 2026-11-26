@@ -21,11 +21,16 @@ var bouton_solo: Button
 var bouton_creer: Button
 var bouton_rejoindre: Button
 var bouton_reglages: Button
+var bouton_progression: Button
 var bouton_quitter: Button
 var champ_nom: LineEdit
+## Fichier de progression : `Principal` et les tests le remplacent par un dossier temporaire.
+var chemin_progression: String = Sauvegarde.CHEMIN_DEFAUT
 
 var _cadre_accueil: PanelContainer
 var _cadre_reglages: PanelContainer
+var _cadre_progression: PanelContainer
+var _progression: ProgressionUi
 var _accueil: VBoxContainer
 var _message: Label
 var _reglages: ReglagesUi
@@ -75,6 +80,7 @@ func _init() -> void:
 	bouton_creer = _bouton("Creer", "MENU_CREER", _sur_creer)
 	bouton_rejoindre = _bouton("Rejoindre", "MENU_REJOINDRE", _sur_rejoindre)
 	bouton_reglages = _bouton("Reglages", "MENU_REGLAGES", _sur_reglages)
+	bouton_progression = _bouton("Progression", "MENU_PROGRESSION", _sur_progression)
 	bouton_quitter = _bouton("Quitter", "MENU_QUITTER", quitter_demande.emit)
 	bouton_quitter.theme_type_variation = ThemeJeu.TYPE_DANGER
 	bouton_reglages.icon = ThemeJeu.icone("reglages")
@@ -101,6 +107,15 @@ func _init() -> void:
 	_bouton_retour.pressed.connect(_sur_retour)
 	_bouton_retour.icon = ThemeJeu.icone("fermer")
 	_page_reglages.add_child(_bouton_retour)
+
+	_cadre_progression = PanelContainer.new()
+	_cadre_progression.name = "CadreProgression"
+	_cadre_progression.visible = false
+	centre.add_child(_cadre_progression)
+	_progression = ProgressionUi.new()
+	_progression.custom_minimum_size = Vector2(LARGEUR_COLONNE, 0.0)
+	_progression.retour.connect(_sur_retour_progression)
+	_cadre_progression.add_child(_progression)
 
 
 func _ready() -> void:
@@ -152,6 +167,31 @@ func _sur_reglages() -> void:
 	_cadre_accueil.visible = false
 	_cadre_reglages.visible = true
 	_bouton_retour.grab_focus()
+
+
+func page_progression_visible() -> bool:
+	return _cadre_progression.visible
+
+
+func ouvrir_progression() -> void:
+	_sur_progression()
+
+
+func _sur_progression() -> void:
+	var donnees := Donnees.charger()
+	if donnees == null:
+		afficher_message(tr("MENU_ERREUR_DONNEES"))
+		return
+	_progression.configurer(Sauvegarde.charger(chemin_progression), donnees)
+	_cadre_accueil.visible = false
+	_cadre_progression.visible = true
+	_progression.bouton_retour.grab_focus()
+
+
+func _sur_retour_progression() -> void:
+	_cadre_progression.visible = false
+	_cadre_accueil.visible = true
+	bouton_progression.grab_focus()
 
 
 func _sur_retour() -> void:

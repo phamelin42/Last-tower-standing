@@ -1,0 +1,60 @@
+keys,fr
+MENU_PROGRESSION,Progression
+PROGRESSION_TITRE,Progression
+PROGRESSION_STATISTIQUES,Statistiques
+PROGRESSION_PARTIES,Parties jouées : %s
+PROGRESSION_MEILLEURE_MANCHE,Meilleure manche : %s
+PROGRESSION_DEFIS,Défis
+PROGRESSION_REUSSI,Réussi
+PROGRESSION_A_FAIRE,Pas encore réussi
+PROGRESSION_DEBLOQUE,Débloque : %s
+PROGRESSION_RETOUR,Retour
+SKIN_DEFAUT,Tour d’origine
+SKIN_TOUR_DE_GUET,Tour de guet
+SKIN_TOUR_EMBUSCADE,Tour d’embuscade
+SKIN_TOUR_COMPTOIR,Tour du comptoir
+SKIN_TOUR_DU_PUITS,Tour du puits
+SKIN_TOUR_DE_LA_TABLE_RONDE,Tour de la table ronde
+SKIN_TOUR_RAFISTOLEE,Tour rafistolée
+SKIN_TOUR_SURVIVANTE,Tour survivante
+SKIN_TOUR_FAMILIERE,Tour familière
+SKIN_TOUR_DU_DRAGON_AVARE,Tour du dragon avare
+SKIN_TOUR_DU_BANQUIER,Tour du banquier
+SKIN_TOUR_A_FAUX,Tour à faux
+SKIN_TOUR_ARCANE,Tour arcane
+SKIN_TOUR_ARSENAL,Tour de l’arsenal
+SKIN_TOUR_ASCETE,Tour de l’ascète
+SKIN_TOUR_BASTION,Tour bastion
+SKIN_TOUR_BRAISE,Tour de braise
+SKIN_TOUR_CICATRISEE,Tour cicatrisée
+SKIN_TOUR_CONQUERANTE,Tour conquérante
+SKIN_TOUR_DE_GRANIT,Tour de granit
+SKIN_TOUR_DE_PIERRE,Tour de pierre
+SKIN_TOUR_DE_RONCES,Tour de ronces
+SKIN_TOUR_DU_BOUCLIER,Tour du bouclier
+SKIN_TOUR_DU_CHARIOT,Tour du chariot
+SKIN_TOUR_DU_DERNIER_REMPART,Tour du dernier rempart
+SKIN_TOUR_DU_DUELLISTE,Tour du duelliste
+SKIN_TOUR_DU_TRESOR,Tour du trésor
+SKIN_TOUR_DU_VAINQUEUR,Tour du vainqueur
+SKIN_TOUR_ETERNELLE,Tour éternelle
+SKIN_TOUR_FISSURE,Tour fissurée
+SKIN_TOUR_GELEE,Tour gelée
+SKIN_TOUR_HALO,Tour au halo
+SKIN_TOUR_LAME,Tour de lames
+SKIN_TOUR_MANEGE,Tour du manège
+SKIN_TOUR_MONOLAME,Tour monolame
+SKIN_TOUR_NUE,Tour nue
+SKIN_TOUR_NUEE,Tour de la nuée
+SKIN_TOUR_OEIL,Tour de l’œil
+SKIN_TOUR_OSSUAIRE,Tour de l’ossuaire
+SKIN_TOUR_POINTE,Tour hérissée
+SKIN_TOUR_RICOCHET,Tour du ricochet
+SKIN_TOUR_SALVE,Tour de la salve
+SKIN_TOUR_SANGUINE,Tour sanguine
+SKIN_TOUR_SANS_HORIZON,Tour sans horizon
+SKIN_TOUR_SAPEUR,Tour du sapeur
+SKIN_TOUR_SONORE,Tour sonore
+SKIN_TOUR_TONNERRE,Tour du tonnerre
+SKIN_TOUR_VENIMEUSE,Tour venimeuse
+SKIN_TOUR_VETERANE,Tour vétérane

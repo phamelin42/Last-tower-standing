@@ -168,10 +168,22 @@ func test_chaque_controle_du_salon_et_de_la_connexion_est_lisible() -> void:
 			verifier(b.custom_minimum_size.y >= HAUTEUR_MIN, "« %s » fait 48 px" % b.text)
 		for noeud: Node in racine.find_children("*", "LineEdit", true, false):
 			var c := noeud as LineEdit
+			# Le champ de recherche de la liste déroulante des skins est celui du moteur.
+			if _dans_une_fenetre(c, racine):
+				continue
 			verifier(c.custom_minimum_size.y >= HAUTEUR_MIN, "« %s » fait 48 px" % c.name)
 		verifier(
 			racine.get_theme_font_size("font_size") >= TAILLE_MIN, "le texte fait 16 px au moins"
 		)
+
+
+func _dans_une_fenetre(noeud: Node, racine: Node) -> bool:
+	var courant: Node = noeud.get_parent()
+	while courant != null and courant != racine:
+		if courant is Window:
+			return true
+		courant = courant.get_parent()
+	return false
 
 
 func test_le_contraste_des_textes_du_salon_est_suffisant() -> void:
@@ -323,3 +335,136 @@ func test_typographie_francaise_des_textes_du_salon() -> void:
 		var texte: String = textes[cle]
 		verifier(avant.search(texte) == null, "%s : espace insécable avant : ; ? !" % cle)
 		verifier_faux("'" in texte, "%s : apostrophe droite" % cle)
+
+
+# --- Choix du skin -----------------------------------------------------------------------------
+
+
+func _profil_debloque(ids: Array[String], donnees: Donnees) -> String:
+	var profil := Profil.new()
+	for id: String in ids:
+		profil.skins_debloques.append(id)
+		for defi_id: String in donnees.defis:
+			if String((donnees.defis[defi_id] as Dictionary)["skin"]) == id:
+				profil.defis_reussis.append(defi_id)
+	var chemin := dossier_temporaire().path_join("progression.json")
+	verifier(Sauvegarde.enregistrer(profil, chemin), "le profil d'essai s'écrit")
+	return chemin
+
+
+func _defi_du_skin(donnees: Donnees, id: String) -> Dictionary:
+	for defi_id: String in donnees.defis:
+		var defi: Dictionary = donnees.defis[defi_id]
+		if String(defi["skin"]) == id:
+			return defi
+	return {}
+
+
+func test_le_salon_propose_chaque_skin_avec_son_apercu_tire_des_donnees() -> void:
+	var donnees := Donnees.charger()
+	var ids := donnees.ids_skins()
+	_salon_ui.configurer_skins(donnees, _profil_debloque([], donnees))
+	verifier_egal(_salon_ui.choix_skin.item_count, ids.size(), "un choix par skin des données")
+	for i: int in ids.size():
+		_salon_ui.afficher_apercu_skin(i)
+		var texture := _salon_ui.apercu_skin.texture
+		verifier_non_nul(texture, "aperçu de %s" % ids[i])
+		var skin: Dictionary = donnees.skins_tour[ids[i]]
+		var limite := Vector2.INF
+		if skin.has("cadre"):
+			var cadre: Dictionary = skin["cadre"]
+			limite = Vector2(float(cadre["largeur"]), float(cadre["hauteur"]))
+		verifier(texture.get_width() > 0 and texture.get_height() > 0, "%s : aperçu vide" % ids[i])
+		verifier(
+			texture.get_width() <= limite.x and texture.get_height() <= limite.y,
+			"%s : l'aperçu sort de son cadre" % ids[i]
+		)
+
+
+func test_un_skin_verrouille_dit_son_defi_et_ne_peut_pas_etre_choisi() -> void:
+	var donnees := Donnees.charger()
+	var ids := donnees.ids_skins()
+	var chemin := _profil_debloque([], donnees)
+	_salon_ui.configurer_skins(donnees, chemin)
+	var choisis: Array[int] = []
+	_salon_ui.skin_choisi.connect(func(index: int) -> void: choisis.append(index))
+	for i: int in range(1, ids.size()):
+		var defi := _defi_du_skin(donnees, ids[i])
+		_salon_ui.selectionner_skin(i)
+		verifier(
+			_salon_ui.texte_skin().contains(String(defi["nom"])),
+			"%s : le défi à réussir (%s)" % [ids[i], _salon_ui.texte_skin()]
+		)
+		verifier(
+			_salon_ui.choix_skin.get_item_text(i).contains(_t("SALON_SKIN_VERROUILLE")),
+			"%s : verrouillé écrit dans la liste" % ids[i]
+		)
+		verifier_egal(_salon_ui.choix_skin.selected, 0, "%s : la sélection ne bouge pas" % ids[i])
+	verifier_egal(choisis.size(), 0, "aucun skin verrouillé n'est envoyé")
+	verifier_egal(Sauvegarde.charger(chemin).skin_choisi, "", "rien d'écrit dans le profil")
+
+
+func test_choisir_un_skin_debloque_l_enregistre_dans_le_profil_et_l_envoie_au_serveur() -> void:
+	var donnees := Donnees.charger()
+	var ids := donnees.ids_skins()
+	var chemin := _profil_debloque(ids, donnees)
+	_salon_ui.configurer_skins(donnees, chemin)
+	var envoyes: Array[int] = []
+	_salon_ui.skin_choisi.connect(func(index: int) -> void: envoyes.append(index))
+	for i: int in ids.size():
+		_salon_ui.selectionner_skin(i)
+		verifier_egal(envoyes.back(), i, "%s : l'index part au serveur" % ids[i])
+		verifier_egal(_salon_ui.choix_skin.selected, i, "%s : choisi à l'écran" % ids[i])
+		var attendu := "" if i == 0 else ids[i]
+		verifier_egal(Sauvegarde.charger(chemin).skin_choisi, attendu, "%s : profil" % ids[i])
+	verifier_egal(envoyes.size(), ids.size())
+
+
+func test_le_skin_du_profil_est_celui_qu_on_retrouve_au_salon() -> void:
+	var donnees := Donnees.charger()
+	var ids := donnees.ids_skins()
+	var chemin := _profil_debloque(ids, donnees)
+	var profil := Sauvegarde.charger(chemin)
+	profil.skin_choisi = ids[2]
+	verifier(Sauvegarde.enregistrer(profil, chemin))
+	_salon_ui.configurer_skins(donnees, chemin)
+	verifier_egal(_salon_ui.choix_skin.selected, 2, "le dernier choix revient")
+	verifier_egal(_salon_ui.index_skin(), 2)
+
+
+func test_un_profil_qui_designe_un_skin_verrouille_ou_inconnu_retombe_sur_le_skin_par_defaut(
+) -> void:
+	var donnees := Donnees.charger()
+	var chemin := _profil_debloque([], donnees)
+	var profil := Sauvegarde.charger(chemin)
+	for inconnu: String in ["tour_inconnue", donnees.ids_skins()[1]]:
+		profil.skin_choisi = inconnu
+		verifier(Sauvegarde.enregistrer(profil, chemin))
+		_salon_ui.configurer_skins(donnees, chemin)
+		verifier_egal(_salon_ui.index_skin(), 0, "« %s » : le skin par défaut" % inconnu)
+
+
+func test_le_choix_du_skin_se_navigue_au_clavier_et_tient_dans_la_colonne() -> void:
+	var donnees := Donnees.charger()
+	_salon_ui.configurer_skins(donnees, _profil_debloque([], donnees))
+	_salon_ui.afficher(_salon_de(2), 1)
+	await attendre_images(1)
+	verifier_focus(_salon_ui.choix_skin)
+	verifier(
+		_salon_ui.choix_skin.custom_minimum_size.y >= HAUTEUR_MIN, "le choix fait 48 px au moins"
+	)
+	for echelle: float in [0.75, 1.25]:
+		for resolution: Vector2 in [Vector2(1152.0, 648.0), Vector2(1920.0, 1080.0)]:
+			var zone := resolution / echelle
+			verifier(
+				SalonUi.LARGEUR_COLONNE <= zone.x - 2.0 * MiseEnPage.MARGE,
+				"la colonne tient à %s, échelle %s" % [resolution, echelle]
+			)
+
+
+func verifier_focus(commande: Control) -> void:
+	verifier(commande.focus_mode == Control.FOCUS_ALL, "%s prend le focus" % commande.name)
+	var style := commande.get_theme_stylebox("focus")
+	verifier(style != null and not style is StyleBoxEmpty, "%s : focus visible" % commande.name)
+	commande.grab_focus()
+	verifier(commande.has_focus(), "%s a le focus" % commande.name)

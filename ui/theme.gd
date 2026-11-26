@@ -287,6 +287,33 @@ static func icone_categorie(categorie: int) -> Texture2D:
 	return load(ICONES_CATEGORIE[categorie]) as Texture2D
 
 
+## Image d'aperçu d'un skin de tour, lue dans `data/skins_tour.json` : le cadre d'une feuille
+## d'images (`cadre`) si l'entrée en a un, sinon l'image entière, rognée à ses pixels opaques pour
+## que la tour remplisse l'aperçu. `null` si l'image manque.
+static func apercu_skin(skin: Dictionary) -> Texture2D:
+	var chemin: String = skin.get("sprite", "")
+	if chemin.is_empty() or not ResourceLoader.exists(chemin):
+		return null
+	var texture := load(chemin) as Texture2D
+	if texture == null:
+		return null
+	var zone := Rect2i(Vector2i.ZERO, texture.get_size())
+	if skin.has("cadre"):
+		var cadre: Dictionary = skin["cadre"]
+		zone = Rect2i(
+			int(cadre["x"]), int(cadre["y"]), int(cadre["largeur"]), int(cadre["hauteur"])
+		)
+	var image := texture.get_image()
+	if image != null:
+		var utile := image.get_region(zone).get_used_rect()
+		if utile.has_area():
+			zone = Rect2i(zone.position + utile.position, utile.size)
+	var region := AtlasTexture.new()
+	region.atlas = texture
+	region.region = Rect2(zone)
+	return region
+
+
 ## Icône du pack pour une action (`ICONES`), rognée à son glyphe.
 static func icone(nom: String) -> Texture2D:
 	var atlas := AtlasTexture.new()
