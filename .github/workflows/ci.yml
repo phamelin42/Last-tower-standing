@@ -15,30 +15,65 @@ jobs:
     steps:
       - name: Récupérer le dépôt
         uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      # Une PR qui ne touche que du Markdown ne peut casser ni l'import ni les tests : elle ne
+      # passe que Prettier (décision de Phil du 26/11/2026, gain d'environ 6 minutes). Un push
+      # sur main rejoue toujours tout.
+      - name: Détecter une PR de documentation seule
+        id: changements
+        if: github.event_name == 'pull_request'
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          git diff --name-only "$BASE"...HEAD > "$RUNNER_TEMP/changes.txt"
+          cat "$RUNNER_TEMP/changes.txt"
+          if [[ -s "$RUNNER_TEMP/changes.txt" ]] && ! grep -qv '\.md$' "$RUNNER_TEMP/changes.txt"; then
+            echo "docs_seuls=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "docs_seuls=false" >> "$GITHUB_OUTPUT"
+          fi
+          grep '\.md$' "$RUNNER_TEMP/changes.txt" > "$RUNNER_TEMP/md.txt" || true
+
+      - name: Format Markdown (fichiers modifiés)
+        if: github.event_name == 'pull_request'
+        run: |
+          mapfile -t md < <(while read -r f; do [[ -f "$f" ]] && echo "$f"; done < "$RUNNER_TEMP/md.txt")
+          if (( ${#md[@]} )); then npx -y prettier@3.9.10 --check "${md[@]}"; else echo "aucun .md modifié"; fi
 
       - name: Installer Godot 4.7.2
+        if: steps.changements.outputs.docs_seuls != 'true'
         run: tools/install-godot.sh
 
       - name: Installer gdtoolkit 4
+        if: steps.changements.outputs.docs_seuls != 'true'
         run: tools/install-gdtoolkit.sh
 
       - name: Import du projet
+        if: steps.changements.outputs.docs_seuls != 'true'
         run: tools/verifier.sh --etape import
 
       - name: Fichiers .uid suivis
+        if: steps.changements.outputs.docs_seuls != 'true'
         run: tools/verifier.sh --etape uid
 
       - name: Lint GDScript
+        if: steps.changements.outputs.docs_seuls != 'true'
         run: tools/verifier.sh --etape lint
 
       - name: Format GDScript
+        if: steps.changements.outputs.docs_seuls != 'true'
         run: tools/verifier.sh --etape format
 
       - name: Tests unitaires
+        if: steps.changements.outputs.docs_seuls != 'true'
         run: tools/verifier.sh --etape tests
 
       - name: Contrôle du lanceur de tests
+        if: steps.changements.outputs.docs_seuls != 'true'
         run: tools/verifier.sh --etape controle
 
       - name: Intégration
+        if: steps.changements.outputs.docs_seuls != 'true'
         run: tools/verifier.sh --etape integration
