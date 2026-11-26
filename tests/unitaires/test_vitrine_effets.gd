@@ -101,3 +101,28 @@ func test_les_cibles_reculent_de_quatre_pixels_puis_reviennent() -> void:
 	_jouer(PAS_PAR_TEST)
 	for id: int in ids:
 		verifier(_vitrine.reactions.recul(id).length() <= ReactionsCoups.RECUL_PX, "borné")
+
+
+func test_la_vitrine_montre_aussi_le_mouvement_reduit() -> void:
+	_vitrine.free()
+	_vitrine = (load(SCENE) as PackedScene).instantiate() as VitrineEffets
+	_vitrine.mouvement_reduit = true
+	arbre.root.add_child(_vitrine)
+	var recul_max: float = 0.0
+	var etincelles: int = 0
+	for i: int in PAS_PAR_TEST * 2:
+		_vitrine.avancer(PAS / 5.0)
+		etincelles += _vitrine.effets.emetteurs_etincelles().size()
+		verifier_egal(_vitrine.effets.gel_restant(), 0.0, "aucun gel")
+		for id: int in _vitrine.ids_cibles():
+			recul_max = maxf(recul_max, _vitrine.reactions.recul(id).length())
+	verifier_egal(recul_max, 0.0, "les cibles ne reculent pas")
+	verifier_egal(etincelles, 0, "aucune étincelle")
+	var crees: Dictionary = _vitrine.crees
+	for type_degats: int in Effets.PROJECTILES.size():
+		for genre: int in VueArene.GENRES_ARME.size():
+			var cle: String = VitrineEffets.cle_genre(type_degats, genre)
+			verifier(int(crees.get(cle, 0)) > 0, "%s : au moins un effet créé" % cle)
+	for cle: String in _vitrine.reactions_par_cellule:
+		verifier(int(_vitrine.reactions_par_cellule[cle]) > 0, "%s : la cible clignote" % cle)
+	verifier(_vitrine.reactions_par_cellule.size() > 60, "toutes les cellules clignotent")
