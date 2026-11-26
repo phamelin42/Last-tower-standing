@@ -343,9 +343,14 @@ func _pas_armes(dt: float) -> void:
 	if armes.is_empty():
 		return
 	var bilan := Tir.Bilan.new()
+	var lecture := Tir.Lecture.new()
+	lecture.pv_max_tour = _pv_max()
+	lecture.temps_s = _temps
+	lecture.exemplaires = inventaire.comptes_armes()
+	lecture.ameliorations_par_stat = inventaire.comptes_stats()
 	for arme: ArmeEquipee in armes:
 		Tir.avancer_arme(
-			arme, dt, _stats, ennemis, Vector2.ZERO, _donnees, _rng, _resistance, bilan
+			arme, dt, _stats, ennemis, Vector2.ZERO, _donnees, _rng, _resistance, bilan, lecture
 		)
 	_degats_infliges += bilan.degats
 	pv = minf(pv + bilan.soin, _pv_max())
