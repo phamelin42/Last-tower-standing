@@ -1591,7 +1591,7 @@ Les 47 à ajouter sont les 3 améliorations de mana de T8.7 (déjà comptées da
 7. **Noms et descriptions** : les noms d'armes et d'améliorations restent dans `data/armes.json` et `data/ameliorations.json` (champ `nom`), comme aujourd'hui ; `i18n/` ne porte que les modèles de ligne d'effet des descriptions (T9.21). La demande de mettre les noms dans `i18n/` demanderait de déplacer les 117 noms déjà dans `data/` : à décider.
 8. **Boutique** : elle tire d'abord la rareté, puis uniformément dans la rareté (`Boutique._tirer_un`). Avec 75 armes et 87 améliorations, la **part d'armes** parmi les offres des premières manches baisse (aujourd'hui 10 armes sur 21 offres communes possibles, demain 5 sur 18 au moins). T9.22 mesure cette part et dispose d'un levier : `poids_genre` dans `data/boutique.json`.
 9. **Commune promue** : le critère du §6.13 peut garder `chausse_trape` (perçant) ou `sablier_fele` (chaos) comme **seule commune** de leur type. C'est conforme à la décision de Phil ; T9.14 et T9.17 le disent dans leur rapport pour qu'il juge s'il veut une autre règle.
-10. **Malédiction de toucher** (M2) : une **réduction moyenne** des dégâts de l'ennemi (`× (1 − chance)`), sans tirage : le hasard de l'arène n'est consommé que par l'esquive de la tour, comme aujourd'hui, et la simulation reste reproductible.
+10. **Malédiction de toucher** (M2) : une **réduction moyenne** des dégâts de l'ennemi (`× (1 − chance)`), sans tirage : le hasard de l'arène reste consommé par la seule esquive de la tour, comme aujourd'hui, donc la suite des tirages ne bouge pas et les parties de référence de l'équilibrage restent comparables avant et après le lot (un tirage à graine fixe serait lui aussi reproductible ; c'est la comparabilité qui décide).
 
 ## Interfaces figées du lot 9 (créées par T9.2 ; citées partout)
 
@@ -1697,7 +1697,7 @@ ameliorations.json — champ obligatoire « famille » (Types.FAMILLES_AMELIORAT
   - `test_un_nom_d_origine_dans_un_texte_est_detecte` : pour chaque nom de la liste (en boucle), un texte français qui le contient entre deux mots est trouvé, y compris avec une majuscule, des accents autour, une espace insécable ou une apostrophe typographique à la place d'une apostrophe droite.
   - `test_un_nom_d_origine_collé_a_d_autres_lettres_n_est_pas_un_faux_positif` : le nom précédé ou suivi d'une lettre ou d'un chiffre n'est pas trouvé (cas adverses : accent, point final, tiret).
   - `test_un_homographe_n_est_refuse_que_comme_nom_entier` : « recharge réduite » passe ; un objet nommé exactement comme lui échoue (le test construit le dictionnaire, il ne touche pas aux données).
-  - `test_un_chemin_d_image_du_pack_ne_declenche_pas_le_garde_fou` : `sans_chemins_d_images` retire `"A/B + C/d.png"` et garde `var x := "bow"` hors chemin.
+  - `test_un_chemin_d_image_du_pack_ne_declenche_pas_le_garde_fou` : `sans_chemins_d_images` retire `"A/B + C/d.png"` et garde `var x := "<un nom de la liste>"` hors chemin.
   - `test_la_liste_des_homographes_est_fermee_et_justifiee` (au plus 3, chaque entrée est un nom lu).
   - **Mutation à faire à la main avant de rendre :** glisser un nom d'origine dans `data/armes.json` et dans un `.gd` de `sim/`, voir le test échouer, annuler (`git checkout -- fichier`).
 - **Vérif :** `T --filtre test_noms_origine`, puis `tools/verifier.sh`. Rapport : la liste des homographes retenue et les fichiers qui ont demandé le retrait de chemins.
