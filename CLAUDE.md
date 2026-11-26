@@ -117,3 +117,6 @@ privé, lu en direct). Ses lignes vivent dans sa base, pas dans la page :
 - `restart: unless-stopped` ne relance pas un conteneur arrêté par `docker kill` (arrêt voulu) : pour éprouver le redémarrage du service d'annuaire, tuer son processus depuis l'hôte (`kill -9 <PID>`).
 - `Protocole.VERSION` est partagé par tous les lots : deux PR parallèles l'ont portée au même numéro (T5.3b et T7.2b, 3). Avant de l'incrémenter, relire celle de `main` ; à l'intégration, la seconde prend le numéro suivant et garde les deux formats, avec un test qui refuse en boucle les versions précédentes.
 - Les ids de joueur réseau sont des ids de pair ENet (i32 aléatoires, ex. 665857105), jamais des index 0..255 : tout champ ou test qui les transporte doit les tenir sur 32 bits.
+- Le « 400 Sounds Pack » compte environ 314 fichiers, dont 111 jingles musicaux, et une cinquantaine de tirs ou d'impacts nettement distincts : le lot 9 complète avec les packs CC0 de Kenney (T9.20).
+- Écrire du texte dans une `Image` sans écran (planche, capture) : passer par les glyphes du `TextServer`, le rendu de `Label` n'existe pas en `--headless`.
+- Après un `git commit` enchaîné à d'autres commandes, relire `git log -1` : un commit raté ne se voit pas toujours dans la sortie.
