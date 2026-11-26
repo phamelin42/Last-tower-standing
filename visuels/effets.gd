@@ -171,6 +171,8 @@ var _etincelles: Etincelles = Etincelles.new(self)
 var _elementaires: AttaquesElementaires = AttaquesElementaires.new()
 ## Rang du projectile dans le barrage en cours (entre deux `avancer`).
 var _rang_barrage: int = 0
+## Le barrage en cours de lancement : `{points, dessine}`, partagé par ses impacts (un seul anneau).
+var _groupe_barrage: Dictionary = {}
 
 
 ## Une flamme en boucle, posée derrière l'unité qui la porte (le boss).
@@ -464,7 +466,8 @@ func _avancer_attentes(delta: float) -> void:
 			float(attente["rayon"]),
 			String(attente["statut"]),
 			attente["signature"],
-			int(attente["arme"])
+			int(attente["arme"]),
+			attente["groupe"]
 		)
 		_age_initial = 0.0
 
@@ -590,9 +593,14 @@ func _impact(
 	var arrivee: Vector2 = Apparence.vers_pixels(vers)
 	var attente: float = _reprendre_tir(type_degats, genre, arme, arrivee)
 	var element: String = _element(arme)
+	var groupe: Dictionary = {}
 	if element != "" and genre == "barrage" and attente < 0.0:
 		var retard: float = _rang_barrage * AttaquesElementaires.RETARD_BARRAGE
 		attente = _el().tirer(element, depart, arrivee, retard)
+		if _rang_barrage == 0:
+			_groupe_barrage = {"points": [] as Array[Vector2], "dessine": false}
+		(_groupe_barrage["points"] as Array[Vector2]).append(arrivee)
+		groupe = _groupe_barrage
 		# Une seule marque de brûlure par barrage : quatre colonnes de feu cachaient la cible.
 		if _rang_barrage > 0:
 			statut = ""
@@ -606,7 +614,9 @@ func _impact(
 			_chaine_vers = arrivee
 			_chaine_reste = attente
 	if attente <= EPSILON_TEMPS:
-		return _impact_maintenant(type_degats, genre, de, vers, rayon, statut, signature, arme)
+		return _impact_maintenant(
+			type_degats, genre, de, vers, rayon, statut, signature, arme, groupe
+		)
 	if _en_attente.size() >= PLAFOND:
 		return false
 	(
@@ -622,6 +632,7 @@ func _impact(
 				"statut": statut,
 				"signature": signature,
 				"arme": arme,
+				"groupe": groupe,
 			}
 		)
 	)
@@ -653,7 +664,8 @@ func _impact_maintenant(
 	rayon: float,
 	statut: String,
 	signature: Dictionary = {},
-	arme: int = -1
+	arme: int = -1,
+	groupe: Dictionary = {}
 ) -> bool:
 	var element: String = _element(arme)
 	var couleur: Color = COULEURS[type_degats]
@@ -682,7 +694,7 @@ func _impact_maintenant(
 		elif de.length() >= 1.0:
 			cree = _trait(type_degats, depart, arrivee, couleur, signature)
 	elif element != "":
-		cree = _impact_element(element, type_degats, arrivee, rayon)
+		cree = _impact_element(element, type_degats, arrivee, rayon, groupe)
 	else:
 		cree = _burst(type_degats, genre, arrivee, rayon, couleur, signature)
 	if statut != "" and FORMES_STATUT.has(statut):
@@ -704,11 +716,25 @@ func _impact_maintenant(
 
 ## L'impact d'une arme à élément, au rayon de sa zone. Un coup de siège gèle ; la bombe garde
 ## l'explosion du pack, que ses débris accompagnent.
-func _impact_element(element: String, type_degats: int, ou: Vector2, rayon: float) -> bool:
+func _impact_element(
+	element: String, type_degats: int, ou: Vector2, rayon: float, groupe: Dictionary
+) -> bool:
 	var fort: bool = type_degats == Types.TypeDegats.SIEGE
 	_coup_fort = fort
 	var rayon_px: float = rayon * Apparence.PX_PAR_UNITE
-	var cree: bool = _el().impacter(element, ou, rayon_px, fort, ou, _age_initial)
+	var cree: bool = false
+	if groupe.is_empty():
+		cree = _el().impacter(element, ou, rayon_px, fort, ou, _age_initial)
+	else:
+		cree = _el().impacter_en_groupe(element, ou, rayon_px, fort, ou, _age_initial)
+		if not bool(groupe["dessine"]):
+			# Le premier impact visible du barrage dessine la zone, au centre de tous les impacts.
+			groupe["dessine"] = true
+			var centre: Vector2 = Vector2.ZERO
+			var points: Array[Vector2] = groupe["points"]
+			for point: Vector2 in points:
+				centre += point
+			cree = _el().zone(element, centre / points.size(), rayon_px, _age_initial) or cree
 	if element == ElementsArmes.BOMBE:
 		cree = not _explosion(ou, rayon).is_empty() or cree
 	return cree

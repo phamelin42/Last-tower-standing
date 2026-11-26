@@ -269,6 +269,26 @@ func impacter(
 	return el.impacter(self, ou, rayon_px, fort, de, age)
 
 
+## Comme `impacter`, pour un impact d'un barrage : l'anneau de zone n'est pas dessiné ici mais, une
+## seule fois pour le tir, par `zone`.
+func impacter_en_groupe(
+	element: String,
+	ou: Vector2,
+	rayon_px: float,
+	fort: bool = false,
+	de: Vector2 = Vector2.ZERO,
+	age: float = 0.0
+) -> bool:
+	var el: AttaqueElement = registre().get(element)
+	return false if el == null else el.impacter_en_groupe(self, ou, rayon_px, fort, de, age)
+
+
+## La zone d'un barrage d'`element`, centrée en `centre`, au rayon réel `rayon_px`.
+func zone(element: String, centre: Vector2, rayon_px: float, age: float = 0.0) -> bool:
+	var el: AttaqueElement = registre().get(element)
+	return false if el == null else el.zone(self, centre, rayon_px, age)
+
+
 func avancer(delta: float) -> void:
 	_pause_eclat = maxf(_pause_eclat - delta, 0.0)
 	for i: int in range(_vivants.size() - 1, -1, -1):

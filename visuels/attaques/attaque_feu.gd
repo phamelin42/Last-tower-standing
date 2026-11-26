@@ -40,16 +40,34 @@ func suivre_vol(
 func impacter(
 	m: AttaquesElementaires, ou: Vector2, rayon_px: float, fort: bool, _de: Vector2, age: float
 ) -> bool:
-	var zone: bool = rayon_px > 0.0
-	var diametre: float = rayon_px if zone else AttaquesElementaires.DIAMETRE_PETIT
+	return _impact(m, ou, rayon_px, fort, age, rayon_px > 0.0)
+
+
+## Un barrage garde le cœur de feu et les braises de chaque boule, mais un seul anneau pour tout le
+## tir (`zone`) : quatre anneaux empilés cachaient la cible.
+func impacter_en_groupe(
+	m: AttaquesElementaires, ou: Vector2, rayon_px: float, fort: bool, _de: Vector2, age: float
+) -> bool:
+	return _impact(m, ou, rayon_px, fort, age, false)
+
+
+func zone(m: AttaquesElementaires, centre: Vector2, rayon_px: float, age: float) -> bool:
+	return m.anneau_impact(centre, rayon_px * 2.0, 18, age, CONF["couleur"])
+
+
+## Un cœur de feu à la moitié du rayon, l'anneau au rayon exact s'il est demandé, six braises.
+func _impact(
+	m: AttaquesElementaires, ou: Vector2, rayon_px: float, fort: bool, age: float, anneau: bool
+) -> bool:
+	var diametre: float = rayon_px if rayon_px > 0.0 else AttaquesElementaires.DIAMETRE_PETIT
 	var coeur: Dictionary = m.image_impact(
 		"explosion_feu", ou, diametre, AttaquesElementaires.SEQ_EXPLOSION, age
 	)
 	var cree: bool = not coeur.is_empty()
 	if cree and fort:
 		m.geler(coeur, age, AttaquesElementaires.IMAGES_MONTEE_IMPACT * AttaquesElementaires.IMAGE)
-	if zone:
-		cree = m.anneau_impact(ou, rayon_px * 2.0, 18, age, CONF["couleur"]) or cree
+	if anneau:
+		cree = zone(m, ou, rayon_px, age) or cree
 	m.salve(
 		ou,
 		6,

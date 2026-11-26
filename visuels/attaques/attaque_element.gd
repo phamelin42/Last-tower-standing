@@ -46,3 +46,17 @@ func impacter(
 	_m: AttaquesElementaires, _ou: Vector2, _rayon_px: float, _fort: bool, _de: Vector2, _age: float
 ) -> bool:
 	return false
+
+
+## Un impact d'un barrage (plusieurs impacts d'un même tir, voir `zone`) : par défaut, un impact
+## ordinaire.
+func impacter_en_groupe(
+	m: AttaquesElementaires, ou: Vector2, rayon_px: float, fort: bool, de: Vector2, age: float
+) -> bool:
+	return impacter(m, ou, rayon_px, fort, de, age)
+
+
+## La zone d'un barrage, dessinée une seule fois, centrée en `centre` (le point d'impact moyen),
+## au rayon réel `rayon_px` ; par défaut rien.
+func zone(_m: AttaquesElementaires, _centre: Vector2, _rayon_px: float, _age: float) -> bool:
+	return false
