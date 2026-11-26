@@ -1,7 +1,7 @@
 extends CasDeTest
 ## Le catalogue d'armes du lot 9 (D18) : quinze armes par type de dégâts, réparties 1 commune,
 ## 6 peu communes, 6 rares et 2 épiques, avec les mécaniques que le plan impose à chaque type.
-## Les cinq types sont terminés (T9.13 à T9.17) : tous sont testés, en boucle sur `Types.NOMS_TYPES`.
+## Les cinq types sont terminés (T9.13 à T9.17) : boucle sur `Types.NOMS_TYPES`.
 
 const RARETES: Array[String] = ["commune", "peu_commune", "rare", "epique"]
 const REPARTITION: Array[int] = [1, 6, 6, 2]
