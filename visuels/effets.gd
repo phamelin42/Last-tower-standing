@@ -577,6 +577,9 @@ func _impact(
 	if element != "" and genre == "barrage" and attente < 0.0:
 		var retard: float = _rang_barrage * AttaquesElementaires.RETARD_BARRAGE
 		attente = _el().tirer(element, depart, arrivee, retard)
+		# Une seule marque de brûlure par barrage : quatre colonnes de feu cachaient la cible.
+		if _rang_barrage > 0:
+			statut = ""
 		_rang_barrage += 1
 	var saut: bool = genre == "rebond" or (genre == "" and rayon <= 0.0 and de.length() >= 1.0)
 	if saut:
