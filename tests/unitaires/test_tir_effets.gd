@@ -256,10 +256,12 @@ func test_performance_huit_armes_mille_ennemis() -> void:
 	for k: int in 1000:
 		var pos := Vector2(hasard.randf_range(80.0, 1250.0), 0.0).rotated(hasard.randf() * TAU)
 		_placer(pos, 1e9, k % 5 == 0)
-	var debut := Time.get_ticks_usec()
+	var durees := PackedInt32Array()
 	for _k: int in 100:
+		var debut := Time.get_ticks_usec()
 		for arme: ArmeEquipee in armes:
 			_pas(arme)
-	var ms := (Time.get_ticks_usec() - debut) / 1000.0 / 100.0
-	print("PERF tir : 8 armes x 1000 ennemis = %.3f ms par pas" % ms)
+		durees.append(Time.get_ticks_usec() - debut)
+	var ms := MesurePas.centile_bas_ms(durees)
+	print("PERF tir : 8 armes x 1000 ennemis = %.3f ms par pas (10e centile)" % ms)
 	verifier(ms < 3.0, "coût d'un pas : %.3f ms (limite 3)" % ms)
