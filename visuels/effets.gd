@@ -24,6 +24,8 @@ const DUREE_TRAIT: float = 0.2
 ## L'impact : pic (images 0 à 3), retour à la taille normale (3 à 6), dissipation (6 à 18).
 const DUREE_IMPACT: float = 18.0 * IMAGE
 const DUREE_STATUT: float = 0.35
+## Un disque de 260 px à chaque coup encaissé : au plus un toutes les 0,34 s (WCAG 2.3.1).
+const INTERVALLE_ABSORPTION: float = 0.34
 const DUREE_ANNEAU: float = 0.45
 const DUREE_EXPLOSION: float = 0.5
 const DUREE_FEU: float = 0.5
@@ -160,6 +162,8 @@ var _chaine_reste: float = 0.0
 var _chaine_active: bool = false
 ## Âge d'un effet qui naît en retard (un impact différé échu pendant un grand pas de temps).
 var _age_initial: float = 0.0
+## Temps avant la prochaine absorption admise.
+var _pause_absorption: float = 0.0
 var _etincelles: Etincelles = Etincelles.new(self)
 
 
@@ -325,6 +329,7 @@ func vider() -> void:
 	for i: int in range(_vivants.size() - 1, -1, -1):
 		_liberer(i)
 	_tirs_en_vol.clear()
+	_pause_absorption = 0.0
 	_en_attente.clear()
 	_chaine_active = false
 	_etincelles.vider()
@@ -379,6 +384,7 @@ func exploser(ou: Vector2) -> bool:
 
 func avancer(delta: float) -> void:
 	_chaine_active = false
+	_pause_absorption = maxf(_pause_absorption - delta, 0.0)
 	for i: int in range(_vivants.size() - 1, -1, -1):
 		var effet: Dictionary = _vivants[i]
 		var age: float = float(effet["age"]) + delta
@@ -652,9 +658,14 @@ func _trait(
 
 ## L'éclat bleu de la mana qui encaisse un coup, sur la tour.
 func _absorption(ou: Vector2) -> bool:
-	var effet: Dictionary = _creer("halo", "burst", DUREE_IMPACT, COULEUR_ABSORPTION, COUCHE_DESSUS)
+	if _pause_absorption > 0.0:
+		return false
+	var effet: Dictionary = _creer(
+		"halo", "absorption", DUREE_IMPACT, COULEUR_ABSORPTION, COUCHE_DESSUS
+	)
 	if effet.is_empty():
 		return false
+	_pause_absorption = INTERVALLE_ABSORPTION
 	effet["depart"] = ou
 	effet["taille"] = TAILLE_ABSORPTION
 	_poser(effet)
@@ -795,10 +806,11 @@ func _poser(effet: Dictionary) -> void:
 			var sens: Vector2 = arrivee - depart
 			_orienter_vol(noeud, forme, sens, t, taille)
 			noeud.scale *= CourbesEffets.echelle_apparition_tir(age)
-		"burst":
+		"burst", "absorption":
 			noeud.position = depart
 			noeud.scale = Vector2.ONE * _echelle(forme, taille) * CourbesEffets.echelle_impact(age)
-			couleur = couleur.lerp(Color.WHITE, CourbesEffets.blanc_impact(age))
+			if String(effet["anim"]) == "burst":
+				couleur = couleur.lerp(Color.WHITE, CourbesEffets.blanc_impact(age))
 			alpha = CourbesEffets.alpha_impact(age)
 		"statut":
 			noeud.position = depart

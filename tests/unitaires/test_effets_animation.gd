@@ -384,3 +384,47 @@ func test_chaque_statut_a_forme_apparait_plus_petit_qu_il_ne_finit() -> void:
 		var au_depart: float = _effets.echelle_de(forme)
 		_images(2)
 		verifier(_effets.echelle_de(forme) > au_depart, "%s : grandit dès l'apparition" % statut)
+
+
+# --- Absorption de mana -------------------------------------------------------------------------
+
+
+func _absorption() -> Dictionary:
+	return {"k": "absorption", "t": 1, "de": Vector2.ZERO}
+
+
+func test_l_absorption_n_a_pas_de_blanc_au_pic() -> void:
+	_effets.ajouter(_absorption())
+	var c: Color = _effets.couleur_de("halo")
+	verifier_proche(c.r, Effets.COULEUR_ABSORPTION.r, 0.001, "pas de blanc à l'image 0")
+	verifier_proche(c.g, Effets.COULEUR_ABSORPTION.g, 0.001)
+	verifier_proche(c.b, Effets.COULEUR_ABSORPTION.b, 0.001)
+	var depart: float = _effets.echelle_de("halo")
+	_images(3)
+	verifier(_effets.echelle_de("halo") > depart * 2.0, "garde la courbe de taille")
+	_images(15)
+	verifier_egal(_effets.nombre_vivants(), 0, "garde sa dissipation de 0,30 s")
+
+
+func test_deux_absorptions_a_moins_de_l_intervalle_n_en_jouent_qu_une() -> void:
+	verifier_proche(Effets.INTERVALLE_ABSORPTION, 0.34, 0.0001)
+	_effets.ajouter(_absorption())
+	_effets.avancer(0.1)
+	var avant: int = _effets.taille_pool()
+	verifier_faux(_effets.ajouter(_absorption()), "ignorée dans l'intervalle")
+	verifier_egal(_effets.nombre_vivants(), 1)
+	verifier_egal(_effets.taille_pool(), avant, "aucun nœud créé")
+
+
+func test_deux_absorptions_espacees_de_0_35_s_en_jouent_deux() -> void:
+	_effets.ajouter(_absorption())
+	_effets.avancer(0.35)
+	verifier(_effets.ajouter(_absorption()), "la seconde est jouée")
+	verifier_egal(_effets.nombre_vivants(), 1, "la première a fini")
+	var vues: int = 0
+	_effets.vider()
+	for i: int in 100:
+		if _effets.ajouter(_absorption()):
+			vues += 1
+		_effets.avancer(0.05)
+	verifier(vues <= 15, "jamais plus de 3 par seconde : %d en 5 s" % vues)
