@@ -344,14 +344,13 @@ func _cible_intention(id: int) -> CibleIntention:
 # --- Lecture -----------------------------------------------------------------------------------
 
 
-## L'arène de `cible` vue par `demandeur`. Un joueur en jeu ne voit que la sienne ; un joueur
-## tombé ou parti peut observer toute arène qui existe encore. `null` sinon.
+## L'arène de `cible` vue par `demandeur` : toute arène qui existe encore, y compris pour un
+## joueur en jeu qui la regarde. `null` sinon. Remplacer sa propre vue (`observer`) est autre
+## chose : voir `observation_permise`.
 func vue_arene(demandeur: int, cible: int) -> VueArene:
 	var d := _joueur(demandeur)
 	var c := _joueur(cible)
 	if d == null or c == null or c.arene == null:
-		return null
-	if d.en_jeu() and cible != demandeur:
 		return null
 	var v := c.arene.vue(_phase_vue(c), _temps_restant(c), _famille_annoncee(c), c.sans_fin)
 	_enregistrer(c, v)
@@ -363,9 +362,17 @@ func vue_arene(demandeur: int, cible: int) -> VueArene:
 	return v
 
 
+## Un joueur ne remplace sa propre vue par celle d'un autre qu'une fois tombé, vainqueur ou
+## parti ; tant qu'il joue, il peut seulement regarder (`vue_arene`).
+func observation_permise(id: int) -> bool:
+	var j := _joueur(id)
+	return j != null and (not j.en_jeu() or j.victorieux)
+
+
 ## Chaque joueur avec ses statistiques du moment. Lire les arènes vide leurs évènements : on les
 ## garde de côté pour la prochaine `vue_arene`, qui les rend.
-func vue_globale() -> VueGlobale:
+## Les cartes de densité ne sont calculées que sur demande (`avec_densites`).
+func vue_globale(avec_densites: bool = false) -> VueGlobale:
 	var g := VueGlobale.new()
 	for j: JoueurPartie in _ordre:
 		if j.arene != null and not j.fige:
@@ -379,8 +386,11 @@ func vue_globale() -> VueGlobale:
 			"revenu": j.revenu,
 			"vivant": j.en_jeu(),
 			"victorieux": j.victorieux,
+			"dps": j.arene.dps() if j.arene != null and not j.fige else 0.0,
 		}
 		g.joueurs.append(entree)
+		if avec_densites and j.arene != null:
+			g.densites[j.id] = j.arene.carte_densite()
 	g.temps_ecoule = temps_ecoule()
 	g.en_cours = _demarree and not _terminee
 	g.termine = _terminee

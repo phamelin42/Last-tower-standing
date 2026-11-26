@@ -26,6 +26,10 @@ const APPARITIONS_MAX_PAR_PAS := 1000
 const EPSILON_TEMPS := 1e-9
 ## Sous ce reste, la part « à distance » des dégâts subis n'est que du bruit d'arrondi.
 const EPSILON_DEGATS := 1e-6
+## Largeur (secondes) de la moyenne glissante des dégâts par seconde.
+const FENETRE_DPS_S := 10.0
+## Côté de la carte de densité, en cases.
+const DENSITE_COTE := 16
 
 ## Points de vie de la tour, entre 0 et le maximum.
 var pv: float = 0.0
@@ -56,6 +60,10 @@ var _pv_max_connu: float = 0.0
 var _eliminations: int = 0
 var _degats_infliges: float = 0.0
 var _detruite: bool = false
+## Dégâts infligés par pas, pour `dps` : seuls les pas où la tour a infligé quelque chose y sont
+## notés (instant du pas, dégâts), les plus anciens en tête.
+var _histo_temps: PackedFloat64Array = PackedFloat64Array()
+var _histo_degats: PackedFloat64Array = PackedFloat64Array()
 var _evenements: Array[Dictionary] = []
 var _rayon_spawn: float
 var _rayon_tour: float
@@ -157,16 +165,63 @@ func avancer(dt: float) -> void:
 		return
 	_tick += 1
 	_temps += dt
+	var degats_avant := _degats_infliges
 	economie.avancer(dt, _manche, _stats, _temps)
 	_faire_apparaitre(dt)
 	_pas_tour_et_ennemis(dt)
 	_pas_armes(dt)
+	_noter_degats(_degats_infliges - degats_avant)
 	_purger()
 	_pv_borne()
 	if pv <= 0.0:
 		pv = 0.0
 		_detruite = true
 		tour_detruite.emit()
+
+
+func _noter_degats(degats: float) -> void:
+	if degats > 0.0:
+		_histo_temps.append(_temps)
+		_histo_degats.append(degats)
+	var limite := _temps - FENETRE_DPS_S
+	var perimes := 0
+	while perimes < _histo_temps.size() and _histo_temps[perimes] <= limite:
+		perimes += 1
+	if perimes > 0:
+		_histo_temps = _histo_temps.slice(perimes)
+		_histo_degats = _histo_degats.slice(perimes)
+
+
+## Dégâts infligés par seconde sur les `FENETRE_DPS_S` dernières secondes, épines comprises ;
+## avant la fin de la première fenêtre, on divise par le temps écoulé.
+func dps() -> float:
+	if not _temps > 0.0:
+		return 0.0
+	var limite := _temps - FENETRE_DPS_S
+	var somme := 0.0
+	for i: int in _histo_temps.size():
+		if _histo_temps[i] > limite:
+			somme += _histo_degats[i]
+	return somme / minf(_temps, FENETRE_DPS_S)
+
+
+## Nombre d'ennemis vivants par case, `DENSITE_COTE` × `DENSITE_COTE` cases ligne par ligne, sur
+## le carré de côté 2 × rayon d'apparition centré sur la tour ; une case sature à 255.
+func carte_densite() -> PackedByteArray:
+	var carte := PackedByteArray()
+	carte.resize(DENSITE_COTE * DENSITE_COTE)
+	var pas_case := 2.0 * _rayon_spawn / float(DENSITE_COTE)
+	var maxi_case := DENSITE_COTE - 1
+	for i: int in ennemis.pos.size():
+		if ennemis.mort[i] != 0:
+			continue
+		var p := ennemis.pos[i]
+		var cx := clampi(floori((p.x + _rayon_spawn) / pas_case), 0, maxi_case)
+		var cy := clampi(floori((p.y + _rayon_spawn) / pas_case), 0, maxi_case)
+		var k := cy * DENSITE_COTE + cx
+		if carte[k] < 255:
+			carte[k] += 1
+	return carte
 
 
 func _faire_apparaitre(dt: float) -> void:
