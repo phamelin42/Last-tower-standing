@@ -71,6 +71,7 @@ const COULEURS_STATUTS: Dictionary = {
 	"brulure": Color(1.0, 0.55, 0.2),
 	"vulnerabilite": Color(1.0, 0.7, 0.3),
 	"malediction_toucher": Color(0.75, 0.55, 1.0),
+	"malediction_degats": Color(0.9, 0.5, 0.85),
 	"repoussement": Color(0.85, 0.9, 1.0),
 	"siphon": Color(0.8, 0.6, 1.0),
 	"mana_au_coup": Color(0.45, 0.75, 1.0),

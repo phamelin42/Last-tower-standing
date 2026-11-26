@@ -459,7 +459,7 @@ func test_une_signature_proposee_ne_change_pas_le_rendu_en_jeu() -> void:
 			var sans: Dictionary = avec.duplicate()
 			sans.erase("arme")
 			verifier_egal(_rendu_de(avec), _rendu_de(sans), "%s : %s par type" % [id, k])
-	verifier(vues >= 27, "les 27 signatures proposées : %d" % vues)
+	verifier(vues >= 45, "les 45 signatures proposées : %d" % vues)
 
 
 func _sans_alpha(c: Color) -> Color:

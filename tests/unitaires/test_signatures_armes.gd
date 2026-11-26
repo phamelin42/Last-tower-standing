@@ -1,15 +1,9 @@
 extends CasDeTest
 ## Chaque arme a une signature qu'on reconnaît d'un coup d'œil : forme et couleur du projectile,
 ## traînée, impact et statut. Les listes viennent de `data/` et aucun effectif n'est figé (le
-## catalogue grossit). Les armes du lot 9 entrent dans les données avant leur signature (T9.18) :
-## d'ici là, une signature désigne toujours une arme qui existe, les 30 armes du lot 8 gardent la
-## leur, et une arme sans signature retombe sur le rendu par type (`test_effets.gd`).
+## catalogue grossit) : une arme des données sans signature, ou une signature sans arme, échoue.
 
-const ArmesLot8 := preload("res://tests/unitaires/armes_lot_8.gd")
 const SignaturesLot8 := preload("res://tests/unitaires/signatures_lot_8.gd")
-## Rang des types de dégâts dans `data/armes.json`.
-const TYPE_SIEGE: int = 3
-const TYPE_CHAOS: int = 4
 ## Effet de l'arme → marque de sa mécanique ; sinon la vulnérabilité, sinon rien.
 const MARQUES_DES_EFFETS: Dictionary = {
 	"tournant": "rayon_tournant",
@@ -42,28 +36,16 @@ func _paires() -> Array[PackedStringArray]:
 	return paires
 
 
-func test_chaque_signature_designe_une_arme_des_donnees() -> void:
+func test_chaque_arme_a_une_signature_et_il_n_y_en_a_pas_d_autre() -> void:
 	var donnees: PackedStringArray = _ids_donnees()
-	for id: String in SignaturesArmes.ids():
-		verifier(donnees.has(id), "signature orpheline : %s" % id)
+	var signees: PackedStringArray = SignaturesArmes.ids()
+	signees.sort()
+	for id: String in donnees:
+		verifier(signees.has(id), "%s n'a pas de signature" % id)
 		verifier(not SignaturesArmes.de(id).is_empty(), "signature de %s" % id)
-
-
-## Les armes de siège et de chaos du lot 9 entrent dans les données avant leur signature (une
-## autre tâche) : seules celles-là peuvent en manquer. Tranchantes, perçantes et magiques ont
-## toutes la leur, et le test strict (une ligne par arme, ni plus ni moins) reviendra avec elles.
-func test_toute_arme_sans_signature_est_de_siege_ou_de_chaos() -> void:
-	var avec: PackedStringArray = SignaturesArmes.ids()
-	for id: String in _ids_donnees():
-		if avec.has(id):
-			continue
-		var type_degats: int = int((_donnees.armes[id] as Dictionary)["type_degats"])
-		verifier(
-			type_degats == TYPE_SIEGE or type_degats == TYPE_CHAOS,
-			"%s (type %d) n'a pas de signature" % [id, type_degats]
-		)
-	for id: String in ArmesLot8.IDS:
-		verifier(avec.has(id), "signature de %s perdue" % id)
+	for id: String in signees:
+		verifier(donnees.has(id), "signature orpheline : %s" % id)
+	verifier_egal(signees.size(), donnees.size(), "autant de signatures que d'armes")
 
 
 func test_les_trente_signatures_du_lot_8_ne_changent_pas() -> void:
@@ -208,6 +190,7 @@ func test_le_libelle_affiche_de_chaque_statut_a_ses_accents() -> void:
 		"vol_de_vie": "vol de vie",
 		"vulnerabilite": "vulnérabilité",
 		"malediction_toucher": "malédiction",
+		"malediction_degats": "affaiblissement",
 		"repoussement": "repoussement",
 		"siphon": "siphon",
 		"mana_au_coup": "mana au coup",
@@ -239,13 +222,18 @@ func test_la_marque_correspond_a_la_mecanique_de_l_arme() -> void:
 		verifier_egal(marque, _marque_attendue(id), "%s : marque" % id)
 		verifier(SignaturesArmes.MARQUES.has(marque), "%s : marque %s inconnue" % [id, marque])
 		vues[marque] = true
-	for marque: String in ["", "rayon_tournant", "disque_au_sol", "vulnerabilite"]:
+	for marque: String in SignaturesArmes.MARQUES:
 		verifier(vues.has(marque), "aucune arme n'a la marque « %s »" % marque)
 
 
 func test_les_nouveaux_statuts_ont_chacun_leur_forme_et_leur_libelle() -> void:
 	for statut: String in [
-		"vulnerabilite", "malediction_toucher", "repoussement", "siphon", "mana_au_coup"
+		"vulnerabilite",
+		"malediction_toucher",
+		"malediction_degats",
+		"repoussement",
+		"siphon",
+		"mana_au_coup",
 	]:
 		verifier(SignaturesArmes.STATUTS.has(statut), "%s : forme" % statut)
 		verifier(SignaturesArmes.libelle_statut(statut) != "", "%s : libellé" % statut)
@@ -263,5 +251,5 @@ func test_seules_les_signatures_validees_sont_en_jeu() -> void:
 		if not SignaturesLot8.LIGNES.has(id):
 			verifier(not SignaturesArmes.en_jeu(id), "%s : seulement proposée" % id)
 			proposees += 1
-	verifier(proposees >= 27, "%d signatures proposées" % proposees)
+	verifier(proposees >= 45, "%d signatures proposées" % proposees)
 	verifier(not SignaturesArmes.en_jeu("arme_qui_n_existe_pas"))
