@@ -120,3 +120,95 @@ func test_le_de_dans_effets_roule_puis_laisse_le_soin_d_aujourd_hui() -> void:
 		effets.avancer(IMAGE)
 	verifier_egal(effets.elementaires().etats("eclat_des").size(), 1, "l'impact à l'arrivée")
 	effets.free()
+
+
+func _visibles(planche: String) -> int:
+	var n: int = 0
+	for e: Dictionary in _a.etats(planche):
+		n += 1 if e["visible"] else 0
+	return n
+
+
+# --- Sablier fêlé : piège ----------------------------------------------------------------------
+
+
+func test_le_sablier_est_un_piege() -> void:
+	_verifier_arme("sablier_fele", "sablier", "piege")
+
+
+func test_le_sablier_est_lance_puis_reste_pose_au_sol_visible() -> void:
+	verifier(_a.piege("sablier", TOUR, CIBLE))
+	verifier_egal(_a.etats("sablier").size(), 2, "un lancé et un pour le sol")
+	_avancer(5)
+	verifier_egal(_visibles("sablier"), 1, "il vole, il n'est pas encore au sol")
+	_avancer(80)
+	var pose: Array[Dictionary] = _a.etats("sablier")
+	verifier_egal(pose.size(), 1, "il reste tant que le piège n'a pas servi")
+	verifier((pose[0]["position"] as Vector2).distance_to(CIBLE) <= 1.0, "sur le chemin visé")
+	_avancer(60 * 20)
+	verifier_egal(_a.etats("sablier").size(), 1, "toujours là après vingt secondes")
+
+
+func test_le_sable_coule_dans_le_sablier_pose_sauf_en_mouvement_reduit() -> void:
+	_a.piege("sablier", TOUR, CIBLE)
+	_avancer(80)
+	var images: Dictionary = {}
+	for i: int in 30:
+		_avancer(1)
+		images[int(_a.etats("sablier")[0]["image"])] = true
+	verifier_egal(images.size(), 2, "deux images de sable en alternance")
+	_a.vider()
+	_a.mouvement_reduit = true
+	_a.piege("sablier", TOUR, CIBLE)
+	_avancer(80)
+	images.clear()
+	for i: int in 30:
+		_avancer(1)
+		images[int(_a.etats("sablier")[0]["image"])] = true
+	verifier_egal(images.size(), 1, "figé en mouvement réduit")
+
+
+func test_le_declenchement_retire_le_sablier_et_pas_celui_d_un_autre_piege() -> void:
+	_a.piege("sablier", TOUR, CIBLE)
+	_a.piege("sablier", TOUR, CIBLE + Vector2(0.0, 200.0))
+	_avancer(80)
+	verifier_egal(_a.etats("sablier").size(), 2)
+	_a.retirer_pieges(CIBLE)
+	verifier_egal(_a.etats("sablier").size(), 1, "seul le piège déclenché est retiré")
+
+
+func test_le_tourbillon_de_sable_est_dessine_au_rayon_reel_sans_gel() -> void:
+	var rayon: float = _rayon_px("sablier_fele")
+	verifier(_a.impacter("sablier", CIBLE, rayon, false))
+	verifier_egal(_a.etats("tourbillon_sable").size(), 1, "le tourbillon")
+	verifier_proche(
+		_a.etats("tourbillon_sable")[0]["diametre"], rayon * 2.0, rayon * 0.2, "au rayon"
+	)
+	verifier_egal(_a.etats("").size(), 1, "un anneau")
+	verifier_proche(_a.etats("")[0]["diametre"], rayon * 2.0, 0.5, "anneau au rayon exact")
+	verifier_egal(_a.gel_restant(), 0.0, "coup courant : pas de gel")
+	verifier(_a.particules_actives() <= 8, "au plus huit particules")
+	_avancer(60)
+	verifier_egal(_a.nombre_vivants(), 0)
+
+
+func test_mouvement_reduit_le_tourbillon_de_sable_sans_particule() -> void:
+	_a.mouvement_reduit = true
+	_a.piege("sablier", TOUR, CIBLE)
+	_a.impacter("sablier", CIBLE, _rayon_px("sablier_fele"), false)
+	verifier_egal(_a.particules_actives(), 0)
+	verifier_egal(_a.etats("tourbillon_sable").size(), 1, "le tourbillon reste")
+
+
+func test_le_sablier_dans_effets_se_pose_au_tir_et_part_au_declenchement() -> void:
+	var effets: Effets = _effets()
+	var evenements: Array[Dictionary] = _evenements("sablier_fele")
+	effets.ajouter(evenements[0])
+	verifier_egal(effets.elementaires().etats("sablier").size(), 2, "lancé au tir")
+	for _i: int in 80:
+		effets.avancer(IMAGE)
+	verifier_egal(effets.elementaires().etats("sablier").size(), 1, "il attend")
+	effets.ajouter(evenements[1])
+	verifier_egal(effets.elementaires().etats("sablier").size(), 0, "retiré au déclenchement")
+	verifier_egal(effets.elementaires().etats("tourbillon_sable").size(), 1, "le tourbillon")
+	effets.free()

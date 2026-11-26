@@ -1,9 +1,10 @@
 class_name AttaqueMine
 extends AttaqueElement
-## Ce que partagent les deux mines (pétard de rempart, mine de forge) : l'objet est lancé de la
-## tour en cloche, retombe sur le chemin et reste posé, visible, jusqu'au déclenchement
-## (`AttaquesElementaires.retirer_pieges`) ; à l'explosion le pop est un coup de siège, dessiné au
-## rayon réel avec un anneau. Ce n'est pas un élément : chaque mine a le sien, qui l'étend.
+## Ce que partagent les mines (pétard de rempart, mine de forge) et le sablier fêlé, piège du même
+## genre : l'objet est lancé de la tour en cloche, retombe sur le chemin et reste posé, visible,
+## jusqu'au déclenchement (`AttaquesElementaires.retirer_pieges`) ; à l'explosion le pop est dessiné
+## au rayon réel avec un anneau (et le gel d'un coup de siège pour une arme de siège). Ce n'est pas
+## un élément : chaque objet posé a le sien, qui l'étend.
 
 const IMAGES_ANNEAU: int = 14
 const SEQ_POP: Array[int] = [0, 1, 2, 2, 3, 3, 4, 4, 4, 5, 5, 5]
