@@ -3,8 +3,8 @@
   "id": "lame_de_fil",
   "nom": "Lame de fil",
   "description": "Un fil d’acier tendu qui coupe net ce qui approche.",
-  "rarete": "commune",
-  "prix": 80,
+  "rarete": "peu_commune",
+  "prix": 200,
   "type_degats": "tranchant",
   "degats": 30.6,
   "recharge": 0.8,
@@ -13,25 +13,6 @@
   "effets": [
    {
     "kind": "cible_unique"
-   }
-  ],
-  "statuts": []
- },
- {
-  "id": "faucille_a_ressort",
-  "nom": "Faucille à ressort",
-  "description": "Un ressort se détend, et la faux balaie tout le groupe.",
-  "rarete": "commune",
-  "prix": 120,
-  "type_degats": "tranchant",
-  "degats": 24.3,
-  "recharge": 1.4,
-  "portee": 500,
-  "ciblage": "plus_proche",
-  "effets": [
-   {
-    "kind": "zone",
-    "rayon": 110
    }
   ],
   "statuts": []
@@ -134,8 +115,8 @@
   "id": "arbalete_de_bureau",
   "nom": "Arbalète de bureau",
   "description": "Un carreau précis, parti d’un pupitre bricolé.",
-  "rarete": "commune",
-  "prix": 90,
+  "rarete": "peu_commune",
+  "prix": 200,
   "type_degats": "perçant",
   "degats": 43.2,
   "recharge": 1.0,
@@ -673,5 +654,483 @@
     "duree": 3.0
    }
   ]
+ },
+ {
+  "id": "serpe_de_vigne",
+  "nom": "Serpe de vigne",
+  "description": "Sa lame courbe entaille tout le groupe et le laisse à vif.",
+  "rarete": "peu_commune",
+  "prix": 270,
+  "type_degats": "tranchant",
+  "degats": 86.4,
+  "recharge": 1.6,
+  "portee": 750,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "zone",
+    "rayon": 140
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "vulnerabilite",
+    "ratio": 0.1,
+    "duree": 4.0
+   }
+  ]
+ },
+ {
+  "id": "rasoir_tournoyant",
+  "nom": "Rasoir tournoyant",
+  "description": "Deux lames montées sur un pivot balaient le terrain autour de la tour.",
+  "rarete": "peu_commune",
+  "prix": 260,
+  "type_degats": "tranchant",
+  "degats": 72.5,
+  "recharge": 0.9,
+  "portee": 500,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "tournant",
+    "branches": 2,
+    "pas_deg": 30,
+    "largeur": 45,
+    "sens": "horaire"
+   }
+  ],
+  "statuts": []
+ },
+ {
+  "id": "couperet_a_epines",
+  "nom": "Couperet à épines",
+  "description": "Un couperet hérissé de pointes : qui le frappe se pique aussi.",
+  "rarete": "peu_commune",
+  "prix": 250,
+  "type_degats": "tranchant",
+  "degats": 247.5,
+  "recharge": 1.5,
+  "portee": 750,
+  "ciblage": "plus_fort",
+  "effets": [
+   {
+    "kind": "cible_unique"
+   }
+  ],
+  "statuts": [],
+  "type_secondaire": "epines"
+ },
+ {
+  "id": "lame_de_brume",
+  "nom": "Lame de brume",
+  "description": "Dans sa brume, l’ennemi frappé n’ose plus approcher.",
+  "rarete": "rare",
+  "prix": 500,
+  "type_degats": "tranchant",
+  "degats": 420.0,
+  "recharge": 1.2,
+  "portee": 1000,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "cible_unique"
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "malediction_toucher",
+    "ratio": 0.3,
+    "duree": 5.0
+   }
+  ]
+ },
+ {
+  "id": "faucheuse_double",
+  "nom": "Faucheuse double",
+  "description": "Quatre faux inversées laissent des plaies qui suintent.",
+  "rarete": "rare",
+  "prix": 540,
+  "type_degats": "tranchant",
+  "degats": 170.0,
+  "recharge": 1.8,
+  "portee": 750,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "tournant",
+    "branches": 4,
+    "pas_deg": 20,
+    "largeur": 50,
+    "sens": "antihoraire"
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "poison",
+    "total_ratio": 0.3,
+    "duree": 4.0
+   }
+  ]
+ },
+ {
+  "id": "fleau_de_rasoirs",
+  "nom": "Fléau de rasoirs",
+  "description": "Une chaîne de rasoirs saute d’ennemi en ennemi.",
+  "rarete": "rare",
+  "prix": 550,
+  "type_degats": "tranchant",
+  "degats": 211.2,
+  "recharge": 1.6,
+  "portee": 1000,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "rebond",
+    "cibles": 5,
+    "portee_saut": 250,
+    "decroissance": 0.88
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "vulnerabilite",
+    "ratio": 0.12,
+    "duree": 5.0
+   }
+  ]
+ },
+ {
+  "id": "hache_de_garde",
+  "nom": "Hache de garde",
+  "description": "Elle fauche ce qui approche, et blesse qui la touche.",
+  "rarete": "rare",
+  "prix": 510,
+  "type_degats": "tranchant",
+  "degats": 99.3,
+  "recharge": 0.8,
+  "portee": 500,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "aura",
+    "rayon": 300,
+    "periode": 0.8
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "malediction_toucher",
+    "ratio": 0.25,
+    "duree": 3.0
+   }
+  ],
+  "type_secondaire": "epines"
+ },
+ {
+  "id": "scie_a_ruban",
+  "nom": "Scie à ruban",
+  "description": "Une rafale de dents d’acier, aux plaies infectées.",
+  "rarete": "rare",
+  "prix": 530,
+  "type_degats": "tranchant",
+  "degats": 183.0,
+  "recharge": 1.4,
+  "portee": 750,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "barrage",
+    "projectiles": 6,
+    "dispersion_deg": 35,
+    "rayon": 55
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "poison",
+    "total_ratio": 0.35,
+    "duree": 5.0
+   }
+  ]
+ },
+ {
+  "id": "moissonneuse_d_acier",
+  "nom": "Moissonneuse d’acier",
+  "description": "Six faux géantes balaient la plaine et aveuglent.",
+  "rarete": "epique",
+  "prix": 1100,
+  "type_degats": "tranchant",
+  "degats": 176.0,
+  "recharge": 1.2,
+  "portee": 1250,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "tournant",
+    "branches": 6,
+    "pas_deg": 15,
+    "largeur": 60,
+    "sens": "horaire"
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "vulnerabilite",
+    "ratio": 0.15,
+    "duree": 6.0
+   },
+   {
+    "kind": "malediction_toucher",
+    "ratio": 0.3,
+    "duree": 5.0
+   }
+  ]
+ },
+ {
+  "id": "javeline_de_jet",
+  "nom": "Javeline de jet",
+  "description": "Un javelot lancé de loin qui fait reculer sa cible.",
+  "rarete": "peu_commune",
+  "prix": 260,
+  "type_degats": "perçant",
+  "degats": 233.0,
+  "recharge": 1.4,
+  "portee": 1000,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "cible_unique"
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "repoussement",
+    "distance": 120
+   }
+  ]
+ },
+ {
+  "id": "trait_en_gerbe",
+  "nom": "Trait en gerbe",
+  "description": "Trois traits hérissés de barbes : qui les arrache se blesse.",
+  "rarete": "peu_commune",
+  "prix": 250,
+  "type_degats": "perçant",
+  "degats": 124.0,
+  "recharge": 1.2,
+  "portee": 500,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "barrage",
+    "projectiles": 3,
+    "dispersion_deg": 25,
+    "rayon": 45
+   }
+  ],
+  "statuts": [],
+  "type_secondaire": "epines"
+ },
+ {
+  "id": "fleche_marquante",
+  "nom": "Flèche marquante",
+  "description": "Elle marque sa cible, qui encaisse ensuite bien davantage.",
+  "rarete": "peu_commune",
+  "prix": 270,
+  "type_degats": "perçant",
+  "degats": 170.1,
+  "recharge": 1.0,
+  "portee": 750,
+  "ciblage": "plus_fort",
+  "effets": [
+   {
+    "kind": "cible_unique"
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "vulnerabilite",
+    "ratio": 0.1,
+    "duree": 4.0
+   }
+  ]
+ },
+ {
+  "id": "arc_de_remparts",
+  "nom": "Arc de remparts",
+  "description": "Un grand arc de rempart dont les traits ricochent au loin.",
+  "rarete": "rare",
+  "prix": 540,
+  "type_degats": "perçant",
+  "degats": 243.0,
+  "recharge": 1.5,
+  "portee": 1250,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "rebond",
+    "cibles": 4,
+    "portee_saut": 260,
+    "decroissance": 0.88
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "vulnerabilite",
+    "ratio": 0.12,
+    "duree": 5.0
+   }
+  ]
+ },
+ {
+  "id": "herse_de_pieux",
+  "nom": "Herse de pieux",
+  "description": "Une rangée de pieux jaillit du sol et repousse la foule.",
+  "rarete": "rare",
+  "prix": 520,
+  "type_degats": "perçant",
+  "degats": 224.6,
+  "recharge": 2.4,
+  "portee": 750,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "onde",
+    "rayon_max": 400,
+    "vitesse": 450
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "repoussement",
+    "distance": 150
+   }
+  ]
+ },
+ {
+  "id": "lance_epineuse",
+  "nom": "Lance épineuse",
+  "description": "Une lance barbelée dont la plaie s’infecte, et qui pique en retour.",
+  "rarete": "rare",
+  "prix": 530,
+  "type_degats": "perçant",
+  "degats": 667.8,
+  "recharge": 1.8,
+  "portee": 1000,
+  "ciblage": "plus_fort",
+  "effets": [
+   {
+    "kind": "cible_unique"
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "poison",
+    "total_ratio": 0.35,
+    "duree": 4.0
+   }
+  ],
+  "type_secondaire": "epines"
+ },
+ {
+  "id": "carquois_en_rafale",
+  "nom": "Carquois en rafale",
+  "description": "Huit traits d’un coup, et la cible devient plus fragile.",
+  "rarete": "rare",
+  "prix": 550,
+  "type_degats": "perçant",
+  "degats": 190.7,
+  "recharge": 1.9,
+  "portee": 1000,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "barrage",
+    "projectiles": 8,
+    "dispersion_deg": 45,
+    "rayon": 45
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "vulnerabilite",
+    "ratio": 0.1,
+    "duree": 4.0
+   }
+  ]
+ },
+ {
+  "id": "mur_de_pointes",
+  "nom": "Mur de pointes",
+  "description": "Une haie de pointes surgit et rejette les ennemis en arrière.",
+  "rarete": "rare",
+  "prix": 510,
+  "type_degats": "perçant",
+  "degats": 269.3,
+  "recharge": 2.2,
+  "portee": 750,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "zone",
+    "rayon": 150
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "repoussement",
+    "distance": 90
+   }
+  ]
+ },
+ {
+  "id": "couronne_de_pointes",
+  "nom": "Couronne de pointes",
+  "description": "Un cercle de pointes tourne sans fin et repousse ce qui approche.",
+  "rarete": "epique",
+  "prix": 1100,
+  "type_degats": "perçant",
+  "degats": 176.0,
+  "recharge": 0.6,
+  "portee": 750,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "aura",
+    "rayon": 350,
+    "periode": 0.6
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "repoussement",
+    "distance": 60
+   },
+   {
+    "kind": "vulnerabilite",
+    "ratio": 0.08,
+    "duree": 3.0
+   }
+  ]
+ },
+ {
+  "id": "faucille_a_ressort",
+  "nom": "Faucille à ressort",
+  "description": "Un ressort se détend, et la faux balaie tout le groupe.",
+  "rarete": "commune",
+  "prix": 120,
+  "type_degats": "tranchant",
+  "degats": 24.3,
+  "recharge": 1.4,
+  "portee": 500,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "zone",
+    "rayon": 110
+   }
+  ],
+  "statuts": []
  }
 ]
