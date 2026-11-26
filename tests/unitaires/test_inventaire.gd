@@ -3,6 +3,8 @@ extends CasDeTest
 ## limite du réseau), des améliorations qui s'empilent, et des statistiques cumulées comme la spec
 ## le dit (additif dans une catégorie, multiplicatif entre catégories).
 
+const PAS_S := 30.0
+
 
 func _donnees_reelles() -> Donnees:
 	var d := Donnees.charger()
@@ -329,8 +331,6 @@ func test_exemplaires_et_comptes_d_ameliorations() -> void:
 
 
 # --- Lot 9, T9.10 : croissance, armes communes, classes, états -----------------------------------
-
-const PAS_S := 30.0
 
 
 func _stats_avec(effets: Array, exemplaires: int = 1) -> StatsTour:
