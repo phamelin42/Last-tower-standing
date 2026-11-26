@@ -24,6 +24,7 @@ func _donnees_avec(armes: Array, ameliorations: Array) -> Donnees:
 		brut[nom] = _lire(nom)
 	brut["armes.json"] = armes
 	brut["ameliorations.json"] = ameliorations
+	brut["unites.json"] = _lire("unites.json")
 	var d := Donnees.depuis_brut(brut)
 	verifier_non_nul(d, "les données de test doivent être valides")
 	return d

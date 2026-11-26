@@ -8,7 +8,6 @@
 	"spawn_baisse_par_manche": 0.08,
 	"spawn_plancher": 0.1,
 	"tour": {"pv": 1000, "armure": 0, "regen": 0, "rayon": 60, "mana_max": 0, "mana_regen": 1.0},
-	"emplacements_armes": 8,
 	"nb_offres": 4,
 	"vente_ratio": 0.5,
 	"gel_max_s": 3.0,

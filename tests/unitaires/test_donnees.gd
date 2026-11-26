@@ -475,13 +475,6 @@ func _mutations_partie() -> Array[Array]:
 			9,
 			"hz_min_regardee"
 		],
-		[
-			"partie : emplacements_armes à 0 s'il est présent",
-			f,
-			["emplacements_armes"],
-			0,
-			"emplacements_armes"
-		],
 		["partie : champ manquant", f, ["rayon_spawn"], SUP, "rayon_spawn"],
 		["partie : nombre en chaîne", f, ["preparation_s"], "30", "preparation_s"],
 		["partie : ratio de vente négatif", f, ["vente_ratio"], -0.5, "vente_ratio"],
@@ -877,7 +870,7 @@ func test_palier_sur_les_tables_reelles_de_chaque_fichier() -> void:
 	verifier_proche(d.palier(diff, 3, "pv"), float(ligne_3["pv"]))
 	verifier_proche(d.palier(diff, 3, "degats"), float(ligne_3["degats"]))
 	var poids: Array = d.boutique["poids"]
-	verifier_proche(d.palier(poids, 1, "commune"), 70.0)
+	verifier_proche(d.palier(poids, 1, "commune"), 30.0)
 
 
 func test_palier_sur_table_vide_ou_cle_inconnue_signale_sans_planter() -> void:

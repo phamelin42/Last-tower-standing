@@ -1537,10 +1537,11 @@ Session « animations » (`session_01FhwUocJCCBccFbTwV9Fk1k`). Décision de Ph
 
 # Suivis relevés en cours de route
 
-- **Équilibrage** (rapport de la passe du 25/11/2026, `docs/equilibrage.md`) : rampe de dégâts
-  ennemis très raide (×0,03 à ×1 entre les manches 1 et 10) ; mur de PV après la manche 20 (×2 000
-  à la manche 31), car la puissance du joueur croît sans plafond (améliorations multiplicatives,
-  or inutilisé) ; boss retenu par les gels ; archers (portée 450) hors de portée des armes à 300.
+- **Équilibrage** : **clos par T8.21 et T9.26 (26/11/2026)**, chiffres dans `docs/equilibrage.md`. Sur
+  le catalogue final (75 armes, 87 améliorations), le robot « bonne » atteint la manche 20 sur les
+  graines 1 à 10 et bat le boss sur 2 graines sur 10 ; la médiane de « raisonnable » (31) dépasse la
+  cible de 18 à 25. Restent ouverts : mesure à 50 graines après T9.22, puissance du joueur sans
+  plafond après la manche 20 (le mur vient de `apres_table`).
 - **Caméra** : vue lointaine pour cadrer le cercle d'apparition ; régler le zoom par défaut à
   l'usage.
 - **Réglages** : vérifier sous Windows que le renommage écrase bien l'ancien fichier.
