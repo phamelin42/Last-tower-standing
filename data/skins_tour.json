@@ -357,7 +357,7 @@
     }
   },
   "tour_du_dragon_avare": {
-    "sprite": "res://assets/tiny_swords/Resources/Gold Mine/GoldMine_Active.png",
+    "sprite": "res://assets/tours/mine_d_or.png",
     "defi": "thesauriseur",
     "marque": {
       "genre": "origine",
@@ -396,7 +396,7 @@
     }
   },
   "tour_du_banquier": {
-    "sprite": "res://assets/tiny_swords/Resources/Gold Mine/GoldMine_Active.png",
+    "sprite": "res://assets/tours/mine_d_or.png",
     "defi": "grande_fortune",
     "marque": {
       "genre": "origine",

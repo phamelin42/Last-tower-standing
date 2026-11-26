@@ -27,8 +27,8 @@ SKINS = {
     "tour_rafistolee": (TS + "Factions/Goblins/Buildings/Wood_Tower/Wood_Tower_InConstruction.png", None),
     "tour_survivante": (TS + "Factions/Knights/Buildings/Tower/Tower_Destroyed.png", None),
     "tour_familiere": (TS + "Factions/Knights/Buildings/House/House_Blue.png", None),
-    "tour_du_dragon_avare": (TS + "Resources/Gold Mine/GoldMine_Active.png", None),
-    "tour_du_banquier": (TS + "Resources/Gold Mine/GoldMine_Active.png", None),
+    "tour_du_dragon_avare": ("res://assets/tours/mine_d_or.png", None),
+    "tour_du_banquier": ("res://assets/tours/mine_d_or.png", None),
 }
 LICENCES = {"assets/tiny_swords/": TINY}
 PIXELS_TEINTABLES_MIN = 500  # en dessous, le sprite n'a pas de marque d'origine : le jeu pose un fanion
