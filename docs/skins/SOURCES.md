@@ -56,9 +56,9 @@ famille est permis, et un skin sans candidat reçoit le **meilleur rapprochement
   vecteurs (Kenney, looneybits, Bleed, LPC, MiniWorld de Shade en 16 × 16, Tiny Town de Kenney).
 - **Famille retenue :** les 24 tours **Spire** de Foozle (CC0), mêlées aux bâtiments de **Tiny Swords** déjà dans le
   dépôt (`assets/tiny_swords/`, CC0, non retouchés) : tour de bois et cabane des Gobelins, tour en chantier et tour en
-  ruine, château, maison, mine d'or des Chevaliers. La tour des Chevaliers reste la tour par défaut.
-- **Planche v3** (`docs/skins/planche_v3.png`, 50 skins) : 9 bons candidats, 14 partiels, 27 rapprochés ; 32 sprites
-  distincts pour 50 skins, soit **18 réemplois** (un même sprite sert deux ou trois skins). Un vrai skin distinct
+  ruine, maison, mine d'or des Chevaliers (le château, 320 px de large, dépasse les 256 px permis). La tour des Chevaliers reste la tour par défaut.
+- **Planche v3** (`docs/skins/planche_v3.png`, 50 skins) : 9 bons candidats, 13 partiels, 28 rapprochés ; 31 sprites
+  distincts pour 50 skins, soit **19 réemplois** (un même sprite sert deux ou trois skins). Un vrai skin distinct
   pour chacun demande un pack de plus ou un dessinateur : à décider.
 - **Marque de couleur :** le fanion bleu de la planche est posé à l'affichage, par-dessus l'aperçu, comme le fera le
   jeu (T11.7) ; aucun fichier de sprite n'est modifié. Marque d'origine : fanions du Gobelin, tout le bleu des

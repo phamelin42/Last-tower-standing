@@ -2376,7 +2376,7 @@ Conception : §6.14 (décision D19 de Phil du 26/11/2026). Ces trois tâches se
 > trouvable, si tout est déjà conforme, n'en invente pas ! »
 
 **Démarrage :** quand les lots 8, 9 et 11 sont fusionnés (T8.21 à T8.23, T9.22 et T11.9 cochées). Ce lot est un
-squelette : T10.4 et la suite se détaillent par `superpowers:writing-plans` une fois la synthèse
+squelette : T10.5 et la suite se détaillent par `superpowers:writing-plans` une fois la synthèse
 faite.
 
 **Règle qui prime sur tout le lot :** un constat n'existe que s'il est prouvé (fichier et ligne,
@@ -2397,4 +2397,19 @@ décisions) se corrige sans attendre.
 
 ### Task 10.3 : Synthèse et propositions à Phil — `sonnet`
 
-- [ ] **Objectif :** fusionner les rapports de T10.1 et T10.2 dans `docs/revue_finale.md` : constats dédoublonnés, classés par gain pour le joueur et par coût, chacun avec sa preuve et sa source ; une section « conforme » qui dit ce qui a été vérifié sans rien trouver ; une section « à soumettre à Phil » pour ce qui toucherait à une de ses décisions. Puis plan des corrections (T10.4 et suivantes) par `superpowers:writing-plans`.
+- [ ] **Objectif :** fusionner les rapports de T10.1 et T10.2 dans `docs/revue_finale.md` : constats dédoublonnés, classés par gain pour le joueur et par coût, chacun avec sa preuve et sa source ; une section « conforme » qui dit ce qui a été vérifié sans rien trouver ; une section « à soumettre à Phil » pour ce qui toucherait à une de ses décisions. Puis plan des corrections (T10.5 et suivantes) par `superpowers:writing-plans`.
+
+### Task 10.4 : Assets remplaçables sans toucher au code — `sonnet`
+
+- [ ] **Objectif :** décision de Phil du 26/11/2026 : « à l'avenir on changera peut-être les assets, il est donc
+      important qu'on ait juste besoin de remplacer les sprites ». Relever toute valeur propre à un fichier d'image ou de son
+      écrite dans le code (régions `Rect2` de `ui/theme.gd` comme `CORPS_RUBAN` et `ZONE_ICONE`, `POINTEUR_POINTE`, cases et
+      feuilles de `visuels/apparence.gd`, `visuels/decor.gd`, `visuels/attaques_elementaires.gd`, `visuels/arene_2d.gd`), puis
+      la déplacer dans un fichier de description des assets sous `data/` (chemin, case, nombre d'images, régions, ancrages,
+      échelle), validé au chargement comme les autres données, ou la lire sur la texture.
+- **Démarrage :** après T9.25 et T11.7 (mêmes fichiers de `visuels/`), avant T10.1 : les revues lisent le code final.
+- **Tests :** `test_aucune_geometrie_d_asset_en_dur` (aucune constante `Rect2`, `Vector2i` de case ni nombre d'images
+  dans `visuels/` et `ui/` hors liste fermée justifiée) ; `test_un_sprite_remplace_par_une_autre_taille_s_affiche`
+  (une feuille factice d'une autre taille, décrite dans une donnée de test, se rend sans changer le code) ; en boucle,
+  chaque entrée de la description pointe un fichier qui existe et dont les dimensions tiennent ses régions.
+- **Hors périmètre :** changer d'assets ; retoucher un sprite.
