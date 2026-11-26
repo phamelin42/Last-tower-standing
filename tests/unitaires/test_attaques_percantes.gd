@@ -12,6 +12,7 @@ const ARMES: Dictionary = {
 	"carreau_ricochet": ["ricochet", "rebond"],
 	"herse_de_ressorts": ["herse", "barrage"],
 	"baliste_de_guet": ["baliste", "cible_unique"],
+	"pluie_d_aiguilles": ["pluie", "barrage"],
 }
 
 var _a: AttaquesElementaires = null
@@ -232,3 +233,52 @@ func test_l_impact_de_la_baliste_ajoute_des_gouttes_vertes_sans_depasser_huit_pa
 	verifier(total <= 8, "au plus 8 particules : %d" % total)
 
 
+# --- Pluie d'aiguilles : barrage ---------------------------------------------------------------
+
+
+func test_les_aiguilles_tombent_du_haut_sur_la_zone() -> void:
+	verifier_proche(_a.tirer("pluie", TOUR, CIBLE) / IMAGE, 10.0, 0.01)
+	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 1)
+	var aiguille: Dictionary = _a.etats("aiguille")[0]
+	verifier(aiguille["visible"], "l'aiguille tombe")
+	verifier((aiguille["position"] as Vector2).y < CIBLE.y - 40.0, "encore haut au début de la chute")
+	verifier_proche(aiguille["rotation"], PI / 2.0, 0.05, "pointe en bas")
+	_avancer(AttaquesElementaires.IMAGES_VOL_DIRECT)
+	verifier_egal(_a.etats("aiguille").size(), 0, "arrivée, elle disparaît")
+
+
+func test_les_aiguilles_plantees_restent_visibles_puis_s_effacent() -> void:
+	_a.impacter_en_groupe("pluie", CIBLE, 25.0)
+	verifier_egal(_a.etats("plante").size(), 1, "une aiguille plantée")
+	_avancer(12)
+	verifier_egal(_a.etats("plante").size(), 1, "encore plantée à 12 images")
+	_avancer(40)
+	verifier_egal(_a.nombre_vivants(), 0, "elle s'efface")
+
+
+func test_un_seul_anneau_au_rayon_reel_pour_toute_la_pluie() -> void:
+	var rayon: float = _rayon_px("pluie_d_aiguilles")
+	for k: int in 10:
+		_a.impacter_en_groupe("pluie", CIBLE + Vector2(k * 4.0, 0.0), rayon)
+	verifier_egal(_a.etats("").size(), 0, "aucun anneau par aiguille")
+	_a.zone("pluie", CIBLE, rayon)
+	verifier_egal(_a.etats("").size(), 1)
+	verifier_proche(_a.diametre_max(), rayon * 2.0, rayon * 2.0 * 0.1, "au rayon réel")
+
+
+func test_le_plafond_tient_quand_toute_une_pluie_tombe() -> void:
+	_a.place = 40
+	for k: int in 40:
+		_a.tirer("pluie", TOUR, CIBLE, k * AttaquesElementaires.RETARD_BARRAGE)
+		_a.impacter_en_groupe("pluie", CIBLE, 25.0)
+	verifier(_a.nombre_vivants() <= 40, "le pool reste borné")
+	verifier(_a.opacite_max() <= AttaquesElementaires.ALPHA_MAX + 0.001, "jamais opaque")
+	verifier_proche(Engine.time_scale, 1.0, 0.0001, "le temps de jeu est intact")
+
+
+func test_mouvement_reduit_la_pluie_garde_ses_sprites_sans_particule() -> void:
+	_a.mouvement_reduit = true
+	_a.tirer("pluie", TOUR, CIBLE)
+	_a.impacter_en_groupe("pluie", CIBLE, 25.0)
+	verifier_egal(_a.particules_actives(), 0)
+	verifier_egal(_a.etats("plante").size(), 1)

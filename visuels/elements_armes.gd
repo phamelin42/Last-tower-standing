@@ -24,6 +24,7 @@ const CHAUSSE_TRAPE: String = "chausse_trape"
 const RICOCHET: String = "ricochet"
 const HERSE: String = "herse"
 const BALISTE: String = "baliste"
+const PLUIE: String = "pluie"
 
 const ELEMENTS: Array[String] = [FEU, GLACE, BOMBE, POISON, FOUDRE, ARCANE, LAME]
 
@@ -46,6 +47,7 @@ const TABLE: Dictionary = {
 	"carreau_ricochet": RICOCHET,
 	"herse_de_ressorts": HERSE,
 	"baliste_de_guet": BALISTE,
+	"pluie_d_aiguilles": PLUIE,
 }
 
 
