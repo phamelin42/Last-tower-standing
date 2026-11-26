@@ -118,6 +118,10 @@ const TYPE_DANGER := "BoutonDanger"
 ## Case d'une grille d'icônes : un bouton (choisir une arme) ou un cadre fixe (amélioration).
 ## Bouton d'une seule ligne dans un espace compté (« Acheter » des cartes de la boutique).
 const TYPE_ACHAT := "BoutonAchat"
+## « Acheter » d'une offre trop chère (S19) : le bouton reste actif (le clic part, la source dit
+## « or insuffisant »), mais il garde l'aspect inactif au survol, à l'appui et au clavier ; seul
+## son filet de focus le distingue d'un bouton réellement désactivé.
+const TYPE_ACHAT_INSUFFISANT := "BoutonAchatInsuffisant"
 ## Ses marges verticales, dans la proportion 14 : 22 de la plaque du pack (le texte tombe au milieu
 ## du corps, l'ombre est en dessous) : 59 px de haut avec celles du bouton ordinaire, 47 avec ces
 ## marges, que la hauteur minimale des contrôles porte à 48 px.
@@ -451,6 +455,13 @@ static func _boutons(t: Theme) -> void:
 				serre.content_margin_top = MARGE_HAUT_ACHAT
 				serre.content_margin_bottom = MARGE_BAS_ACHAT
 				t.set_stylebox(etat, TYPE_ACHAT, serre)
+			t.set_type_variation(TYPE_ACHAT_INSUFFISANT, TYPE_ACHAT)
+			for etat: String in ["normal", "hover", "pressed", "disabled"]:
+				t.set_stylebox(etat, TYPE_ACHAT_INSUFFISANT, t.get_stylebox("disabled", TYPE_ACHAT))
+			for cle: String in [
+				"font_color", "font_hover_color", "font_pressed_color", "font_focus_color"
+			]:
+				t.set_color(cle, TYPE_ACHAT_INSUFFISANT, ENCRE_TEXTE_INACTIF)
 		for cle: String in [
 			"font_color", "font_hover_color", "font_pressed_color", "font_focus_color"
 		]:
