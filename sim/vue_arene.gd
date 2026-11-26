@@ -39,6 +39,9 @@ const SCHEMA: Dictionary = {
 	"eliminations": TYPE_INT,
 	"degats_infliges": TYPE_FLOAT,
 	"manche_max": TYPE_INT,
+	"allies": TYPE_ARRAY,
+	"zones": TYPE_ARRAY,
+	"bombes": TYPE_ARRAY,
 }
 
 const SCHEMA_OFFRE: Dictionary = {
@@ -53,6 +56,18 @@ const SCHEMA_ARME: Dictionary = {
 	"id": TYPE_STRING,
 	"recharge_ratio": TYPE_FLOAT,
 }
+
+const SCHEMA_ALLIE: Dictionary = {"id": TYPE_INT, "pos": TYPE_VECTOR2, "unite": TYPE_INT}
+const SCHEMA_ZONE: Dictionary = {
+	"pos": TYPE_VECTOR2, "rayon": TYPE_FLOAT, "reste": TYPE_FLOAT, "arme": TYPE_INT
+}
+const SCHEMA_BOMBE: Dictionary = {"pos": TYPE_VECTOR2, "rayon": TYPE_FLOAT, "reste": TYPE_FLOAT}
+
+## Plafonds des listes d'alliés, de zones et de bombes : ce sont ceux de `partie.json` `limites`
+## (un test les compare), recopiés ici parce que `from_dict` ne connaît pas les données.
+const ALLIES_MAX := 64
+const ZONES_MAX := 32
+const BOMBES_MAX := 32
 
 const SCHEMA_EVENEMENT: Dictionary = {
 	"k": TYPE_STRING,
@@ -78,11 +93,34 @@ const INDEX_ARME_MAX := 0xFFFE
 ## Genre de l'effet d'arme (`kind` de `data/armes.json`) qui a produit l'événement. L'ordre est
 ## figé : le protocole en transporte l'index. Ajouter à la fin seulement, et monter la version.
 const GENRES_ARME: Array[String] = [
-	"", "cible_unique", "zone", "rebond", "aura", "onde", "barrage", "piege", "mine"
+	"",
+	"cible_unique",
+	"zone",
+	"rebond",
+	"aura",
+	"onde",
+	"barrage",
+	"piege",
+	"mine",
+	"tournant",
+	"zone_posee",
+	"bombe",
+	"invocation",
 ]
 ## Statut principal posé par l'arme (`statuts[].kind`), même règle d'ordre.
 const STATUTS_ARME: Array[String] = [
-	"", "poison", "brulure", "givre", "etourdissement", "vol_de_vie"
+	"",
+	"poison",
+	"brulure",
+	"givre",
+	"etourdissement",
+	"vol_de_vie",
+	"vulnerabilite",
+	"malediction_degats",
+	"malediction_toucher",
+	"repoussement",
+	"siphon",
+	"mana_au_coup",
 ]
 
 var tick: int = 0
@@ -119,6 +157,12 @@ var evenements: Array[Dictionary] = []
 var eliminations: int = 0
 var degats_infliges: float = 0.0
 var manche_max: int = 0
+## Alliés invoqués : `{id, pos, unite}` (`unite` = index dans `Donnees.ids_unites`).
+var allies: Array[Dictionary] = []
+## Zones posées : `{pos, rayon, reste (s), arme (index dans Donnees.ids_catalogue)}`.
+var zones: Array[Dictionary] = []
+## Bombes à retardement : `{pos, rayon, reste (s)}`.
+var bombes: Array[Dictionary] = []
 
 
 func to_dict() -> Dictionary:
@@ -155,6 +199,9 @@ func to_dict() -> Dictionary:
 		"eliminations": eliminations,
 		"degats_infliges": degats_infliges,
 		"manche_max": manche_max,
+		"allies": allies.duplicate(true),
+		"zones": zones.duplicate(true),
+		"bombes": bombes.duplicate(true),
 	}
 
 
@@ -202,6 +249,9 @@ static func from_dict(d: Dictionary) -> VueArene:
 	vue.eliminations = d["eliminations"]
 	vue.degats_infliges = d["degats_infliges"]
 	vue.manche_max = d["manche_max"]
+	vue.allies = _copie_dicts(d["allies"])
+	vue.zones = _copie_dicts(d["zones"])
+	vue.bombes = _copie_dicts(d["bombes"])
 	return vue
 
 
@@ -215,6 +265,12 @@ static func _valide(d: Dictionary) -> bool:
 	if not _liste_conforme(d["armes"], SCHEMA_ARME):
 		return false
 	if not _evenements_conformes(d["evenements"]):
+		return false
+	if not _posees_valides(d["allies"], SCHEMA_ALLIE, ALLIES_MAX, ""):
+		return false
+	if not _posees_valides(d["zones"], SCHEMA_ZONE, ZONES_MAX, "reste"):
+		return false
+	if not _posees_valides(d["bombes"], SCHEMA_BOMBE, BOMBES_MAX, "reste"):
 		return false
 	if not _ameliorations_valides(d["ameliorations"]):
 		return false
@@ -291,6 +347,31 @@ static func _evenements_conformes(valeur: Variant) -> bool:
 			return false
 		var entree: Dictionary = item
 		if not _evenement_conforme(entree):
+			return false
+	return true
+
+
+## Une liste d'alliés, de zones ou de bombes : au plus `maxi` entrées conformes, aucun nombre non
+## fini, et `cle_duree` (si elle est nommée) ni négative ni infinie.
+static func _posees_valides(
+	valeur: Variant, schema: Dictionary, maxi: int, cle_duree: String
+) -> bool:
+	if not _liste_conforme(valeur, schema):
+		return false
+	var liste: Array = valeur
+	if liste.size() > maxi:
+		return false
+	for item: Variant in liste:
+		var entree: Dictionary = item
+		for cle: String in schema:
+			var v: Variant = entree[cle]
+			if typeof(v) == TYPE_FLOAT and not is_finite(float(v)):
+				return false
+			if typeof(v) == TYPE_VECTOR2:
+				var p: Vector2 = v
+				if not (is_finite(p.x) and is_finite(p.y)):
+					return false
+		if not cle_duree.is_empty() and float(entree[cle_duree]) < 0.0:
 			return false
 	return true
 

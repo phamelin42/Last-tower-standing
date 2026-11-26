@@ -42,6 +42,7 @@ func _amelio(id: String, effets: Array) -> Dictionary:
 		"rarete": "commune",
 		"prix": 10,
 		"categorie": "amelioration",
+		"famille": "degats_type",
 		"effets": effets,
 	}
 
