@@ -3,7 +3,6 @@ extends CasDeTest
 ## (anticipation et vol compris), un barrage lance ses boules l'une après l'autre, la zone dessinée
 ## est la zone touchée, et le repli par signature reste possible pour les 30 armes.
 
-const ArmesLot8 := preload("res://tests/unitaires/armes_lot_8.gd")
 const IMAGE: float = 1.0 / 60.0
 ## Images entre le tir et l'impact : anticipation + vol (direct 3 + 7, cloche 3 + 11, foudre 3).
 const IMAGES_AVANT_IMPACT: Dictionary = {
@@ -130,9 +129,12 @@ func test_mouvement_reduit_aucune_particule_aucune_rotation() -> void:
 		verifier_egal(_effets.gel_restant(), 0.0, "pas de gel de %s" % id)
 
 
-func test_les_trente_armes_du_lot_8_ont_un_element_et_gardent_un_repli_par_signature() -> void:
-	var ids: PackedStringArray = PackedStringArray(ArmesLot8.IDS)
-	verifier_egal(ids.size(), 30, "les trente armes du lot 8")
+func test_les_armes_en_jeu_ont_un_element_et_gardent_un_repli_par_signature() -> void:
+	var ids: PackedStringArray = []
+	for id: String in SignaturesArmes.ids():
+		if SignaturesArmes.en_jeu(id):
+			ids.append(id)
+	verifier(ids.size() > 0, "des armes en jeu")
 	for id: String in ids:
 		verifier(ElementsArmes.de(id) != "", "%s : un élément" % id)
 		avant_chaque_pour_boucle()

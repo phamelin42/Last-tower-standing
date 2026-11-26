@@ -1,8 +1,8 @@
 extends RefCounted
-## Sprites d'effets d'attaques des armes de chaos du lot 9 (T9.18) : urne, goutte de sang, engrenages
-## jumeaux, sceau brisé, flèche spectrale, éclat de discorde, coupe, cendre, maléfice, et la marque
-## d'un allié invoqué (silhouette claire dans un anneau au sol, que le jeu teinte). Style et
-## palette de Tiny Swords ; les projectiles regardent vers +x.
+## Sprites d'effets d'attaques des armes de chaos du lot 9 (T9.18) : urne, goutte de sang,
+## engrenages jumeaux, sceau brisé, flèche spectrale, éclat de discorde, coupe, cendre, maléfice, et
+## la marque d'un allié invoqué (silhouette claire dans un anneau au sol, que le jeu teinte). Style
+## et palette de Tiny Swords ; les projectiles regardent vers +x.
 
 const Commun := preload("res://tools/dessin/dessin_commun.gd")
 const Outils := preload("res://tools/dessin/dessin_outils_lot9.gd")
