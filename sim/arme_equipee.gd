@@ -14,11 +14,19 @@ var mines: PackedVector2Array = PackedVector2Array()
 ## Ondes en route : {rayon: float, deja_touches: PackedInt32Array (identifiants, triés),
 ## degats: float (critique déjà tiré au lancement)}.
 var ondes: Array[Dictionary] = []
+## Angle (degrés, dans [0 ; 360[) où le prochain tir tournant lance sa première branche : propre à
+## cette arme, départ 0, avance de `pas_deg` à chaque tir.
+var phase_deg: float = 0.0
+## Vrai si l'arme porte une aura (sa frappe a son propre minuteur).
+var a_aura: bool = false
 
 
 func _init(definition: Dictionary) -> void:
 	def = definition
 	id = String(definition["id"])
+	for effet: Dictionary in definition["effets"]:
+		if effet["kind"] == "aura":
+			a_aura = true
 
 
 ## 0 = prête, 1 = vient de tirer ; tient compte de la cadence.

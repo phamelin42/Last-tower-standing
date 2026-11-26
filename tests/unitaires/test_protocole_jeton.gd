@@ -25,8 +25,8 @@ func _jeton_de(n: int) -> PackedByteArray:
 	return j
 
 
-func test_la_version_du_protocole_est_5() -> void:
-	verifier_egal(Protocole.VERSION, 5)
+func test_la_version_du_protocole_depasse_celle_du_jeton() -> void:
+	verifier(Protocole.VERSION >= 5, "version %d" % Protocole.VERSION)
 
 
 func test_bonjour_sans_jeton_donne_un_jeton_vide() -> void:

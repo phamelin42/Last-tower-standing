@@ -266,6 +266,8 @@ func _enregistrer_salon_public(publique: bool) -> void:
 func _appliquer_reglages(r: Reglages) -> void:
 	Jeu.appliquer_fenetre(get_window(), r)
 	BusAudio.appliquer_volume(r.volume_general)
+	if _jeu != null:
+		_jeu.appliquer_mouvement_reduit(r.mouvement_reduit)
 	if _compteur != null and (not _ips_connu or r.afficher_ips != _ips_applique):
 		_ips_connu = true
 		_ips_applique = r.afficher_ips

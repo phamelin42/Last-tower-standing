@@ -423,11 +423,26 @@ revue du lot 10.
 - **B8, la couleur du joueur reste lisible** : chaque skin garde une marque de la couleur du joueur
   (drapeau ou liseré), pour les huit couleurs ; la couleur n'est jamais la seule information (le nom
   reste écrit sous la tour, comme aujourd'hui).
+- **B9, des défis cumulés sur plusieurs parties** _(Phil, 26/11/2026, remplace le « non » par défaut)_ :
+  certains défis se jouent d'une partie à l'autre (parties jouées, victoires, éliminations, or gagné,
+  manches survécues, parties à plusieurs, dernière tour debout). Le **bilan reste par partie** (T11.2) ;
+  les **cumuls vivent dans la sauvegarde** (`progression/`, T11.3bis : version 2 du fichier, migration de
+  la version 1, bornes, aucune perte). `sim/` n'en sait rien.
+- **B10, la liste des défis suit la map et les demandes de Phil** _(26/11/2026, la première liste a été
+  refusée)_ : les mêmes **mécaniques** que les défis de la map (tenir un temps avec une contrainte,
+  contraintes de revenu et de défense, boss final), **« gagner uniquement avec des armes de… »** (un défi par type
+  de dégâts, par statut et par genre d'effet que les données comptent vraiment), des défis de **revenu**,
+  **« être la dernière tour debout »** en multijoueur et des **défis cumulés**. Un skin par défi (B5) : 46 défis,
+  46 skins dans `docs/defis.md`. Noms, textes et seuils restent les nôtres (garde-fou T9.1).
+- **B11, la liste est validée** _(Phil, 26/11/2026)_ avec trois ajouts : des défis « uniquement… » pour
+  les **pièges** et les **mines** (l'aura n'en a pas, point ouvert), des défis **« une seule arme »** (un
+  générique, « vaincre le boss avec les exemplaires d'une seule arme », et une variante à la vingtième manche ;
+  pas un défi par arme) et **un sprite par skin, pour tous** (B6 confirmé). Total : **46 défis, 46 skins**.
 
-**Règles de dépendance du lot 11** (celles de `CLAUDE.md`, aucune exception) :
+**Règles de dépendance du lot 11** (celles de `CLAUDE.md`, aucune exception) :
 
 - La **sauvegarde et l'évaluation des défis** vivent dans un nouveau dossier **`progression/`**,
-  **hors de `sim/`** : `sim/` ne connaît ni `progression/`, ni les skins, ni `user://`.
+  **hors de `sim/`** : `sim/` ne connaît ni `progression/`, ni les skins, ni `user://`.
   `progression/` lit l'état d'arène et le bilan de partie par l'API publique (`sim/partie.gd`) ;
   il n'écrit jamais dans `sim/`.
 - Le **bilan de partie** (compteurs que les défis lisent) est produit par `sim/` comme donnée pure
@@ -441,7 +456,9 @@ revue du lot 10.
 
 1. **Palier de la mana** (A2) : lu comme celui de la mana maximale, avec remplissage par ratio.
 2. **Source des compteurs de défis** : un bilan calculé par la simulation et envoyé à la fin de la
-   partie (déterministe, testable), plutôt qu'un cumul côté client sur un canal non fiable.
+   partie (déterministe, testable), plutôt qu'un cumul côté client sur un canal non fiable. **Tranché par
+   Phil le 26/11/2026 : les cumuls entre parties vivent dans la sauvegarde locale** (B9), le bilan reste par
+   partie.
 3. **« Joueur présent »** (B4) : tout joueur connecté à la fin de la partie ou au moment où la
    condition du défi est remplie ; un joueur qui a quitté avant ne valide pas.
 4. **Tours des autres joueurs** (A4) : on les voit dans l'arène regardée ; le tableau des scores

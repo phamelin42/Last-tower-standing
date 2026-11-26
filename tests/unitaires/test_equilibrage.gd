@@ -22,6 +22,7 @@ func test_chaque_kind_a_son_nombre_de_cibles_estime() -> void:
 		"mine": [{"kind": "mine", "rayon": 80, "max_actives": 3}, 2.0],
 		"piege": [{"kind": "piege", "rayon": 80, "max_actives": 3}, 2.0],
 		"aura": [{"kind": "aura", "rayon": 150, "periode": 1.0}, 3.0],
+		"tournant": [{"kind": "tournant", "branches": 3, "pas_deg": 20, "largeur": 30}, 3.0],
 	}
 	for kind: String in attendus:
 		var cas: Array = attendus[kind]

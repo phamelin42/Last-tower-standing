@@ -9,8 +9,9 @@ extends Node2D
 
 ## Un impact vient de devenir visible (à l'arrivée de son projectile, s'il en a un) : point en
 ## unités de jeu, rayon en unités de jeu (0 pour un coup simple). L'arène en fait réagir les
-## ennemis.
-signal impact_visible(ou: Vector2, rayon: float)
+## ennemis. `fort` : le coup gèle son effet (zone, siège, explosion) et donc ses ennemis ; jamais
+## une aura ni une onde.
+signal impact_visible(ou: Vector2, rayon: float, fort: bool)
 
 ## Un coup se joue en images à 60 i/s : les durées ci-dessous sont des nombres d'images.
 const IMAGE: float = 1.0 / 60.0
@@ -53,6 +54,10 @@ const ECHELLE_DYNAMITE: float = 1.3
 const TOLERANCE_SOL: float = 2.0
 ## Rayon d'une explosion de mort, en unités de jeu.
 const RAYON_MORT: float = 110.0
+## Gel d'impact : un impact de zone ou une explosion naît sur son image de pic et la tient
+## `GelImpact.DUREE_GEL`. Le pic d'une explosion est sa 3e image (la boule de feu à sa taille).
+const IMAGE_PIC_EXPLOSION: int = 2
+const AGE_PIC_EXPLOSION: float = DUREE_EXPLOSION * (IMAGE_PIC_EXPLOSION + 0.5) / IMAGES_EXPLOSION
 
 ## Un saut de rebond démarre 3 images après le précédent ; son trait est blanc la première image.
 const DECALAGE_SAUT: float = 3.0 * IMAGE
@@ -145,6 +150,8 @@ var parent_sol: Node2D = null
 ## `Donnees.ids_catalogue` (posé par `Arene2D`) : traduit l'index `arme` d'un événement en arme,
 ## donc en signature. Vide ou index inconnu : le rendu par type de dégâts.
 var catalogue: PackedStringArray = PackedStringArray()
+## Mouvement réduit (D21) : ni gel, ni rebond d'échelle, ni étincelles ; un éclat bref reste.
+var mouvement_reduit: bool = false
 
 var _libres: Array = [[], []]
 var _vivants: Array[Dictionary] = []
@@ -162,6 +169,8 @@ var _chaine_reste: float = 0.0
 var _chaine_active: bool = false
 ## Âge d'un effet qui naît en retard (un impact différé échu pendant un grand pas de temps).
 var _age_initial: float = 0.0
+## Le dernier impact joué est un coup fort : celui qui gèle son effet (voir `_burst`).
+var _coup_fort: bool = false
 ## Temps avant la prochaine absorption admise.
 var _pause_absorption: float = 0.0
 var _etincelles: Etincelles = Etincelles.new(self)
@@ -226,6 +235,14 @@ static func rendu(type_degats: int, genre: String) -> Dictionary:
 
 func nombre_vivants() -> int:
 	return _vivants.size()
+
+
+## Temps de gel d'impact qui reste au plus long gel en cours (0 sans gel).
+func gel_restant() -> float:
+	var reste: float = 0.0
+	for e: Dictionary in _vivants:
+		reste = maxf(reste, float(e["gel"]))
+	return reste
 
 
 func taille_pool() -> int:
@@ -387,7 +404,7 @@ func avancer(delta: float) -> void:
 	_pause_absorption = maxf(_pause_absorption - delta, 0.0)
 	for i: int in range(_vivants.size() - 1, -1, -1):
 		var effet: Dictionary = _vivants[i]
-		var age: float = float(effet["age"]) + delta
+		var age: float = float(effet["age"]) + _apres_gel(effet, delta)
 		effet["age"] = age
 		if age >= float(effet["duree"]):
 			_liberer(i)
@@ -395,6 +412,23 @@ func avancer(delta: float) -> void:
 			_poser(effet)
 	_avancer_attentes(delta)
 	_etincelles.avancer(delta)
+
+
+## La part de `delta` qui fait vieillir l'effet : le gel d'impact en retient le début.
+func _apres_gel(effet: Dictionary, delta: float) -> float:
+	var gel: float = minf(float(effet["gel"]), delta)
+	var reste: float = float(effet["gel"]) - gel
+	effet["gel"] = reste if reste > EPSILON_TEMPS else 0.0
+	return delta - gel
+
+
+## Fige l'effet sur son image de pic pour le reste de `DUREE_GEL` (rien en mouvement réduit).
+func _geler(effet: Dictionary, age_pic: float) -> void:
+	var reste: float = GelImpact.DUREE_GEL - _age_initial
+	if mouvement_reduit or effet.is_empty() or reste <= EPSILON_TEMPS:
+		return
+	effet["gel"] = reste
+	effet["age"] = maxf(float(effet["age"]), age_pic)
 
 
 ## Les projectiles arrivent ; les impacts qu'ils retenaient (ou qu'un saut précédent retenait) se
@@ -572,6 +606,7 @@ func _impact_maintenant(
 	var depart: Vector2 = Apparence.vers_pixels(de)
 	var arrivee: Vector2 = Apparence.vers_pixels(vers)
 	var cree: bool = false
+	_coup_fort = false
 	_retirer_objet_sol(arrivee)
 	var anneau: bool = (
 		genre == "aura" or genre == "onde" or (genre == "" and rayon > 0.0 and de == vers)
@@ -601,8 +636,9 @@ func _impact_maintenant(
 		or String(signature.get("impact", "")) == "explosion"
 	)
 	var nombre: int = Etincelles.NOMBRE_ZONE if zone else Etincelles.NOMBRE_COUP
-	_etincelles.lancer(arrivee, nombre, couleur, _age_initial)
-	impact_visible.emit(vers, rayon)
+	if not mouvement_reduit:
+		_etincelles.lancer(arrivee, nombre, couleur, _age_initial)
+	impact_visible.emit(vers, rayon, _coup_fort)
 	return cree
 
 
@@ -625,6 +661,7 @@ func _burst(
 		or forme == "explosion"
 	)
 	var cree: bool = false
+	_coup_fort = explose
 	if explose:
 		cree = not _explosion(ou, taille * 0.5 / Apparence.PX_PAR_UNITE).is_empty()
 	# Le siège garde l'explosion du pack seule, sauf si sa signature a une autre forme d'impact.
@@ -636,6 +673,8 @@ func _burst(
 		if not effet.is_empty():
 			effet["depart"] = ou
 			effet["taille"] = taille if not explose else minf(taille, TAILLE_IMPACT)
+			if explose:
+				_geler(effet, CourbesEffets.IMAGES_MONTEE_IMPACT * IMAGE)
 			_poser(effet)
 			cree = true
 	return cree
@@ -711,6 +750,7 @@ func _explosion(ou: Vector2, rayon: float) -> Dictionary:
 		return {}
 	effet["depart"] = ou
 	effet["taille"] = rayon * Apparence.PX_PAR_UNITE * 2.0
+	_geler(effet, AGE_PIC_EXPLOSION)
 	_poser(effet)
 	return effet
 
@@ -745,6 +785,8 @@ func _creer(forme: String, anim: String, duree: float, couleur: Color, couche: i
 		"arrivee": Vector2.ZERO,
 		"taille": TAILLE_IMPACT,
 		"image": -1,
+		"gel": 0.0,
+		"reduit": mouvement_reduit,
 	}
 	_vivants.append(effet)
 	return effet
@@ -800,6 +842,8 @@ func _poser(effet: Dictionary) -> void:
 	var forme: String = effet["forme"]
 	var couleur: Color = effet["couleur"]
 	var alpha: float = ALPHA_MAX
+	var reduit: bool = effet["reduit"]
+	var gele: bool = float(effet["gel"]) > 0.0
 	match String(effet["anim"]):
 		"vol":
 			noeud.position = depart.lerp(arrivee, t)
@@ -808,19 +852,24 @@ func _poser(effet: Dictionary) -> void:
 			noeud.scale *= CourbesEffets.echelle_apparition_tir(age)
 		"burst", "absorption":
 			noeud.position = depart
-			noeud.scale = Vector2.ONE * _echelle(forme, taille) * CourbesEffets.echelle_impact(age)
+			var grandeur: float = CourbesEffets.echelle_impact(age, reduit)
+			noeud.scale = Vector2.ONE * _echelle(forme, taille) * grandeur
 			if String(effet["anim"]) == "burst":
-				couleur = couleur.lerp(Color.WHITE, CourbesEffets.blanc_impact(age))
+				couleur = couleur.lerp(Color.WHITE, CourbesEffets.blanc_impact(age, reduit, gele))
 			alpha = CourbesEffets.alpha_impact(age)
 		"statut":
 			noeud.position = depart
-			noeud.rotation = t * 0.8 if forme == "croix_plus" or forme == "flocon" else 0.0
-			noeud.scale = Vector2.ONE * _echelle(forme, taille) * lerpf(0.3, 1.0, t)
-			noeud.scale *= CourbesEffets.echelle_apparition_statut(age)
+			var tourne: bool = forme == "croix_plus" or forme == "flocon"
+			noeud.rotation = t * 0.8 if tourne and not reduit else 0.0
+			noeud.scale = (
+				Vector2.ONE * _echelle(forme, taille) * (1.0 if reduit else lerpf(0.3, 1.0, t))
+			)
+			noeud.scale *= CourbesEffets.echelle_apparition_statut(age, reduit)
 			alpha = lerpf(ALPHA_MAX, 0.0, t)
 		"anneau":
 			noeud.position = depart
-			noeud.scale = Vector2.ONE * _echelle("anneau", taille) * CourbesEffets.echelle_anneau(t)
+			var ouverture: float = CourbesEffets.echelle_anneau(t, reduit)
+			noeud.scale = Vector2.ONE * _echelle("anneau", taille) * ouverture
 			alpha = CourbesEffets.alpha_anneau(t)
 		"trait", "saut":
 			var sens: Vector2 = arrivee - depart
@@ -842,7 +891,7 @@ func _poser(effet: Dictionary) -> void:
 			noeud.position = depart
 			_image(effet, noeud, forme, t, taille)
 			if forme == "feu":
-				noeud.scale *= CourbesEffets.echelle_apparition_statut(age)
+				noeud.scale *= CourbesEffets.echelle_apparition_statut(age, reduit)
 		"sol":
 			noeud.position = depart
 			noeud.rotation = 0.0

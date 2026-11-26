@@ -36,6 +36,10 @@ class Lecture:
 	var exemplaires: Dictionary = {}
 	## stat d'amélioration → nombre d'améliorations possédées qui la portent (chaque achat compte).
 	var ameliorations_par_stat: Dictionary = {}
+	## Zones et bombes de l'arène : sans elles (tests de tir), une arme qui pose ne pose rien.
+	var poses: Poses = null
+	## Alliés de l'arène : sans eux (tests de tir), une arme qui invoque n'invoque rien.
+	var allies: Allies = null
 
 
 ## Ce qui est commun à toutes les résolutions d'un même pas.
@@ -63,6 +67,11 @@ class Contexte:
 	## Part du repoussement qui s'applique au boss (`partie.json` `repoussement.facteur_boss`).
 	var facteur_boss_repoussement: float
 	var pv_max_tour: float = 0.0
+	var poses: Poses = null
+	var allies: Allies = null
+	var ids_unites: PackedStringArray = PackedStringArray()
+	## `proprietaire` des poses de cette arme (`ArmeEquipee.get_instance_id()`).
+	var proprietaire: int = 0
 
 
 static func avancer_arme(
@@ -78,6 +87,17 @@ static func avancer_arme(
 	lecture: Lecture = null
 ) -> void:
 	if not dt > 0.0 or not is_finite(dt):
+		return
+	# Une arme qui recharge, sans mine ni onde en route ni aura prête, n'a rien à résoudre ce pas :
+	# on ne construit pas son contexte (75 armes équipées, 20 fois par seconde).
+	if (
+		arme.recharge_restante - dt > 0.0
+		and arme.ondes.is_empty()
+		and arme.mines.is_empty()
+		and (not arme.a_aura or arme.aura_restante - dt > 0.0)
+	):
+		arme.recharge_restante -= dt
+		arme.aura_restante = maxf(arme.aura_restante - dt, 0.0)
 		return
 	var ctx := _creer(arme, stats, ennemis, centre, donnees, rng, resistance, bilan, lecture)
 	var effets: Array = arme.def["effets"]
@@ -126,6 +146,10 @@ static func _creer(
 	var mana_max := float(donnees.partie["tour"]["mana_max"]) + stats.mana_max_bonus
 	var vue_tour := lecture if lecture != null else Lecture.new()
 	ctx.pv_max_tour = vue_tour.pv_max_tour
+	ctx.poses = vue_tour.poses
+	ctx.allies = vue_tour.allies
+	ctx.ids_unites = donnees.ids_unites
+	ctx.proprietaire = arme.get_instance_id()
 	var plafond: float = float(donnees.partie["armes"]["bonus_selon_stat_max"])
 	var brut := degats_de_base(
 		arme.def,
@@ -304,11 +328,15 @@ static func _choisir(ctx: Contexte, portee: float, exclus: Array[int]) -> int:
 		return -1
 	var meilleur := -1
 	var meilleure_cle := 0.0
-	for i: int in ennemis.ids.size():
-		if ennemis.mort[i] != 0:
+	# Les tableaux sont lus une fois : une lecture de propriété par ennemi coûtait le tiers du pas.
+	var mort := ennemis.mort
+	var positions := ennemis.pos
+	var identifiants := ennemis.ids
+	for i: int in identifiants.size():
+		if mort[i] != 0:
 			continue
-		var d2 := ennemis.pos[i].distance_squared_to(ctx.centre)
-		if d2 > r2 or (not exclus.is_empty() and exclus.has(ennemis.ids[i])):
+		var d2 := positions[i].distance_squared_to(ctx.centre)
+		if d2 > r2 or (not exclus.is_empty() and exclus.has(identifiants[i])):
 			continue
 		var cle := d2
 		if mode == Types.Ciblage.PLUS_FORT:
@@ -330,10 +358,12 @@ static func _existe(ctx: Contexte, point: Vector2, rayon: float) -> bool:
 	var r2 := rayon * rayon
 	if point == ctx.centre and ennemis.distance2_minimale(point) > r2:
 		return false
-	for i: int in ennemis.ids.size():
-		if ennemis.mort[i] != 0:
+	var mort := ennemis.mort
+	var positions := ennemis.pos
+	for i: int in mort.size():
+		if mort[i] != 0:
 			continue
-		if ennemis.pos[i].distance_squared_to(point) <= r2:
+		if positions[i].distance_squared_to(point) <= r2:
 			return true
 	return false
 
@@ -345,10 +375,12 @@ static func _zone(ctx: Contexte, point: Vector2, rayon: float, degats: float, ex
 	if point == ctx.centre and ennemis.distance2_minimale(point) > r2:
 		return 0
 	var touches := 0
-	for i: int in ennemis.ids.size():
-		if i == exclu or ennemis.mort[i] != 0:
+	var mort := ennemis.mort
+	var positions := ennemis.pos
+	for i: int in mort.size():
+		if i == exclu or mort[i] != 0:
 			continue
-		if ennemis.pos[i].distance_squared_to(point) <= r2:
+		if positions[i].distance_squared_to(point) <= r2:
 			_frapper(ctx, i, degats)
 			touches += 1
 	return touches
@@ -362,7 +394,142 @@ static func _effet(ctx: Contexte, kind: String, effet: Dictionary) -> bool:
 			return _lancer_onde(ctx, effet)
 		"mine", "piege":
 			return _poser_mine(ctx, effet)
+		"tournant":
+			return _tournant(ctx, effet)
+		"zone_posee", "bombe":
+			return _poser(ctx, kind, effet)
+		"invocation":
+			return _invoquer(ctx, effet)
 	return false
+
+
+# --- Zones posées et bombes -----------------------------------------------------------------------
+
+
+## Pose une zone ou une bombe sur la cible choisie par le ciblage de l'arme. Les dégâts, le critique
+## et les bonus sont figés à la pose ; la pose ne frappe pas.
+static func _poser(ctx: Contexte, kind: String, effet: Dictionary) -> bool:
+	if ctx.poses == null:
+		return false
+	var i := _choisir(ctx, float(ctx.arme.def["portee"]), [])
+	if i < 0:
+		return false
+	var position := ctx.ennemis.pos[i]
+	var pose: Dictionary = {
+		"pos": position,
+		"rayon": float(effet["rayon"]),
+		"degats": ctx.degats_base * _critique(ctx) * float(effet["ratio"]),
+		"type_degats": ctx.type_degats,
+		"statuts": ctx.statuts,
+		"statut": ctx.statut,
+		"arme": maxi(ctx.index_arme, 0),
+		"proprietaire": ctx.proprietaire,
+	}
+	if kind == "zone_posee":
+		pose["duree"] = float(effet["duree"])
+		pose["periode"] = float(effet["periode"])
+		ctx.poses.ajouter_zone(pose, int(effet["max_actives"]))
+	else:
+		pose["delai"] = float(effet["delai"])
+		ctx.poses.ajouter_bombe(pose, int(effet["max_actives"]))
+	_evenement(ctx, "tir", ctx.centre, position, float(effet["rayon"]))
+	return true
+
+
+## Invoque un allié près de la tour : l'arme tire (et sa recharge repart) quand un ennemi est à
+## portée. Les dégâts de l'allié sont `ratio_degats × dégâts de base × critique`, figés ici ; le
+## type est celui de l'arme, les statuts ne passent pas.
+static func _invoquer(ctx: Contexte, effet: Dictionary) -> bool:
+	if ctx.allies == null:
+		return false
+	var indice := ctx.ids_unites.find(String(effet["unite"]))
+	if indice < 0 or not _existe(ctx, ctx.centre, float(ctx.arme.def["portee"])):
+		return false
+	var degats := ctx.degats_base * _critique(ctx) * float(effet["ratio_degats"])
+	var id := ctx.allies.invoquer(
+		indice,
+		ctx.centre,
+		float(effet["duree"]),
+		degats,
+		ctx.type_degats,
+		ctx.index_arme,
+		ctx.proprietaire,
+		int(effet["max_actives"])
+	)
+	if id < 0:
+		return false
+	_evenement(ctx, "tir", ctx.centre, ctx.allies.pos[ctx.allies.ids.size() - 1], 0.0)
+	return true
+
+
+## Le contexte d'une pose qui frappe : ses dégâts, son type et ses statuts sont ceux de l'arme au
+## moment de la pose ; le reste (vol de vie, résistance) est celui de la tour maintenant.
+static func contexte_pose(
+	pose: Dictionary,
+	genre: int,
+	ennemis: Ennemis,
+	stats: StatsTour,
+	centre: Vector2,
+	donnees: Donnees,
+	resistance: float,
+	bilan: Bilan
+) -> Contexte:
+	var ctx := Contexte.new()
+	ctx.stats = stats
+	ctx.ennemis = ennemis
+	ctx.centre = centre
+	ctx.resistance = resistance
+	ctx.bilan = bilan
+	ctx.type_degats = int(pose["type_degats"])
+	ctx.statuts = pose["statuts"]
+	ctx.statut = int(pose["statut"])
+	ctx.genre = genre
+	ctx.index_arme = int(pose["arme"])
+	var repousse: Dictionary = donnees.partie["repoussement"]
+	ctx.facteur_boss_repoussement = float(repousse["facteur_boss"])
+	return ctx
+
+
+## Une impulsion de zone ou l'explosion d'une bombe : frappe tous les ennemis du rayon, puis
+## l'événement `impact`.
+static func impulsion(ctx: Contexte, point: Vector2, rayon: float, degats: float) -> void:
+	_zone(ctx, point, rayon, degats, -1)
+	_evenement(ctx, "impact", ctx.centre, point, rayon)
+
+
+# --- Tir tournant ------------------------------------------------------------------------------
+
+
+## `branches` rayons partent de la tour à des angles régulièrement répartis, décalés de la phase de
+## l'arme ; chaque rayon frappe les ennemis dont la distance au segment (tour → portée) est au plus
+## `largeur`. Un ennemi n'est frappé qu'une fois par tir. La phase avance ensuite de `pas_deg`
+## dans le sens de l'arme. Vrai si un tir a eu lieu : il en faut un ennemi à portée, comme pour les
+## autres effets qui visent. Aucun hasard hors critique (un seul tirage par rayon, s'il y a une
+## chance).
+static func _tournant(ctx: Contexte, effet: Dictionary) -> bool:
+	var portee := float(ctx.arme.def["portee"])
+	if not _existe(ctx, ctx.centre, portee):
+		return false
+	var branches := int(effet["branches"])
+	var largeur := float(effet["largeur"])
+	var ennemis := ctx.ennemis
+	var deja: Dictionary = {}
+	var phase := ctx.arme.phase_deg
+	for k: int in branches:
+		var angle := deg_to_rad(phase + 360.0 * float(k) / float(branches))
+		var bout := ctx.centre + Vector2(cos(angle), sin(angle)) * portee
+		_evenement(ctx, "tir", ctx.centre, bout, largeur)
+		var degats := ctx.degats_base * _critique(ctx)
+		for i: int in ennemis.ids.size():
+			if ennemis.mort[i] != 0 or deja.has(ennemis.ids[i]):
+				continue
+			var proche := Geometry2D.get_closest_point_to_segment(ennemis.pos[i], ctx.centre, bout)
+			if proche.distance_to(ennemis.pos[i]) <= largeur:
+				deja[ennemis.ids[i]] = true
+				_frapper(ctx, i, degats)
+	var sens := -1.0 if String(effet["sens"]) == "antihoraire" else 1.0
+	ctx.arme.phase_deg = fposmod(phase + sens * float(effet["pas_deg"]), 360.0)
+	return true
 
 
 # --- Effets qui visent : un tir par cible distincte ----------------------------------------------
