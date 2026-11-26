@@ -477,6 +477,6 @@ Réponses « défaut partout » aux deux questions laissées par la fin du lot
 
 21. **Délai maximal de la tentative UPnP** : 10 s. Passé ce délai, la première annonce part avec le
     port de jeu local et l'hôte voit un message ; une box qui répond à la découverte puis se fige ne
-    retarde plus l'annonce sans rien dire. À faire : T7.5.
+    retarde plus l'annonce sans rien dire. Fait par T7.5.
 22. **Mode sans fenêtre** : UPnP et annuaire restent désactivés en `--headless`, serveur dédié
     compris (choix de T7.2 et T7.3, confirmé).

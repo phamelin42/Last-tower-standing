@@ -984,7 +984,7 @@ avant l'écran « Rejoindre »).
 
 ### Task 7.5 : Délai maximal de la tentative UPnP — `sonnet`
 
-- [ ] **Objectif :** la première annonce n'attend la tentative UPnP que **10 s au plus** (décision 21
+- [x] **Objectif :** la première annonce n'attend la tentative UPnP que **10 s au plus** (décision 21
       de Phil, 26/11/2026). Passé ce délai, elle part avec le port de jeu local et l'hôte voit un
       message ; une tentative qui finit avant 10 s ne change rien au comportement d'aujourd'hui.
 - **Lire :** `docs/adr-001-annuaire.md` (Cycle de vie de l'hôte, UPnP chez l'hôte, décisions 20 et
@@ -994,7 +994,8 @@ avant l'écran « Rejoindre »).
 - **Test :** double de `UPNP` qui ne répond jamais : annonce envoyée avec le port local après 10 s
   (temps simulé), message affiché ; tentative rapide : annonce inchangée.
 - **À signaler dans la PR, non tranché :** tentative qui réussit après les 10 s sur un port externe
-  différent du port local.
+  différent du port local. Fait : l'annonce suivante déclare le port externe ; l'entrée au port
+  local, refusée par la sonde ou ouverte à la main, expire seule en 30 s.
 
 ---
 
@@ -1506,7 +1507,7 @@ func id_regarde() -> int                # -1 si aucune
 - **Annuaire** : lot 7 terminé le 25/11/2026 (T7.0 à T7.4, T7.3 en dernier, décision de Phil). Reste
   à Phil le lancement du service sur le VPS (liste dans la PR de T7.4). Délai maximal de la
   tentative UPnP : 10 s puis annonce du port local avec un message (Phil, 26/11/2026, décision 21
-  de l'ADR), à faire par T7.5. UPnP et annuaire restent désactivés en mode sans fenêtre (décision
+  de l'ADR), fait par T7.5. UPnP et annuaire restent désactivés en mode sans fenêtre (décision
   22).
 - **Images des offres** : 17 offres sur 70 ont une image approchante (Ravenmore et LudicArts n’ont
   pas leur objet : sablier, tirelire, trébuchet…), validée telle quelle par Phil le 25/11/2026. Liste
