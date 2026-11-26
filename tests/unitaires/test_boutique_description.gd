@@ -137,138 +137,115 @@ func _liberer(noeud: Node) -> void:
 # --- La carte --------------------------------------------------------------------------------
 
 
-func test_la_carte_affiche_la_ligne_d_effet_avant_la_phrase_d_ambiance() -> void:
-	_monter_boutique()
+## Toutes les offres du catalogue, armes puis améliorations, dans l'ordre des identifiants.
+func _toutes_les_offres() -> Array[Dictionary]:
 	var offres: Array[Dictionary] = []
 	var ids_armes: Array = _donnees.armes.keys()
 	ids_armes.sort()
+	for id: String in ids_armes:
+		offres.append(_offre(id, Types.Genre.ARME))
 	var ids_amelios: Array = _donnees.ameliorations.keys()
 	ids_amelios.sort()
-	offres.append(_offre(ids_armes[0], Types.Genre.ARME))
-	offres.append(_offre(ids_armes[1], Types.Genre.ARME))
-	offres.append(_offre(ids_amelios[0], Types.Genre.AMELIORATION))
-	offres.append(_offre(ids_amelios[1], Types.Genre.AMELIORATION))
-	_ui.afficher(_vue(offres))
-	for i: int in NB_OFFRES:
-		var offre := offres[i]
-		var genre: int = offre["genre"]
-		var effet := _libelle(i, "Effet")
-		var ambiance := _libelle(i, "Description")
-		verifier_non_nul(effet, "carte %d : la ligne d'effet" % i)
-		verifier_non_nul(ambiance, "carte %d : la phrase d'ambiance" % i)
-		if effet == null or ambiance == null:
-			continue
-		verifier_egal(effet.text, _ligne_carte(offre), "carte %d : texte de l'effet" % i)
-		verifier_egal(
-			ambiance.text, str(_entree(str(offre["id"]), genre)["description"]), "carte %d" % i
-		)
-		verifier(
-			effet.get_index() < ambiance.get_index(),
-			"carte %d : l'effet vient avant l'ambiance" % i
-		)
-		verifier_egal(effet.get_parent(), ambiance.get_parent(), "même colonne")
+	for id: String in ids_amelios:
+		offres.append(_offre(id, Types.Genre.AMELIORATION))
+	return offres
 
 
-func test_l_ambiance_est_attenuee_et_l_effet_ne_l_est_pas() -> void:
+## D13 : la carte est compacte, l'effet entier et l'ambiance se lisent dans son infobulle.
+func test_l_infobulle_de_chaque_offre_donne_l_effet_entier_puis_l_ambiance() -> void:
 	_monter_boutique()
-	var offres: Array[Dictionary] = _plus_longues(NB_OFFRES)
-	_ui.afficher(_vue(offres))
-	for i: int in NB_OFFRES:
-		var effet := _libelle(i, "Effet")
-		var ambiance := _libelle(i, "Description")
-		verifier_egal(
-			ambiance.get_theme_color("font_color"), ThemeJeu.PARCHEMIN_ATTENU, "ambiance atténuée"
-		)
-		verifier_different(
-			effet.get_theme_color("font_color"),
-			ThemeJeu.PARCHEMIN_ATTENU,
-			"effet en couleur pleine"
-		)
+	var toutes := _toutes_les_offres()
+	var i := 0
+	while i < toutes.size():
+		var lot: Array[Dictionary] = []
+		for k: int in NB_OFFRES:
+			if i + k < toutes.size():
+				lot.append(toutes[i + k])
+		_ui.afficher(_vue(lot))
+		for k: int in lot.size():
+			var offre := lot[k]
+			var genre: int = offre["genre"]
+			var entree := _entree(str(offre["id"]), genre)
+			var carte := _ui.find_child("Carte%d" % k, true, false) as Control
+			var effet := DescriptionOffre.ligne_effet(entree, genre, _donnees)
+			var ambiance := str(entree["description"])
+			var texte := carte.tooltip_text
+			verifier(texte.contains(effet), "%s : l'effet entier" % offre["id"])
+			verifier(texte.contains(ambiance), "%s : l'ambiance" % offre["id"])
+			verifier(texte.find(effet) < texte.find(ambiance), "%s : l'effet d'abord" % offre["id"])
+			verifier_egal(
+				carte.mouse_filter, Control.MOUSE_FILTER_STOP, "la carte reçoit la souris"
+			)
+		i += NB_OFFRES
 
 
-func test_la_ligne_d_effet_n_est_jamais_tronquee() -> void:
+func test_la_carte_ne_porte_plus_ni_ligne_d_effet_ni_ambiance() -> void:
 	_monter_boutique()
 	_ui.afficher(_vue(_plus_longues(NB_OFFRES)))
-	for i: int in NB_OFFRES:
-		var effet := _libelle(i, "Effet")
-		verifier_egal(effet.max_lines_visible, -1, "carte %d : aucune limite de lignes" % i)
-		verifier_different(
-			effet.text_overrun_behavior, TextServer.OVERRUN_TRIM_ELLIPSIS, "pas de points de suite"
-		)
-		verifier(
-			effet.autowrap_mode != TextServer.AUTOWRAP_OFF, "carte %d : revient à la ligne" % i
-		)
+	for k: int in NB_OFFRES:
+		verifier_nul(_libelle(k, "Effet"), "carte %d : pas de ligne d'effet" % k)
+		verifier_nul(_libelle(k, "Description"), "carte %d : pas d'ambiance" % k)
+
+
+func test_l_infobulle_se_lit_a_16_px_au_moins() -> void:
+	var theme := ThemeJeu.creer()
+	verifier(theme.get_font_size("font_size", "TooltipLabel") >= 16, "texte de l'infobulle")
 
 
 func test_la_carte_vide_n_affiche_aucun_texte() -> void:
 	_monter_boutique()
 	_ui.afficher(_vue([]))
 	for i: int in NB_OFFRES:
-		verifier_egal(_libelle(i, "Effet").text, "", "carte %d : effet vide" % i)
-		verifier_egal(_libelle(i, "Description").text, "", "carte %d : ambiance vide" % i)
+		verifier_egal(_libelle(i, "Nom").text, "", "carte %d : nom vide" % i)
+		verifier_egal(
+			(_ui.find_child("Carte%d" % i, true, false) as Control).tooltip_text,
+			"",
+			"carte %d : infobulle vide" % i
+		)
 
 
-func test_les_lignes_d_effet_les_plus_longues_tiennent_sur_la_carte_a_chaque_resolution() -> void:
+## Les offres les plus longues, aux résolutions et aux crans extrêmes de la taille de
+## l'interface (la fenêtre logique mesure la résolution divisée par l'échelle) : le bandeau reste
+## sous sa part maximale et rien de la carte ne sort d'elle ni ne passe sous le bouton.
+func test_les_cartes_les_plus_chargees_tiennent_a_chaque_resolution_et_a_75_et_125_pour_cent(
+) -> void:
 	var offres := _plus_longues(NB_OFFRES)
-	for zone: Vector2 in RESOLUTIONS:
-		var jeu := await _jeu_a(zone)
-		jeu.boutique.afficher(_vue(offres))
-		await attendre_images(2)
-		jeu.placer_dans(zone)
-		await attendre_images(2)
-		var bandeau := jeu.boutique.rect_bandeau()
-		verifier(
-			jeu.boutique.rect_bandeau_minimal().y <= zone.y * MiseEnPage.PART_MAX_BOUTIQUE + 0.5,
-			"à %s : le bandeau (%s) ne dépasse pas sa part maximale" % [zone, bandeau.size.y]
-		)
-		verifier(
-			Rect2(Vector2.ZERO, zone).encloses(bandeau), "à %s : bandeau dans la fenêtre" % zone
-		)
-		for i: int in NB_OFFRES:
-			var carte := jeu.boutique.find_child("Carte%d" % i, true, false) as Control
-			var effet := jeu.boutique.find_child("Effet%d" % i, true, false) as Label
-			verifier_egal(
-				effet.text, _ligne_carte(offres[i]), "à %s, carte %d : l'offre" % [zone, i]
-			)
-			verifier_egal(
-				effet.get_visible_line_count(),
-				effet.get_line_count(),
-				"à %s, carte %d : toutes les lignes de l'effet sont visibles" % [zone, i]
-			)
-			var rect := effet.get_global_rect()
+	for echelle: float in [0.75, 1.25]:
+		for resolution: Vector2 in RESOLUTIONS:
+			var zone := resolution / echelle
+			var jeu := await _jeu_a(zone)
+			jeu.boutique.afficher(_vue(offres))
+			await attendre_images(2)
+			jeu.placer_dans(zone)
+			await attendre_images(2)
+			var bandeau := jeu.boutique.rect_bandeau()
+			var contexte := "à %s, échelle %s" % [resolution, echelle]
 			verifier(
-				carte.get_global_rect().grow(0.5).encloses(rect),
 				(
-					"à %s, carte %d : l'effet reste dans la carte (%s dans %s)"
-					% [zone, i, rect, carte.get_global_rect()]
-				)
+					jeu.boutique.rect_bandeau_minimal().y
+					<= zone.y * MiseEnPage.PART_MAX_BOUTIQUE + 0.5
+				),
+				"%s : le bandeau (%s) ne dépasse pas sa part maximale" % [contexte, bandeau.size.y]
 			)
-			var bouton := carte.find_children("*", "Button", true, false)[0] as Control
-			verifier_faux(
-				rect.intersects(bouton.get_global_rect()),
-				"à %s, carte %d : l'effet ne passe pas sous le bouton" % [zone, i]
+			verifier(
+				Rect2(Vector2.ZERO, zone).encloses(bandeau),
+				"%s : bandeau dans la fenêtre" % contexte
 			)
-		_liberer(jeu)
-
-
-func test_dans_une_fenetre_basse_l_ambiance_cede_la_place_a_l_effet_et_reste_en_infobulle() -> void:
-	var offres := _plus_longues(NB_OFFRES)
-	for zone: Vector2 in RESOLUTIONS:
-		var jeu := await _jeu_a(zone)
-		jeu.boutique.afficher(_vue(offres))
-		await attendre_images(2)
-		for i: int in NB_OFFRES:
-			var ambiance := jeu.boutique.find_child("Description%d" % i, true, false) as Label
-			var carte := jeu.boutique.find_child("Carte%d" % i, true, false) as Control
-			var phrase := str(_entree(str(offres[i]["id"]), int(offres[i]["genre"]))["description"])
-			verifier_egal(ambiance.text, phrase, "à %s : le texte reste là" % zone)
-			verifier(carte.tooltip_text.contains(phrase), "à %s : l'infobulle de la carte" % zone)
-			if zone.y < BoutiqueUi.HAUTEUR_MIN_AMBIANCE:
-				verifier_egal(ambiance.max_lines_visible, 0, "à %s : ambiance repliée" % zone)
-			else:
-				verifier_egal(ambiance.max_lines_visible, BoutiqueUi.LIGNES_AMBIANCE, "à %s" % zone)
-				verifier(ambiance.size.y >= 2.0 * BoutiqueUi.HAUTEUR_LIGNE_SERREE, "à %s" % zone)
-		_liberer(jeu)
+			for i: int in NB_OFFRES:
+				var carte := jeu.boutique.find_child("Carte%d" % i, true, false) as Control
+				var bouton := carte.find_children("*", "Button", true, false)[0] as Control
+				for nom: String in ["Nom", "Rarete", "Prix"]:
+					var libelle := jeu.boutique.find_child("%s%d" % [nom, i], true, false) as Label
+					var rect := libelle.get_global_rect()
+					verifier(
+						carte.get_global_rect().grow(0.5).encloses(rect),
+						"%s, carte %d : %s reste dans la carte" % [contexte, i, nom]
+					)
+					verifier_faux(
+						rect.intersects(bouton.get_global_rect()),
+						"%s, carte %d : %s ne passe pas sous le bouton" % [contexte, i, nom]
+					)
+			_liberer(jeu)
 
 
 # --- Les mêmes lignes ailleurs ---------------------------------------------------------------

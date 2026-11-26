@@ -19,7 +19,6 @@ const CHAUFFE_S := 2.0
 ## Une image plus longue que cela est une pause ou un blocage : la fenêtre repart de zéro.
 const ECART_MAX_S := 1.0
 const MINIMUM_INCONNU := "…"
-const TAILLE_TEXTE := 16
 const MARGE := 8.0
 ## Sous la barre du HUD (≈ 60 px), pour ne la recouvrir à aucune échelle d'interface.
 const DECALAGE_HAUT := 72.0
@@ -56,7 +55,6 @@ func _init() -> void:
 	_etiquette = Label.new()
 	_etiquette.name = "Texte"
 	_etiquette.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_etiquette.add_theme_font_size_override("font_size", TAILLE_TEXTE)
 	_etiquette.add_theme_color_override("font_color", ThemeJeu.PARCHEMIN)
 	_cadre.add_child(_etiquette)
 

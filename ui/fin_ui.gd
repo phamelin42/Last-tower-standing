@@ -10,8 +10,6 @@ signal rejouer
 signal observer
 
 const HAUTEUR_LIGNE := 48.0
-const TAILLE_TEXTE := 16
-const TAILLE_TITRE := 28
 const COLONNES_CLASSEMENT := 5
 ## Largeur de chaque colonne du classement : sans elle, les libellés tronqués se réduisent à rien.
 const LARGEURS_COLONNES: Array[float] = [72.0, 220.0, 112.0, 152.0, 112.0]
@@ -44,7 +42,6 @@ var _id_local: int = -1
 
 func _init() -> void:
 	ThemeJeu.appliquer(self)
-	add_theme_font_size_override("font_size", TAILLE_TEXTE)
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	# Le voile estompe la partie et l'empêche de recevoir les clics pendant l'écran de fin.
 	var voile := ColorRect.new()
@@ -62,7 +59,7 @@ func _init() -> void:
 	centre.add_child(panneau)
 	var contenu := VBoxContainer.new()
 	panneau.add_child(contenu)
-	_titre = _etiquette("", false, TAILLE_TITRE)
+	_titre = _etiquette("", false)
 	_titre.theme_type_variation = ThemeJeu.TYPE_RUBAN
 	_titre.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	contenu.add_child(_titre)
@@ -314,13 +311,12 @@ static func _entier(valeur: float) -> int:
 	return roundi(clampf(valeur, -ENTIER_MAX, ENTIER_MAX))
 
 
-func _etiquette(texte: String, tronquable: bool, taille: int = TAILLE_TEXTE) -> Label:
+func _etiquette(texte: String, tronquable: bool) -> Label:
 	var libelle := Label.new()
 	libelle.text = texte
 	libelle.custom_minimum_size = Vector2(0.0, HAUTEUR_LIGNE)
 	libelle.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	libelle.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	libelle.add_theme_font_size_override("font_size", taille)
 	if tronquable:
 		libelle.clip_text = true
 		libelle.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
