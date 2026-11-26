@@ -1,5 +1,5 @@
 extends CasDeTest
-## Vingt-neuf armes ont un élément visuel (D22) ; les autres gardent le rendu d'aujourd'hui.
+## Trente armes ont un élément visuel (D22) ; les autres gardent le rendu d'aujourd'hui.
 
 const ATTENDU: Dictionary = {
 	"canon_de_cloche": "feu",
@@ -31,11 +31,12 @@ const ATTENDU: Dictionary = {
 	"sablier_fele": "sablier",
 	"miroir_brise": "miroir",
 	"vortex_de_verre": "vortex",
+	"horloge_folle": "horloge",
 }
 
 
-func test_les_vingt_neuf_armes_ont_leur_element() -> void:
-	verifier_egal(ElementsArmes.ids().size(), 29, "vingt-neuf armes seulement")
+func test_les_trente_armes_ont_leur_element() -> void:
+	verifier_egal(ElementsArmes.ids().size(), 30, "trente armes seulement")
 	for id: String in ATTENDU:
 		verifier_egal(ElementsArmes.de(id), String(ATTENDU[id]), "élément de %s" % id)
 
@@ -46,11 +47,11 @@ func test_chaque_arme_de_la_table_existe_dans_les_donnees() -> void:
 		verifier(donnees.armes.has(id), "arme inconnue : %s" % id)
 
 
-func test_les_vingt_neuf_elements_sont_distincts_et_tous_employes() -> void:
+func test_les_trente_elements_sont_distincts_et_tous_employes() -> void:
 	var vus: Dictionary = {}
 	for id: String in ElementsArmes.ids():
 		vus[ElementsArmes.de(id)] = true
-	verifier_egal(vus.size(), 29)
+	verifier_egal(vus.size(), 30)
 	for element: String in ElementsArmes.ELEMENTS:
 		verifier(vus.has(element), "élément sans arme : %s" % element)
 

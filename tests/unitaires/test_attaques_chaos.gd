@@ -353,3 +353,76 @@ func test_le_vortex_dans_effets_est_dessine_une_fois_au_depart() -> void:
 		"l'impact n'en ajoute pas"
 	)
 	effets.free()
+
+
+# --- Horloge folle : barrage et brûlure --------------------------------------------------------
+
+
+func test_l_horloge_est_un_barrage_qui_brule() -> void:
+	_verifier_arme("horloge_folle", "horloge", "barrage")
+	verifier_egal(String(_donnees.armes["horloge_folle"]["statuts"][0]["kind"]), "brulure")
+
+
+func test_chaque_rouage_part_deux_images_apres_le_precedent_et_tourne() -> void:
+	var retard: float = AttaquesElementaires.retard_barrage("horloge")
+	var premiere: float = _a.tirer("horloge", TOUR, CIBLE, 0.0)
+	var seconde: float = _a.tirer("horloge", TOUR, CIBLE, retard)
+	verifier_proche(premiere / IMAGE, 10.0, 0.01, "anticipation + vol")
+	verifier_proche((seconde - premiere) / IMAGE, 2.0, 0.01, "décalés de 2 images")
+	verifier_egal(_a.etats("engrenage").size(), 2, "un rouage par tir")
+	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 2)
+	var avant: float = _a.etats("engrenage")[0]["rotation"]
+	_avancer(2)
+	verifier(absf(_a.etats("engrenage")[0]["rotation"] - avant) > 0.5, "il tourne")
+
+
+func test_un_seul_anneau_au_rayon_reel_pour_tout_le_barrage_de_l_horloge() -> void:
+	var rayon: float = _rayon_px("horloge_folle")
+	for k: int in 7:
+		_a.impacter_en_groupe("horloge", CIBLE + Vector2(0.0, k * 6.0), rayon)
+	verifier_egal(_a.etats("").size(), 0, "aucun anneau par rouage")
+	_a.zone("horloge", CIBLE, rayon)
+	verifier_egal(_a.etats("").size(), 1, "un anneau pour le tir")
+	verifier_proche(_a.diametre_max(), rayon * 2.0, rayon * 2.0 * 0.1, "au rayon réel")
+
+
+func test_chaque_impact_de_l_horloge_est_petit_avec_peu_d_eclats() -> void:
+	_a.impacter_en_groupe("horloge", CIBLE, 30.0)
+	verifier_egal(_a.etats("eclat_engrenage").size(), 1, "un éclat de rouages")
+	verifier(_a.etats("eclat_engrenage")[0]["diametre"] <= 60.0, "reste petit")
+	verifier(_a.particules_actives() <= 8, "au plus huit particules par impact")
+	verifier_egal(_a.gel_restant(), 0.0, "coup courant : pas de gel")
+	_avancer(60)
+	verifier_egal(_a.nombre_vivants(), 0, "tout se dissipe")
+
+
+func test_l_horloge_dans_effets_lance_un_rouage_par_impact_et_un_seul_anneau() -> void:
+	var effets: Effets = _effets()
+	var evenements: Array[Dictionary] = _evenements("horloge_folle")
+	for evenement: Dictionary in evenements:
+		effets.ajouter(evenement)
+	var impacts: int = 0
+	for evenement: Dictionary in evenements:
+		impacts += 1 if evenement["k"] == "impact" else 0
+	verifier_egal(
+		effets.elementaires().etats("engrenage").size(), impacts, "un rouage par impact du barrage"
+	)
+	var anneaux: int = 0
+	for _i: int in 40:
+		effets.avancer(IMAGE)
+		anneaux = maxi(anneaux, effets.elementaires().etats("").size())
+	verifier_egal(anneaux, 1, "un seul anneau")
+	effets.free()
+
+
+func test_mouvement_reduit_l_horloge_ne_tourne_pas_et_sans_particule() -> void:
+	_a.mouvement_reduit = true
+	_a.tirer("horloge", TOUR, CIBLE)
+	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 2)
+	verifier_proche(_a.etats("engrenage")[0]["rotation"], 0.0, 0.0001, "pas de rotation")
+	var image: int = _a.etats("engrenage")[0]["image"]
+	_avancer(3)
+	verifier_egal(_a.etats("engrenage")[0]["image"], image, "dents figées")
+	_a.impacter_en_groupe("horloge", CIBLE, 30.0)
+	verifier_egal(_a.particules_actives(), 0)
+	verifier_egal(_a.etats("eclat_engrenage").size(), 1, "l'éclat reste")
