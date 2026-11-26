@@ -4,7 +4,8 @@ extends Control
 ## qui sont encore en jeu. Invisible tant qu'elle vit. Il lit une `VueGlobale` et n'agit que par
 ## `SourceVue.observer` : une arène dont le joueur est mort ne reste jamais affichée.
 
-## Actions d'entrée : `project.godot` (T2.7) les déclare, liées aux flèches gauche et droite.
+## Actions d'entrée : `project.godot` les déclare, liées à Page précédente et Page suivante (les
+## flèches déplacent la vue depuis T8.13 : les deux ne doivent pas jouer ensemble).
 const ACTION_SUIVANT := "observation_suivant"
 const ACTION_PRECEDENT := "observation_precedent"
 const HAUTEUR_CONTROLE := 48.0
@@ -98,7 +99,7 @@ func afficher(vue: VueGlobale, id_local: int, cible: int) -> void:
 		_demander(_suivant_apres(cible))
 
 
-## Les flèches n'agissent que si l'écran est visible et qu'aucun champ de saisie n'a le focus :
+## Page précédente et suivante n'agissent que si l'écran est visible et qu'aucun champ de saisie n'a le focus :
 ## taper un nom ne doit pas changer d'arène.
 func _unhandled_input(event: InputEvent) -> void:
 	if not visible or not event.is_pressed() or event.is_echo():

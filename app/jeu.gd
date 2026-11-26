@@ -26,11 +26,17 @@ var source: SourceVue = null
 var en_reseau: bool = false
 var arene: Arene2D = null
 var camera: CameraArene = null
+## Mini-carte en bas à droite (construite par `_ready`, hors de la scène).
+var minicarte: Minicarte = null
 var _sons: LecteurSons = null
 
 var _donnees: Donnees = null
 var _facteur: float = 1.0
 var _sensibilite: float = 1.0
+var _vitesse_camera: float = 1.0
+## Dernière vue de l'arène qu'on regarde (celle d'un autre joueur), `null` sur la sienne.
+var _vue_regardee: VueArene = null
+var _cadre_minicarte: Rect2 = Rect2()
 var _derniere_vue: VueArene = null
 var _globale: VueGlobale = null
 var _fin_affichee: bool = false
@@ -78,6 +84,8 @@ func _ready() -> void:
 	fin.quitter.connect(_demander_menu)
 	fin.observer.connect(_observer)
 	fin.continuer_sans_fin.connect(_continuer_sans_fin)
+	boutique.repli_change.connect(_sur_repli)
+	_construire_minicarte()
 	_sons = LecteurSons.new()
 	_sons.name = "Sons"
 	add_child(_sons)
@@ -121,6 +129,13 @@ func _brancher(src: SourceVue) -> void:
 	src.vue_globale_recue.connect(_sur_globale)
 	src.connexion_perdue.connect(_sur_perte)
 	src.resultat_intention.connect(_sur_resultat)
+	src.vue_regardee_recue.connect(_sur_vue_regardee)
+
+
+## Replié, le bandeau ne prend plus de place : l'arène visible et la mini-carte reprennent la
+## zone libérée (dépliée, elle se rétrécit de nouveau).
+func _sur_repli(_replie: bool) -> void:
+	_placer()
 
 
 func _sur_perte(motif: String) -> void:
@@ -147,9 +162,13 @@ func _monter() -> void:
 		arene.donnees = _donnees
 		add_child(arene)
 		move_child(arene, 0)
-		camera = arene.find_children("*", "CameraArene", true, false)[0] as CameraArene
+		camera = arene.camera()
 		arene.lier(source)
+		arene.arene_regardee_quittee.connect(_sur_arene_quittee)
+	camera.vitesse_relative = _vitesse_camera
 	arene.reinitialiser()
+	arene.montrer_arene(-1, "", 0)
+	minicarte.configurer(_donnees)
 	hud.configurer(_donnees)
 	boutique.configurer(_donnees, source)
 	observation.configurer(source)
@@ -158,6 +177,9 @@ func _monter() -> void:
 func _appliquer_reglages() -> void:
 	var r := Reglages.charger(chemin_reglages)
 	_sensibilite = r.sensibilite_zoom
+	_vitesse_camera = r.vitesse_camera
+	if camera != null:
+		camera.vitesse_relative = _vitesse_camera
 	appliquer_fenetre(get_window(), r)
 	BusAudio.appliquer_volume(r.volume_general)
 
@@ -169,6 +191,10 @@ func _vider_ecran() -> void:
 	_fin_affichee = false
 	_sans_fin = false
 	_observe = false
+	_vue_regardee = null
+	_cadre_minicarte = Rect2()
+	minicarte.definir_regarde(-1)
+	minicarte.visible = true
 	fin.visible = false
 	observation.visible = false
 	scores.visible = false
@@ -179,6 +205,7 @@ func _vider_ecran() -> void:
 
 func _sur_arene(vue: VueArene) -> void:
 	_derniere_vue = vue
+	_actualiser_minicarte()
 	_sons.traiter(vue)
 	hud.afficher(vue)
 	boutique.afficher(vue)
@@ -191,6 +218,8 @@ func _sur_arene(vue: VueArene) -> void:
 
 func _sur_globale(vue: VueGlobale) -> void:
 	_globale = vue
+	_verifier_arene_regardee(vue)
+	_actualiser_minicarte()
 	_nommer_tour(vue)
 	scores.afficher(vue, source.id_local())
 	if vue.termine and not _fin_affichee:
@@ -240,6 +269,7 @@ func _montrer_fin(victoire: bool) -> void:
 	boutique.visible = false
 	hud.modulate.a = OPACITE_HUD_FIN
 	observation.visible = false
+	minicarte.visible = false
 	_adapter_boutons_fin()
 	_placer()
 
@@ -275,12 +305,14 @@ func _sur_resultat(genre: String, code: int) -> void:
 	fin.visible = false
 	boutique.visible = _boutique_active()
 	hud.modulate.a = 1.0
+	_actualiser_minicarte()
 	_placer()
 
 
 func _observer() -> void:
 	_observe = true
 	fin.visible = false
+	minicarte.visible = false
 	if _globale != null:
 		observation.afficher(_globale, source.id_local(), source.cible_observee())
 	_placer()
@@ -350,6 +382,120 @@ func _unhandled_input(event: InputEvent) -> void:
 		camera.zoomer(PAS_ZOOM * _sensibilite)
 
 
+# --- Mini-carte et arène regardée -----------------------------------------------------------
+
+
+func _construire_minicarte() -> void:
+	minicarte = Minicarte.new()
+	minicarte.name = "Minicarte"
+	minicarte.demande_centrage.connect(_centrer_vue)
+	minicarte.demande_regarder.connect(_regarder)
+	# Avant le menu de pause, ajouté après : la pause reste au-dessus.
+	_racine.add_child(minicarte)
+	minicarte.resized.connect(_placer)
+
+
+func _process(_delta: float) -> void:
+	# La caméra bouge à chaque image (flèches, WASD), l'arène n'arrive qu'à 15 Hz : le cadre suit.
+	if camera == null or not minicarte.visible:
+		return
+	var cadre := camera.cadre_visible()
+	if cadre != _cadre_minicarte:
+		_cadre_minicarte = cadre
+		minicarte.definir_cadre(cadre)
+
+
+## La mini-carte n'a de sens que pour la joueuse en vie, partie en cours : après la défaite,
+## l'observation prend le relais ; à la fin, l'écran de fin.
+func _minicarte_active() -> bool:
+	return not _fin_affichee and not _observe and _local_vivant()
+
+
+func _local_vivant() -> bool:
+	if _globale == null or source == null:
+		return true
+	for joueur: Dictionary in _globale.joueurs:
+		if int(joueur["id"]) == source.id_local():
+			return bool(joueur["vivant"])
+	return true
+
+
+## La carte montre l'arène affichée : la sienne, ou celle du joueur qu'on regarde.
+func _actualiser_minicarte() -> void:
+	var actif := _minicarte_active()
+	if minicarte.visible != actif:
+		minicarte.visible = actif
+		_placer()
+	if not actif or source == null:
+		return
+	var vue := _vue_regardee if _vue_regardee != null else _derniere_vue
+	_cadre_minicarte = camera.cadre_visible() if camera != null else Rect2()
+	minicarte.afficher(vue, _globale, source.id_local(), _cadre_minicarte)
+	minicarte.definir_regarde(source.id_regarde())
+
+
+func _sur_vue_regardee(id_joueur: int, vue: VueArene) -> void:
+	if vue == null:
+		return
+	minicarte.definir_pv(id_joueur, vue.tour_pv, vue.tour_pv_max)
+	if id_joueur == source.id_regarde():
+		_vue_regardee = vue
+		_actualiser_minicarte()
+
+
+## Un clic sur la carte : la vue se centre sur ce point (la caméra borne et refuse les valeurs non
+## finies).
+func _centrer_vue(point_unites: Vector2) -> void:
+	if camera != null and point_unites.is_finite():
+		camera.centrer_sur(point_unites)
+		_cadre_minicarte = camera.cadre_visible()
+		minicarte.definir_cadre(_cadre_minicarte)
+
+
+## Un clic sur une vignette : l'arène de ce joueur s'affiche à la place de la sienne ; le HUD et
+## la boutique restent ceux de la joueuse. Un joueur absent de la vue globale (parti entre-temps),
+## soi-même ou un identifiant inconnu ne changent rien.
+func _regarder(id_joueur: int) -> void:
+	if source == null or arene == null or _globale == null or id_joueur == source.id_local():
+		return
+	for i: int in _globale.joueurs.size():
+		var joueur: Dictionary = _globale.joueurs[i]
+		if int(joueur["id"]) != id_joueur:
+			continue
+		arene.montrer_arene(id_joueur, str(joueur["nom"]), i + 1)
+		_vue_regardee = null
+		camera.recentrer()
+		source.regarder(id_joueur)
+		minicarte.definir_regarde(id_joueur)
+		_actualiser_minicarte()
+		return
+
+
+## Espace a mis fin au regard : l'arène est déjà revenue à la sienne, la source cesse d'envoyer
+## l'autre.
+func _sur_arene_quittee() -> void:
+	_vue_regardee = null
+	if source != null:
+		source.regarder(-1)
+	minicarte.definir_regarde(-1)
+	_actualiser_minicarte()
+
+
+## Le joueur regardé a quitté la partie, ou la joueuse a été vaincue (l'observation prend le
+## relais) : retour à sa propre arène, sans erreur.
+func _verifier_arene_regardee(vue: VueGlobale) -> void:
+	if arene == null or source == null or not arene.regarde_un_autre():
+		return
+	var id := source.id_regarde()
+	var present := false
+	for joueur: Dictionary in vue.joueurs:
+		present = present or int(joueur["id"]) == id
+	if present and _local_vivant():
+		return
+	arene.montrer_arene(-1, "", 0)
+	_sur_arene_quittee()
+
+
 # --- Mise en page ----------------------------------------------------------------------------
 
 
@@ -373,7 +519,18 @@ func placer_dans(zone: Vector2) -> void:
 	var libre: Rect2 = rects["libre"]
 	hud.position = rect_hud.position
 	hud.size = rect_hud.size
-	boutique.definir_zone_libre(libre)
+	# La mini-carte occupe le coin bas droit de l'arène visible : le panneau latéral de la
+	# boutique, aligné à droite, s'arrête au-dessus d'elle.
+	var zone_cote := libre
+	if minicarte != null and minicarte.visible:
+		var taille := minicarte.taille_voulue()
+		var coin := (libre.end - taille - Vector2(MiseEnPage.MARGE, MiseEnPage.MARGE)).max(
+			libre.position
+		)
+		minicarte.position = coin
+		minicarte.size = taille
+		zone_cote.size.y = maxf(0.0, coin.y - libre.position.y - MiseEnPage.MARGE)
+	boutique.definir_zone_libre(zone_cote)
 	if camera != null:
 		camera.cadrer(libre, zone)
 	observation.position = Vector2(

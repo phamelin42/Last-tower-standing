@@ -520,6 +520,30 @@ func test_la_note_or_insuffisant_tient_entiere_sans_depasser_les_seuils() -> voi
 			_liberer(jeu)
 
 
+## T8.19 et T8.20 : replier la boutique libère la zone, que `Jeu` recalcule dès le signal
+## `repli_change` ; la déplier la lui rend.
+func test_le_repli_de_la_boutique_libere_la_zone() -> void:
+	_donnees = AidesPartie.donnees()
+	for resolution: Vector2 in RESOLUTIONS:
+		var jeu := await _jeu_a(resolution)
+		# La tour est au centre de la zone libre : elle descend quand le bandeau disparaît.
+		var avant := jeu.camera.projeter(Vector2.ZERO).y
+		var bandeau := jeu.boutique.rect_bandeau_minimal().y
+		verifier(bandeau > 0.0, "déplié, le bandeau prend de la place")
+		jeu.boutique.definir_replie(true)
+		await attendre_images(2)
+		verifier_egal(jeu.boutique.rect_bandeau_minimal().y, 0.0, "replié, plus de hauteur")
+		verifier(jeu.camera.projeter(Vector2.ZERO).y > avant, "la vue gagne la place du bandeau")
+		verifier(
+			jeu.minicarte.get_global_rect().end.y > resolution.y - bandeau,
+			"la mini-carte descend dans la zone libérée"
+		)
+		jeu.boutique.definir_replie(false)
+		await attendre_images(2)
+		verifier_proche(jeu.camera.projeter(Vector2.ZERO).y, avant, 0.01, "déplié, la vue rétrécit")
+		_liberer(jeu)
+
+
 func _noms_les_plus_longs() -> Array[String]:
 	var noms: Array[String] = []
 	for id: Variant in _donnees.armes:
