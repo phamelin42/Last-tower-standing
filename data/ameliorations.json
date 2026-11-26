@@ -779,15 +779,15 @@
   "id": "caisse_d_echo",
   "nom": "Caisse d’écho",
   "description": "Chaque onde repart avec l’écho de la précédente.",
-  "rarete": "peu_commune",
-  "prix": 270,
+  "rarete": "rare",
+  "prix": 470,
   "categorie": "amelioration",
   "famille": "degats_classe",
   "effets": [
    {
     "stat": "degats_classe",
     "classe": "onde",
-    "valeur": 0.25
+    "valeur": 0.35
    }
   ]
  },
@@ -795,15 +795,15 @@
   "id": "garde_rapprochee",
   "nom": "Garde rapprochée",
   "description": "Au pied des remparts, les armes proches frappent plus fort.",
-  "rarete": "peu_commune",
-  "prix": 260,
+  "rarete": "rare",
+  "prix": 460,
   "categorie": "amelioration",
   "famille": "degats_classe",
   "effets": [
    {
     "stat": "degats_classe",
     "classe": "portee_courte",
-    "valeur": 0.2
+    "valeur": 0.3
    }
   ]
  },
@@ -811,15 +811,15 @@
   "id": "longue_vue",
   "nom": "Longue-vue",
   "description": "Une lunette qui pardonne la distance aux armes de longue portée.",
-  "rarete": "peu_commune",
-  "prix": 260,
+  "rarete": "rare",
+  "prix": 460,
   "categorie": "amelioration",
   "famille": "degats_classe",
   "effets": [
    {
     "stat": "degats_classe",
     "classe": "portee_longue",
-    "valeur": 0.2
+    "valeur": 0.3
    }
   ]
  },
@@ -843,15 +843,15 @@
   "id": "venin_concentre",
   "nom": "Venin concentré",
   "description": "Une goutte de plus par fiole, et le poison mord plus profond.",
-  "rarete": "peu_commune",
-  "prix": 240,
+  "rarete": "rare",
+  "prix": 440,
   "categorie": "amelioration",
   "famille": "etats",
   "effets": [
    {
     "stat": "etat_degats",
     "etat": "poison",
-    "valeur": 0.25
+    "valeur": 0.4
    }
   ]
  },
@@ -859,15 +859,15 @@
   "id": "charbon_ardent",
   "nom": "Charbon ardent",
   "description": "Les brûlures couvent plus fort sous la peau.",
-  "rarete": "peu_commune",
-  "prix": 240,
+  "rarete": "rare",
+  "prix": 440,
   "categorie": "amelioration",
   "famille": "etats",
   "effets": [
    {
     "stat": "etat_degats",
     "etat": "brulure",
-    "valeur": 0.25
+    "valeur": 0.4
    }
   ]
  },
@@ -875,15 +875,15 @@
   "id": "ampoule_tenace",
   "nom": "Ampoule tenace",
   "description": "Le poison met longtemps à quitter l’ennemi.",
-  "rarete": "peu_commune",
-  "prix": 250,
+  "rarete": "rare",
+  "prix": 450,
   "categorie": "amelioration",
   "famille": "etats",
   "effets": [
    {
     "stat": "etat_duree",
     "etat": "poison",
-    "valeur": 0.3
+    "valeur": 0.5
    }
   ]
  },
@@ -891,15 +891,15 @@
   "id": "braises_couvees",
   "nom": "Braises couvées",
   "description": "Les flammes s’attardent longtemps après le coup.",
-  "rarete": "peu_commune",
-  "prix": 250,
+  "rarete": "rare",
+  "prix": 450,
   "categorie": "amelioration",
   "famille": "etats",
   "effets": [
    {
     "stat": "etat_duree",
     "etat": "brulure",
-    "valeur": 0.3
+    "valeur": 0.5
    }
   ]
  },
