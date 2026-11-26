@@ -1,0 +1,309 @@
+extends CasDeTest
+## Les quatre armes de siège de la famille D22, arme par arme : le pétard de rempart et la mine de
+## forge (mines posées au sol), le trébuchet de chambre et la grande bombarde (zones lancées en
+## cloche). Le coup de siège gèle l'image comme celui de la bombe et s'arrête au rayon réel lu dans
+## `data/armes.json`. Durées en images à 60 i/s.
+
+const IMAGE: float = 1.0 / 60.0
+const TOUR := Vector2(40.0, 300.0)
+const CIBLE := Vector2(400.0, 300.0)
+const ARMES: Dictionary = {
+	"petard_de_rempart": ["petard", "mine"],
+	"mine_de_forge": ["mine_forge", "mine"],
+	"trebuchet_de_chambre": ["trebuchet", "zone"],
+	"grande_bombarde": ["grande_bombe", "zone"],
+}
+
+var _a: AttaquesElementaires = null
+var _donnees: Donnees = Donnees.charger()
+
+
+func avant_chaque() -> void:
+	_a = AttaquesElementaires.new()
+	arbre.root.add_child(_a)
+
+
+func apres_chaque() -> void:
+	if is_instance_valid(_a):
+		_a.free()
+	_a = null
+
+
+func _avancer(images: int) -> void:
+	for i: int in images:
+		_a.avancer(IMAGE)
+
+
+func _effet(id: String) -> Dictionary:
+	return (_donnees.armes[id]["effets"] as Array)[0]
+
+
+func _rayon_px(id: String) -> float:
+	return float(_effet(id)["rayon"]) * Apparence.PX_PAR_UNITE
+
+
+func _visibles(planche: String) -> int:
+	var n: int = 0
+	for e: Dictionary in _a.etats(planche):
+		n += 1 if e["visible"] else 0
+	return n
+
+
+## Les événements d'un tir de `id` dans un `Effets` neuf, comme la simulation les émet.
+func _evenements(id: String) -> Array[Dictionary]:
+	var vitrine: VitrineArmes = VitrineArmes.new()
+	vitrine.armes = [id] as Array[String]
+	var liste: Array[Dictionary] = vitrine.evenements_du_cycle(id)
+	vitrine.free()
+	return liste
+
+
+func _effets() -> Effets:
+	var effets: Effets = Effets.new()
+	effets.catalogue = _donnees.ids_catalogue
+	arbre.root.add_child(effets)
+	return effets
+
+
+func test_les_armes_de_siege_ont_leur_element_et_leur_genre() -> void:
+	for id: String in ARMES:
+		var element: String = ARMES[id][0]
+		verifier(AttaquesElementaires.connait(element), "élément de %s" % id)
+		verifier_egal(ElementsArmes.de(id), element, "table de %s" % id)
+		verifier_egal(String(_effet(id)["kind"]), ARMES[id][1], "genre de %s" % id)
+		verifier_egal(
+			int(_donnees.armes[id]["type_degats"]), Types.TypeDegats.SIEGE, "type de %s" % id
+		)
+
+
+# --- Pétard de rempart : mine ------------------------------------------------------------------
+
+
+func test_le_petard_est_lance_puis_reste_pose_au_sol_visible() -> void:
+	verifier(_a.piege("petard", TOUR, CIBLE))
+	verifier_egal(_a.etats("petard").size(), 2, "un lancé et un pour le sol")
+	_avancer(5)
+	verifier_egal(_visibles("petard"), 1, "il vole, il n'est pas encore au sol")
+	_avancer(80)
+	var pose: Array[Dictionary] = _a.etats("petard")
+	verifier_egal(pose.size(), 1, "il reste tant que la mine n'a pas servi")
+	verifier((pose[0]["position"] as Vector2).distance_to(CIBLE) <= 1.0, "sur le chemin visé")
+	_avancer(60 * 20)
+	verifier_egal(_a.etats("petard").size(), 1, "toujours là après vingt secondes")
+	verifier_proche(_a.etats("petard")[0]["alpha"], AttaquesElementaires.ALPHA_MAX, 0.001)
+
+
+func test_la_meche_du_petard_crepite_sauf_en_mouvement_reduit() -> void:
+	_a.piege("petard", TOUR, CIBLE)
+	_avancer(80)
+	var images: Dictionary = {}
+	for i: int in 12:
+		_avancer(1)
+		images[int(_a.etats("petard")[0]["image"])] = true
+	verifier_egal(images.size(), 2, "deux images de mèche en alternance")
+	_a.vider()
+	_a.mouvement_reduit = true
+	_a.piege("petard", TOUR, CIBLE)
+	_avancer(80)
+	images.clear()
+	for i: int in 12:
+		_avancer(1)
+		images[int(_a.etats("petard")[0]["image"])] = true
+	verifier_egal(images.size(), 1, "figée en mouvement réduit")
+
+
+func test_le_declenchement_retire_le_petard_et_pas_celui_d_une_autre_mine() -> void:
+	_a.piege("petard", TOUR, CIBLE)
+	_a.piege("petard", TOUR, CIBLE + Vector2(0.0, 200.0))
+	_avancer(80)
+	verifier_egal(_a.etats("petard").size(), 2)
+	_a.retirer_pieges(CIBLE)
+	verifier_egal(_a.etats("petard").size(), 1, "seule la mine déclenchée est retirée")
+
+
+func test_le_pop_du_petard_est_dessine_au_rayon_reel_avec_un_gel_d_impact() -> void:
+	var rayon: float = _rayon_px("petard_de_rempart")
+	verifier(_a.impacter("petard", CIBLE, rayon, true))
+	verifier_egal(_a.etats("pop_petard").size(), 1, "le pop d'étincelles")
+	verifier_proche(_a.etats("pop_petard")[0]["diametre"], rayon * 2.0, rayon * 0.2, "au rayon")
+	verifier_egal(_a.etats("").size(), 1, "un anneau")
+	verifier_proche(_a.etats("")[0]["diametre"], rayon * 2.0, 0.5, "anneau au rayon exact")
+	verifier(_a.gel_restant() > 0.0, "coup de siège : le gel visuel")
+	verifier(_a.particules_actives() <= 12, "au plus douze particules")
+	_avancer(60)
+	verifier_egal(_a.nombre_vivants(), 0)
+
+
+func test_mouvement_reduit_le_pop_ne_gele_pas_et_sans_particule() -> void:
+	_a.mouvement_reduit = true
+	_a.piege("petard", TOUR, CIBLE)
+	_a.impacter("petard", CIBLE, _rayon_px("petard_de_rempart"), true)
+	verifier_egal(_a.particules_actives(), 0)
+	verifier_egal(_a.gel_restant(), 0.0)
+	verifier_egal(_a.etats("pop_petard").size(), 1, "le pop reste")
+
+
+func test_le_petard_dans_effets_se_pose_au_tir_et_part_au_declenchement() -> void:
+	var effets: Effets = _effets()
+	var evenements: Array[Dictionary] = _evenements("petard_de_rempart")
+	effets.ajouter(evenements[0])
+	verifier_egal(effets.elementaires().etats("petard").size(), 2, "lancé au tir")
+	verifier_egal(effets.formes_vivantes().has("mine"), false, "plus de forme générique")
+	for _i: int in 80:
+		effets.avancer(IMAGE)
+	verifier_egal(effets.elementaires().etats("petard").size(), 1, "il attend")
+	effets.ajouter(evenements[1])
+	verifier_egal(effets.elementaires().etats("petard").size(), 0, "retiré au déclenchement")
+	verifier_egal(effets.elementaires().etats("pop_petard").size(), 1, "le pop")
+	effets.free()
+
+
+# --- Mine de forge : mine ----------------------------------------------------------------------
+
+
+func test_la_mine_de_forge_est_lancee_puis_reste_posee_et_sa_rune_rougeoie() -> void:
+	verifier(_a.piege("mine_forge", TOUR, CIBLE))
+	verifier_egal(_a.etats("mine_forge").size(), 2, "une lancée et une pour le sol")
+	_avancer(80)
+	var pose: Array[Dictionary] = _a.etats("mine_forge")
+	verifier_egal(pose.size(), 1, "elle reste tant qu'elle n'a pas servi")
+	verifier((pose[0]["position"] as Vector2).distance_to(CIBLE) <= 1.0, "sur le chemin visé")
+	var images: Dictionary = {}
+	for i: int in 30:
+		_avancer(1)
+		images[int(_a.etats("mine_forge")[0]["image"])] = true
+	verifier_egal(images.size(), 2, "la rune pulse sur deux images")
+	_a.retirer_pieges(CIBLE)
+	verifier_egal(_a.etats("mine_forge").size(), 0, "retirée au déclenchement")
+
+
+func test_la_forge_explose_comme_le_pack_et_la_bombe_mais_pas_le_petard() -> void:
+	for element: String in ["mine_forge", "grande_bombe", "bombe"]:
+		verifier(
+			AttaquesElementaires.explosion_du_pack(element), "%s : explosion du pack" % element
+		)
+	for element: String in ["petard", "trebuchet", "feu", "inconnu"]:
+		verifier(not AttaquesElementaires.explosion_du_pack(element), "%s : la sienne" % element)
+
+
+func test_l_explosion_de_la_mine_de_forge_est_celle_du_pack_au_rayon_exact() -> void:
+	var effets: Effets = _effets()
+	var evenements: Array[Dictionary] = _evenements("mine_de_forge")
+	effets.ajouter(evenements[0])
+	for _i: int in 80:
+		effets.avancer(IMAGE)
+	effets.ajouter(evenements[1])
+	verifier_contient(effets.formes_vivantes(), "explosion")
+	var rayon: float = _rayon_px("mine_de_forge")
+	var diametre: float = effets.echelle_de("explosion") * Effets.DIAMETRE_EXPLOSION
+	verifier_proche(diametre, rayon * 2.0, rayon * 0.2, "diamètre = 2 × rayon")
+	verifier_egal(effets.elementaires().etats("mine_forge").size(), 0, "la mine a servi")
+	verifier_egal(effets.elementaires().etats("").size(), 1, "un anneau au rayon")
+	verifier(effets.elementaires().particules_actives() <= 12, "au plus douze débris")
+	verifier(effets.gel_restant() > 0.0, "gel d'un coup de siège")
+	effets.free()
+
+
+# --- Trébuchet de chambre : zone ---------------------------------------------------------------
+
+
+func test_le_rocher_du_trebuchet_dure_quatorze_images_en_haute_cloche_avec_son_ombre() -> void:
+	verifier_proche(_a.tirer("trebuchet", TOUR, CIBLE) / IMAGE, 14.0, 0.01)
+	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + AttaquesElementaires.IMAGES_VOL_CLOCHE / 2)
+	var distance: float = TOUR.distance_to(CIBLE)
+	var rocher: Dictionary = _a.etats("rocher")[0]
+	var monte: float = TOUR.y - float(rocher["position"].y)
+	verifier(monte >= 0.45 * distance, "haute cloche : %f px pour %f" % [monte, distance])
+	var ombre: Dictionary = _a.etats("ombre")[0]
+	verifier_proche(ombre["position"].y, TOUR.y, 0.01, "l'ombre reste sur la ligne droite")
+
+
+func test_le_rocher_tourne_sur_le_vol_sauf_en_mouvement_reduit() -> void:
+	_a.tirer("trebuchet", TOUR, CIBLE)
+	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 4)
+	verifier(absf(float(_a.etats("rocher")[0]["rotation"])) > 0.1, "il tourne")
+	_a.vider()
+	_a.mouvement_reduit = true
+	_a.tirer("trebuchet", TOUR, CIBLE)
+	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 4)
+	verifier_proche(float(_a.etats("rocher")[0]["rotation"]), 0.0, 0.0001, "sans rotation")
+
+
+func test_le_cratere_de_poussiere_est_au_rayon_reel_avec_un_gel_d_impact() -> void:
+	var rayon: float = _rayon_px("trebuchet_de_chambre")
+	verifier(_a.impacter("trebuchet", CIBLE, rayon, true))
+	verifier_egal(_a.etats("cratere").size(), 1, "le cratère")
+	verifier_proche(_a.etats("cratere")[0]["diametre"], rayon * 2.0, rayon * 0.2, "au rayon")
+	verifier_egal(_a.etats("").size(), 1, "un anneau")
+	verifier(_a.gel_restant() > 0.0, "coup de siège : le gel visuel")
+	verifier(_a.particules_actives() <= 12, "au plus douze débris")
+	verifier(_a.opacite_max() <= AttaquesElementaires.ALPHA_MAX + 0.0001, "jamais opaque")
+	_avancer(60)
+	verifier_egal(_a.nombre_vivants(), 0)
+
+
+func test_mouvement_reduit_le_cratere_ne_gele_pas_et_sans_debris() -> void:
+	_a.mouvement_reduit = true
+	_a.impacter("trebuchet", CIBLE, _rayon_px("trebuchet_de_chambre"), true)
+	verifier_egal(_a.particules_actives(), 0)
+	verifier_egal(_a.gel_restant(), 0.0)
+	verifier_egal(_a.etats("cratere").size(), 1, "le cratère reste")
+
+
+func test_le_trebuchet_dans_effets_lance_le_rocher_et_l_impact_attend_son_arrivee() -> void:
+	var effets: Effets = _effets()
+	var evenements: Array[Dictionary] = _evenements("trebuchet_de_chambre")
+	for evenement: Dictionary in evenements:
+		effets.ajouter(evenement)
+	verifier_egal(effets.elementaires().etats("rocher").size(), 1, "le rocher part")
+	verifier_egal(effets.elementaires().etats("cratere").size(), 0, "pas de cratère en vol")
+	for _i: int in 14:
+		effets.avancer(IMAGE)
+	verifier_egal(effets.elementaires().etats("cratere").size(), 1, "il tombe à l'arrivée")
+	effets.free()
+
+
+# --- Grande bombarde : zone et étourdissement --------------------------------------------------
+
+
+func test_la_grande_bombe_est_une_fois_et_demie_plus_grosse_que_la_bombe_et_dure_quatorze_images(
+) -> void:
+	verifier_proche(_a.tirer("grande_bombe", TOUR, CIBLE) / IMAGE, 14.0, 0.01)
+	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 1)
+	var grosse: float = (_a.etats("bombe")[0]["echelle"] as Vector2).x
+	_a.vider()
+	_a.tirer("bombe", TOUR, CIBLE)
+	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 1)
+	var petite: float = (_a.etats("bombe")[0]["echelle"] as Vector2).x
+	verifier_proche(grosse / petite, 1.5, 0.02, "×1,5")
+
+
+func test_la_grande_bombe_passe_au_dessus_de_la_ligne_droite_et_son_ombre_reste_au_sol() -> void:
+	_a.tirer("grande_bombe", TOUR, CIBLE)
+	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 5)
+	var monte: float = TOUR.y - float(_a.etats("bombe")[0]["position"].y)
+	verifier(monte >= 0.9 * 0.35 * TOUR.distance_to(CIBLE), "en cloche")
+	verifier_proche(_a.etats("ombre")[0]["position"].y, TOUR.y, 0.01, "ombre sur la ligne droite")
+
+
+func test_l_impact_de_la_grande_bombe_lance_une_salve_de_debris_sauf_en_mouvement_reduit() -> void:
+	verifier(_a.impacter("grande_bombe", CIBLE, _rayon_px("grande_bombarde"), true))
+	verifier_egal(_a.particules_actives(), 1, "une salve")
+	_a.vider()
+	_a.mouvement_reduit = true
+	_a.impacter("grande_bombe", CIBLE, _rayon_px("grande_bombarde"), true)
+	verifier_egal(_a.particules_actives(), 0, "pas de débris en mouvement réduit")
+
+
+func test_la_grande_bombarde_dans_effets_explose_comme_le_pack_au_rayon_exact() -> void:
+	var effets: Effets = _effets()
+	for evenement: Dictionary in _evenements("grande_bombarde"):
+		effets.ajouter(evenement)
+	for _i: int in 15:
+		effets.avancer(IMAGE)
+	verifier_contient(effets.formes_vivantes(), "explosion")
+	var rayon: float = _rayon_px("grande_bombarde")
+	var diametre: float = effets.echelle_de("explosion") * Effets.DIAMETRE_EXPLOSION
+	verifier_proche(diametre, rayon * 2.0, rayon * 0.2, "diamètre = 2 × rayon")
+	verifier(effets.gel_restant() > 0.0, "gel d'un coup de siège")
+	effets.free()
