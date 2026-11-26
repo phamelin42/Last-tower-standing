@@ -56,7 +56,7 @@
    "portee_attaque": 55,
    "cadence_attaque": 1.6,
    "prime": 6,
-   "manche_min": 1,
+   "manche_min": 2,
    "explose": false,
    "raison_lenteur": "La lourde armure ralentit chaque pas."
   },
@@ -76,7 +76,7 @@
    "portee_attaque": 50,
    "cadence_attaque": 2.2,
    "prime": 12,
-   "manche_min": 1,
+   "manche_min": 4,
    "explose": true,
    "raison_lenteur": ""
   },
@@ -127,7 +127,7 @@
    "manche_entree": 1,
    "pv": 1.0,
    "degats": 1.0,
-   "prime": 1.0
+   "prime": 2.5
   },
   {
    "id": "rouge",

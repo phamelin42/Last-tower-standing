@@ -17,6 +17,8 @@ const RESERVE := 60
 const MANCHES_ECONOMIE := 8
 const MANCHE_DEFENSE := 14
 const ARMES_VISEES := 8
+## Avant l'économie, la « bonne » stratégie s'arme : une tour sans arme ne tient pas la manche 6.
+const ARMES_MINIMUM_BONNE := 3
 
 
 ## Joue un tour d'achats pour le joueur `id`. Rend les ids achetés.
@@ -131,7 +133,7 @@ static func _valeur_offre(
 			var eff := 1.0
 			if v.prochaine_armure >= 0:
 				eff = Combat.efficacite(d.efficacite, t, v.prochaine_armure)
-			if v.manche < MANCHES_ECONOMIE:
+			if v.manche < MANCHES_ECONOMIE and v.armes.size() >= ARMES_MINIMUM_BONNE:
 				return base * 0.1 * eff
 			return base * eff
 		return base
