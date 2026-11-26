@@ -18,6 +18,8 @@ class Bilan:
 	var degats: float = 0.0
 	var tues_directs: int = 0
 	var soin: float = 0.0
+	## Mana gagnée par le pas (`mana_au_coup`), à verser à la tour par `Arene.mana_gagnee`.
+	var mana: float = 0.0
 	var evenements: Array[Dictionary] = []
 
 
@@ -177,6 +179,8 @@ static func _frapper(ctx: Contexte, i: int, degats: float) -> float:
 		var statut: Dictionary = brut
 		if statut["kind"] == "vol_de_vie" and not statut.get("a_la_mort", false):
 			bilan.soin += Combat.soin_vol_de_vie(reels, float(statut["ratio"]))
+		elif statut["kind"] == "mana_au_coup":
+			bilan.mana += float(statut["valeur"])
 	if ctx.ennemis.mort[i] != 0:
 		bilan.tues_directs += 1
 		bilan.soin += maxf(ctx.stats.vol_de_vie_mort, 0.0)
@@ -204,6 +208,11 @@ static func _frapper(ctx: Contexte, i: int, degats: float) -> float:
 					type_vulnerable = ctx.type_degats
 				ctx.ennemis.vulnerabiliser(
 					i, type_vulnerable, float(statut["ratio"]), float(statut["duree"])
+				)
+			"siphon":
+				var ressource := 0 if String(statut["ressource"]) == "mana" else 1
+				ctx.ennemis.siphonner(
+					i, ressource, float(statut["par_seconde"]), float(statut["duree"])
 				)
 			"malediction_degats":
 				ctx.ennemis.maudire_degats(i, float(statut["ratio"]), float(statut["duree"]))

@@ -1800,7 +1800,7 @@ ameliorations.json — champ obligatoire « famille » (Types.FAMILLES_AMELIORAT
 
 ### Task 9.4 : Siphon de mana et de vie, mana au coup (M4) — `haiku`
 
-- [ ] **Objectif :** `siphon` : pendant `duree` après avoir été touché, l'ennemi verse `par_seconde` à la tour (mana ou PV selon `ressource`), tant qu'il est vivant ; un nouveau siphon de même ressource rafraîchit la durée et garde le plus fort débit. `mana_au_coup` : chaque coup qui touche rend `valeur` de mana. La mana ne dépasse jamais `Arene.mana_max()` (T8.7), les PV jamais le maximum ; sans mana maximale, rien n'est gagné et rien ne plante.
+- [x] **Objectif :** `siphon` : pendant `duree` après avoir été touché, l'ennemi verse `par_seconde` à la tour (mana ou PV selon `ressource`), tant qu'il est vivant ; un nouveau siphon de même ressource rafraîchit la durée et garde le plus fort débit. `mana_au_coup` : chaque coup qui touche rend `valeur` de mana. La mana ne dépasse jamais `Arene.mana_max()` (T8.7), les PV jamais le maximum ; sans mana maximale, rien n'est gagné et rien ne plante.
 - **Conception :** §6.13, §6.4 (mana en bouclier).
 - **Fichiers :** `sim/ennemis.gd` (tableaux de siphon, bit `STATUT_SIPHONNE`, `avancer` rend `"siphon_mana"` et `"siphon_vie"`), `sim/tir.gd` (`_frapper`, `Bilan.mana`), `sim/arene.gd` (`mana_gagnee`, fusion des bilans) ; tests nouveaux `test_siphon.gd`, plus `test_arene_tour.gd`, `test_tir.gd`.
 - **Lire :** `sim/arene.gd` `_pas_armes`, `synchroniser` et la mana de T8.7 ; `sim/ennemis.gd` `avancer`.
