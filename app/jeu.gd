@@ -20,6 +20,7 @@ const OPACITE_HUD_FIN := 0.35
 
 ## Fichier des réglages : le lanceur de tests le remplace par un dossier temporaire.
 var chemin_reglages: String = Reglages.CHEMIN_DEFAUT
+var chemin_progression: String = Sauvegarde.CHEMIN_DEFAUT
 var nom_joueur: String = ""
 var source: SourceVue = null
 ## Vrai quand la source est un `Client` fourni de l'extérieur (jamais libéré par `Jeu`).
@@ -131,6 +132,13 @@ func _brancher(src: SourceVue) -> void:
 	src.connexion_perdue.connect(_sur_perte)
 	src.resultat_intention.connect(_sur_resultat)
 	src.vue_regardee_recue.connect(_sur_vue_regardee)
+	src.bilan_recu.connect(_sur_bilan)
+
+
+## Le bilan de la partie finie : il alimente la progression de ce poste (défis, skins, cumuls).
+func _sur_bilan(bilan: Dictionary) -> void:
+	var nb_joueurs := _globale.joueurs.size() if _globale != null else 1
+	ProgressionLocale.enregistrer_fin(bilan, nb_joueurs, _donnees, chemin_progression)
 
 
 ## Replié, le bandeau ne prend plus de place : l'arène visible et la mini-carte reprennent la
