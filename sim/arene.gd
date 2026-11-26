@@ -35,6 +35,9 @@ const REDUCTION_CAC_MAX := 0.5
 ## Part du coup reçu que posent le poison et la brûlure des épines et de la riposte, répartie sur
 ## leur durée (la valeur de la statistique).
 const STATUT_RIPOSTE_RATIO := 0.5
+## Part de dégâts que `reduction_tant_que_mana` ne dépasse jamais : une réserve de mana ne rend
+## pas la tour intouchable.
+const REDUCTION_MANA_MAX := 0.75
 const STATUTS_RIPOSTE: Array[String] = ["poison", "brulure", "givre", "etourdissement"]
 
 ## Points de vie de la tour, entre 0 et le maximum.
@@ -116,7 +119,7 @@ func _init(donnees: Donnees, graine: int) -> void:
 	inventaire = Inventaire.new(donnees)
 	boutique = Boutique.new(donnees, _rng)
 	boutique.tirer(1)
-	_stats = inventaire.stats()
+	_stats = _stats_de_la_tour()
 	_pv_max_connu = _pv_max()
 	pv = _pv_max_connu
 	_mana_max_connu = mana_max()
@@ -211,6 +214,7 @@ func avancer(dt: float) -> void:
 	economie.avancer(dt, _manche, _stats, _temps)
 	_faire_apparaitre(dt)
 	_pas_tour_et_ennemis(dt)
+	_pas_aura_mixte(dt)
 	_pas_armes(dt)
 	_pas_poses(dt)
 	_pas_allies(dt)
@@ -368,12 +372,15 @@ func _pas_tour_et_ennemis(dt: float) -> void:
 	if a_distance > EPSILON_DEGATS and not _esquive(chance):
 		subis += a_distance
 	var apres_armure := Combat.degats_subis(subis, _armure_tour + _stats.armure_totale(_temps))
+	if mana > 0.0:
+		apres_armure *= 1.0 - clampf(_stats.reduction_tant_que_mana, 0.0, REDUCTION_MANA_MAX)
 	# Ordre : esquive, réduction des épines, armure, mana, PV. Un point de mana absorbe un point de
 	# dégât.
 	var absorbe := minf(mana, apres_armure)
 	if absorbe > 0.0:
 		if mana - absorbe <= 0.0:
 			bilan_partie.chute_bouclier()
+			_etourdir_a_la_chute_du_bouclier()
 		mana -= absorbe
 		_ajouter_evenement(
 			{
@@ -389,6 +396,42 @@ func _pas_tour_et_ennemis(dt: float) -> void:
 		bilan_partie.perte_pv()
 	pv -= apres_armure - absorbe
 	_soigner(soin_epines)
+
+
+## `mana_rupture_etourdit` : le bouclier qui tombe à 0 sous un coup étourdit les ennemis du rayon.
+## Appelée une fois par chute : tant que la mana reste à 0, plus aucun coup ne l'absorbe.
+func _etourdir_a_la_chute_du_bouclier() -> void:
+	var rupture: Dictionary = _stats.mana_rupture_etourdit
+	var duree := float(rupture["duree"])
+	if not duree > 0.0:
+		return
+	for i: int in ennemis.dans_rayon(Vector2.ZERO, float(rupture["rayon"])):
+		ennemis.etourdir(i, duree, _resistance)
+
+
+## `aura_mixte` : tant qu'un ennemi est dans le rayon, chacun subit `poison` dégâts de chaos par
+## seconde et la tour regagne `regen` PV par seconde (une fois, quel que soit leur nombre).
+func _pas_aura_mixte(dt: float) -> void:
+	var aura: Dictionary = _stats.aura_mixte
+	var rayon := float(aura["rayon"])
+	if not rayon > 0.0:
+		return
+	var touches := ennemis.dans_rayon(Vector2.ZERO, rayon)
+	if touches.is_empty():
+		return
+	var degats := float(aura["poison"]) * dt
+	if degats > 0.0:
+		for i: int in touches:
+			_degats_infliges += ennemis.infliger(i, degats, Types.TypeDegats.CHAOS)
+	_soigner(float(aura["regen"]) * dt)
+
+
+## Les statistiques de l'inventaire, avec le revenu qu'achètent des PV maximum : l'or par période
+## de `revenu_contre_pv` s'ajoute au revenu fixe.
+func _stats_de_la_tour() -> StatsTour:
+	var s := inventaire.stats()
+	s.revenu_fixe += int(s.revenu_contre_pv["or"])
+	return s
 
 
 ## Les épines frappent l'attaquant `i` de `ratio` fois son coup, plus `epines_premier_coup` la
@@ -471,6 +514,7 @@ func _pas_armes(dt: float) -> void:
 	var lecture := Tir.Lecture.new()
 	lecture.pv_max_tour = _pv_max()
 	lecture.temps_s = _temps
+	lecture.mana_active = mana > 0.0
 	lecture.exemplaires = inventaire.comptes_armes()
 	lecture.ameliorations_par_stat = inventaire.comptes_stats()
 	lecture.poses = poses
@@ -614,7 +658,7 @@ func choisir_marche_noir(id: String) -> int:
 ## montée garde sa recharge, une vente retire seulement la sienne. Appelée après chaque
 ## intention qui change l'inventaire (et par les tests qui l'équipent directement).
 func synchroniser() -> void:
-	_stats = inventaire.stats()
+	_stats = _stats_de_la_tour()
 	var anciennes := armes
 	var prises: Array[bool] = []
 	prises.resize(anciennes.size())
@@ -720,7 +764,7 @@ func tick_courant() -> int:
 
 func _pv_max() -> float:
 	var base := float(_donnees.partie["tour"]["pv"]) + _stats.pv_max_bonus
-	return maxf(base * _stats.pv_max_mult, 1.0)
+	return maxf(base * _stats.pv_max_mult - float(_stats.revenu_contre_pv["pv"]), 1.0)
 
 
 ## Mana maximale : la valeur de départ des données (0) plus les améliorations.
@@ -733,7 +777,7 @@ func mana_gagnee(montant: float) -> void:
 
 
 func mana_max() -> float:
-	return float(_donnees.partie["tour"]["mana_max"]) + _stats.mana_max_bonus
+	return _stats.mana_max_totale(float(_donnees.partie["tour"]["mana_max"]))
 
 
 ## Points de mana par seconde : la valeur de départ des données plus les améliorations.

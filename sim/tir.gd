@@ -32,6 +32,8 @@ class Bilan:
 class Lecture:
 	var pv_max_tour: float = 0.0
 	var temps_s: float = 0.0
+	## Vrai quand la tour a encore de la mana : `degats_tant_que_mana` ne joue que alors.
+	var mana_active: bool = false
 	## id d'arme → nombre d'exemplaires équipés.
 	var exemplaires: Dictionary = {}
 	## stat d'amélioration → nombre d'améliorations possédées qui la portent (chaque achat compte).
@@ -148,7 +150,7 @@ static func _creer(
 	ctx.resistance = resistance
 	ctx.bilan = bilan
 	ctx.type_degats = int(arme.def["type_degats"])
-	var mana_max := float(donnees.partie["tour"]["mana_max"]) + stats.mana_max_bonus
+	var mana_max := stats.mana_max_totale(float(donnees.partie["tour"]["mana_max"]))
 	var vue_tour := lecture if lecture != null else Lecture.new()
 	ctx.pv_max_tour = vue_tour.pv_max_tour
 	ctx.poses = vue_tour.poses
@@ -179,6 +181,7 @@ static func _creer(
 		)
 		* stats.facteur_classe(arme.def)
 		* stats.facteur_pv_max(vue_tour.pv_max_tour)
+		* (1.0 + stats.degats_tant_que_mana if vue_tour.mana_active else 1.0)
 	)
 	ctx.degats_base = brut * facteur_degats(ctx, 0)
 	ctx.statuts = arme.def.get("statuts", [])

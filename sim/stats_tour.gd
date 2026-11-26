@@ -86,11 +86,17 @@ var mana_max_mult: float = 1.0
 var mana_rupture_etourdit: Dictionary = {"rayon": 0.0, "duree": 0.0}
 var degats_tant_que_mana: float = 0.0
 var reduction_tant_que_mana: float = 0.0
-## `pv` : plus petit seuil ; `or` : somme.
+## `pv` : PV maximum perdus, `or` : or par période gagné ; les deux sommés sur les exemplaires.
 var revenu_contre_pv: Dictionary = {"pv": 0.0, "or": 0}
 ## Plus haute rareté copiable (`Types.Rarete`), -1 : aucune.
 var copie_prochaine_offre: int = -1
 var aura_mixte: Dictionary = {"rayon": 0.0, "poison": 0.0, "regen": 0.0}
+
+
+## Mana maximale : le départ des données plus les objets, le tout multiplié par `mana_max_mult`
+## (sans mana de départ ni objet, aucune mana : un multiple de rien reste rien).
+func mana_max_totale(base: float) -> float:
+	return (base + mana_max_bonus) * mana_max_mult
 
 
 ## Multiplicateur des dégâts d'épines au temps `temps_s` de la partie :
