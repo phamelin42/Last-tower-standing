@@ -462,6 +462,8 @@ static func _valider_boutique(b: Dictionary, err: Array[String]) -> void:
 	for nom in Types.NOMS_RARETES:
 		poids.append(_nn(nom))
 	_table(b, "poids", f, "", err, "manche", poids, false, true)
+	if b.has("poids_genre"):
+		_table(b, "poids_genre", f, "", err, "manche", [_nn("arme"), _nn("amelioration")], false, true)
 	var relance_ok := _objet(b, "relance", f, "", err)
 	if relance_ok:
 		var relance: Dictionary = b["relance"]

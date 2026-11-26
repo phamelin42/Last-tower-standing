@@ -6,6 +6,11 @@
 		{"manche": 20, "commune": 28, "peu_commune": 32, "rare": 26, "epique": 14},
 		{"manche": 28, "commune": 20, "peu_commune": 30, "rare": 30, "epique": 20}
 	],
+	"poids_genre": [
+		{"manche": 1, "arme": 3.0, "amelioration": 1.0},
+		{"manche": 12, "arme": 2.0, "amelioration": 1.0},
+		{"manche": 20, "arme": 1.0, "amelioration": 1.0}
+	],
 	"relance": {"cout_depart": 50, "increment": 25},
 	"marche_noir": {"raretes_max": "rare"}
 }
