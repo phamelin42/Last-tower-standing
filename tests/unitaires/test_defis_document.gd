@@ -65,14 +65,15 @@ func _sans_doublons(liste: Array[String]) -> Array[String]:
 	return sortie
 
 
-## Les statuts et genres que Phil doit encore trancher (§ 8), sous la forme `nature:nom`.
-func _a_decider_par_phil() -> Array[String]:
-	var sortie: Array[String] = []
-	for rang: Dictionary in _tableau("8."):
-		sortie.append(
-			"%s:%s" % [_sans_puces(String(rang["nature"])), _sans_puces(String(rang["nom"]))]
-		)
-	return sortie
+## Les statuts que Phil a décidé de ne pas doter d'un défi : la ligne « Statuts sans défi » du
+## document (décision du 26/11/2026).
+func _statuts_sans_defi() -> Array[String]:
+	var texte := FileAccess.get_file_as_string(DOCUMENT)
+	for ligne: String in texte.split("\n"):
+		if ligne.begins_with("Statuts sans défi"):
+			return _citations(ligne)
+	verifier(false, "la ligne « Statuts sans défi » manque dans %s" % DOCUMENT)
+	return []
 
 
 func _defis() -> Array[Dictionary]:
@@ -229,30 +230,20 @@ func test_chaque_type_statut_et_genre_d_arme_des_donnees_a_son_defi_uniquement()
 			par_genre[genre] = int(par_genre.get(genre, 0)) + 1
 		for brut: Variant in arme.get("statuts", []) as Array:
 			statuts[String((brut as Dictionary)["kind"])] = true
-	var a_decider := _a_decider_par_phil()
+	var sans_defi := _statuts_sans_defi()
 	for statut: String in statuts:
 		verifier(
-			utilises.has("armes_statut_" + statut) or a_decider.has("statut:" + statut),
-			"statut « %s » sans défi ni ligne au § 8" % statut
+			utilises.has("armes_statut_" + statut) or sans_defi.has(statut),
+			"statut « %s » sans défi ni mention « Statuts sans défi »" % statut
+		)
+	for statut: String in sans_defi:
+		verifier(
+			not utilises.has("armes_statut_" + statut),
+			"statut « %s » à la fois avec un défi et sans défi" % statut
 		)
 	for genre: String in par_genre:
 		if int(par_genre[genre]) >= GENRE_MIN_ARMES:
-			verifier(
-				utilises.has("armes_genre_" + genre) or a_decider.has("genre:" + genre),
-				"genre « %s » sans défi ni ligne au § 8" % genre
-			)
-	# Rien ne reste au § 8 sans raison : une ligne qui ne correspond plus aux données est refusée.
-	for entree: String in a_decider:
-		var morceaux := entree.split(":")
-		if morceaux[0] == "statut":
-			verifier(
-				statuts.has(morceaux[1]), "§ 8 : statut « %s » absent des données" % morceaux[1]
-			)
-		else:
-			verifier(
-				int(par_genre.get(morceaux[1], 0)) >= GENRE_MIN_ARMES,
-				"§ 8 : genre « %s » sous %d armes" % [morceaux[1], GENRE_MIN_ARMES]
-			)
+			verifier(utilises.has("armes_genre_" + genre), "genre « %s » sans défi" % genre)
 	# Et rien d'inventé : un compteur « uniquement » ne cite que ce qui existe dans les données.
 	for compteur: String in utilises:
 		if compteur.begins_with("armes_genre_"):
