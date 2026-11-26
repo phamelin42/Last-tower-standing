@@ -38,10 +38,18 @@ func _evenements_de(id: String) -> Array[Dictionary]:
 	var tous: Array[Dictionary] = []
 	for k: int in 12:
 		ennemis.ajouter(0, Vector2(60.0 + 20.0 * k, 10.0 * k), PV, 0.0, 0.0, 40.0, 1.0, 1, 4)
+	# Zones, bombes et alliés vivent dans l'arène : sans eux, une arme qui pose ou invoque se tait.
+	var lecture := Tir.Lecture.new()
+	lecture.poses = Poses.new(_d)
+	lecture.allies = Allies.new(_d)
 	for _pas: int in 80:
 		var bilan := Tir.Bilan.new()
-		Tir.avancer_arme(arme, DT, stats, ennemis, Vector2.ZERO, _d, rng, 1.0, bilan)
+		Tir.avancer_arme(arme, DT, stats, ennemis, Vector2.ZERO, _d, rng, 1.0, bilan, lecture)
 		tous.append_array(bilan.evenements)
+		tous.append_array(
+			lecture.poses.avancer(DT, ennemis, stats, Vector2.ZERO, _d, 1.0).evenements
+		)
+		tous.append_array(lecture.allies.avancer(DT, ennemis, Vector2.ZERO).evenements)
 	return tous
 
 
