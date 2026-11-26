@@ -8,6 +8,7 @@ const TOUR := Vector2(100.0, 300.0)
 const CIBLE := Vector2(420.0, 300.0)
 const ARMES: Dictionary = {
 	"cercle_de_givre": ["cercle_givre", "aura"],
+	"nova_d_ambre": ["nova", "onde"],
 }
 
 var _a: AttaquesElementaires = null
@@ -107,5 +108,74 @@ func test_le_cercle_de_givre_dans_effets_dessine_la_couronne_a_chaque_coup() -> 
 		effets.ajouter(evenement)
 	verifier_egal(effets.elementaires().etats("eclat_glace").size(), 8, "la couronne")
 	verifier_egal(effets.formes_vivantes().has("anneau"), false, "plus d'anneau générique")
+	vitrine.free()
+	effets.free()
+
+
+# --- Nova d'ambre : onde -----------------------------------------------------------------------
+
+
+func test_la_nova_va_aussi_vite_et_aussi_loin_que_l_onde_des_donnees() -> void:
+	var effet: Dictionary = _effet("nova_d_ambre")
+	verifier_proche(AttaqueNova.RAYON_PX, float(effet["rayon_max"]) * Apparence.PX_PAR_UNITE, 0.01)
+	verifier_proche(AttaqueNova.VITESSE_PX, float(effet["vitesse"]) * Apparence.PX_PAR_UNITE, 0.01)
+
+
+func test_le_front_ambre_part_de_la_tour_et_avance_a_la_vitesse_de_l_onde() -> void:
+	verifier(_a.onde("nova", TOUR))
+	verifier_egal(_a.etats("vague_ambre").size(), AttaqueNova.LAMES, "un front de croissants")
+	_avancer(10)
+	for d: float in _distances("vague_ambre", TOUR):
+		verifier_proche(
+			d, AttaqueNova.VITESSE_PX * 10.0 * IMAGE, 0.5, "10 images à la vitesse réelle"
+		)
+	verifier_egal(_a.etats("vague_ambre")[0]["diametre"], 0.0, "le front n'est pas une zone pleine")
+
+
+func test_la_nova_ne_depasse_jamais_son_rayon_et_s_efface_a_la_fin() -> void:
+	_a.onde("nova", TOUR)
+	var fin: int = int(AttaqueNova.RAYON_PX / AttaqueNova.VITESSE_PX / IMAGE)
+	_avancer(fin - 1)
+	for d: float in _distances("vague_ambre", TOUR):
+		verifier(d <= AttaqueNova.RAYON_PX + 0.01, "jamais au-delà du rayon")
+	for lame: Dictionary in _a.etats("vague_ambre"):
+		verifier(lame["alpha"] < AttaquesElementaires.ALPHA_MAX * 0.8, "elle s'efface sur la fin")
+	_avancer(80)
+	verifier_egal(_a.nombre_vivants(), 0, "plus rien")
+
+
+func test_des_braises_naissent_quand_le_front_passe_et_pas_avant() -> void:
+	_a.onde("nova", TOUR)
+	verifier_egal(
+		_a.etats("braise").size(), AttaqueNova.COURONNES_BRAISES.size() * AttaqueNova.BRAISES
+	)
+	var visibles: int = 0
+	for b: Dictionary in _a.etats("braise"):
+		visibles += 1 if b["visible"] else 0
+	verifier_egal(visibles, 0, "aucune braise tant que le front n'est pas passé")
+	_avancer(int(AttaqueNova.RAYON_PX / AttaqueNova.VITESSE_PX / IMAGE))
+	visibles = 0
+	for b: Dictionary in _a.etats("braise"):
+		visibles += 1 if b["visible"] else 0
+	verifier(visibles > 0, "les braises restent derrière le front")
+	_avancer(60)
+	verifier_egal(_a.nombre_vivants(), 0)
+
+
+func test_la_nova_dans_effets_est_dessinee_une_fois_au_depart() -> void:
+	var effets: Effets = Effets.new()
+	effets.catalogue = _donnees.ids_catalogue
+	arbre.root.add_child(effets)
+	var vitrine: VitrineArmes = VitrineArmes.new()
+	vitrine.armes = ["nova_d_ambre"] as Array[String]
+	var evenements: Array[Dictionary] = vitrine.evenements_du_cycle("nova_d_ambre")
+	effets.ajouter(evenements[0])
+	verifier_egal(effets.elementaires().etats("vague_ambre").size(), AttaqueNova.LAMES, "le front")
+	effets.ajouter(evenements[1])
+	verifier_egal(
+		effets.elementaires().etats("vague_ambre").size(),
+		AttaqueNova.LAMES,
+		"l'impact n'en ajoute pas"
+	)
 	vitrine.free()
 	effets.free()
