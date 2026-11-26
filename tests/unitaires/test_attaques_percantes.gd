@@ -153,7 +153,9 @@ func test_chausse_trape_dans_effets_pose_au_tir_et_retire_au_declenchement() -> 
 		effets.avancer(IMAGE)
 	verifier_egal(effets.elementaires().etats("chausse_trape").size(), 3, "elle attend")
 	effets.ajouter(evenements[1])
-	verifier_egal(effets.elementaires().etats("chausse_trape").size(), 0, "retirée au déclenchement")
+	verifier_egal(
+		effets.elementaires().etats("chausse_trape").size(), 0, "retirée au déclenchement"
+	)
 	verifier_egal(effets.elementaires().etats("pointes_sol").size(), 1, "les pointes jaillissent")
 	vitrine.free()
 	effets.free()
@@ -241,7 +243,9 @@ func test_les_aiguilles_tombent_du_haut_sur_la_zone() -> void:
 	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 1)
 	var aiguille: Dictionary = _a.etats("aiguille")[0]
 	verifier(aiguille["visible"], "l'aiguille tombe")
-	verifier((aiguille["position"] as Vector2).y < CIBLE.y - 40.0, "encore haut au début de la chute")
+	verifier(
+		(aiguille["position"] as Vector2).y < CIBLE.y - 40.0, "encore haut au début de la chute"
+	)
 	verifier_proche(aiguille["rotation"], PI / 2.0, 0.05, "pointe en bas")
 	_avancer(AttaquesElementaires.IMAGES_VOL_DIRECT)
 	verifier_egal(_a.etats("aiguille").size(), 0, "arrivée, elle disparaît")

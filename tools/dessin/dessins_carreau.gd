@@ -168,7 +168,9 @@ static func _gerbe() -> Image:
 		var r: float = RAYONS_GERBE[i]
 		for k: int in 8:
 			var a: float = TAU * k / 8.0 + (0.2 if k % 2 == 1 else 0.0)
-			var p: Vector2 = Vector2(12.0, 12.0) + Vector2.from_angle(a) * r * (1.0 if k % 2 == 0 else 0.75)
+			var p: Vector2 = (
+				Vector2(12.0, 12.0) + Vector2.from_angle(a) * r * (1.0 if k % 2 == 0 else 0.75)
+			)
 			var c: Color = BOIS if k % 2 == 0 else CLAIR
 			if i == 3:
 				if k % 2 == 1:

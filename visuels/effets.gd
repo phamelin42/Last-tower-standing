@@ -485,9 +485,7 @@ func _tir(
 ) -> bool:
 	var rendu_arme: Dictionary = rendu(type_degats, genre)
 	var element: String = _element(arme)
-	if element != "" and genre == "piege":
-		return _el().piege(element, Apparence.vers_pixels(de), Apparence.vers_pixels(vers))
-	if element != "" and rendu_arme["sol"] == "":
+	if element != "" and (rendu_arme["sol"] == "" or genre == "piege"):
 		return _tir_element(element, type_degats, genre, de, vers, arme)
 	var couleur: Color = COULEURS[type_degats]
 	if not signature.is_empty():
@@ -542,6 +540,8 @@ func _tir_element(
 ) -> bool:
 	if genre == "barrage":
 		return false
+	if genre == "piege":
+		return _el().piege(element, Apparence.vers_pixels(de), Apparence.vers_pixels(vers))
 	if genre == "onde":
 		return _el().onde(element, Apparence.vers_pixels(de))
 	var arrivee: Vector2 = Apparence.vers_pixels(vers)

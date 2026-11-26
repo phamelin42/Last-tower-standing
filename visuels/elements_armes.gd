@@ -26,7 +26,26 @@ const HERSE: String = "herse"
 const BALISTE: String = "baliste"
 const PLUIE: String = "pluie"
 
-const ELEMENTS: Array[String] = [FEU, GLACE, BOMBE, POISON, FOUDRE, ARCANE, LAME]
+const ELEMENTS: Array[String] = [
+	FEU,
+	GLACE,
+	BOMBE,
+	POISON,
+	FOUDRE,
+	ARCANE,
+	LAME,
+	FAUCILLE,
+	DISQUE,
+	MOULINET,
+	GUILLOTINE,
+	TOURBILLON,
+	ARBALETE,
+	CHAUSSE_TRAPE,
+	RICOCHET,
+	HERSE,
+	BALISTE,
+	PLUIE,
+]
 
 ## id d'arme → élément.
 const TABLE: Dictionary = {

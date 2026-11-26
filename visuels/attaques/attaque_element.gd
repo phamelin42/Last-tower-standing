@@ -76,7 +76,7 @@ func onde(_m: AttaquesElementaires, _centre: Vector2, _age: float) -> bool:
 	return false
 
 
-## Un piège (ou une mine) posé en `depart` → `arrivee` : l'objet est lancé puis reste au sol, visible,
+## Un piège (ou une mine) lancé de `depart` vers `arrivee` : l'objet reste ensuite au sol, visible,
 ## jusqu'à `AttaquesElementaires.retirer_pieges(arrivee)` ; par défaut rien.
 func piege(_m: AttaquesElementaires, _depart: Vector2, _arrivee: Vector2) -> bool:
 	return false

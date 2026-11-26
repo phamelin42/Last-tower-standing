@@ -319,7 +319,7 @@ func saut(element: String, depart: Vector2, arrivee: Vector2, retard: float) -> 
 	return retard + vol
 
 
-## Un piège d'`element` lancé de `depart` vers `arrivee`, qui reste ensuite au sol (pixels du monde).
+## Un piège d'`element` lancé de `depart` vers `arrivee`, qui reste ensuite au sol (pixels).
 func piege(element: String, depart: Vector2, arrivee: Vector2) -> bool:
 	var el: AttaqueElement = registre().get(element)
 	return false if el == null else el.piege(self, depart, arrivee)
