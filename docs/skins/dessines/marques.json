@@ -1,0 +1,226 @@
+{
+ "tour_sans_horizon": {
+  "genre": "liseré",
+  "x": 38,
+  "y": 52,
+  "largeur": 54,
+  "hauteur": 8
+ },
+ "tour_lame": {
+  "genre": "bannière",
+  "x": 54,
+  "y": 88,
+  "largeur": 22,
+  "hauteur": 42
+ },
+ "tour_oeil": {
+  "genre": "liseré",
+  "x": 34,
+  "y": 100,
+  "largeur": 62,
+  "hauteur": 8
+ },
+ "tour_nuee": {
+  "genre": "drapeau",
+  "x": 84,
+  "y": 36,
+  "largeur": 28,
+  "hauteur": 32
+ },
+ "tour_sonore": {
+  "genre": "drapeau",
+  "x": 84,
+  "y": 36,
+  "largeur": 28,
+  "hauteur": 32
+ },
+ "tour_embuscade": {
+  "genre": "drapeau",
+  "x": 84,
+  "y": 36,
+  "largeur": 28,
+  "hauteur": 32
+ },
+ "tour_sapeur": {
+  "genre": "drapeau",
+  "x": 84,
+  "y": 36,
+  "largeur": 28,
+  "hauteur": 32
+ },
+ "tour_halo": {
+  "genre": "bannière",
+  "x": 54,
+  "y": 88,
+  "largeur": 22,
+  "hauteur": 42
+ },
+ "tour_manege": {
+  "genre": "drapeau",
+  "x": 84,
+  "y": 36,
+  "largeur": 28,
+  "hauteur": 32
+ },
+ "tour_ascete": {
+  "genre": "liseré",
+  "x": 34,
+  "y": 100,
+  "largeur": 62,
+  "hauteur": 8
+ },
+ "tour_du_puits": {
+  "genre": "drapeau",
+  "x": 78,
+  "y": 32,
+  "largeur": 28,
+  "hauteur": 32
+ },
+ "tour_du_dragon_avare": {
+  "genre": "bannière",
+  "x": 54,
+  "y": 88,
+  "largeur": 22,
+  "hauteur": 42
+ },
+ "tour_de_granit": {
+  "genre": "liseré",
+  "x": 34,
+  "y": 100,
+  "largeur": 62,
+  "hauteur": 8
+ },
+ "tour_cicatrisee": {
+  "genre": "drapeau",
+  "x": 84,
+  "y": 36,
+  "largeur": 28,
+  "hauteur": 32
+ },
+ "tour_nue": {
+  "genre": "liseré",
+  "x": 44,
+  "y": 120,
+  "largeur": 42,
+  "hauteur": 8
+ },
+ "tour_a_faux": {
+  "genre": "bannière",
+  "x": 54,
+  "y": 88,
+  "largeur": 22,
+  "hauteur": 42
+ },
+ "tour_de_ronces": {
+  "genre": "drapeau",
+  "x": 84,
+  "y": 36,
+  "largeur": 28,
+  "hauteur": 32
+ },
+ "tour_survivante": {
+  "genre": "liseré",
+  "x": 34,
+  "y": 100,
+  "largeur": 62,
+  "hauteur": 8
+ },
+ "tour_familiere": {
+  "genre": "drapeau",
+  "x": 84,
+  "y": 36,
+  "largeur": 28,
+  "hauteur": 32
+ },
+ "tour_veterane": {
+  "genre": "drapeau",
+  "x": 84,
+  "y": 36,
+  "largeur": 28,
+  "hauteur": 32
+ },
+ "tour_comptoir": {
+  "genre": "liseré",
+  "x": 34,
+  "y": 100,
+  "largeur": 62,
+  "hauteur": 8
+ },
+ "tour_de_la_table_ronde": {
+  "genre": "drapeau",
+  "x": 82,
+  "y": 36,
+  "largeur": 28,
+  "hauteur": 32
+ },
+ "tour_du_dernier_rempart": {
+  "genre": "bannière",
+  "x": 54,
+  "y": 88,
+  "largeur": 22,
+  "hauteur": 42
+ },
+ "tour_tonnerre": {
+  "genre": "drapeau",
+  "x": 84,
+  "y": 36,
+  "largeur": 28,
+  "hauteur": 32
+ },
+ "tour_sanguine": {
+  "genre": "liseré",
+  "x": 34,
+  "y": 100,
+  "largeur": 62,
+  "hauteur": 8
+ },
+ "tour_du_banquier": {
+  "genre": "drapeau",
+  "x": 84,
+  "y": 36,
+  "largeur": 28,
+  "hauteur": 32
+ },
+ "tour_du_chariot": {
+  "genre": "drapeau",
+  "x": 80,
+  "y": 36,
+  "largeur": 28,
+  "hauteur": 32
+ },
+ "tour_du_bouclier": {
+  "genre": "drapeau",
+  "x": 84,
+  "y": 36,
+  "largeur": 28,
+  "hauteur": 32
+ },
+ "tour_eternelle": {
+  "genre": "liseré",
+  "x": 34,
+  "y": 100,
+  "largeur": 62,
+  "hauteur": 8
+ },
+ "tour_ossuaire": {
+  "genre": "drapeau",
+  "x": 84,
+  "y": 36,
+  "largeur": 28,
+  "hauteur": 32
+ },
+ "tour_zone_posee": {
+  "genre": "drapeau",
+  "x": 84,
+  "y": 36,
+  "largeur": 28,
+  "hauteur": 32
+ },
+ "tour_bombe": {
+  "genre": "liseré",
+  "x": 34,
+  "y": 100,
+  "largeur": 62,
+  "hauteur": 8
+ }
+}
