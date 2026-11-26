@@ -403,7 +403,8 @@ func choisir(centre: Vector2, portee_max: float, mode: int) -> int:
 
 
 ## Retire les morts en échangeant chaque place libérée avec le dernier élément (l'identifiant
-## suit ses propres données). Rend `[{id, famille, prime, pos, sans_prime}]` par identifiant croissant.
+## suit ses propres données). Rend `[{id, famille, prime, pos, sans_prime}]` par identifiant
+## croissant.
 func purger() -> Array[Dictionary]:
 	var retires: Array[Dictionary] = []
 	# Clé de tri native : l'identifiant dans les bits de poids fort, le rang de retrait dessous.
