@@ -313,6 +313,19 @@ Familles : classement **à moi**. Le prix donne la rareté (500 commune, 2 000
 | ---------------------------- | ------ | ---------------------------------------------------------------------- |
 | Blight Aura                  | 10 000 | +200 régénération ; 200 dégâts de poison par seconde aux ennemis à 600 |
 
+### 4.3 Noms hors boutique
+
+Noms d’origine que les tableaux ci-dessus ne rangent pas : lus par le garde-fou `tests/unitaires/test_noms_origine.gd`, au même titre que ceux des tableaux.
+
+- Overloaded Catapult
+- Storm Generator
+- Entangler
+- Reanimating Poison
+- Terror Teeth
+- Vulnerability Totem
+- Bombardment
+- Golden Key
+
 ## 5. Ce que nous avons, par les mêmes regroupements
 
 ### 5.1 Armes : 30 (`data/armes.json`)
