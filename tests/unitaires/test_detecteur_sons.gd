@@ -215,8 +215,21 @@ func test_l_impact_depend_du_type_de_degats() -> void:
 
 
 func test_des_tirs_de_deux_armes_jouent_deux_sons_sans_doublon() -> void:
-	var catalogue: PackedStringArray = Donnees.charger().ids_catalogue
+	var donnees := Donnees.charger()
+	var catalogue: PackedStringArray = donnees.ids_catalogue
+	# Deux armes (le catalogue mêle armes et améliorations, triées) qui n'ont pas le même son.
+	var premiere := -1
+	var seconde := -1
+	for index: int in catalogue.size():
+		if not donnees.armes.has(catalogue[index]):
+			continue
+		if premiere < 0:
+			premiere = index
+		elif CatalogueSons.id_tir(catalogue[index]) != CatalogueSons.id_tir(catalogue[premiere]):
+			seconde = index
+			break
+	verifier(premiere >= 0 and seconde >= 0, "deux armes de sons différents existent")
 	var v := _vue()
-	for index: int in [0, 0, 1]:
+	for index: int in [premiere, premiere, seconde]:
 		v.evenements.append(_evenement_arme("tir", index))
 	verifier_egal(DetecteurSons.sons_du_pas(null, v, catalogue).size(), 2)

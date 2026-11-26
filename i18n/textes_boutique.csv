@@ -114,6 +114,7 @@ BOUTIQUE_EFFET_ARME_PAR_AMELIORATION,+%s des dégâts de base par amélioration 
 BOUTIQUE_EFFET_TYPE_SECONDAIRE_EPINES,inflige aussi des dégâts d’épines
 BOUTIQUE_EFFET_DEGATS_CROISSANCE,"+%s de dégâts par tranche de %s s de partie, jusqu’à +%s"
 BOUTIQUE_EFFET_DEGATS_PAR_ARME_COMMUNE,+%s de dégâts par arme commune possédée
+BOUTIQUE_EFFET_DEGATS_PAR_ARME_COMMUNE_TYPE,+%s de dégâts par arme commune du même type possédée
 BOUTIQUE_EFFET_DEGATS_PLAFOND,le produit de tous les bonus de dégâts s’arrête à ×%s
 BOUTIQUE_EFFET_DEGATS_CLASSE,+%s de dégâts des armes %s
 BOUTIQUE_CLASSE_ONDE,à onde
@@ -142,6 +143,8 @@ BOUTIQUE_STATUT_POSE_GIVRE,le givre
 BOUTIQUE_STATUT_POSE_ETOURDISSEMENT,l’étourdissement
 BOUTIQUE_EFFET_EPINES_STATUT,les épines infligent %s à l’attaquant au corps à corps pendant %s s
 BOUTIQUE_EFFET_RIPOSTE_STATUT,chaque coup reçu au corps à corps inflige %s à l’attaquant pendant %s s
+BOUTIQUE_EFFET_EPINES_STATUT_GIVRE,les épines infligent un cran de givre à l’attaquant à chaque coup reçu au corps à corps
+BOUTIQUE_EFFET_RIPOSTE_STATUT_GIVRE,chaque coup reçu au corps à corps inflige un cran de givre à l’attaquant
 BOUTIQUE_EFFET_PV_MAX_MULT,+%s de PV max pour la tour (le gain est soigné)
 BOUTIQUE_EFFET_SOIN_PV_MANQUANTS,rend %s des PV manquants au début de chaque manche
 BOUTIQUE_EFFET_DEGATS_PAR_PV_MAX,+%s de dégâts par tranche de %s PV max de la tour

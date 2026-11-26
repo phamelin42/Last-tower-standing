@@ -14,6 +14,9 @@ var ameliorations: Dictionary = {}
 ## Jetons de marché noir déjà dépensés : les jetons disponibles sont ceux de `stats()` moins
 ## ce compteur.
 var jetons_marche_noir_utilises: int = 0
+## Copies gratuites de `copie_prochaine_offre` déjà obtenues : chaque exemplaire de l'amélioration
+## n'en donne qu'une.
+var copies_utilisees: int = 0
 
 var _donnees: Donnees
 var _ratio_vente: float
@@ -76,6 +79,14 @@ func compter_stat(stat: String) -> int:
 	return int(comptes_stats().get(stat, 0))
 
 
+## Vrai quand un exemplaire de `copie_prochaine_offre` n'a pas servi et que son plafond de rareté
+## couvre `rarete`.
+func copie_disponible(rarete: int) -> bool:
+	if compter_stat("copie_prochaine_offre") <= copies_utilisees:
+		return false
+	return rarete <= stats().copie_prochaine_offre
+
+
 func retirer_arme(index: int) -> String:
 	if index < 0 or index >= armes.size():
 		return ""
@@ -108,7 +119,9 @@ func stats() -> StatsTour:
 			_appliquer(s, e, n, par_type, global)
 	for t: int in 5:
 		s.degats_type[t] = _produit(par_type[t])
+		s.sommes_type[t] = par_type[t]
 	s.degats_global = _produit(global)
+	s.sommes_global = global
 	return s
 
 
@@ -130,9 +143,11 @@ func _appliquer(
 			var cumul: Dictionary = par_type[int(e["type_degats"])]
 			var cat: String = e["categorie"]
 			cumul[cat] = float(cumul.get(cat, 0.0)) + v
+			_noter_dynamique(s, int(e["type_degats"]), e, n)
 		"degats_global":
 			var cat: String = e["categorie"]
 			global[cat] = float(global.get(cat, 0.0)) + v
+			_noter_dynamique(s, -1, e, n)
 		"pv_max":
 			s.pv_max_bonus += v
 		"regen":
@@ -232,9 +247,7 @@ func _appliquer_composite(s: StatsTour, e: Dictionary, stat: String, n: int) -> 
 			s.mana_rupture_etourdit = {"rayon": rayon, "duree": duree}
 		"revenu_contre_pv":
 			s.revenu_contre_pv["or"] = int(s.revenu_contre_pv["or"]) + int(e["or"]) * n
-			s.revenu_contre_pv["pv"] = _plus_petit_non_nul(
-				float(s.revenu_contre_pv["pv"]), float(e["pv"])
-			)
+			s.revenu_contre_pv["pv"] = float(s.revenu_contre_pv["pv"]) + float(e["pv"]) * n
 		"copie_prochaine_offre":
 			s.copie_prochaine_offre = maxi(s.copie_prochaine_offre, int(e["raretes_max"]))
 		"aura_mixte":
@@ -244,6 +257,26 @@ func _appliquer_composite(s: StatsTour, e: Dictionary, stat: String, n: int) -> 
 		_:
 			return false
 	return true
+
+
+## Garde la part d'un bonus de dégâts qui suit la partie (croissance, armes communes).
+static func _noter_dynamique(s: StatsTour, type_degats: int, e: Dictionary, n: int) -> void:
+	if not e.has("croissance") and not e.has("par_arme_commune"):
+		return
+	(
+		s
+		. degats_dynamiques
+		. append(
+			{
+				"type": type_degats,
+				"categorie": String(e["categorie"]),
+				"croissance": float(e.get("croissance", 0.0)),
+				"croissance_max": float(e.get("croissance_max", 0.0)),
+				"par_arme_commune": float(e.get("par_arme_commune", 0.0)),
+				"n": n,
+			}
+		)
+	)
 
 
 static func _ajouter(cumul: Dictionary, cle: String, valeur: float) -> void:

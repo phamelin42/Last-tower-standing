@@ -67,11 +67,16 @@ func acheter(index: int, economie: Economie, inventaire: Inventaire) -> int:
 		return Types.Resultat.ARMES_AU_MAXIMUM
 	if not economie.peut_payer(int(offre["prix"])):
 		return Types.Resultat.OR_INSUFFISANT
+	# La charge de copie se lit avant l'achat : l'objet acheté ne se double pas lui-même.
+	var copie := inventaire.copie_disponible(int(offre["rarete"]))
 	var resultat := inventaire.ajouter(str(offre["id"]))
 	if resultat != Types.Resultat.OK:
 		return resultat
 	economie.payer(int(offre["prix"]))
 	offre["vendu"] = true
+	# Le second exemplaire est gratuit ; une arme sans place pour lui n'en consomme pas la charge.
+	if copie and inventaire.ajouter(str(offre["id"])) == Types.Resultat.OK:
+		inventaire.copies_utilisees += 1
 	return Types.Resultat.OK
 
 

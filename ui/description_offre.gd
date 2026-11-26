@@ -596,9 +596,13 @@ static func _morceaux_statistique_lot9(
 		"epines_reduction":
 			morceaux.append(_t("BOUTIQUE_EFFET_EPINES_REDUCTION", [_pourcent(v)]))
 		"epines_statut", "riposte_statut":
-			var statut := "BOUTIQUE_STATUT_POSE_" + String(effet["statut"]).to_upper()
 			var cle := "BOUTIQUE_EFFET_" + stat.to_upper()
-			morceaux.append(_t(cle, [_t(statut), _nombre(v)]))
+			if String(effet["statut"]) == "givre":
+				# Le givre n'a pas de durée : un cran par coup reçu, la valeur n'y change rien.
+				morceaux.append(_t(cle + "_GIVRE"))
+			else:
+				var statut := "BOUTIQUE_STATUT_POSE_" + String(effet["statut"]).to_upper()
+				morceaux.append(_t(cle, [_t(statut), _nombre(v)]))
 		"pv_max_mult":
 			morceaux.append(_t("BOUTIQUE_EFFET_PV_MAX_MULT", [_pourcent(v)]))
 		"soin_pv_manquants":
@@ -608,7 +612,9 @@ static func _morceaux_statistique_lot9(
 				_t("BOUTIQUE_EFFET_DEGATS_PAR_PV_MAX", [_pourcent(v), _nombre(1000, 0)])
 			)
 		"resurrection":
-			morceaux.append(_t("BOUTIQUE_EFFET_RESURRECTION", [_pourcent(v, 0)]))
+			# Un pourcentage entier de PV max (50 = relevée à 50 %), pas un ratio.
+			var releve := _nombre(minf(v, 100.0), 0) + ESPACE_INSECABLE + "%"
+			morceaux.append(_t("BOUTIQUE_EFFET_RESURRECTION", [releve]))
 		"regen_croissante":
 			var regen := [_nombre(v, 2), pas, _nombre(float(effet["max"]), 2)]
 			morceaux.append(_t("BOUTIQUE_EFFET_REGEN_CROISSANTE", regen))
@@ -657,7 +663,11 @@ static func _morceaux_croissance_degats(effet: Dictionary, donnees: Donnees) -> 
 		morceaux.append(_t("BOUTIQUE_EFFET_DEGATS_CROISSANCE", croit))
 	if effet.has("par_arme_commune"):
 		var commune := _pourcent(float(effet["par_arme_commune"]))
-		morceaux.append(_t("BOUTIQUE_EFFET_DEGATS_PAR_ARME_COMMUNE", [commune]))
+		# Pour un type, seules les armes communes de ce type comptent ; pour le global, toutes.
+		var cle := "BOUTIQUE_EFFET_DEGATS_PAR_ARME_COMMUNE"
+		if effet["stat"] == "degats_type":
+			cle += "_TYPE"
+		morceaux.append(_t(cle, [commune]))
 	if effet.has("croissance") or effet.has("par_arme_commune"):
 		var plafond := _nombre(_reglage(donnees, "ameliorations", "facteur_degats_max"), 0)
 		morceaux.append(_t("BOUTIQUE_EFFET_DEGATS_PLAFOND", [plafond]))
