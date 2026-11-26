@@ -72,6 +72,9 @@ const COULEURS: Array[Color] = [
 	Color(0.92, 0.38, 0.28),
 	Color(0.72, 0.4, 0.88),
 ]
+## L'éclat de l'absorption par la mana : bleu, plus large qu'un impact pour couvrir la tour.
+const COULEUR_ABSORPTION := Color(0.3, 0.6, 1.0)
+const TAILLE_ABSORPTION: float = 260.0
 const COULEURS_STATUT: Dictionary = {
 	"givre": Color(0.7, 0.9, 1.0),
 	"poison": Color(0.5, 0.82, 0.35),
@@ -182,6 +185,12 @@ func opacite_max() -> float:
 	return alpha
 
 
+func couleur_du_premier() -> Color:
+	if _vivants.is_empty():
+		return Color.BLACK
+	return (_vivants[0]["n"] as Sprite2D).modulate
+
+
 func taille_du_premier() -> float:
 	if _vivants.is_empty():
 		return 0.0
@@ -199,6 +208,8 @@ func vider() -> void:
 ## l'arène (crâne du pack) ou à `exploser`.
 func ajouter(evenement: Dictionary) -> bool:
 	var k: String = evenement.get("k", "")
+	if k == "absorption":
+		return _absorption(Apparence.vers_pixels(evenement.get("de", Vector2.ZERO)))
 	if k != "tir" and k != "impact":
 		return false
 	var de: Vector2 = evenement.get("de", Vector2.ZERO)
@@ -334,6 +345,17 @@ func _trait(type_degats: int, depart: Vector2, arrivee: Vector2, couleur: Color)
 		return false
 	effet["depart"] = depart
 	effet["arrivee"] = arrivee
+	_poser(effet)
+	return true
+
+
+## L'éclat bleu de la mana qui encaisse un coup, sur la tour.
+func _absorption(ou: Vector2) -> bool:
+	var effet: Dictionary = _creer("halo", "burst", DUREE_IMPACT, COULEUR_ABSORPTION, COUCHE_DESSUS)
+	if effet.is_empty():
+		return false
+	effet["depart"] = ou
+	effet["taille"] = TAILLE_ABSORPTION
 	_poser(effet)
 	return true
 

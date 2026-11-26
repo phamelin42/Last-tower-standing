@@ -347,3 +347,18 @@ func test_l_arene_envoie_ses_evenements_aux_effets_et_explose_les_tonneaux() -> 
 	verifier_egal(arene.nombre_morts_visibles(), 1, "une seule mort sur Dead.png")
 	arene.get_parent().remove_child(arene)
 	arene.free()
+
+
+func test_un_evenement_absorption_cree_un_eclat_bleu_dans_le_plafond() -> void:
+	var absorption := _evenement("absorption", 0, Vector2.ZERO, Vector2.ZERO, 0.0)
+	verifier(_effets.ajouter(absorption), "l'absorption crée un effet")
+	verifier_egal(_effets.nombre_vivants(), 1)
+	var couleur: Color = _effets.couleur_du_premier()
+	verifier(couleur.b > couleur.r and couleur.b > 0.8, "bleu : %s" % couleur)
+	_effets.avancer(Effets.DUREE_MAX + 0.01)
+	verifier_egal(_effets.nombre_vivants(), 0, "l'éclat dure moins que DUREE_MAX")
+	for i: int in 300:
+		_effets.ajouter(absorption)
+	verifier(
+		_effets.nombre_vivants() <= Effets.PLAFOND, "plafond tenu : %d" % _effets.nombre_vivants()
+	)
