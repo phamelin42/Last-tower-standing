@@ -266,3 +266,45 @@ func test_gel_plafonne_meme_a_resistance_elevee() -> void:
 	for _k: int in 8:
 		e.givrer(i, 100.0)
 	_p(e.gel[i], 3.0, 0.0001)
+
+
+# --- T9.10 : les bits que lisent les bonus « contre un état » et les durées allongées -----------
+
+
+func test_chaque_etat_que_lit_degats_contre_etat_pose_son_bit_et_le_retire_en_finissant() -> void:
+	var cas: Array[Array] = [
+		["etourdi", Types.STATUT_ETOURDI],
+		["empoisonne", Types.STATUT_EMPOISONNE],
+		["ralenti", Types.STATUT_RALENTI],
+	]
+	for cas_courant: Array in cas:
+		var i := _ajouter(Vector2(500, 0), 10000.0)
+		var bit: int = cas_courant[1]
+		verifier_egal(e.statuts[i] & bit, 0, "%s : absent au départ" % cas_courant[0])
+		match String(cas_courant[0]):
+			"etourdi":
+				e.etourdir(i, 0.5, 1.0)
+			"empoisonne":
+				e.empoisonner(i, 5.0, 0.5)
+			"ralenti":
+				e.givrer(i, 1.0)
+		verifier_egal(e.statuts[i] & bit, bit, "%s : bit posé" % cas_courant[0])
+		verifier_egal(e.statuts[i] & ~bit & Types.STATUT_VULNERABLE, 0, "pas d'autre bit")
+		e = null
+		avant_chaque()
+
+
+func test_une_duree_allongee_prolonge_le_poison_la_brulure_et_l_etourdissement_sans_les_additionner(
+) -> void:
+	var i := _ajouter(Vector2(500, 0), 10000.0)
+	e.empoisonner(i, 5.0, 2.0)
+	e.empoisonner(i, 5.0, 3.0)
+	_p(e.poison_duree[i], 3.0, 0.001, "le plus long des deux, pas la somme")
+	e.bruler(i, 1.0, 5.0, 2.0)
+	e.bruler(i, 1.0, 5.0, 3.0)
+	_p(e.brule_duree[i], 3.0, 0.001)
+	e.etourdir(i, 1.0, 1.0)
+	e.etourdir(i, 1.5, 1.0)
+	_p(e.etourdi[i], 1.5, 0.001, "l'étourdissement le plus long")
+	e.etourdir(i, 1.0, 1.0)
+	_p(e.etourdi[i], 1.5, 0.001, "un plus court ne raccourcit pas")

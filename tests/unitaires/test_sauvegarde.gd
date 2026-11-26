@@ -10,6 +10,12 @@ const CLES_AUTORISEES: Array[String] = [
 	"skin_choisi",
 	"parties",
 	"meilleure_manche",
+	"cumul_victoires",
+	"cumul_eliminations",
+	"cumul_or_gagne",
+	"cumul_manches",
+	"cumul_parties_multijoueur",
+	"cumul_dernier_rempart",
 ]
 
 
@@ -67,6 +73,10 @@ func _corrompus(dossier: String) -> Array[String]:
 func _json(version: int, extra: Dictionary = {}) -> String:
 	var donnees: Dictionary = _profil().a_dict()
 	donnees["version"] = version
+	if version < 2:
+		# Avant la version 2, le fichier n'a pas les six cumuls.
+		for cle: String in Profil.BORNES_CUMULS:
+			donnees.erase(cle)
 	donnees.merge(extra, true)
 	return JSON.stringify(donnees)
 
@@ -228,8 +238,7 @@ func test_une_version_plus_recente_n_est_ni_lue_ni_ecrasee() -> void:
 
 
 func test_chaque_version_precedente_se_migre() -> void:
-	# Aucune version n'a précédé la 1 : la boucle est vide aujourd'hui. Elle garde la place des
-	# fixtures de chaque format abandonné, et le test suivant exige leur étape de migration.
+	# Chaque format abandonné a sa fixture (écrite par `_json`) et son étape de migration.
 	for version: int in range(1, Sauvegarde.VERSION):
 		var chemin := dossier_temporaire().path_join("v%d.json" % version)
 		_ecrire_brut(chemin, _json(version).to_utf8_buffer())

@@ -22,6 +22,10 @@ const ARMES: Array[String] = [
 	"etincelle_runique",
 ]
 
+## Nombre de bandes, donc d'armes au plus.
+const ARMES_MAX: int = 6
+const OPTION_ARMES: String = "--armes"
+
 const FOND := Color(0.24, 0.38, 0.27)
 const COULEUR_SEPARATION := Color(0.16, 0.27, 0.19)
 const COULEUR_TOUR := Color(0.9, 0.85, 0.6, 0.6)
@@ -41,6 +45,8 @@ const ENNEMIS_DANS_BANDE: Array[Vector2] = [
 const INDEX_TIRE: int = 1
 
 const PERIODE: float = 1.2
+## Un piège se déclenche quand un ennemi passe : la vitrine laisse le piège posé ce temps-là.
+const DELAI_PIEGE: float = 0.6
 const DECALAGE: float = 0.1
 const GRAINE: int = 20261126
 ## Sauts d'un rebond après le premier impact : de l'ennemi du milieu au dernier, puis au premier.
@@ -48,6 +54,8 @@ const SAUTS_REBOND: int = 2
 ## Dispersion d'un barrage : les angles, en degrés, des projectiles autour de la ligne de tir.
 const ANGLES_BARRAGE: Array[float] = [-9.0, -3.0, 3.0, 9.0]
 
+## Les armes montrées, une bande chacune (`ARMES` par défaut).
+var armes: Array[String] = ARMES.duplicate()
 ## Nombre d'effets créés par arme depuis le début (un impact en attente compte).
 var crees: Dictionary = {}
 var reactions: ReactionsCoups = ReactionsCoups.new()
@@ -60,9 +68,34 @@ var mouvement_reduit: bool = false
 var _donnees: Donnees = null
 var _temps: float = 0.0
 var _prochains: Array[float] = []
+var _en_retard: Array[Dictionary] = []
 var _sprites: Array[Sprite2D] = []
 var _ids: PackedInt32Array = PackedInt32Array()
 var _positions: PackedVector2Array = PackedVector2Array()
+
+
+## Les armes demandées par `-- --armes id1,id2,…` parmi `ids` : celles de `ARMES` sans l'option.
+## Un id inconnu, une liste vide ou plus de `ARMES_MAX` armes est refusé (message sur stderr) et
+## on garde le défaut : une vitrine qui montre autre chose que prévu tromperait celui qui la lit.
+static func lire_armes(args: PackedStringArray, ids: PackedStringArray) -> Array[String]:
+	var defaut: Array[String] = ARMES.duplicate()
+	var i: int = args.find(OPTION_ARMES)
+	if i < 0:
+		return defaut
+	if i + 1 >= args.size():
+		printerr("%s demande une liste d'armes séparées par des virgules" % OPTION_ARMES)
+		return defaut
+	var voulues: Array[String] = []
+	for morceau: String in args[i + 1].split(",", false):
+		var id: String = morceau.strip_edges()
+		if not ids.has(id):
+			printerr("Arme inconnue : %s" % id)
+			return defaut
+		voulues.append(id)
+	if voulues.is_empty() or voulues.size() > ARMES_MAX:
+		printerr("Entre 1 et %d armes attendues, %d données" % [ARMES_MAX, voulues.size()])
+		return defaut
+	return voulues
 
 
 ## Pixels de l'écran vers unités de jeu, ce que `Effets` attend dans les événements.
@@ -72,7 +105,7 @@ static func en_unites(pixels: Vector2) -> Vector2:
 
 ## Index de la bande qui contient le point `pixels`.
 static func bande_de(pixels: Vector2) -> int:
-	return clampi(int(pixels.y / HAUTEUR_BANDE), 0, ARMES.size() - 1)
+	return clampi(int(pixels.y / HAUTEUR_BANDE), 0, ARMES_MAX - 1)
 
 
 ## Position de la tour de la bande `bande`, en pixels.
@@ -91,6 +124,7 @@ func _ready() -> void:
 	if OS.get_cmdline_user_args().has("--mouvement-reduit"):
 		mouvement_reduit = true
 	_donnees = Donnees.charger()
+	armes = lire_armes(OS.get_cmdline_user_args(), _donnees.ids_catalogue)
 	reactions.mouvement_reduit = mouvement_reduit
 	effets = Effets.new()
 	effets.mouvement_reduit = mouvement_reduit
@@ -98,7 +132,7 @@ func _ready() -> void:
 	effets.name = "Effets"
 	add_child(effets)
 	effets.impact_visible.connect(_sur_impact_visible)
-	for i: int in ARMES.size():
+	for i: int in armes.size():
 		_prochains.append(float(i) * DECALAGE)
 	_poser_ennemis()
 
@@ -110,10 +144,15 @@ func _process(delta: float) -> void:
 ## Fait avancer la vitrine (et ses effets) de `delta` secondes ; `_process` n'est que son appelant.
 func avancer(delta: float) -> void:
 	_temps += delta
-	for bande: int in ARMES.size():
+	for bande: int in armes.size():
 		while _temps >= _prochains[bande]:
 			_prochains[bande] += PERIODE
 			_tirer(bande)
+	for i: int in range(_en_retard.size() - 1, -1, -1):
+		_en_retard[i]["reste"] = float(_en_retard[i]["reste"]) - delta
+		if float(_en_retard[i]["reste"]) <= 0.0:
+			effets.ajouter(_en_retard[i]["evenement"])
+			_en_retard.remove_at(i)
 	effets.avancer(delta)
 	reactions.avancer(delta)
 	_animer_ennemis()
@@ -122,7 +161,7 @@ func avancer(delta: float) -> void:
 
 func _draw() -> void:
 	draw_rect(Rect2(0.0, 0.0, LARGEUR_ECRAN, HAUTEUR_ECRAN), FOND)
-	for bande: int in ARMES.size():
+	for bande: int in armes.size():
 		if bande > 0:
 			var y: float = float(bande) * HAUTEUR_BANDE
 			draw_line(Vector2(0.0, y), Vector2(LARGEUR_ECRAN, y), COULEUR_SEPARATION)
@@ -130,7 +169,7 @@ func _draw() -> void:
 
 
 func _poser_ennemis() -> void:
-	for bande: int in ARMES.size():
+	for bande: int in armes.size():
 		for rang: int in ENNEMIS_DANS_BANDE.size():
 			var entree: Dictionary = Apparence.entree(SPRITES_ENNEMIS[rang])
 			var case_px: Vector2i = entree["case"]
@@ -175,10 +214,14 @@ func _animer_ennemis() -> void:
 
 
 func _tirer(bande: int) -> void:
-	var id: String = ARMES[bande]
+	var id: String = armes[bande]
 	var avant: int = _en_jeu()
+	var piege: int = VueArene.genre_depuis_nom("piege")
 	for evenement: Dictionary in evenements_du_cycle(id):
-		effets.ajouter(evenement)
+		if evenement["k"] == "impact" and int(evenement["genre"]) == piege:
+			_en_retard.append({"reste": DELAI_PIEGE, "evenement": evenement})
+		else:
+			effets.ajouter(evenement)
 	crees[id] = int(crees.get(id, 0)) + _en_jeu() - avant
 
 
@@ -195,7 +238,7 @@ func evenement_de(id: String, k: String) -> Dictionary:
 	var arme: Dictionary = _donnees.armes[id]
 	var effet: Dictionary = (arme["effets"] as Array)[0]
 	var statuts: Array = arme["statuts"]
-	var bande: int = ARMES.find(id)
+	var bande: int = armes.find(id)
 	return {
 		"k": k,
 		"t": 0,
@@ -214,7 +257,7 @@ func evenement_de(id: String, k: String) -> Dictionary:
 func evenements_du_cycle(id: String) -> Array[Dictionary]:
 	var arme: Dictionary = _donnees.armes[id] if _donnees != null else Donnees.charger().armes[id]
 	var effet: Dictionary = (arme["effets"] as Array)[0]
-	var bande: int = ARMES.find(id)
+	var bande: int = armes.find(id)
 	var liste: Array[Dictionary] = [evenement_de(id, "tir")]
 	var rayon: float = float(effet.get("rayon", 0.0))
 	match String(effet["kind"]):
@@ -238,6 +281,17 @@ func evenements_du_cycle(id: String) -> Array[Dictionary]:
 				liste.append(impact)
 				depart = arrivee
 				rang = (rang + 1) % ENNEMIS_DANS_BANDE.size()
+		"aura", "onde":
+			# Rien ne part vers un ennemi : l'impact est centré sur la tour, au rayon de l'effet
+			# (celui de l'onde à son dernier pas). Une aura n'émet aucun tir.
+			var impact: Dictionary = evenement_de(id, "impact")
+			var tour: Vector2 = en_unites(position_tour(bande))
+			impact["de"] = tour
+			impact["vers"] = tour
+			impact["rayon"] = float(effet.get("rayon_max", rayon))
+			if String(effet["kind"]) == "aura":
+				liste.clear()
+			liste.append(impact)
 		_:
 			var impact: Dictionary = evenement_de(id, "impact")
 			impact["rayon"] = rayon

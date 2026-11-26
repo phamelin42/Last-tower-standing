@@ -83,7 +83,7 @@ func test_un_bonus_de_degats_d_un_type_prend_la_couleur_de_ce_type() -> void:
 				)
 			elif e["stat"] == "degats_global":
 				verifier_egal(ImagesOffres.entree(String(id))["couleur"], "dore", String(id))
-	verifier_egal(vus, 10)
+	verifier(vus >= 15, "un bonus par type et par rang : au moins quinze, %d vus" % vus)
 
 
 func test_deux_offres_n_ont_jamais_la_meme_icone_avec_la_meme_couleur() -> void:

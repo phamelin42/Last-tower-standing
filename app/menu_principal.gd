@@ -13,8 +13,6 @@ signal reglages_modifies(r: Reglages)
 
 const HAUTEUR_CONTROLE := 48.0
 const LARGEUR_COLONNE := 420.0
-const TAILLE_TEXTE := 16
-const TAILLE_TITRE := 34
 const ESPACEMENT := 12
 
 ## Fichier des réglages : le lanceur de tests le remplace par un dossier temporaire.
@@ -38,7 +36,6 @@ var _bouton_retour: Button
 func _init() -> void:
 	ThemeJeu.appliquer(self)
 	set_anchors_preset(PRESET_FULL_RECT)
-	add_theme_font_size_override("font_size", TAILLE_TEXTE)
 	var fond := ColorRect.new()
 	fond.name = "Fond"
 	fond.color = ThemeJeu.JAUGE_FOND
@@ -63,7 +60,6 @@ func _init() -> void:
 	titre.text = tr("MENU_TITRE")
 	titre.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	titre.theme_type_variation = ThemeJeu.TYPE_RUBAN
-	titre.add_theme_font_size_override("font_size", TAILLE_TITRE)
 	_accueil.add_child(titre)
 
 	var libelle := Label.new()

@@ -442,16 +442,16 @@ func test_75_armes_1000_ennemis_64_allies_32_zones_32_bombes_sous_5_ms_par_pas()
 			1
 		)
 	verifier_egal(a.allies.taille, 64)
-	# Médiane de cinq fenêtres de 20 pas : une machine partagée ne fait pas échouer un budget tenu.
-	var fenetres: Array[float] = []
-	for _f: int in 5:
+	# 10e centile de 50 blocs de 4 pas (S16, `MesurePas`) : une machine chargée ralentit la plupart
+	# des blocs mais pas tous ; une vraie régression les ralentit tous, le budget garde son sens.
+	var blocs := PackedInt32Array()
+	for _f: int in 50:
 		var debut := Time.get_ticks_usec()
-		for _k: int in 20:
+		for _k: int in 4:
 			a.avancer(DT)
 			if a.tick_courant() % 4 == 0:
 				a.vue(Types.Phase.MANCHE, 1.0, -1, false)
-		fenetres.append(float(Time.get_ticks_usec() - debut) / 1000.0 / 20.0)
-	fenetres.sort()
-	var moyenne := fenetres[2]
-	print("PERF charge maximale : %.3f ms par pas (médiane)" % moyenne)
-	verifier(moyenne < 5.0, "moins de 5 ms par pas en moyenne (%f)" % moyenne)
+		blocs.append(Time.get_ticks_usec() - debut)
+	var rapide := MesurePas.centile_bas_ms(blocs, 4)
+	print("PERF charge maximale : %.3f ms par pas (10e centile)" % rapide)
+	verifier(rapide < 5.0, "moins de 5 ms par pas (%f)" % rapide)

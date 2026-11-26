@@ -16,6 +16,7 @@ const CITENT_DES_IMAGES: Array[String] = [
 	"res://visuels/decor.gd",
 	"res://visuels/plan_decor.gd",
 	"res://visuels/effets.gd",
+	"res://visuels/attaques_elementaires.gd",
 ]
 ## Fichiers qui chargent une texture ou un nuanceur : les précédents, plus les deux qui chargent
 ## les chemins que leur donnent `Apparence` et `ImagesOffres` (l'arène et l'image d'une offre).
@@ -27,6 +28,9 @@ const CHARGENT_DES_IMAGES: Array[String] = [
 	"res://visuels/decor.gd",
 	"res://visuels/plan_decor.gd",
 	"res://visuels/effets.gd",
+	"res://visuels/attaques_elementaires.gd",
+	"res://visuels/textures_effets.gd",
+	"res://visuels/flamme_boss.gd",
 	"res://visuels/arene_2d.gd",
 	"res://ui/image_offre.gd",
 ]

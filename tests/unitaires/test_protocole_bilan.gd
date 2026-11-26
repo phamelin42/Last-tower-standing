@@ -19,7 +19,7 @@ func _bilan_reel() -> Dictionary:
 
 
 func test_la_version_est_8_et_toutes_les_precedentes_sont_refusees() -> void:
-	verifier_egal(Protocole.VERSION, 8, "7 sur main + 1")
+	verifier(Protocole.VERSION >= 8, "BILAN existe depuis la version 8")
 	for ancienne: int in range(1, Protocole.VERSION):
 		var b := Protocole.encoder_bonjour("Phil", 42)
 		b[1] = ancienne

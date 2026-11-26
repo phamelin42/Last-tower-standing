@@ -33,6 +33,7 @@ Spécification : `docs/superpowers/specs/2026-11-24-jeu-tour-design.md`. Plan :
   `partie.gd` est son API publique.
 - `reseau/` : ENet (serveur, client, protocole compact). Il n'appelle que l'API publique de `sim/partie.gd`.
 - `visuels/` : rendu 2D pixel art (Tiny Swords), caméra, décor, effets. La correspondance entité → sprites est dans `visuels/apparence.gd`.
+  Attaques d'élément (D22) : `attaques_elementaires.gd` aiguille, un fichier par élément sous `visuels/attaques/` (`AttaqueElement`) ; leurs sprites sont dessinés par `tools/dessiner_effets_attaques.gd` et un `tools/dessin/dessins_<élément>.gd` par élément. Ajouter un élément : un fichier de chaque côté et une ligne de table.
 - `ui/` : menus, salon, HUD, boutique, tableau des scores, écran de fin.
 - `i18n/*.csv` : tous les textes visibles (colonne `fr`).
 - `tests/` : `lanceur.gd`, `tests/unitaires/test_*.gd`, `tests/integration/`.
@@ -130,3 +131,12 @@ privé, lu en direct). Ses lignes vivent dans sa base, pas dans la page :
 - Écrire du texte dans une `Image` sans écran (planche, capture) : passer par les glyphes du `TextServer`, le rendu de `Label` n'existe pas en `--headless`.
 - Équilibrage (T8.21) : les primes du palier jaune (`data/ennemis.json`) pèsent bien plus que les rampes de PV et de dégâts ; avec des rampes presque plates, le robot « bonne » tombait encore en manche 8, faute d'or. Mesurer par graine (`SimulationEquilibrage.jouer`), pas sur la médiane seule : une même graine peut passer de 8 à 31 sur un changement minime. Un réglage s'essaie sur les graines 1 à 10 avant les 50 (une mesure à 50 graines dure plusieurs minutes une fois les parties longues).
 - Après un `git commit` enchaîné à d'autres commandes, relire `git log -1` : un commit raté ne se voit pas toujours dans la sortie.
+- Attaques d'élément (D22) : une arme qui reçoit un élément quitte le rendu par signature ; avant d'en ajouter, relire les tests qui prennent « la première arme » de `SignaturesArmes` ou bouclent sur ses ids (`test_arene_2d` en prenait une). La vitrine des armes coupe les effets de plus de 50 px de rayon : juger une aura ou une onde sur une vue large.
+- Une vitrine dessine son fond dans le `_draw` de sa racine : un effet à `z_index` -1 (objet au sol, ombre) y est recouvert et reste invisible ; un objet posé reste à 0 (`kind` `piege` de `AttaquesElementaires`).
+- Dans un worktree qui contient des fichiers non suivis d'autres tâches, `git add` se fait par chemins explicites, jamais `git add visuels` ni `-A` : un commit par arme a embarqué les éléments des armes suivantes, et un `git checkout -- <dossier>` a défait des retouches non commitées.
+- Une douzaine de fichiers de test lisent le catalogue (signatures, sons, effets, défis, événements, descriptions) : un ajout dans `data/armes.json` ou `data/ameliorations.json` passe par `tools/verifier.sh --etape tests` avant de pousser. L'ordre des armes dans `armes.json` fixe les tirages de la boutique : un test d'équilibrage ne repose jamais sur une seule graine.
+- Une mutation (casser le code pour voir un test échouer) se fait après un commit et par `Edit`, jamais défaite par `git checkout` : celui-ci efface aussi le travail non commité.
+- Un budget de temps par pas se mesure au 10e centile de plusieurs pas (`MesurePas`, PR #71) : une mesure seule échoue sous la charge d'autres agents.
+- Lire un fichier de l'utilisateur : `JSON.new().parse` (code de retour), pas `JSON.parse_string`, qui imprime une erreur du moteur sur un fichier abîmé et fait échouer le test.
+- Après un changement de police, relancer `test_mise_en_page` : les largeurs du HUD et de la boutique en dépendent. Une image ou une icône se charge par `ui/theme.gd`, sinon `test_garde_ressources` (liste fermée) échoue.
+- Une session écrit à la pilote par l'outil `mcp__claude-code-remote__send_message`, pas par `SendMessage` (erreur 401 vers une session cloud).

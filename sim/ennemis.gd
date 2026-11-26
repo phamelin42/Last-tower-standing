@@ -68,6 +68,8 @@ var siphon_mana: PackedFloat32Array = PackedFloat32Array()
 var siphon_mana_t: PackedFloat32Array = PackedFloat32Array()
 var siphon_vie: PackedFloat32Array = PackedFloat32Array()
 var siphon_vie_t: PackedFloat32Array = PackedFloat32Array()
+## 1 une fois que les épines de la tour ont déjà frappé cet ennemi (`epines_premier_coup`).
+var renvoye: PackedByteArray = PackedByteArray()
 
 var _donnees: Donnees
 var _table_efficacite: Array
@@ -172,6 +174,7 @@ func ajouter(
 	siphon_mana_t.append(0.0)
 	siphon_vie.append(0.0)
 	siphon_vie_t.append(0.0)
+	renvoye.append(0)
 	return id
 
 
@@ -669,6 +672,7 @@ func _copier(de: int, vers: int) -> void:
 	siphon_mana_t[vers] = siphon_mana_t[de]
 	siphon_vie[vers] = siphon_vie[de]
 	siphon_vie_t[vers] = siphon_vie_t[de]
+	renvoye[vers] = renvoye[de]
 
 
 func _redimensionner(n: int) -> void:
@@ -706,6 +710,7 @@ func _redimensionner(n: int) -> void:
 	siphon_mana_t.resize(n)
 	siphon_vie.resize(n)
 	siphon_vie_t.resize(n)
+	renvoye.resize(n)
 
 
 ## Remplit les cinq tableaux `ennemis_*` de la vue avec des copies des vivants (les morts en

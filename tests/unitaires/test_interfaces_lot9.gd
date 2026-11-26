@@ -475,7 +475,9 @@ func test_les_bornes_des_stats_d_amelioration_sont_exactes() -> void:
 		["regen_croissante", "max", -1.0],
 		["armure_croissante", "max", 0.0],
 		["resurrection", "valeur", -1],
+		["resurrection", "valeur", 0],
 		["resurrection", "valeur", 0.5],
+		["resurrection", "valeur", 101],
 		["soin_periodique", "ratio", 0.0],
 		["soin_periodique", "tous_les", 0.0],
 		["revenu_contre_pv", "pv", 0.0],
@@ -806,3 +808,15 @@ func test_le_pas_de_croissance_vient_de_partie_json() -> void:
 	(partie["ameliorations"] as Dictionary)["croissance_pas_s"] = 45.0
 	var d := Donnees.depuis_brut(brut)
 	verifier_proche(Inventaire.new(d).stats().pas_croissance_s, 45.0)
+
+
+func test_la_resurrection_est_un_pourcentage_entier_de_un_a_cent() -> void:
+	for bonne: int in [1, 50, 100]:
+		var effet := {"stat": "resurrection", "valeur": bonne}
+		verifier_egal(Donnees.valider(_brut_amelio(effet)), PackedStringArray(), str(bonne))
+	for mauvaise: Variant in [0, -1, 101, 100.5, 0.5]:
+		var effet := {"stat": "resurrection", "valeur": mauvaise}
+		var messages := Donnees.valider(_brut_amelio(effet))
+		verifier(
+			_nomme(messages, FICHIER_AMELIOS, "[0].effets[0].valeur"), "refusée : %s" % mauvaise
+		)

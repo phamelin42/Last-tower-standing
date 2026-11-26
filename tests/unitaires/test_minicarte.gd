@@ -266,6 +266,26 @@ func test_le_cadre_de_la_vue_suit_le_zoom_et_le_decalage() -> void:
 # --- Les vignettes -------------------------------------------------------------------------
 
 
+func test_la_vignette_lit_les_pv_de_la_vue_globale_meme_d_une_arene_jamais_regardee() -> void:
+	var m := Minicarte.new()
+	m.configurer(_donnees)
+	var globale := _globale(5)
+	var pv: Array[float] = [10.0, 25.0, 100.0, 400.0, 0.0]
+	var pv_max: Array[float] = [100.0, 100.0, 100.0, 100.0, 0.0]
+	for i: int in 5:
+		globale.joueurs[i]["pv"] = pv[i]
+		globale.joueurs[i]["pv_max"] = pv_max[i]
+	globale.joueurs[2]["vivant"] = false
+	m.afficher(_vue(), globale, LOCAL, Rect2())
+	var attendus: Array[float] = [0.25, 0.0, 1.0, -1.0]
+	for i: int in attendus.size():
+		var v: Dictionary = m.vignettes[i]
+		verifier_proche(float(v["pv"]), attendus[i], 0.0001, "vignette %d" % i)
+	m.definir_pv(_id(4), 50.0, 100.0)
+	m.afficher(_vue(), globale, LOCAL, Rect2())
+	verifier_proche(float(m.vignettes[3]["pv"]), 0.5, 0.0001, "repli sur les PV vus en regardant")
+
+
 func test_une_vignette_par_autre_joueur_avec_son_nom_et_sa_barre_de_pv() -> void:
 	verifier(Minicarte.TEXTE_VIGNETTE >= 16, "texte de 16 px au moins")
 	for nombre: int in [1, 2, 3, 4, 5, 6, 7, 8]:
