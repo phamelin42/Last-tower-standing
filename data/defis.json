@@ -202,7 +202,7 @@
  {
   "id": "arme_unique",
   "nom": "Arme unique",
-  "texte": "Vainquez le boss avec les exemplaires d’une seule arme.",
+  "texte": "Vainquez le boss avec les niveaux d’une seule arme.",
   "condition": "victoire = 1 et armes_achetees ≥ 1 et armes_distinctes ≤ 1",
   "skin": "tour_monolame",
   "mode": "les_deux"
@@ -210,7 +210,7 @@
  {
   "id": "arme_unique_endurante",
   "nom": "Duelliste endurant",
-  "texte": "Atteignez la vingtième manche avec les exemplaires d’une seule arme.",
+  "texte": "Atteignez la vingtième manche avec les niveaux d’une seule arme.",
   "condition": "manche_atteinte ≥ 20 et armes_achetees ≥ 1 et armes_distinctes ≤ 1",
   "skin": "tour_du_duelliste",
   "mode": "les_deux"
