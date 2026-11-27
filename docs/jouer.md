@@ -22,6 +22,9 @@ Vous achetez, vous améliorez et vous survivez aux vagues. Le dernier en vie gag
   rare ou épique. Les offres épiques sont absentes au début et deviennent plus fréquentes au fil
   des manches.
 - Une offre achetée disparaît de l'offre en cours.
+- **Acheter vite** : les touches **1** à **4** achètent l'offre correspondante (la touche est écrite
+  sur le bouton) et **R** relance. **Tout acheter** (touche **T**) prend toutes les offres que votre
+  or permet, de la moins chère à la plus chère.
 - **Relancer** renouvelle l'offre. La première relance payante coûte 50 or, et chaque relance
   payante de la même manche coûte 25 or de plus. Le prix repart de 50 à la manche suivante.
   Certains objets donnent des relances gratuites.

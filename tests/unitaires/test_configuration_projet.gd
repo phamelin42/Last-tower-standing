@@ -16,6 +16,7 @@ const ACTIONS_ATTENDUES: Array[String] = [
 	"boutique_offre_3",
 	"boutique_offre_4",
 	"boutique_relancer",
+	"boutique_tout_acheter",
 	"observation_suivant",
 	"observation_precedent",
 	"menu_jeu",
@@ -28,6 +29,7 @@ const TOUCHES_CAMERA: Dictionary = {
 	"camera_bas": [KEY_DOWN, KEY_S],
 	"camera_recentrer": [KEY_SPACE],
 	"boutique_replier": [KEY_B],
+	"boutique_tout_acheter": [KEY_T],
 }
 
 
