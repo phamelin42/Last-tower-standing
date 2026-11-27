@@ -65,6 +65,9 @@ func test_chaque_famille_de_survie_gagne_ses_ameliorations_et_atteint_sa_cible()
 		verifier_egal(comptes.get(famille, 0), AJOUTS[famille], "%s : ajouts" % famille)
 	var effectifs: Dictionary = {}
 	for id: String in _donnees.ameliorations:
+		# Les raretés de fin de partie (D23, T12.7b) s'ajoutent aux familles du lot 9.
+		if int((_donnees.ameliorations[id] as Dictionary)["rarete"]) >= Types.Rarete.ANCESTRALE:
+			continue
 		var famille: String = (_donnees.ameliorations[id] as Dictionary)["famille"]
 		effectifs[famille] = int(effectifs.get(famille, 0)) + 1
 	for famille: String in CIBLES:
