@@ -131,7 +131,7 @@ func test_chaque_objet_du_decor_existe_et_sa_boite_tient_dans_sa_cellule() -> vo
 
 
 func test_chaque_son_decrit_est_celui_du_catalogue() -> void:
-	verifier_egal(CatalogueSons.liste_ids_armes.size(), 75)
+	verifier_egal(CatalogueSons.liste_ids_armes.size(), Donnees.charger().armes.size())
 	verifier_egal(CatalogueSons.liste_suffixes_impact.size(), 5)
 	verifier(CatalogueSons.dossier.begins_with("res://"))
 	verifier(CatalogueSons.extension.begins_with("."))
