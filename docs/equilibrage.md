@@ -90,7 +90,8 @@ Conséquences pour toute mesure d'équilibrage :
   sans plafond (améliorations multiplicatives, or inutilisé une fois l'arsenal plein).
 - Les armes de portée 300 sont trop courtes face aux archers : à vérifier si c'est voulu.
 - Les robots sont approximatifs ; une bonne stratégie humaine peut faire nettement mieux ou pire.
-- Mesure à 50 graines : après T9.22.
+- Mesure à 50 graines : après T9.22, et **reprise par T12.9** une fois les armes tardives du lot 12 en place
+  (le lot 12 rééquilibre tout) ; aucune valeur de T9.22 n'est donc figée à 50 graines.
 
 ## Niveaux d'arme et fin de la vente (T12.1 et T12.1b, 27/11/2026)
 
@@ -100,3 +101,32 @@ arme déjà portée quand l'arsenal est plein (`GAIN_NIVEAU` de `strategies_joue
 la manche 20, graines 1 à 10 : `gain_cadence` 0,10 → 19 pour la graine 6 (les autres 20) ; 0,15 → 18 pour la
 graine 6 ; **0,20 → 20 sur les dix graines**, valeur retenue. La graine 6 est sensible : une mesure à 50 graines
 et un nouveau réglage sont l'objet de T12.9.
+
+## Rampe de dégâts ennemis (proposition du 27/11/2026, non appliquée)
+
+Phil a laissé la décision au lot 12 (T12.9). Mesure du 27/11 sur le robot « bonne », graines 1 à 4, build normal
+(avec siphon de mana) et sans siphon ; `apres_table.degats` agit après la manche 20 seulement, donc D16 et D17
+(manches 1 à 20) sont intactes à toute valeur.
+
+| Manche | 1,06 (actuel) | 1,10 | 1,14 |
+| ------ | ------------- | ---- | ---- |
+| 25     | 0,80          | 0,97 | 1,16 |
+| 30     | 1,29          | 1,87 | 2,67 |
+| 35     | 1,73          | 3,01 | 5,14 |
+
+- PV perdus sans siphon après la manche 20 (graines 1 et 4) : 14 397 et 3 490 à 1,06, contre 24 862 et 6 827 à
+  1,14, sans mort avant le boss (manche 31 conservée). 1,10 pèse trop peu (+40 à 60 %) ; 1,18 tue des builds
+  (graine 2 : 1 440 → 20 829 PV perdus).
+- Avec siphon (`nova_celeste`), la tour reste invulnérable à toute rampe : voulu, le bouclier de mana n'a pas de
+  plafond (D12).
+- « Raisonnable » tombe avant la manche 20 : la rampe ne l'atteint pas.
+- Partie gagnable (10 graines, « bonne ») : victoires sur 3 graines ; à 30 améliorations de revenu ou plus, 3
+  victoires sur 6, en dessous 0 sur 4 : le revenu sépare les résultats, l'arme seule non.
+- Plancher de défense de 15 % (`reduction_degats_max`, #135) : neutre en jeu tant que la mana siphonnée absorbe
+  le reste.
+
+## Suivis : ce qui ne se fait pas
+
+- **Tirs des ennemis à distance (Phil, 27/11/2026 : « on laisse comme ça »)** : purement visuels
+  (`visuels/tirs_ennemis.gd`, réglages dans `data/assets.json`), déduits de la vue d'arène. Aucun événement de tir
+  ennemi dans `VueArene` ni dans `Protocole` : ne pas l'ajouter.
