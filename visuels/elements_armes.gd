@@ -62,6 +62,7 @@ const FLECHE_MARQUANTE: String = "fleche_marquante"
 const ARC_REMPARTS: String = "arc_remparts"
 const HERSE_PIEUX: String = "herse_pieux"
 const LANCE_EPINEUSE: String = "lance_epineuse"
+const CARQUOIS: String = "carquois"
 
 const ELEMENTS: Array[String] = [
 	FEU,
@@ -109,6 +110,7 @@ const ELEMENTS: Array[String] = [
 	ARC_REMPARTS,
 	HERSE_PIEUX,
 	LANCE_EPINEUSE,
+	CARQUOIS,
 ]
 
 ## id d'arme → élément.
@@ -158,6 +160,7 @@ const TABLE: Dictionary = {
 	"arc_de_remparts": ARC_REMPARTS,
 	"herse_de_pieux": HERSE_PIEUX,
 	"lance_epineuse": LANCE_EPINEUSE,
+	"carquois_en_rafale": CARQUOIS,
 }
 
 
