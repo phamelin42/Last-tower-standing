@@ -53,6 +53,7 @@ static func poser(effet: Dictionary) -> void:
 				epaisseur = Effets.EPAISSEUR_TRAIT / 8.0
 			else:
 				epaisseur = Effets.ECHELLE_TRAINEE
+			epaisseur *= float(effet.get("epaisseur", 1.0))
 			noeud.scale = Vector2(maxf(sens.length(), 1.0) / 64.0, epaisseur)
 			alpha = lerpf(Effets.ALPHA_MAX, 0.0, t)
 			if String(effet["anim"]) == "saut":
@@ -60,6 +61,12 @@ static func poser(effet: Dictionary) -> void:
 				if age < Effets.IMAGE:
 					couleur = Color.WHITE
 				alpha = lerpf(Effets.ALPHA_MAX, 0.0, t * t)
+		"recul":
+			# Les chevrons s'éloignent de la tour ; en mouvement réduit, ils restent à mi-chemin.
+			noeud.position = depart.lerp(arrivee, 0.5 if reduit else t)
+			noeud.rotation = (arrivee - depart).angle()
+			noeud.scale = Vector2.ONE * _echelle(forme, taille)
+			alpha = lerpf(Effets.ALPHA_MAX, 0.0, t)
 		"image":
 			noeud.position = depart
 			_image(effet, noeud, forme, t, taille)

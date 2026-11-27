@@ -120,6 +120,7 @@ const FORMES_PROPRES: Array[String] = [
 	"piege",
 	"trait_ondule",
 	"trait_zigzag",
+	"trait_rayon",
 ]  # gdlint: ignore=max-line-length
 const COULEUR_ABSORPTION := Color(0.3, 0.6, 1.0)
 const TAILLE_ABSORPTION: float = 260.0
@@ -129,13 +130,15 @@ const COULEURS_STATUT: Dictionary = {
 	"etourdissement": Color(1.0, 0.88, 0.35),
 	"brulure": Color(1.0, 0.55, 0.2),
 	"vol_de_vie": COULEUR_SOIN,
+	"repoussement": Color(1.0, 1.0, 0.85),
 }
 const FORMES_STATUT: Dictionary = {
 	"givre": "flocon",
 	"poison": "bulles",
 	"etourdissement": "croix_plus",
 	"brulure": "feu",
-	"vol_de_vie": "soin"
+	"vol_de_vie": "soin",
+	"repoussement": "recul",
 }
 
 ## Où poser les objets au sol (mines, pièges, flammes). Sans valeur : sous les autres effets.
@@ -170,6 +173,8 @@ var _coup_fort: bool = false
 ## Temps avant la prochaine absorption admise.
 var _pause_absorption: float = 0.0
 var _etincelles: Etincelles = Etincelles.new(self)
+## Rayons des tirs tournants et traits de recul des repoussements.
+var _mecaniques := RayonsReculs.new(self)
 ## Les attaques des armes qui ont un élément (`ElementsArmes`) : leur pool compte dans `PLAFOND`.
 var _elementaires: AttaquesElementaires = AttaquesElementaires.new()
 ## Rang du projectile dans le barrage en cours (entre deux `avancer`).
@@ -214,6 +219,16 @@ static func rendu(type_degats: int, genre: String) -> Dictionary:
 			projectile = ""
 			sol = "mine"
 			impact = "explosion"
+		"tournant":
+			projectile = "trait_rayon"
+		"zone_posee":
+			projectile = ""
+			impact = "anneau"
+		"bombe":
+			projectile = ""
+			impact = "explosion"
+		"invocation":
+			projectile = ""
 	return {"projectile": projectile, "impact": impact, "sol": sol}
 
 
@@ -384,6 +399,10 @@ func ajouter(evenement: Dictionary) -> bool:
 	var signature: Dictionary = _signature(evenement)
 	var arme: int = evenement.get("arme", -1) if typeof(evenement.get("arme")) == TYPE_INT else -1
 	if k == "tir":
+		if genre == "tournant" and _element(arme) == "":
+			var bout: Vector2 = Apparence.vers_pixels(vers)
+			var depart: Vector2 = Apparence.vers_pixels(de)
+			return _mecaniques.rayon(depart, bout, rayon, COULEURS[type_degats])
 		return _tir(type_degats, genre, de, vers, signature, arme)
 	return _impact(type_degats, genre, de, vers, rayon, statut, signature, arme)
 
@@ -690,7 +709,10 @@ func _impact_maintenant(
 	_retirer_objet_sol(arrivee)
 	_elementaires.retirer_pieges(arrivee)
 	var anneau: bool = (
-		genre == "aura" or genre == "onde" or (genre == "" and rayon > 0.0 and de == vers)
+		genre == "aura"
+		or genre == "onde"
+		or genre == "zone_posee"
+		or (genre == "" and rayon > 0.0 and de == vers)
 	)
 	var saut: bool = genre == "rebond" or (genre == "" and rayon <= 0.0 and de.length() >= 1.0)
 	if element != "" and (genre == "aura" or genre == "onde"):
@@ -716,7 +738,10 @@ func _impact_maintenant(
 	else:
 		cree = _burst(type_degats, genre, arrivee, rayon, couleur, signature)
 	if statut != "" and FORMES_STATUT.has(statut):
-		cree = _statut(statut, arrivee) or cree
+		if statut == "repoussement":
+			cree = _mecaniques.recul(arrivee, COULEURS_STATUT[statut]) or cree
+		else:
+			cree = _statut(statut, arrivee) or cree
 	var zone: bool = (
 		anneau
 		or rayon > 0.0
@@ -879,6 +904,11 @@ func _retirer_objet_sol(ou: Vector2) -> void:
 			and (effet["depart"] as Vector2).distance_to(ou) <= TOLERANCE_SOL
 		):
 			_liberer(i)
+
+
+## `_creer` pour les effets propres à un autre fichier (`RayonsReculs`).
+func creer(forme: String, anim: String, duree: float, couleur: Color) -> Dictionary:
+	return _creer(forme, anim, duree, couleur, COUCHE_DESSUS)
 
 
 ## Prend un nœud du pool et le prépare pour `forme`. Vide si le plafond est atteint.

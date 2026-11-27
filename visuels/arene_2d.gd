@@ -58,6 +58,8 @@ var mouvement_reduit: bool = false:
 		_reactions.mouvement_reduit = valeur
 		if _effets != null:
 			_effets.mouvement_reduit = valeur
+		if _poses != null:
+			_poses.mouvement_reduit = valeur
 
 var _interpolation := Interpolation.new()
 var _horloge: float = 0.0
@@ -102,6 +104,8 @@ var _texture_mort: Texture2D = null
 var _effets: Effets = null
 ## Les alliés invoqués, posés dans le nœud des ennemis pour se trier en profondeur avec eux.
 var _allies := Allies2D.new()
+## Zones posées et bombes de la vue, au sol sous les ennemis.
+var _poses: ZonesBombes2D = null
 ## Ennemis touchés : flash et recul, par id d'ennemi (purement visuel).
 var _reactions: ReactionsCoups = ReactionsCoups.new()
 ## L'échantillon affiché cette image (positions lissées) : une seule fois par image, partagé entre
@@ -146,6 +150,11 @@ func _assurer_construite() -> void:
 	_camera = get_node_or_null("Camera") as CameraArene
 	_construire_sol()
 	_construire_cercle()
+	_poses = ZonesBombes2D.new()
+	_poses.name = "Poses"
+	_poses.donnees = donnees
+	_poses.mouvement_reduit = mouvement_reduit
+	add_child(_poses)
 	_ennemis = Node2D.new()
 	_ennemis.name = "Ennemis"
 	_ennemis.y_sort_enabled = true
@@ -207,6 +216,7 @@ func reinitialiser() -> void:
 	_effets.vider()
 	_vider_mourants()
 	_allies.vider()
+	_poses.vider()
 	_reactions.reinitialiser()
 	_echantillon_affiche = {}
 	_barres.reinitialiser()
@@ -383,6 +393,12 @@ func teinte_instance(famille: int, i: int) -> Color:
 	return teintes[i] if i < teintes.size() else Color.WHITE
 
 
+## Les zones posées et les bombes affichées (lecture, pour les tests et les vitrines).
+func zones_bombes() -> ZonesBombes2D:
+	_assurer_construite()
+	return _poses
+
+
 func nombre_allies_visibles() -> int:
 	_assurer_construite()
 	return _allies.nombre_visibles()
@@ -433,6 +449,7 @@ func _process(delta: float) -> void:
 	_horloge += delta
 	_echantillon_affiche = {}
 	_effets.avancer(delta)
+	_poses.avancer(delta)
 	_avancer_mourants()
 	_reactions.avancer(delta)
 	_sol.avancer(delta)
@@ -458,6 +475,7 @@ func _recevoir(vue: VueArene, temps: float) -> void:
 		return
 	_dernier_tick = vue.tick
 	_interpolation.pousser(vue, temps)
+	_poses.afficher(vue)
 	_echantillon_affiche = {}
 	var explosifs: Array[Vector2] = []
 	var tues: Array[Vector2] = []
