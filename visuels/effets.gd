@@ -161,6 +161,8 @@ var mouvement_reduit: bool = false
 ## Faux : les armes à élément sont rendues par leur signature, comme avant D22 (le repli que les
 ## tests gardent vivant maintenant que les 30 armes du lot 8 ont leur élément).
 var rendu_par_element: bool = true
+## Le dernier impact joué est un coup fort : celui qui gèle son effet (voir `ImpactsParType.burst`).
+var coup_fort: bool = false
 
 var _libres: Array = [[], []]
 var _vivants: Array[Dictionary] = []
@@ -178,11 +180,11 @@ var _chaine_reste: float = 0.0
 var _chaine_active: bool = false
 ## Âge d'un effet qui naît en retard (un impact différé échu pendant un grand pas de temps).
 var _age_initial: float = 0.0
-## Le dernier impact joué est un coup fort : celui qui gèle son effet (voir `_burst`).
-var _coup_fort: bool = false
 ## Temps avant la prochaine absorption admise.
 var _pause_absorption: float = 0.0
 var _etincelles: Etincelles = Etincelles.new(self)
+## L'éclat, l'explosion, le trait de saut et la marque de statut du rendu par type de dégâts.
+var _impacts: ImpactsParType = ImpactsParType.new(self)
 ## Rayons des tirs tournants et traits de recul des repoussements.
 var _mecaniques := RayonsReculs.new(self)
 var _tournant := TirTournant.new(self, _mecaniques)
@@ -436,7 +438,7 @@ static func famille_explosive(id: String) -> bool:
 
 ## Une explosion du pack à `ou` (unités de jeu) : la mort d'un tonneau ou d'un artificier.
 func exploser(ou: Vector2) -> bool:
-	return not _explosion(Apparence.vers_pixels(ou), RAYON_MORT).is_empty()
+	return not _impacts.explosion(Apparence.vers_pixels(ou), RAYON_MORT).is_empty()
 
 
 func avancer(delta: float) -> void:
@@ -464,8 +466,9 @@ func _apres_gel(effet: Dictionary, delta: float) -> float:
 	return delta - gel
 
 
-## Fige l'effet sur son image de pic pour le reste de `DUREE_GEL` (rien en mouvement réduit).
-func _geler(effet: Dictionary, age_pic: float) -> void:
+## Fige l'effet sur son image de pic pour le reste de `DUREE_GEL` (rien en mouvement réduit) ;
+## publique pour `ImpactsParType`.
+func geler(effet: Dictionary, age_pic: float) -> void:
 	var reste: float = GelImpact.DUREE_GEL - _age_initial
 	if mouvement_reduit or effet.is_empty() or reste <= EPSILON_TEMPS:
 		return
@@ -715,7 +718,7 @@ func _impact_maintenant(
 	var depart: Vector2 = Apparence.vers_pixels(de)
 	var arrivee: Vector2 = Apparence.vers_pixels(vers)
 	var cree: bool = false
-	_coup_fort = false
+	coup_fort = false
 	_retirer_objet_sol(arrivee)
 	_elementaires.retirer_pieges(arrivee)
 	var anneau: bool = (
@@ -742,16 +745,16 @@ func _impact_maintenant(
 		if element != "":
 			cree = _el().impacter(element, arrivee, 0.0, false, depart, _age_initial)
 		elif de.length() >= 1.0:
-			cree = _trait(type_degats, depart, arrivee, couleur, signature)
+			cree = _impacts.trait_saut(type_degats, depart, arrivee, couleur, signature)
 	elif element != "":
 		cree = _impact_element(element, type_degats, arrivee, rayon, groupe)
 	else:
-		cree = _burst(type_degats, genre, arrivee, rayon, couleur, signature)
+		cree = _impacts.burst(type_degats, genre, arrivee, rayon, couleur, signature)
 	if statut != "" and FORMES_STATUT.has(statut):
 		if statut == "repoussement":
 			cree = _mecaniques.recul(arrivee, COULEURS_STATUT[statut]) or cree
 		else:
-			cree = _statut(statut, arrivee) or cree
+			cree = _impacts.statut(statut, arrivee) or cree
 	var zone: bool = (
 		anneau
 		or rayon > 0.0
@@ -765,7 +768,7 @@ func _impact_maintenant(
 		_etincelles.lancer(arrivee, nombre, couleur, _age_initial)
 	# L'impact décoratif d'un rayon de tir tournant à élément n'est pas un coup : personne n'y réagit.
 	if element == "" or genre != TirTournant.GENRE:
-		impact_visible.emit(vers, rayon, _coup_fort)
+		impact_visible.emit(vers, rayon, coup_fort)
 	return cree
 
 
@@ -775,7 +778,7 @@ func _impact_element(
 	element: String, type_degats: int, ou: Vector2, rayon: float, groupe: Dictionary
 ) -> bool:
 	var fort: bool = type_degats == Types.TypeDegats.SIEGE
-	_coup_fort = fort
+	coup_fort = fort
 	var rayon_px: float = rayon * Apparence.PX_PAR_UNITE
 	var cree: bool = false
 	if groupe.is_empty():
@@ -791,61 +794,8 @@ func _impact_element(
 				centre += point
 			cree = _el().zone(element, centre / points.size(), rayon_px, _age_initial) or cree
 	if AttaquesElementaires.explosion_du_pack(element):
-		cree = not _explosion(ou, rayon).is_empty() or cree
+		cree = not _impacts.explosion(ou, rayon).is_empty() or cree
 	return cree
-
-
-func _burst(
-	type_degats: int,
-	genre: String,
-	ou: Vector2,
-	rayon: float,
-	couleur: Color,
-	signature: Dictionary = {}
-) -> bool:
-	var taille: float = rayon * Apparence.PX_PAR_UNITE * 2.0 if rayon > 0.0 else TAILLE_IMPACT
-	var forme: String = IMPACTS[type_degats]
-	if not signature.is_empty():
-		forme = signature["impact"]
-	var explose: bool = (
-		type_degats == Types.TypeDegats.SIEGE
-		or genre == "zone"
-		or rayon > 0.0
-		or forme == "explosion"
-	)
-	var cree: bool = false
-	_coup_fort = explose
-	if explose:
-		cree = not _explosion(ou, taille * 0.5 / Apparence.PX_PAR_UNITE).is_empty()
-	# Le siège garde l'explosion du pack seule, sauf si sa signature a une autre forme d'impact.
-	var dessine_forme: bool = type_degats != Types.TypeDegats.SIEGE
-	if not signature.is_empty():
-		dessine_forme = forme != "explosion"
-	if dessine_forme:
-		var effet: Dictionary = _creer(forme, "burst", DUREE_IMPACT, couleur, COUCHE_DESSUS)
-		if not effet.is_empty():
-			effet["depart"] = ou
-			effet["taille"] = taille if not explose else minf(taille, TAILLE_IMPACT)
-			if explose:
-				_geler(effet, CourbesEffets.IMAGES_MONTEE_IMPACT * IMAGE)
-			PoseEffets.poser(effet)
-			cree = true
-	return cree
-
-
-func _trait(
-	type_degats: int, depart: Vector2, arrivee: Vector2, couleur: Color, signature: Dictionary = {}
-) -> bool:
-	var forme: String = TRAITS[type_degats]
-	if not signature.is_empty():
-		forme = signature["trainee"]
-	var effet: Dictionary = _creer(forme, "saut", DUREE_TRAIT, couleur, COUCHE_DESSUS)
-	if effet.is_empty():
-		return false
-	effet["depart"] = depart
-	effet["arrivee"] = arrivee
-	PoseEffets.poser(effet)
-	return true
 
 
 ## L'éclat bleu de la mana qui encaisse un coup, sur la tour.
@@ -862,50 +812,6 @@ func _absorption(ou: Vector2) -> bool:
 	effet["taille"] = TAILLE_ABSORPTION
 	PoseEffets.poser(effet)
 	return true
-
-
-func _statut(statut: String, ou: Vector2) -> bool:
-	var forme: String = FORMES_STATUT[statut]
-	if statut == "vol_de_vie":
-		# Le soin remonte de l'ennemi touché vers la tour, à l'origine du monde.
-		var soin: Dictionary = _creer(forme, "vol", DUREE_SOIN, COULEUR_SOIN, COUCHE_DESSUS)
-		if soin.is_empty():
-			return false
-		soin["depart"] = ou
-		soin["arrivee"] = Vector2.ZERO
-		soin["taille"] = TAILLE_IMPACT * 0.6
-		PoseEffets.poser(soin)
-		return true
-	if statut == "brulure":
-		var feu: Dictionary = _creer("feu", "image", DUREE_FEU, Color.WHITE, COUCHE_DESSUS)
-		if feu.is_empty():
-			return false
-		feu["depart"] = ou
-		feu["taille"] = TAILLE_IMPACT
-		PoseEffets.poser(feu)
-		return true
-	var couleur: Color = couleur_statut(statut)
-	var effet: Dictionary = _creer(forme, "statut", DUREE_STATUT, couleur, COUCHE_DESSUS)
-	if effet.is_empty():
-		return false
-	effet["depart"] = ou
-	effet["taille"] = TAILLE_IMPACT
-	PoseEffets.poser(effet)
-	return true
-
-
-## `rayon` en unités de jeu. Rend un dictionnaire vide si le plafond est atteint.
-func _explosion(ou: Vector2, rayon: float) -> Dictionary:
-	var effet: Dictionary = _creer(
-		"explosion", "image", DUREE_EXPLOSION, Color.WHITE, COUCHE_DESSUS
-	)
-	if effet.is_empty():
-		return {}
-	effet["depart"] = ou
-	effet["taille"] = rayon * Apparence.PX_PAR_UNITE * 2.0
-	_geler(effet, AGE_PIC_EXPLOSION)
-	PoseEffets.poser(effet)
-	return effet
 
 
 func _retirer_objet_sol(ou: Vector2) -> void:

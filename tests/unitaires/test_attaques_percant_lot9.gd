@@ -1,0 +1,247 @@
+extends CasAttaquesPercant
+## Les armes perçantes du lot 9 (D22), première moitié : javeline de jet, trait en gerbe, flèche
+## marquante, arc de remparts, herse de pieux. Mêmes phases et mêmes bornes que le carreau du
+## lot 8 (anticipation 3 images, vol direct 7, impact au pic dans le premier quart, zone au rayon
+## réel lu dans `data/armes.json`). Durées en images à 60 i/s.
+
+# --- Javeline de jet : cible unique, repoussement ----------------------------------------------
+
+
+func test_la_javeline_est_une_cible_unique_qui_repousse() -> void:
+	_verifier_arme("javeline_de_jet", "javeline", "cible_unique")
+	verifier_egal(_statut("javeline_de_jet"), "repoussement")
+
+
+func test_la_javeline_dure_dix_images_et_file_droit_sans_tourner() -> void:
+	verifier_proche(_a.tirer("javeline", TOUR, CIBLE) / IMAGE, 10.0, 0.01)
+	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 3)
+	var javeline: Dictionary = _a.etats("javeline")[0]
+	verifier(javeline["visible"], "elle vole")
+	verifier_proche(javeline["position"].y, CIBLE.y, 1.0, "droit, sans arc")
+	verifier_proche(javeline["rotation"], 0.0, 0.01, "la pointe regarde la cible")
+	verifier(_a.particules_actives() >= 1, "une traînée fine")
+	verifier_egal(_a.etats("ombre").size(), 0, "pas d'ombre : elle ne passe pas en cloche")
+
+
+func test_la_javeline_mord_lourd_et_reste_plantee_huit_images() -> void:
+	_a.impacter("javeline", CIBLE, 0.0)
+	verifier_egal(_a.etats("gerbe").size(), 1, "une gerbe")
+	verifier(_a.etats("gerbe")[0]["diametre"] > AttaquesElementaires.DIAMETRE_PETIT, "plus lourde")
+	verifier(_a.diametre_max() <= 60.0, "cible unique : au plus 60 px")
+	verifier_egal(_a.etats("plante").size(), 1, "elle reste plantée")
+	verifier_egal(_a.particules_actives(), 1, "des éclats d'acier")
+	_avancer(7)
+	verifier_egal(_a.etats("plante").size(), 1, "encore là à la septième image")
+	_avancer(40)
+	verifier_egal(_a.nombre_vivants(), 0, "tout se dissipe")
+	verifier_egal(_a.particules_actives(), 0)
+
+
+func test_mouvement_reduit_la_javeline_sans_particule() -> void:
+	_a.mouvement_reduit = true
+	_a.tirer("javeline", TOUR, CIBLE)
+	_a.impacter("javeline", CIBLE, 0.0)
+	verifier_egal(_a.particules_actives(), 0)
+	verifier_egal(_a.etats("gerbe").size(), 1, "la gerbe reste")
+
+
+# --- Trait en gerbe : barrage de trois, épines -------------------------------------------------
+
+
+func test_le_trait_en_gerbe_est_un_barrage_de_trois_traits() -> void:
+	_verifier_arme("trait_en_gerbe", "trait_gerbe", "barrage")
+	verifier_egal(int(_effet("trait_en_gerbe")["projectiles"]), 3, "trois traits")
+	verifier_egal(String(_donnees.armes["trait_en_gerbe"]["type_secondaire"]), "epines")
+
+
+func test_chaque_trait_part_deux_images_apres_le_precedent_et_file_droit() -> void:
+	var retard: float = AttaquesElementaires.retard_barrage("trait_gerbe")
+	var premier: float = _a.tirer("trait_gerbe", TOUR, CIBLE, 0.0)
+	var second: float = _a.tirer("trait_gerbe", TOUR, CIBLE, retard)
+	verifier_proche(premier / IMAGE, 10.0, 0.01, "anticipation + vol direct")
+	verifier_proche((second - premier) / IMAGE, 2.0, 0.01, "décalés de 2 images")
+	verifier_egal(_a.etats("aiguille").size(), 2, "un trait par tir")
+	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 3)
+	verifier_proche(_a.etats("aiguille")[0]["position"].y, CIBLE.y, 1.0, "droit")
+
+
+func test_un_seul_anneau_au_rayon_reel_pour_tout_le_trait_en_gerbe() -> void:
+	var rayon: float = _rayon_px("trait_en_gerbe")
+	for k: int in 3:
+		_a.impacter_en_groupe("trait_gerbe", CIBLE + Vector2(0.0, k * 10.0), rayon)
+	verifier_egal(_a.etats("").size(), 0, "aucun anneau par trait")
+	_a.zone("trait_gerbe", CIBLE, rayon)
+	verifier_egal(_a.etats("").size(), 1, "un anneau pour le tir")
+	verifier_proche(_a.diametre_max(), rayon * 2.0, rayon * 2.0 * 0.1, "au rayon réel")
+
+
+func test_chaque_trait_se_plante_un_instant_avec_des_epines() -> void:
+	_a.impacter_en_groupe("trait_gerbe", CIBLE, 22.0)
+	verifier_egal(_a.etats("gerbe").size(), 1, "une gerbe")
+	verifier_egal(_a.etats("plante").size(), 1, "le trait reste planté")
+	verifier(_a.diametre_max() <= 60.0, "petit")
+	verifier_egal(_a.particules_actives(), 2, "éclats de bois et épines")
+	_avancer(40)
+	verifier_egal(_a.nombre_vivants(), 0, "tout se dissipe")
+	verifier_egal(_a.particules_actives(), 0)
+
+
+func test_le_trait_en_gerbe_dans_effets_lance_un_trait_par_impact_et_un_seul_anneau() -> void:
+	var effets: Effets = _effets_de("trait_en_gerbe")
+	verifier_egal(effets.elementaires().etats("aiguille").size(), 4, "quatre traits à la vitrine")
+	var anneaux: int = 0
+	for _i: int in 60:
+		effets.avancer(IMAGE)
+		anneaux = maxi(anneaux, effets.elementaires().etats("").size())
+	verifier_egal(anneaux, 1, "un seul anneau")
+	effets.free()
+
+
+func test_mouvement_reduit_le_trait_en_gerbe_sans_particule() -> void:
+	_a.mouvement_reduit = true
+	_a.impacter_en_groupe("trait_gerbe", CIBLE, 22.0)
+	verifier_egal(_a.particules_actives(), 0)
+
+
+# --- Flèche marquante : cible unique, vulnérabilité --------------------------------------------
+
+
+func test_la_fleche_marquante_est_une_cible_unique_qui_rend_vulnerable() -> void:
+	_verifier_arme("fleche_marquante", "fleche_marquante", "cible_unique")
+	verifier_egal(_statut("fleche_marquante"), "vulnerabilite")
+
+
+func test_la_fleche_dure_dix_images_et_laisse_une_trainee_orange() -> void:
+	verifier_proche(_a.tirer("fleche_marquante", TOUR, CIBLE) / IMAGE, 10.0, 0.01)
+	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 3)
+	verifier(_a.etats("fleche_marquante")[0]["visible"], "elle vole")
+	verifier_proche(_a.etats("fleche_marquante")[0]["position"].y, CIBLE.y, 1.0, "droite")
+	verifier(_a.particules_actives() >= 1, "une traînée")
+
+
+func test_la_fleche_se_plante_et_jette_des_eclats_orange_sans_dessiner_la_marque() -> void:
+	_a.impacter("fleche_marquante", CIBLE, 0.0)
+	verifier_egal(_a.etats("gerbe").size(), 1, "une gerbe")
+	verifier_egal(_a.etats("plante").size(), 1, "elle reste plantée")
+	verifier_egal(_a.etats("").size(), 0, "la marque reste celle d'Effets : pas d'anneau ici")
+	verifier(_a.diametre_max() <= 60.0, "cible unique : au plus 60 px")
+	verifier_egal(_a.particules_actives(), 1, "des éclats")
+	_avancer(40)
+	verifier_egal(_a.nombre_vivants(), 0)
+	verifier_egal(_a.particules_actives(), 0)
+
+
+func test_mouvement_reduit_la_fleche_sans_particule() -> void:
+	_a.mouvement_reduit = true
+	_a.tirer("fleche_marquante", TOUR, CIBLE)
+	_a.impacter("fleche_marquante", CIBLE, 0.0)
+	verifier_egal(_a.particules_actives(), 0)
+
+
+# --- Arc de remparts : rebond de quatre cibles, vulnérabilité ----------------------------------
+
+
+func test_l_arc_est_un_rebond_de_quatre_cibles_qui_rend_vulnerable() -> void:
+	_verifier_arme("arc_de_remparts", "arc_remparts", "rebond")
+	verifier_egal(int(_effet("arc_de_remparts")["cibles"]), 4, "quatre cibles")
+	verifier_egal(_statut("arc_de_remparts"), "vulnerabilite")
+
+
+func test_l_arc_dure_dix_images_et_son_trait_est_plus_chaud_et_plus_gros_que_le_ricochet() -> void:
+	verifier_proche(_a.tirer("arc_remparts", TOUR, CIBLE) / IMAGE, 10.0, 0.01)
+	_a.tirer("ricochet", TOUR, CIBLE)
+	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 2)
+	var arc: Dictionary = _a.etats("carreau")[0]
+	var ricochet: Dictionary = _a.etats("carreau")[1]
+	verifier(arc["taille"].x > ricochet["taille"].x, "plus gros")
+	verifier(arc["teinte"].r > arc["teinte"].b, "teinté de chaud")
+	verifier_egal(ricochet["teinte"], Color.WHITE, "le ricochet reste acier")
+
+
+func test_un_saut_de_l_arc_est_un_vol_de_sept_images_sans_anticipation() -> void:
+	var fin: float = _a.saut("arc_remparts", CIBLE, CIBLE + Vector2(90.0, 20.0), 4.0 * IMAGE)
+	verifier_proche(fin / IMAGE, 4.0 + AttaquesElementaires.IMAGES_VOL_DIRECT, 0.01)
+	verifier_egal(_a.etats("depart").size(), 0, "pas d'anticipation à chaque saut")
+	verifier_faux(_a.etats("carreau")[0]["visible"], "il attend la fin du saut précédent")
+	_avancer(5)
+	verifier(_a.etats("carreau")[0]["visible"], "il vole")
+	_avancer(10)
+	verifier_egal(_a.nombre_vivants(), 0, "arrivé, il disparaît")
+
+
+func test_chaque_saut_de_l_arc_mord_petit_sans_rester_plante() -> void:
+	_a.impacter("arc_remparts", CIBLE, 0.0)
+	verifier_egal(_a.etats("gerbe").size(), 1, "une gerbe")
+	verifier_egal(_a.etats("plante").size(), 0, "le trait repart : il ne reste pas planté")
+	verifier(_a.diametre_max() <= 60.0, "cible unique : au plus 60 px")
+	verifier_egal(_a.particules_actives(), 1, "des éclats")
+	_avancer(40)
+	verifier_egal(_a.nombre_vivants(), 0)
+
+
+func test_l_arc_dans_effets_envoie_un_trait_par_saut() -> void:
+	var effets: Effets = _effets_de("arc_de_remparts")
+	verifier_egal(effets.elementaires().etats("carreau").size(), 3, "un tir puis deux sauts")
+	effets.free()
+
+
+# --- Herse de pieux : onde, repoussement -------------------------------------------------------
+
+
+func test_la_herse_de_pieux_est_une_onde_qui_repousse() -> void:
+	_verifier_arme("herse_de_pieux", "herse_pieux", "onde")
+	verifier_egal(_statut("herse_de_pieux"), "repoussement")
+	verifier_egal(AttaquesElementaires.planche_projectile("herse_pieux"), "", "rien ne part")
+
+
+func test_l_onde_de_pieux_a_le_rayon_et_la_vitesse_des_donnees() -> void:
+	var rayon: float = _rayon_px("herse_de_pieux", "rayon_max")
+	var vitesse: float = _rayon_px("herse_de_pieux", "vitesse")
+	verifier_proche(AttaqueHersePieux.RAYON_PX, rayon, 0.001, "rayon de data/armes.json")
+	verifier_proche(AttaqueHersePieux.VITESSE_PX, vitesse, 0.001, "vitesse de data/armes.json")
+
+
+func test_les_pieux_avancent_a_la_vitesse_de_l_onde_jusqu_au_rayon() -> void:
+	verifier(_a.onde("herse_pieux", TOUR))
+	var n: int = _a.etats("pique").size()
+	verifier_egal(n, AttaqueHersePieux.PIQUES, "un front de pieux")
+	_avancer(15)
+	var attendu: float = AttaqueHersePieux.VITESSE_PX * 15.0 * IMAGE
+	for pieu: Dictionary in _a.etats("pique"):
+		verifier_proche((pieu["position"] as Vector2).distance_to(TOUR), attendu, 1.0, "vitesse")
+	_avancer(60)
+	for pieu: Dictionary in _a.etats("pique"):
+		verifier(
+			(pieu["position"] as Vector2).distance_to(TOUR) <= AttaqueHersePieux.RAYON_PX + 0.5,
+			"jamais au-delà du rayon"
+		)
+
+
+func test_des_pointes_jaillissent_du_sol_quand_le_front_passe() -> void:
+	_a.onde("herse_pieux", TOUR)
+	var visibles: int = 0
+	for pointes: Dictionary in _a.etats("pointes_sol"):
+		visibles += 1 if pointes["visible"] else 0
+	verifier_egal(visibles, 0, "rien avant le passage du front")
+	_avancer(int(AttaqueHersePieux.RAYON_PX / AttaqueHersePieux.VITESSE_PX / IMAGE))
+	visibles = 0
+	for pointes: Dictionary in _a.etats("pointes_sol"):
+		visibles += 1 if pointes["visible"] else 0
+	verifier(visibles > 0, "les pointes sont sorties")
+	verifier(_a.diametre_max() <= AttaqueHersePieux.RAYON_PX * 2.0 * 1.1, "rien au-delà du rayon")
+
+
+func test_l_onde_de_pieux_s_efface_et_rend_le_pool() -> void:
+	_a.onde("herse_pieux", TOUR)
+	_avancer(120)
+	verifier_egal(_a.nombre_vivants(), 0)
+	verifier_egal(_a.particules_actives(), 0)
+
+
+func test_la_herse_de_pieux_dans_effets_se_dessine_au_depart_de_l_onde() -> void:
+	var effets: Effets = _effets_de("herse_de_pieux")
+	verifier_egal(
+		effets.elementaires().etats("pique").size(), AttaqueHersePieux.PIQUES, "un seul front"
+	)
+	verifier_egal(effets.formes_vivantes().has("anneau"), false, "plus d'anneau générique")
+	effets.free()
