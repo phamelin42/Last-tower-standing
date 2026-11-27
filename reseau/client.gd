@@ -162,10 +162,6 @@ func _a_la_connexion() -> void:
 	_connecte = true
 	_silence = 0.0
 	_cible = id_local()
-	_dire_bonjour()
-
-
-func _dire_bonjour() -> void:
 	var bonjour := Protocole.encoder_bonjour(_nom, donnees.empreinte, _jeton)
 	bonjour[1] = version_annoncee
 	_envoyer("rpc_bonjour", bonjour)
@@ -232,9 +228,6 @@ func _a_la_reception_salon(octets: PackedByteArray) -> void:
 	_silence = 0.0
 	salon = s
 	salon_mis_a_jour.emit(s)
-	# Un salon où je ne figure pas : le serveur l'a rouvert après la partie, je dois redire bonjour.
-	if _connecte and not s.lancee and not s.joueurs.has(id_local()):
-		_dire_bonjour()
 	if s.lancee and not _en_partie:
 		_en_partie = true
 		partie_demarree.emit()
