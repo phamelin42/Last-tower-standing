@@ -99,3 +99,50 @@ func test_mouvement_reduit_l_eclat_siphonneur_sans_particule() -> void:
 	_a.impacter("siphonneur", CIBLE, 0.0)
 	verifier_egal(_a.particules_actives(), 0)
 	verifier_egal(_a.etats("eclat_siphon").size(), 1, "l'éclat reste")
+
+
+# --- Lueur vagabonde : tir tournant de trois branches --------------------------------------------
+
+
+func test_la_lueur_vagabonde_est_un_tir_tournant_de_trois_branches() -> void:
+	_verifier_arme("lueur_vagabonde", "lueur", "tournant")
+	verifier_egal(int(_effet("lueur_vagabonde")["branches"]), 3, "trois branches")
+	verifier_egal(_statut("lueur_vagabonde"), "", "aucun statut")
+
+
+func test_chaque_lueur_file_droit_le_long_de_son_rayon_en_dix_images() -> void:
+	var bout: Vector2 = TOUR + Vector2.from_angle(deg_to_rad(120.0)) * 250.0
+	verifier_proche(_a.tirer("lueur", TOUR, bout) / IMAGE, 10.0, 0.01, "3 + 7 images")
+	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 7)
+	var lueur: Dictionary = _a.etats("lueur")[0]
+	verifier_proche(lueur["rotation"], deg_to_rad(120.0), 0.01, "elle regarde vers le bout")
+	verifier_egal(_a.etats("ombre").size(), 0, "pas d'ombre")
+
+
+func test_le_bout_du_rayon_a_la_largeur_du_rayon_et_ne_dit_pas_touche() -> void:
+	var largeur: float = _rayon_px("lueur_vagabonde", "largeur")
+	verifier(_a.impacter("lueur", CIBLE, largeur))
+	var eclat: Dictionary = _a.etats("eclat_rune")[0]
+	verifier_proche(eclat["diametre"], largeur * 2.0, 0.01, "à la largeur du rayon")
+	verifier(_a.diametre_max() <= 60.0, "petit")
+	verifier_egal(_a.etats("").size(), 0, "pas d'anneau : les rayons sont ceux d'Effets")
+	var total: int = AttaqueLueur.SEQ_ECLAT.size()
+	var rang: int = _rang_du_pic("eclat_rune", AttaqueLueur.IMAGE_PIC, total)
+	verifier(rang >= 0 and rang <= total / 4, "pic à l'image %d sur %d" % [rang, total])
+	_avancer(total + 30)
+	verifier_egal(_a.nombre_vivants(), 0, "tout se dissipe")
+	verifier_egal(_a.particules_actives(), 0)
+
+
+func test_la_lueur_dans_effets_envoie_une_lueur_par_branche() -> void:
+	var effets: Effets = _effets_de("lueur_vagabonde")
+	verifier_egal(effets.elementaires().etats("lueur").size(), 3, "trois lueurs")
+	effets.free()
+
+
+func test_mouvement_reduit_la_lueur_sans_particule() -> void:
+	_a.mouvement_reduit = true
+	_a.tirer("lueur", TOUR, CIBLE)
+	_a.impacter("lueur", CIBLE, 25.0)
+	verifier_egal(_a.particules_actives(), 0)
+	verifier_egal(_a.etats("eclat_rune").size(), 1, "l'éclat reste")

@@ -53,6 +53,7 @@ const ATTENDU: Dictionary = {
 	"couronne_de_pointes": "couronne_pointes",
 	"rune_de_veille": "rune_veille",
 	"eclat_siphonneur": "siphonneur",
+	"lueur_vagabonde": "lueur",
 }
 
 
