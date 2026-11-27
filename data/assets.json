@@ -2394,6 +2394,9 @@
           }
         }
       },
+      "images_vol": {
+        "couronne_etoiles": 12
+      },
       "elements": {
         "arbalete": [
           "carreau",

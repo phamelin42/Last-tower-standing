@@ -152,6 +152,7 @@ const FORME: Dictionary = {
 			"communes": ["texte"],
 			"planches": {"*": PLANCHE_MAISON},
 			"elements": {"*": ["texte"]},
+			"?images_vol": {"*": "entier"},
 		},
 	},
 	"sons":

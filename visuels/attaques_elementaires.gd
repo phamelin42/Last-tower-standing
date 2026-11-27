@@ -285,6 +285,10 @@ func tirer(element: String, depart: Vector2, arrivee: Vector2, retard: float = 0
 	var images_vol: int = int(
 		conf.get("images_vol", IMAGES_VOL_CLOCHE if cloche else IMAGES_VOL_DIRECT)
 	)
+	# Les données de `data/assets.json` l'emportent : un vol long (l'étoile de la couronne parcourt
+	# toute sa portée) s'y règle sans toucher au code.
+	if PlanchesEffets.images_vol(element) > 0:
+		images_vol = PlanchesEffets.images_vol(element)
 	var attente: float = retard + IMAGES_ANTICIPATION * IMAGE
 	var vol: float = images_vol * IMAGE
 	var sens: Vector2 = (arrivee - depart).normalized()
