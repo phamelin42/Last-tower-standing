@@ -66,7 +66,7 @@ func _maximum(vue: VueArene, duree_s: float) -> int:
 	while t < 1.0 + duree_s:
 		t += PAS_S
 		_arene.afficher_courant(t)
-		plus = maxi(plus, _arene.tirs_ennemis().tirs().size())
+		plus = maxi(plus, _arene.tirs_ennemis.tirs().size())
 	return plus
 
 
@@ -94,7 +94,7 @@ func test_le_projectile_va_du_tireur_vers_la_tour() -> void:
 		while t < 1.0 + 2.0 / cadence:
 			t += PAS_S
 			_arene.afficher_courant(t)
-			for tir: Dictionary in _arene.tirs_ennemis().tirs():
+			for tir: Dictionary in _arene.tirs_ennemis.tirs():
 				vu = true
 				var p: Vector2 = tir["pos"]
 				var x_max := Apparence.vers_pixels(depart).x
@@ -119,7 +119,7 @@ func test_sept_cents_tireurs_ne_depassent_pas_le_plafond_de_projectiles() -> voi
 		if _a_distance(i):
 			archer = i
 			break
-	var plafond := _arene.tirs_ennemis().plafond()
+	var plafond := _arene.tirs_ennemis.plafond()
 	var plus := _maximum(_vue(archer, _arret(archer), 700), 3.0)
 	verifier(plus >= 1, "des projectiles volent")
 	verifier(plus <= plafond, "au plus %d projectiles (vus %d)" % [plafond, plus])
@@ -128,7 +128,7 @@ func test_sept_cents_tireurs_ne_depassent_pas_le_plafond_de_projectiles() -> voi
 func test_le_plafond_le_vol_et_les_images_viennent_de_assets_json() -> void:
 	# Règle des assets remplaçables : changer de pack ne demande que de changer le JSON.
 	var reglages: Dictionary = Assets.section("tirs_ennemis")
-	verifier_egal(_arene.tirs_ennemis().plafond(), int(reglages["plafond"]))
+	verifier_egal(_arene.tirs_ennemis.plafond(), int(reglages["plafond"]))
 	for cle: String in ["fleche", "bombe"]:
 		var chemin: String = Apparence.RACINE + String((reglages[cle] as Dictionary)["chemin"])
 		verifier(ResourceLoader.exists(chemin), "%s : l'image existe (%s)" % [cle, chemin])
@@ -138,7 +138,7 @@ func test_le_plafond_le_vol_et_les_images_viennent_de_assets_json() -> void:
 	var arene := (load(SCENE) as PackedScene).instantiate() as Arene2D
 	arbre.root.add_child(arene)
 	arene.reinitialiser()
-	verifier_egal(arene.tirs_ennemis().plafond(), 3, "le plafond suit le JSON")
+	verifier_egal(arene.tirs_ennemis.plafond(), 3, "le plafond suit le JSON")
 	arene.get_parent().remove_child(arene)
 	arene.free()
 	Assets.reinitialiser()
