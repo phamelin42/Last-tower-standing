@@ -51,7 +51,7 @@ static func _valider_dessin(t: Dictionary, err: Array[String]) -> void:
 	if not dossier is String or not String(dossier).ends_with("/"):
 		Donnees._err(err, f, "dossier", "chemin de dossier terminé par « / » attendu")
 	var fanion: Variant = t.get("fanion")
-	if not fanion is String or not String(fanion).ends_with(".png"):
+	if not fanion is String or String(fanion).get_extension() != "png":
 		Donnees._err(err, f, "fanion", "nom d'un fichier .png du dossier attendu")
 	var fondu := _nombre(t, "fondu_s", 0.05, 2.0, err)
 	if (
