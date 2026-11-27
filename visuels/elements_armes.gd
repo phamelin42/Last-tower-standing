@@ -77,6 +77,17 @@ const VASQUE: String = "vasque"
 const NUEE: String = "nuee"
 const NOVA_CELESTE: String = "nova_celeste"
 
+## Les armes de siège du lot 9 : un élément par arme, comme la grande bombarde.
+const BARIL: String = "baril"
+const MAILLET: String = "maillet"
+const CATAPULTE: String = "catapulte"
+const OBUSIER: String = "obusier"
+const BRAISE: String = "braise"
+const ECRASEMENT: String = "ecrasement"
+const COLOSSE: String = "colosse"
+const RUINES: String = "ruines"
+const SALVE: String = "salve"
+
 const ELEMENTS: Array[String] = [
 	FEU,
 	GLACE,
@@ -135,6 +146,15 @@ const ELEMENTS: Array[String] = [
 	VASQUE,
 	NUEE,
 	NOVA_CELESTE,
+	BARIL,
+	MAILLET,
+	CATAPULTE,
+	OBUSIER,
+	BRAISE,
+	ECRASEMENT,
+	COLOSSE,
+	RUINES,
+	SALVE,
 ]
 
 ## id d'arme → élément.
@@ -196,6 +216,15 @@ const TABLE: Dictionary = {
 	"vasque_d_arcanes": VASQUE,
 	"nuee_d_etincelles": NUEE,
 	"nova_celeste": NOVA_CELESTE,
+	"baril_a_retardement": BARIL,
+	"maillet_de_rempart": MAILLET,
+	"catapulte_a_contrepoids": CATAPULTE,
+	"obusier_de_breche": OBUSIER,
+	"braise_de_siege": BRAISE,
+	"ecrasement_de_tour": ECRASEMENT,
+	"colosse_de_pierre": COLOSSE,
+	"champ_de_ruines": RUINES,
+	"salve_du_rempart": SALVE,
 }
 
 
