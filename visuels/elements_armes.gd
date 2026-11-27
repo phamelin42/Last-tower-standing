@@ -53,6 +53,7 @@ const FAUCHEUSE: String = "faucheuse"
 const FLEAU: String = "fleau"
 const HACHE: String = "hache"
 const SCIE: String = "scie"
+const MOISSONNEUSE: String = "moissonneuse"
 
 const ELEMENTS: Array[String] = [
 	FEU,
@@ -93,6 +94,7 @@ const ELEMENTS: Array[String] = [
 	FLEAU,
 	HACHE,
 	SCIE,
+	MOISSONNEUSE,
 ]
 
 ## id d'arme → élément.
@@ -135,6 +137,7 @@ const TABLE: Dictionary = {
 	"fleau_de_rasoirs": FLEAU,
 	"hache_de_garde": HACHE,
 	"scie_a_ruban": SCIE,
+	"moissonneuse_d_acier": MOISSONNEUSE,
 }
 
 

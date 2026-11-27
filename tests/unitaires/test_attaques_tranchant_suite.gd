@@ -172,3 +172,48 @@ func test_mouvement_reduit_la_scie_ne_tourne_pas_et_sans_particule() -> void:
 	verifier_proche(_a.etats("disque_scie")[0]["rotation"], 0.0, 0.0001, "pas de rotation")
 	_a.impacter_en_groupe("scie", CIBLE, 30.0)
 	verifier_egal(_a.particules_actives(), 0)
+
+
+# --- Moissonneuse d'acier : tir tournant à six branches ----------------------------------------
+
+
+func test_la_moissonneuse_est_un_tir_tournant_a_six_branches() -> void:
+	_verifier_arme("moissonneuse_d_acier", "moissonneuse", "tournant")
+	verifier_egal(int(_effet("moissonneuse_d_acier")["branches"]), 6, "six branches")
+
+
+func test_la_moissonneuse_dure_dix_images_et_ses_faucilles_tournent() -> void:
+	verifier_proche(_a.tirer("moissonneuse", TOUR, CIBLE) / IMAGE, 10.0, 0.01)
+	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 1)
+	var faucille: Dictionary = _a.etats("faucille")[0]
+	verifier(faucille["visible"], "la faucille vole")
+	var avant: float = faucille["rotation"]
+	_avancer(2)
+	verifier(absf(_a.etats("faucille")[0]["rotation"] - avant) > 0.3, "elle tourne en volant")
+
+
+func test_le_balayage_de_la_moissonneuse_a_la_largeur_reelle_du_rayon() -> void:
+	var largeur: float = _rayon_px("moissonneuse_d_acier", "largeur")
+	_a.impacter("moissonneuse", CIBLE, largeur)
+	var balayage: Array[Dictionary] = _a.etats("balayage")
+	verifier_egal(balayage.size(), 1, "un seul arc")
+	verifier_proche(balayage[0]["diametre"], largeur * 2.0, largeur * 2.0 * 0.1, "à la largeur")
+	verifier_proche(_a.diametre_max(), largeur * 2.0, largeur * 2.0 * 0.1)
+	verifier_egal(_a.particules_actives(), 1, "des éclats d'acier")
+	_avancer(80)
+	verifier_egal(_a.nombre_vivants(), 0, "tout se dissipe")
+	verifier_egal(_a.particules_actives(), 0)
+
+
+func test_la_moissonneuse_dans_effets_file_sur_ses_six_rayons_et_balaye_au_bout() -> void:
+	_verifier_tournant_dans_effets("moissonneuse_d_acier", "faucille", "balayage")
+
+
+func test_mouvement_reduit_la_moissonneuse_ne_tourne_pas_et_sans_particule() -> void:
+	_a.mouvement_reduit = true
+	_a.tirer("moissonneuse", TOUR, CIBLE)
+	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 2)
+	verifier_proche(_a.etats("faucille")[0]["rotation"], 0.0, 0.0001, "pas de rotation")
+	_a.impacter("moissonneuse", CIBLE, 30.0)
+	verifier_egal(_a.particules_actives(), 0)
+	verifier_egal(_a.etats("balayage").size(), 1, "l'arc reste")

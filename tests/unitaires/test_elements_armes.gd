@@ -41,6 +41,7 @@ const ATTENDU: Dictionary = {
 	"fleau_de_rasoirs": "fleau",
 	"hache_de_garde": "hache",
 	"scie_a_ruban": "scie",
+	"moissonneuse_d_acier": "moissonneuse",
 }
 
 
