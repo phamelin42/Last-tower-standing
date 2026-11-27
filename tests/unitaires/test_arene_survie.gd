@@ -15,6 +15,8 @@ var _compte: int = 0
 
 func avant_chaque() -> void:
 	d = Donnees.charger()
+	# Ce test vérifie l'ordre des couches, pas le prix de la mana : un point de mana par point de dégât.
+	(d.partie["tour"] as Dictionary)["mana_cout_par_pv"] = 1.0
 	_compte = 0
 
 
