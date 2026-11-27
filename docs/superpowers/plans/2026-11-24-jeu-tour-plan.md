@@ -2401,9 +2401,9 @@ décisions) se corrige sans attendre.
 
 - [ ] **Objectif :** fusionner les rapports de T10.1 et T10.2 dans `docs/revue_finale.md` : constats dédoublonnés, classés par gain pour le joueur et par coût, chacun avec sa preuve et sa source ; une section « conforme » qui dit ce qui a été vérifié sans rien trouver ; une section « à soumettre à Phil » pour ce qui toucherait à une de ses décisions. Puis plan des corrections (T10.5 et suivantes) par `superpowers:writing-plans`.
 
-### Task 10.4 : Assets remplaçables sans toucher au code — `sonnet`
+### Task 10.4 : Assets remplaçables sans toucher au code — `sonnet` — fait le 27/11/2026 (PR #122, #124, #148)
 
-- [ ] **Objectif :** décision de Phil du 26/11/2026 : « à l'avenir on changera peut-être les assets, il est donc
+- [x] **Objectif :** décision de Phil du 26/11/2026 : « à l'avenir on changera peut-être les assets, il est donc
       important qu'on ait juste besoin de remplacer les sprites ». Relever toute valeur propre à un fichier d'image ou de son
       écrite dans le code (régions `Rect2` de `ui/theme.gd` comme `CORPS_RUBAN` et `ZONE_ICONE`, `POINTEUR_POINTE`, cases et
       feuilles de `visuels/apparence.gd`, `visuels/decor.gd`, `visuels/attaques_elementaires.gd`, `visuels/arene_2d.gd`), puis
@@ -2415,6 +2415,12 @@ décisions) se corrige sans attendre.
   (une feuille factice d'une autre taille, décrite dans une donnée de test, se rend sans changer le code) ; en boucle,
   chaque entrée de la description pointe un fichier qui existe et dont les dimensions tiennent ses régions.
 - **Hors périmètre :** changer d'assets ; retoucher un sprite.
+- **Changer d'assets (décor réaliste, autre pack) :** remplacer les fichiers d'image ou de son, mettre à jour leur
+  description dans `data/assets.json`, puis relancer `tools/generer_recadrages.gd` (table des boîtes de
+  `visuels/recadrages.gd`, vérifiée contre les images par `test_recadrages`). Restent dans le code, acceptés par Phil le
+  27/11/2026 : les noms de fichiers de l'interface et des icônes (un sprite remplacé sous le même nom suffit), l'échelle
+  propre à une arme (`echelle` de son `CONF`), la boîte de collision du décor haut (`PlanDecor._base_de`) et le rythme des
+  effets (phases D22, plafonds, tailles d'impact choisies).
 
 # Lot 12 — Armes de fin de partie et niveaux d'arme (décision de Phil du 27/11/2026, D23)
 
