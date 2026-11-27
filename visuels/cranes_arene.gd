@@ -7,6 +7,10 @@ extends RefCounted
 ## Crânes affichés en même temps au plus ; les suivants de la même vue sont ignorés.
 const PLAFOND: int = 64
 
+## Mouvement réduit (D21) : chaque crâne reste sur l'image fixe des données, affiché aussi longtemps
+## que son animation, puis retiré.
+var mouvement_reduit: bool = false
+
 var _parent: Node2D = null
 var _texture: Texture2D = null
 var _regions: Array[Rect2] = []
@@ -68,10 +72,13 @@ func animer(horloge: float) -> void:
 		var image: int = int((horloge - _debuts[i]) * par_seconde)
 		if image >= images or image < 0:
 			sprite.visible = false
-		elif image != _images[i]:
-			_images[i] = image
-			sprite.region_rect = _regions[image]
-			sprite.offset = _decalages[image]
+		else:
+			if mouvement_reduit:
+				image = mini(PlanchesEffets.image_fixe("crane"), images - 1)
+			if image != _images[i]:
+				_images[i] = image
+				sprite.region_rect = _regions[image]
+				sprite.offset = _decalages[image]
 
 
 func nombre_visibles() -> int:

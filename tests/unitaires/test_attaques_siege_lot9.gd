@@ -138,10 +138,11 @@ func test_la_pierre_lestee_est_lancee_en_cloche_et_arrive_en_quatorze_images() -
 	verifier_egal(_a.etats("pierre_lestee").size(), 0, "arrivée, elle disparaît")
 
 
-func test_le_cratere_de_la_catapulte_reste_petit_sur_une_cible_seule_et_gele() -> void:
+func test_le_cratere_de_la_catapulte_est_de_la_taille_des_donnees_sur_une_cible_seule_et_gele(
+) -> void:
 	verifier(_a.impacter("catapulte", CIBLE, 0.0, true))
 	var cratere: Dictionary = _a.etats("cratere")[0]
-	verifier(cratere["diametre"] <= DIAMETRE_MAX_CIBLE_UNIQUE, "au plus 60 px sur une cible seule")
+	verifier_egal(cratere["diametre"], _diametre_siege_seul(), "la taille des données")
 	verifier_egal(_a.etats("").size(), 0, "pas d'anneau : la zone est la cible")
 	verifier(_a.gel_restant() > 0.0, "coup de siège : le gel visuel")
 	verifier(_a.particules_actives() >= 1, "des éclats de pierre")

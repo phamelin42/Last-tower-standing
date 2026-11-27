@@ -2431,6 +2431,36 @@ décisions) se corrige sans attendre.
   propre à une arme (`echelle` de son `CONF`), la boîte de collision du décor haut (`PlanDecor._base_de`) et le rythme des
   effets (phases D22, plafonds, tailles d'impact choisies).
 
+### Corrections de la revue visuelle (décisions de Phil du 27/11/2026)
+
+Issues de la synthèse de T10.3, validées par Phil le 27/11/2026. Les points 1 à 6 et 11 sont ailleurs (voir la synthèse) ;
+les cinq qui suivent touchent le rendu des attaques et des unités, dans `visuels/` et `data/assets.json`, sans toucher à
+`sim/` (hors la validation de `donnees_assets.gd`) ni à `reseau/`.
+
+- [x] **(7) Mouvement réduit = décor figé : fait.** Le décor animé, la flamme du boss et le crâne d'un ennemi mort se
+      figent sur une image fixe (`effets.mouvement_reduit` : décor 0, flamme 0, crâne 9, la tête posée droite) ; le crâne
+      reste affiché aussi longtemps qu'animé. L'horloge du décor et de la flamme s'arrête pendant le gel : à la reprise, en
+      cours de partie, rien ne saute. Tests : `test_mouvement_reduit_fige`.
+- [x] **(8) Le coup qui tue a son flash et son recul : fait.** À l'impact visible, l'ennemi retenu passe par
+      `ReactionsCoups` (flash de 3 images, recul, gel d'un coup fort) puis devient crâne ; mouvement réduit : flash gardé,
+      recul coupé (D21). Le crâne vient quand le flash est fini et au plus tard à `DELAI_MORT_MAX` (20 images, flash coupé
+      s'il le faut) ; le plafond d'éclats (`INTERVALLE_FLASH`, 12 ennemis par impact) tient pour une rafale de 40 morts.
+      Les deux tests de `test_arene_mort_retardee` qui figeaient l'ancien comportement sont inversés.
+- [x] **(9) Contour clair d'un pixel sur les tirs fins à cible unique : fait.** Calculé au chargement sur l'alpha de la
+      planche (`visuels/contours_tirs.gd`, aucun `ShaderMaterial`) ; liste, couleur et épaisseur dans `data/assets.json`
+      (`effets.contour_tirs`). Règle écrite et vérifiée par `test_contour_tirs` sur tout le catalogue : genre cible unique
+      ou rebond, hors siège, lame ou pointe (tranchant, perçant), empreinte mesurée au zoom 2,0 sous 100 px, planche non
+      partagée avec un autre genre ; la chaîne d'arcanes, trait tracé, reçoit un liseré de même donnée. Elle couvre aussi
+      lame de brume, flèche marquante, lance épineuse, couperet à épines, carreau de ricochet et arc de remparts, qui
+      partagent la planche d'une arme de la revue ou satisfont la même règle.
+- [x] **(10) Impacts de siège à cible seule plus grands : fait.** Catapulte, écrasement, colosse et canon souverain
+      (type siège, genre cible unique) frappent à 96 px au lieu de 48 (`effets.impact_siege_cible_unique`) : empreinte à
+      l'impact, zoom 2,0, de 55 à 154 px, 51 à 92 px et 86 à 218 px, sous les 100 px des plus petites zones de siège.
+      Exception à la règle D22 « cible unique : 60 px au plus », qui reste vraie pour les autres armes ; écrite dans
+      `CLAUDE.md` et dans les tests.
+- [ ] **(12) Marque de rareté des armes de fin de partie : en cours (autre session).** `visuels/attaques/attaque_tardive.gd`,
+      `raretes_tardives` de `data/assets.json`, planches de `couronne_du_vide` et `champ_de_ruines`.
+
 # Lot 12 — Armes de fin de partie et niveaux d'arme (décision de Phil du 27/11/2026, D23)
 
 Conception : §6.17 de `2026-11-25-retours-partie-design.md`, **validée par Phil le 27/11/2026** (Q1 dégâts et

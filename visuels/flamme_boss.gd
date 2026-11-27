@@ -5,6 +5,14 @@ extends Sprite2D
 ## La flamme dépasse sous les pieds du boss, que son corps large cacherait sinon.
 const DECALAGE_FLAMME: float = 10.0
 
+## Mouvement réduit (D21) : la flamme se fige sur l'image fixe des données et son horloge s'arrête.
+var mouvement_reduit: bool = false:
+	set(valeur):
+		if valeur == mouvement_reduit:
+			return
+		mouvement_reduit = valeur
+		_poser()
+
 var _temps: float = 0.0
 
 
@@ -23,8 +31,15 @@ static func creer() -> FlammeBoss:
 
 
 func _process(delta: float) -> void:
-	_temps += delta
+	if not mouvement_reduit:
+		_temps += delta
+	_poser()
+
+
+func _poser() -> void:
 	var feu: Dictionary = PlanchesEffets.pack("feu")
 	var case_px: Vector2i = feu["case"]
-	var image: int = int(_temps * float(feu["images_par_seconde"])) % int(feu["images"])
+	var image: int = PlanchesEffets.image_fixe("flamme_boss")
+	if not mouvement_reduit:
+		image = int(_temps * float(feu["images_par_seconde"])) % int(feu["images"])
 	region_rect = Rect2(image * case_px.x, 0.0, case_px.x, case_px.y)
