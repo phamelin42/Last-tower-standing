@@ -9,7 +9,6 @@ const EPSILON_TEMPS := 1e-9
 var _donnees: Donnees
 var _rng: RandomNumberGenerator
 var _derniere_famille: int = -1
-var _dernier_etait_convoi: bool = false
 
 
 func _init(donnees: Donnees, graine: int) -> void:
@@ -22,18 +21,15 @@ func _init(donnees: Donnees, graine: int) -> void:
 ## dont une majoritaire (`part_majoritaire` des apparitions, le reste partagé), tirées parmi celles
 ## que leur palier et leur modèle autorisent ; ou le convoi (composition unique d'index
 ## `familles.size()`). À appeler une fois par manche, dans l'ordre. La majoritaire n'est jamais
-## celle de la dernière manche normale, convoi intercalé compris ; le convoi ne vient jamais deux
-## manches de suite et pas avant `convoi.manche_min`.
+## celle de la dernière manche normale, convoi intercalé compris ; le convoi vient aux manches
+## multiples de `convoi.tous_les` (10, 20, 30…), sans tirage au sort (retour de Phil, 27/11).
 func tirer(manche: int) -> Composition:
 	var n := _donnees.familles.size()
 	if n == 0:
 		return Composition.unique(-1)
 	var convoi: Dictionary = _donnees.partie["convoi"]
-	var possible := manche >= int(convoi["manche_min"]) and not _dernier_etait_convoi
-	if possible and _rng.randf() < float(convoi["probabilite"]):
-		_dernier_etait_convoi = true
+	if manche >= 1 and manche % int(convoi["tous_les"]) == 0:
 		return Composition.unique(n)
-	_dernier_etait_convoi = false
 	var candidates := _familles_disponibles(manche)
 	var pool: Array[int] = []
 	for i: int in candidates:

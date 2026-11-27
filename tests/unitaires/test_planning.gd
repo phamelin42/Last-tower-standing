@@ -61,20 +61,35 @@ func test_famille_majoritaire_jamais_deux_fois_de_suite_sur_20_graines() -> void
 			derniere = t[i]
 
 
-func test_convoi_jamais_deux_manches_de_suite_ni_avant_sa_manche_min() -> void:
+func test_le_convoi_ne_vient_qu_aux_manches_multiples_de_tous_les_des_donnees() -> void:
+	# Retour de partie de Phil (27/11) : « le round gold bonus devrait être à manche fixe (toutes
+	# les 10 manches) » : le convoi n'est plus un tirage au sort.
 	var n := d.familles.size()
-	var manche_min: int = d.partie["convoi"]["manche_min"]
-	var vus := 0
+	var tous_les: int = int((d.partie["convoi"] as Dictionary)["tous_les"])
+	verifier_egal(tous_les, 10, "décision de Phil : toutes les 10 manches")
+	for g: int in GRAINES:
+		var t := _tirages(g, 100)
+		verifier_egal(t.size(), 100)
+		for i: int in t.size():
+			var manche := i + 1
+			verifier_egal(
+				t[i] == n,
+				manche % tous_les == 0,
+				"graine %d, manche %d : convoi %s" % [g, manche, t[i] == n]
+			)
+
+
+func test_le_convoi_vient_a_la_manche_10_20_30_et_jamais_deux_manches_de_suite() -> void:
+	var n := d.familles.size()
 	for g: int in GRAINES:
 		var t := _tirages(g, MANCHES)
+		var manches: Array[int] = []
 		for i: int in t.size():
-			if t[i] != n:
-				continue
-			vus += 1
-			verifier(i + 1 >= manche_min, "convoi trop tôt, manche %d" % (i + 1))
-			if i > 0:
-				verifier_different(t[i - 1], n, "deux convois de suite, graine %d" % g)
-	verifier(vus > 0, "le convoi apparaît au moins une fois sur 4 000 manches")
+			if t[i] == n:
+				manches.append(i + 1)
+		verifier_egal(manches.size(), MANCHES / 10, "graine %d : un convoi par dizaine" % g)
+		for k: int in manches.size():
+			verifier_egal(manches[k], 10 * (k + 1), "graine %d : convoi n° %d" % [g, k + 1])
 
 
 func test_chaque_famille_et_le_convoi_sortent() -> void:
