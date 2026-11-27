@@ -91,3 +91,12 @@ Conséquences pour toute mesure d'équilibrage :
 - Les armes de portée 300 sont trop courtes face aux archers : à vérifier si c'est voulu.
 - Les robots sont approximatifs ; une bonne stratégie humaine peut faire nettement mieux ou pire.
 - Mesure à 50 graines : après T9.22.
+
+## Niveaux d'arme et fin de la vente (T12.1 et T12.1b, 27/11/2026)
+
+Un doublon monte l'arme de niveau (+30 % de dégâts de base, `niveaux.gain_degats`, et un gain de cadence
+`niveaux.gain_cadence`), la vente disparaît, et le robot « bonne » ne vend plus ; il monte les niveaux d'une
+arme déjà portée quand l'arsenal est plein (`GAIN_NIVEAU` de `strategies_joueur.gd`). Robot « bonne », arrêt à
+la manche 20, graines 1 à 10 : `gain_cadence` 0,10 → 19 pour la graine 6 (les autres 20) ; 0,15 → 18 pour la
+graine 6 ; **0,20 → 20 sur les dix graines**, valeur retenue. La graine 6 est sensible : une mesure à 50 graines
+et un nouveau réglage sont l'objet de T12.9.

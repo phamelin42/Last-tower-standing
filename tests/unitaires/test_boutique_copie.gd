@@ -115,16 +115,16 @@ func test_acheter_la_copie_elle_meme_ne_se_double_pas_avec_elle_meme() -> void:
 	verifier_egal(_nombre("cible_0"), 2, "elle double l'achat suivant")
 
 
-func test_une_arme_est_copiee_si_la_tour_a_de_la_place_et_sans_amelioration_rien_ne_change(
-) -> void:
+func test_une_arme_copiee_gagne_un_niveau_gratuit_et_sans_amelioration_rien_ne_change() -> void:
 	var id_arme: String = d.armes.keys()[0]
 	d.armes[id_arme]["rarete"] = Types.Rarete.COMMUNE
 	_boutique.offres = [
 		{"id": id_arme, "genre": Types.Genre.ARME, "rarete": 0, "prix": 10, "vendu": false}
 	]
 	_acheter(0)
-	verifier_egal(_inventaire.armes.size(), 1, "sans la charge, un seul exemplaire")
+	verifier_egal(_inventaire.niveau(id_arme), 1, "sans la charge, niveau 1")
 	_inventaire.ameliorations["copie_0"] = 1
 	_boutique.offres[0]["vendu"] = false
 	_acheter(0)
-	verifier_egal(_inventaire.armes.size(), 3, "un achat et sa copie gratuite")
+	verifier_egal(_inventaire.niveau(id_arme), 3, "un achat et sa copie gratuite : deux niveaux")
+	verifier_egal(_inventaire.armes.size(), 1, "l'arme reste unique")

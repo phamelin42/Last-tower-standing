@@ -308,12 +308,12 @@ func test_les_armes_communes_du_type_possedees_viennent_de_la_lecture() -> void:
 	)
 	var def := _arme_de_classe("aucune")
 	var lecture := Tir.Lecture.new()
-	lecture.exemplaires = {
+	lecture.niveaux = {
 		"sablier_fele": 2, "etincelle_runique": 1, "faucille_a_ressort": 3, "disque_scie": 4
 	}
 	# Chaos communes : sablier_fele ×2 ; les armes d'un autre type ou peu communes ne comptent pas.
 	_p(_degats_du_tir(def, lecture), 12.0, "deux communes du chaos : ×1,2")
-	lecture.exemplaires = {}
+	lecture.niveaux = {}
 	_p(_degats_du_tir(def, lecture), 10.0, "aucune commune")
 	var comptes := Tir.communes_par_type(
 		{"sablier_fele": 2, "faucille_a_ressort": 3, "disque_scie": 4}, d

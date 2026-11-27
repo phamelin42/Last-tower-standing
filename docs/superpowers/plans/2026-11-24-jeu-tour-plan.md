@@ -2430,7 +2430,7 @@ des propositions que la mesure de T12.9 confirme ou corrige.
 #   ajouter(id) : une arme déjà portée monte son niveau ; niveau(id) -> int ; plus de retirer_arme ni de prix_vente
 # sim/types.gd : Rarete gagne ANCESTRALE et SOUVERAINE à la fin (NOMS_RARETES : "ancestrale", "souveraine") ;
 #   Resultat.ARMES_AU_MAXIMUM n'est plus renvoyé (conservé dans l'énumération, test qui le dit)
-# data/partie.json : "niveaux": {"gain_degats": 0.30, "gain_cadence": 0.10, "cadence_max": 3.0} ; la clé "vente_ratio" disparaît
+# data/partie.json : "niveaux": {"gain_degats": 0.30, "gain_cadence": 0.20, "cadence_max": 3.0} ; la clé "vente_ratio" disparaît
 # sim/arme_equipee.gd : recharge_effective(stats, niveau) : cadence = stats.cadence + gain_cadence × (niveau − 1), bornée par cadence_max
 # Boutique.vendre, Arene.vendre, Partie.intention_vendre, Client.vendre, Serveur (intention) : supprimés
 # sim/tir.gd : degats_de_base(..., niveau: int, ...) remplace le paramètre `exemplaires`
@@ -2622,13 +2622,13 @@ validation de Phil sur la planche ; T12.9 après T12.1 à T12.7b ; T12.11 apr�
   de 10 minutes de combat sur ≥ 5 graines sur 10 (souhaité : 5 minutes) ; (3) D16 et D17 intactes, robot de
   référence jamais éliminé avant la manche 20, médiane du raisonnable de 18 à 25.
 - **Leviers :** gain de dégâts par niveau (`niveaux.gain_degats`) et **gain de cadence par niveau
-  (`niveaux.gain_cadence`, 0,10 : valeur à confirmer par cette mesure)**, rendement, prix et poids des raretés
+  (`niveaux.gain_cadence`, 0,20 : retenue par T12.1, à reconfirmer par cette mesure)**, rendement, prix et poids des raretés
   tardives, valeur des améliorations tardives ; **jamais** un plafond de PV du boss ni de la rampe.
 - **Fichiers :** `tests/outils/strategies_joueur.gd`, `tests/outils/simulation_equilibrage.gd`, `data/`,
   `docs/equilibrage.md`, `tools/equilibrage.gd` ; tests `test_equilibrage_partie.gd`.
 - **Tests :** `test_le_boss_n_est_pas_plafonne` (lit `data/ennemis.json` et `data/difficulte.json`) ;
   `test_les_cibles_du_robot_sont_tenues` (robots sans vente) ; mesure du gain de cadence : le même robot à
-  `gain_cadence` 0, 0,10 et 0,20, graines 1 à 10, et le choix consigné ; mesure de base avant le lot reprise dans `docs/equilibrage.md` (ci-dessus :
+  `gain_cadence` 0, 0,10, 0,20 et 0,30, graines 1 à 10, et le choix consigné ; mesure de base avant le lot reprise dans `docs/equilibrage.md` (ci-dessus :
   or au boss de 160 à 1 040 sauf la graine 1, combats de 2 200 et 2 691 s, six graines sans victoire en 3 070 s).
 - **Dépend de :** T12.1 à T12.7b.
 

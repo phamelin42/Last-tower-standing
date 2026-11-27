@@ -331,7 +331,6 @@ func test_intentions_d_un_id_inconnu_ou_mort_sont_refusees_sans_exception() -> v
 		var motif := "id %d" % id
 		verifier_egal(p.intention_acheter(id, 0), Types.Resultat.ARENE_MORTE, motif)
 		verifier_egal(p.intention_relancer(id), Types.Resultat.ARENE_MORTE, motif)
-		verifier_egal(p.intention_vendre(id, 0), Types.Resultat.ARENE_MORTE, motif)
 		verifier_egal(p.intention_marche_noir(id, "x"), Types.Resultat.ARENE_MORTE, motif)
 	verifier_egal(
 		p.intention_acheter(2, 99), Types.Resultat.INDICE_INVALIDE, "un vivant : l'arène répond"
@@ -343,3 +342,7 @@ func test_intentions_avant_le_demarrage() -> void:
 	p.ajouter_joueur(1, "Ali")
 	verifier_egal(p.intention_acheter(1, 0), Types.Resultat.MAUVAISE_PHASE)
 	verifier_egal(p.intention_acheter(2, 0), Types.Resultat.ARENE_MORTE)
+
+
+func test_la_vente_n_existe_plus_dans_la_partie() -> void:
+	verifier_faux(AidesPartie.partie(_donnees_tomber(), GRAINE, 2).has_method("intention_vendre"))

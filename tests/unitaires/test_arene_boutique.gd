@@ -1,5 +1,5 @@
 extends CasDeTest
-## Arène, côté joueur : revenus, primes, achats, ventes, relances, marché noir.
+## Arène, côté joueur : revenus, primes, achats, relances, marché noir.
 
 const DT := 0.05
 const GRAINE := 31
@@ -126,7 +126,7 @@ func test_le_bonus_est_verse_meme_si_la_serie_meurt_au_meme_pas() -> void:
 	verifier_egal(a.economie.argent, 500 + n + int(effet["or"]), "n primes + un bonus")
 
 
-# --- Achat, vente, relance ---------------------------------------------------------------------
+# --- Achat, relance ---------------------------------------------------------------------
 
 
 func test_acheter_pendant_la_preparation_debite_le_prix_exact() -> void:
@@ -171,52 +171,34 @@ func test_or_insuffisant_ne_debite_rien() -> void:
 func test_la_neuvieme_et_la_quarantieme_arme_sont_achetees_et_debitees() -> void:
 	var a := Arene.new(d, GRAINE)
 	a.economie.argent = 100000
+	var ids: Array = d.armes.keys().slice(0, 40)
+	var total := 0
 	for k: int in 40:
-		_poser_offre(a, 0, "de_pipe")
+		var id := str(ids[k])
+		_poser_offre(a, 0, id)
+		total += int(d.armes[id]["prix"])
 		verifier_egal(a.acheter(0), Types.Resultat.OK, "achat %d" % (k + 1))
-	verifier_egal(
-		a.economie.argent,
-		100000 - 40 * int(d.armes["de_pipe"]["prix"]),
-		"quarante achats débités exactement"
-	)
+	verifier_egal(a.economie.argent, 100000 - total, "quarante achats débités exactement")
 	var vue := _vue(a)
 	verifier_egal(vue.armes.size(), 40, "la vue porte les 40 armes")
 	for arme: Dictionary in vue.armes:
-		verifier_egal(arme["id"], "de_pipe")
 		var ratio := float(arme["recharge_ratio"])
 		verifier(ratio >= 0.0 and ratio <= 1.0, "recharge %s" % ratio)
 
 
-func test_vendre_une_arme_rend_la_moitie_du_prix() -> void:
+func test_racheter_une_arme_montee_de_niveau_la_garde_unique_et_ne_rend_rien() -> void:
 	var a := Arene.new(d, GRAINE)
 	_poser_offre(a, 0, "orbe_de_brume")  # 130
 	a.acheter(0)
-	verifier_egal(a.economie.argent, 370)
-	verifier_egal(a.vendre(0), Types.Resultat.OK)
-	verifier_egal(a.economie.argent, 435, "vente à 50 % : +65")
-	verifier_egal(_vue(a).armes.size(), 0)
+	_poser_offre(a, 1, "orbe_de_brume")
+	verifier_egal(a.acheter(1), Types.Resultat.OK)
+	verifier_egal(a.economie.argent, 240, "deux achats payés plein pot")
+	verifier_egal(_vue(a).armes.size(), 1, "une seule arme portée")
+	verifier_egal(a.inventaire.niveau("orbe_de_brume"), 2)
 
 
-func test_vendre_une_arme_en_pleine_recharge_ne_derange_pas_les_autres() -> void:
-	var a := Arene.new(d, GRAINE)
-	a.inventaire.ajouter("sablier_fele")  # recharge 2,5 s, portée 300
-	a.inventaire.ajouter("de_pipe")  # portée 600
-	a.synchroniser()
-	a.ennemis.ajouter(0, Vector2(250, 0), 4000.0, 0.0, 0.0, 30.0, 1.0, 1, 4)
-	_avancer(a, 5)
-	var avant := _vue(a)
-	verifier_egal(avant.armes.size(), 2)
-	verifier(float(avant.armes[0]["recharge_ratio"]) > 0.0, "le sablier est en recharge")
-	var ratio_pipe := float(avant.armes[1]["recharge_ratio"])
-	var argent := a.economie.argent
-	verifier_egal(a.vendre(0), Types.Resultat.OK)
-	verifier_egal(a.economie.argent, argent + 55, "110 / 2")
-	var apres := _vue(a)
-	verifier_egal(apres.armes.size(), 1)
-	verifier_egal(apres.armes[0]["id"], "de_pipe")
-	verifier_proche(float(apres.armes[0]["recharge_ratio"]), ratio_pipe, 0.0001, "recharge intacte")
-	_avancer(a, 100)
-	verifier_egal(_vue(a).armes.size(), 1, "la simulation continue sans erreur")
+func test_la_vente_n_existe_plus() -> void:
+	verifier_faux(Arene.new(d, GRAINE).has_method("vendre"))
 
 
 func test_relance_debite_puis_augmente() -> void:

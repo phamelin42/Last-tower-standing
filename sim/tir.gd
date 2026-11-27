@@ -28,14 +28,17 @@ class Bilan:
 
 
 ## Ce que la tour sait de son inventaire et de la partie, lu une fois par pas par l'arène : sans lui
-## (les tests de tir), une arme n'a ni PV maximum, ni exemplaires, ni améliorations à compter.
+## (les tests de tir), une arme n'a ni PV maximum, ni niveau, ni améliorations à compter.
 class Lecture:
 	var pv_max_tour: float = 0.0
 	var temps_s: float = 0.0
 	## Vrai quand la tour a encore de la mana : `degats_tant_que_mana` ne joue que alors.
 	var mana_active: bool = false
-	## id d'arme → nombre d'exemplaires équipés.
-	var exemplaires: Dictionary = {}
+	## id d'arme → niveau de l'arme portée (chaque niveau compte comme un achat).
+	var niveaux: Dictionary = {}
+	## `partie.json` `niveaux.gain_degats` : part des dégâts de base gagnée par niveau au-dessus du
+	## premier.
+	var gain_degats: float = 0.0
 	## stat d'amélioration → nombre d'améliorations possédées qui la portent (chaque achat compte).
 	var ameliorations_par_stat: Dictionary = {}
 	## Zones et bombes de l'arène : sans elles (tests de tir), une arme qui pose ne pose rien.
@@ -127,7 +130,7 @@ static func avancer_arme(
 			var effet: Dictionary = brut
 			ctx.genre = VueArene.genre_depuis_nom("aura")
 			if effet["kind"] == "aura" and _aura(ctx, effet):
-				arme.aura_restante = float(effet["periode"]) / (1.0 + maxf(stats.cadence, 0.0))
+				arme.aura_restante = float(effet["periode"]) / (1.0 + arme.cadence_totale(stats))
 
 
 static func _creer(
@@ -162,17 +165,18 @@ static func _creer(
 		arme.def,
 		stats,
 		vue_tour.pv_max_tour,
-		int(vue_tour.exemplaires.get(arme.id, 1)),
+		maxi(int(vue_tour.niveaux.get(arme.id, 1)), 1),
 		vue_tour.ameliorations_par_stat,
 		vue_tour.temps_s,
 		mana_max,
-		plafond
+		plafond,
+		vue_tour.gain_degats
 	)
 	var reglages: Dictionary = donnees.partie.get("ameliorations", {})
 	ctx.facteur_max = float(reglages.get("facteur_degats_max", INF))
 	var communes := PackedInt32Array([0, 0, 0, 0, 0])
 	if stats.a_des_degats_dynamiques():
-		communes = communes_par_type(vue_tour.exemplaires, donnees)
+		communes = communes_par_type(vue_tour.niveaux, donnees)
 	var temps_s := vue_tour.temps_s
 	ctx.facteur_fixe = (
 		stats.facteur_degats_type(ctx.type_degats, temps_s, communes[ctx.type_degats])
@@ -207,22 +211,22 @@ static func facteur_degats(ctx: Contexte, bits_ennemi: int) -> float:
 
 
 ## Armes communes équipées, par `Types.TypeDegats` : de quoi nourrir `par_arme_commune`. Chaque
-## exemplaire compte ; un id inconnu est ignoré.
-static func communes_par_type(exemplaires: Dictionary, donnees: Donnees) -> PackedInt32Array:
+## niveau compte comme un achat ; un id inconnu est ignoré.
+static func communes_par_type(niveaux: Dictionary, donnees: Donnees) -> PackedInt32Array:
 	var comptes := PackedInt32Array([0, 0, 0, 0, 0])
-	for id: Variant in exemplaires:
+	for id: Variant in niveaux:
 		var arme: Dictionary = donnees.armes.get(id, {})
 		if arme.is_empty() or int(arme["rarete"]) != Types.Rarete.COMMUNE:
 			continue
 		var type_degats := int(arme["type_degats"])
 		if type_degats >= 0 and type_degats < comptes.size():
-			comptes[type_degats] += maxi(int(exemplaires[id]), 0)
+			comptes[type_degats] += maxi(int(niveaux[id]), 0)
 	return comptes
 
 
 ## Dégâts de base d'une arme avant les bonus de type et global : ses dégâts, plus `ratio × mana
 ## maximale` (T8.7), plus la somme des trois bonus « selon » (`degats_par_pv_max × PV maximum de la
-## tour`, `degats_par_exemplaire × (exemplaires − 1) × dégâts`, `ratio × améliorations possédées
+## tour`, `degats_par_exemplaire × (niveau − 1) × dégâts`, `ratio × améliorations possédées
 ## portant la stat × dégâts`) bornée à `bonus_max × dégâts` ; le tout multiplié par le facteur
 ## d'épines pour une arme dont `type_secondaire` est « epines ». Fonction pure : un champ absent ou
 ## nul ne change rien, un nombre non fini est ignoré.
@@ -230,20 +234,20 @@ static func degats_de_base(
 	arme: Dictionary,
 	stats: StatsTour,
 	pv_max_tour: float,
-	exemplaires: int,
+	niveau: int,
 	ameliorations_par_stat: Dictionary,
 	temps_s: float,
 	mana_max: float = 0.0,
-	bonus_max: float = BONUS_SELON_STAT_MAX_DEFAUT
+	bonus_max: float = BONUS_SELON_STAT_MAX_DEFAUT,
+	gain_degats: float = 0.0
 ) -> float:
 	var base := float(arme.get("degats", 0.0))
-	var total := base
+	# D23 : chaque niveau au-dessus du premier ajoute `gain_degats` fois les dégâts de base.
+	var total := base * (1.0 + _positif(gain_degats) * float(maxi(niveau - 1, 0)))
 	total += _positif(float(arme.get("degats_par_mana_max", 0.0))) * _positif(mana_max)
 	var selon := _positif(float(arme.get("degats_par_pv_max", 0.0))) * _positif(pv_max_tour)
 	selon += (
-		_positif(float(arme.get("degats_par_exemplaire", 0.0)))
-		* float(maxi(exemplaires - 1, 0))
-		* base
+		_positif(float(arme.get("degats_par_exemplaire", 0.0))) * float(maxi(niveau - 1, 0)) * base
 	)
 	var par_amelioration: Dictionary = arme.get("degats_par_amelioration", {})
 	if not par_amelioration.is_empty():

@@ -12,6 +12,8 @@ const TOUTES: Array[String] = [PASSIVE, RAISONNABLE, BONNE]
 
 const ACHATS_MAX_PAR_APPEL := 24
 ## Or gardé de côté par les stratégies actives, pour ne pas se vider sur une relance.
+## Part du débit de dégâts de base qu'un niveau de plus ajoute (+30 % de dégâts, +10 % de cadence).
+const GAIN_NIVEAU := 0.56
 const RESERVE := 60
 ## La « bonne » stratégie investit dans l'économie jusqu'à cette manche, puis dans les dégâts.
 const MANCHES_ECONOMIE := 8
@@ -36,8 +38,6 @@ static func jouer(
 			return achetes
 		if v.marche_noir_ouvert:
 			_marche_noir(p, d, id, nom, v.manche)
-		if nom == BONNE and v.manche >= MANCHES_ECONOMIE and _remplacer(p, d, id, v):
-			continue
 		var index := _choisir(nom, v, d)
 		if index >= 0:
 			var offre: Dictionary = v.offres[index]
@@ -49,29 +49,6 @@ static func jouer(
 			continue
 		return achetes
 	return achetes
-
-
-## Arsenal plein : vend la plus faible arme si une offre la dépasse nettement en dégâts estimés.
-static func _remplacer(p: Partie, d: Donnees, id: int, v: VueArene) -> bool:
-	if v.armes.size() < ARMES_VISEES:
-		return false
-	var faible := -1
-	var dps_faible := INF
-	for i: int in v.armes.size():
-		var dps := Equilibrage.dps_estime(d.armes[str(v.armes[i]["id"])])
-		if dps < dps_faible:
-			dps_faible = dps
-			faible = i
-	var arme_faible: Dictionary = d.armes[str(v.armes[faible]["id"])]
-	var vente := int(float(arme_faible["prix"]) * float(d.partie["vente_ratio"]))
-	for offre: Dictionary in v.offres:
-		if bool(offre["vendu"]) or int(offre["genre"]) != Types.Genre.ARME:
-			continue
-		var cand: Dictionary = d.armes[str(offre["id"])]
-		if int(offre["prix"]) > v.argent + vente or Equilibrage.dps_estime(cand) < dps_faible * 2.0:
-			continue
-		return p.intention_vendre(id, faible) == Types.Resultat.OK
-	return false
 
 
 static func _marche_noir(p: Partie, d: Donnees, id: int, nom: String, manche: int) -> void:
@@ -127,10 +104,12 @@ static func _valeur_offre(
 	var prix := float(maxi(int(offre["prix"]), 1))
 	if int(offre["genre"]) == Types.Genre.ARME:
 		var visees := ARMES_VISEES_RAISONNABLE if nom == RAISONNABLE else ARMES_VISEES
-		if v.armes.size() >= visees:
+		var possedee := _niveau_de(v, str(offre["id"])) > 0
+		# Arsenal plein : seul un niveau de plus d'une arme déjà portée reste intéressant (D23).
+		if v.armes.size() >= visees and not possedee:
 			return 0.0
 		var a: Dictionary = d.armes[str(offre["id"])]
-		var base := Equilibrage.rendement(a)
+		var base := Equilibrage.rendement(a) * (GAIN_NIVEAU if possedee else 1.0)
 		if nom == BONNE:
 			var t: int = Types.type_depuis_nom(str(a["type_degats"]))
 			var eff := 1.0
@@ -149,6 +128,15 @@ static func _valeur_offre(
 	if nom == BONNE and v.armes.size() < 3 and v.manche >= MANCHES_ECONOMIE:
 		poids = 0.3
 	return _valeur_amelioration(amelioration, types_possedes, nom, v.manche) / prix * poids
+
+
+## Niveau de l'arme `id` dans la vue (0 si elle n'est pas portée). La vue ne le porte pas encore
+## (T12.3) : une arme portée compte pour un niveau.
+static func _niveau_de(v: VueArene, id: String) -> int:
+	for arme: Dictionary in v.armes:
+		if str(arme["id"]) == id:
+			return 1
+	return 0
 
 
 ## Vrai si une arme figure dans les offres encore à vendre (sinon on ne bloque pas les achats).

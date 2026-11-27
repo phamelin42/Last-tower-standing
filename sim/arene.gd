@@ -80,6 +80,10 @@ var _pv_max_connu: float = 0.0
 var _mana_max_connu: float = 0.0
 var _eliminations: int = 0
 var _degats_infliges: float = 0.0
+## `partie.json` `niveaux` (D23) : gains de dégâts et de cadence par niveau, plafond de cadence.
+var _gain_degats_niveau: float = 0.0
+var _gain_cadence_niveau: float = 0.0
+var _cadence_max: float = INF
 var _detruite: bool = false
 ## La résurrection ne joue qu'une fois par partie.
 var _ressuscitee: bool = false
@@ -112,6 +116,10 @@ func _init(donnees: Donnees, graine: int) -> void:
 	_armure_tour = float(tour["armure"])
 	_part_minimale_subie = 1.0 - float(partie["reduction_degats_max"])
 	_esquive_k = float(partie["esquive_k"])
+	var niveaux: Dictionary = partie["niveaux"]
+	_gain_degats_niveau = float(niveaux["gain_degats"])
+	_gain_cadence_niveau = float(niveaux["gain_cadence"])
+	_cadence_max = float(niveaux["cadence_max"])
 	_intervalle_depart = float(partie["spawn_intervalle_depart"])
 	_baisse_par_manche = float(partie["spawn_baisse_par_manche"])
 	_plancher = float(partie["spawn_plancher"])
@@ -522,7 +530,8 @@ func _pas_armes(dt: float) -> void:
 	lecture.pv_max_tour = _pv_max()
 	lecture.temps_s = _temps
 	lecture.mana_active = mana > 0.0
-	lecture.exemplaires = inventaire.comptes_armes()
+	lecture.niveaux = inventaire.niveaux
+	lecture.gain_degats = _gain_degats_niveau
 	lecture.ameliorations_par_stat = inventaire.comptes_stats()
 	lecture.poses = poses
 	lecture.allies = allies
@@ -642,15 +651,6 @@ func relancer() -> int:
 	return int(retour[0])
 
 
-func vendre(index_arme: int) -> int:
-	if _detruite:
-		return Types.Resultat.ARENE_MORTE
-	var resultat := boutique.vendre(index_arme, economie, inventaire)
-	if resultat == Types.Resultat.OK:
-		synchroniser()
-	return resultat
-
-
 func choisir_marche_noir(id: String) -> int:
 	if _detruite:
 		return Types.Resultat.ARENE_MORTE
@@ -662,7 +662,7 @@ func choisir_marche_noir(id: String) -> int:
 
 
 ## Recalcule les statistiques et aligne les armes montées sur l'inventaire : une arme déjà
-## montée garde sa recharge, une vente retire seulement la sienne. Appelée après chaque
+## montée garde sa recharge, un niveau de plus ne la remet pas à zéro. Appelée après chaque
 ## intention qui change l'inventaire (et par les tests qui l'équipent directement).
 func synchroniser() -> void:
 	_stats = _stats_de_la_tour()
@@ -679,6 +679,7 @@ func synchroniser() -> void:
 				break
 		if trouvee == null:
 			trouvee = ArmeEquipee.new(_donnees.armes[id])
+		trouvee.definir_niveau(inventaire.niveau(id), _gain_cadence_niveau, _cadence_max)
 		nouvelles.append(trouvee)
 	armes = nouvelles
 	# Un objet de PV max soigne du même montant ; si le maximum baisse, les PV se recalent.

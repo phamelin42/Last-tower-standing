@@ -567,10 +567,10 @@ dans les achats de fin de partie, et d'**or qui s'accumule** (primes) quand la p
   l'état de tir ne se multiplie plus.
 - **Gain par niveau** (**Phil : « 30 % is good but cadence need to get better as well »**) :
   **+30 % des dégâts de base** de l'arme, **additif** (dégâts du niveau n = base × (1 + 0,30 ×
-  (n − 1))), **et** une cadence qui monte aussi : **+10 % de cadence par niveau**, additif
-  (cadence du niveau n = cadence de base × (1 + 0,10 × (n − 1)), s'ajoutant à la cadence des
+  (n − 1))), **et** une cadence qui monte aussi : **+20 % de cadence par niveau**, additif
+  (cadence du niveau n = cadence de base × (1 + 0,20 × (n − 1)), s'ajoutant à la cadence des
   améliorations). Ces deux facteurs vivent dans `data/partie.json` (`niveaux.gain_degats` 0,30 et
-  `niveaux.gain_cadence` 0,10) ; **0,10 est une valeur à confirmer par la mesure T12.9** (levier
+  `niveaux.gain_cadence` 0,20) ; **0,20 est la valeur retenue par la mesure de T12.1 (le robot de référence tombait à la manche 19 avec 0,10 et tient la 20 sur les dix graines avec 0,20), à reconfirmer par T12.9** (levier
   de la passe d'équilibrage). La cadence totale d'une arme (améliorations et niveaux) est bornée
   par `niveaux.cadence_max` (proposition : +300 %, soit une recharge divisée par quatre ; aucun
   plafond de cadence n'existe aujourd'hui, voir le risque 9). Seuls les **dégâts et la cadence**
@@ -578,8 +578,8 @@ dans les achats de fin de partie, et d'**or qui s'accumule** (primes) quand la p
   globaux et d'améliorations s'appliquent ensuite comme aujourd'hui.
 - **Prix d'un niveau** : le **prix de l'arme** (sans surcoût, puisque le niveau fait monter
   dégâts et cadence). Le premier niveau ajoute environ 43 % du débit de dégâts de base (×1,3 de
-  dégâts et ×1,1 de cadence) pour le prix plein : une arme nouvelle (100 % du débit de base)
-  reste **2,3 fois plus rentable qu'un niveau**, ce qui pousse à diversifier, et le niveau reste
+  dégâts et ×1,2 de cadence) pour le prix plein : une arme nouvelle (100 % du débit de base)
+  reste **1,8 fois plus rentable qu'un niveau**, ce qui pousse à diversifier, et le niveau reste
   le moyen de convertir de l'or quand la boutique ne propose rien de neuf.
 - **Plafond** : aucun niveau maximal par défaut (D2) ; le réseau borne le niveau à 255 (un octet).
 - **Pas de vente** (Phil, Q4) : voir §6.17.4. Une arme achetée reste portée jusqu'à la fin de la
@@ -641,8 +641,8 @@ dans les achats de fin de partie, et d'**or qui s'accumule** (primes) quand la p
 #### 6.17.6 Risques
 
 1. **Le premier tiers de la partie change** : aujourd'hui, 2 exemplaires d'une arme à 100 or
-   valent +100 % de dégâts ; un niveau vaut +30 % de dégâts et +10 % de cadence, soit environ
-   ×1,43 sur le débit de dégâts de l'arme au lieu de ×2. La rampe D16/D17 (la tour passive tombe en
+   valent +100 % de dégâts ; un niveau vaut +30 % de dégâts et +20 % de cadence, soit environ
+   ×1,56 sur le débit de dégâts de l'arme au lieu de ×2. La rampe D16/D17 (la tour passive tombe en
    manche 3, le robot « bonne » tient la manche 20) se rejoue ; les gains par niveau sont le premier
    levier (T12.9).
 2. **Les robots achètent des doublons et vendent** (6 à 8 armes distinctes sur 8 ; la stratégie
@@ -677,7 +677,7 @@ dans les achats de fin de partie, et d'**or qui s'accumule** (primes) quand la p
 
 | #   | Question                                                 | Réponse / défaut retenu                                                                                                 |
 | --- | -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| Q1  | Gain d'un niveau                                         | **Phil : « 30 % is good but cadence need to get better as well »** : +30 % de dégâts **et** +10 % de cadence par niveau |
+| Q1  | Gain d'un niveau                                         | **Phil : « 30 % is good but cadence need to get better as well »** : +30 % de dégâts **et** +20 % de cadence par niveau |
 | Q2  | Un niveau maximal                                        | Défaut : **aucun** (D2), 255 pour le réseau                                                                             |
 | Q3  | Prix d'un niveau                                         | Défaut : **le prix de l'arme**, sans surcoût                                                                            |
 | Q4  | Vendre une arme                                          | **Phil : « No selling in game »** : la vente disparaît du jeu                                                           |

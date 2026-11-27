@@ -197,12 +197,22 @@ func test_les_ennemis_ignorent_les_allies() -> void:
 	verifier(seule.pv < float((d.partie["tour"] as Dictionary)["pv"]), "et elle en reçoit")
 
 
-func _donnees_avec_invocatrice(max_actives: int = 3) -> Donnees:
+## `nombre` invocatrices distinctes : « meneuse_d_essai », « meneuse_d_essai_1 »… (une arme n'est
+## portée qu'une fois depuis D23, plusieurs armes passent donc par des fiches distinctes).
+func _donnees_avec_invocatrice(max_actives: int = 3, nombre: int = 1) -> Donnees:
 	var brut := AidesPartie.brut()
 	var armes: Array = brut["armes.json"]
-	var arme: Dictionary = (armes[0] as Dictionary).duplicate(true)
-	arme["id"] = "meneuse_d_essai"
-	arme["nom"] = "Meneuse d’essai"
+	for k: int in nombre:
+		armes.append(_invocatrice(armes[0] as Dictionary, k, max_actives))
+	var donnees := Donnees.depuis_brut(brut)
+	verifier_non_nul(donnees)
+	return donnees
+
+
+func _invocatrice(modele: Dictionary, k: int, max_actives: int) -> Dictionary:
+	var arme: Dictionary = modele.duplicate(true)
+	arme["id"] = "meneuse_d_essai" if k == 0 else "meneuse_d_essai_%d" % k
+	arme["nom"] = "Meneuse d’essai %d" % k
 	arme["recharge"] = 0.5
 	arme["portee"] = 1000
 	arme["effets"] = [
@@ -215,10 +225,7 @@ func _donnees_avec_invocatrice(max_actives: int = 3) -> Donnees:
 		}
 	]
 	arme["statuts"] = []
-	armes.append(arme)
-	var donnees := Donnees.depuis_brut(brut)
-	verifier_non_nul(donnees)
-	return donnees
+	return arme
 
 
 func test_le_tir_invoque_un_allie_et_ne_frappe_pas() -> void:
@@ -258,10 +265,10 @@ func test_les_degats_d_un_allie_sont_figes_a_l_invocation_et_suivent_le_ratio_et
 func test_la_plus_proche_de_sa_fin_cede_au_dela_de_max_actives_et_de_la_limite_globale() -> void:
 	var limite := int((d.partie["limites"] as Dictionary)["allies"])
 	for exemplaires: int in [1, 10, 100, 255]:
-		var donnees := _donnees_avec_invocatrice(3)
+		var donnees := _donnees_avec_invocatrice(3, exemplaires)
 		var a := _arene(donnees)
-		for _k: int in exemplaires:
-			a.inventaire.ajouter("meneuse_d_essai")
+		for k: int in exemplaires:
+			a.inventaire.ajouter("meneuse_d_essai" if k == 0 else "meneuse_d_essai_%d" % k)
 		a.synchroniser()
 		verifier_egal(a.armes.size(), exemplaires)
 		a.ennemis.ajouter(0, Vector2(400, 0), 1.0e12, 0.0, 0.0, 40.0, 1.0, 1, 0)

@@ -7,7 +7,6 @@ BOUTIQUE_RELANCER_GRATUITE,gratuite
 BOUTIQUE_PRIX,%s or
 BOUTIQUE_VENDU,Vendu
 BOUTIQUE_OR_INSUFFISANT,Or insuffisant
-BOUTIQUE_VENDRE_PRIX,Vendre (%s or)
 BOUTIQUE_ARMES_TITRE,Armes équipées
 BOUTIQUE_AUCUNE_ARME,Aucune arme équipée
 BOUTIQUE_NOIR_TITRE,Marché noir : choisissez une amélioration
@@ -215,7 +214,6 @@ BOUTIQUE_DEPLIER,Déplier la boutique
 BOUTIQUE_RACCOURCI,Raccourci : %s
 BOUTIQUE_AMELIORATIONS_TITRE,Améliorations achetées
 BOUTIQUE_ARMES_AU_MAXIMUM,Maximum d’armes atteint
-BOUTIQUE_ARME_A_VENDRE,Touchez une arme pour la vendre
 BOUTIQUE_QUANTITE,×%s
 REPERE_GENRE_CIBLE_UNIQUE,Cible unique
 REPERE_GENRE_ZONE,Zone

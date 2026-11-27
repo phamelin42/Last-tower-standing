@@ -43,10 +43,6 @@ func relancer() -> void:
 	pass
 
 
-func vendre(_index_arme: int) -> void:
-	pass
-
-
 func choisir_marche_noir(_id_amelioration: String) -> void:
 	pass
 

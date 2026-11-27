@@ -20,6 +20,8 @@ func _avec_octet_en_plus(b: PackedByteArray) -> PackedByteArray:
 
 func test_resultat_aller_retour_pour_chaque_genre_et_chaque_code() -> void:
 	for genre: int in range(Protocole.Intention.ACHETER, Protocole.Intention.SKIN + 1):
+		if genre == Protocole.Intention.VENDRE_RETIREE:
+			continue  # numéro réservé et refusé (test_fin_de_la_vente.gd)
 		for code: int in range(Types.Resultat.OK, Types.Resultat.ARMES_AU_MAXIMUM + 1):
 			var b := Protocole.encoder_resultat(genre, code)
 			verifier_egal(b.size(), 3, "message compact")

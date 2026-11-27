@@ -285,13 +285,6 @@ func intention_relancer(id: int) -> int:
 	return j.joueur.arene.relancer()
 
 
-func intention_vendre(id: int, index_arme: int) -> int:
-	var j := _cible_intention(id)
-	if j.code != Types.Resultat.OK:
-		return j.code
-	return j.joueur.arene.vendre(index_arme)
-
-
 func intention_marche_noir(id: int, ami: String) -> int:
 	var j := _cible_intention(id)
 	if j.code != Types.Resultat.OK:

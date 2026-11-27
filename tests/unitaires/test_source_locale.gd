@@ -3,7 +3,7 @@ extends CasDeTest
 
 const GRAINE := 2024
 const DT := 1.0 / 60.0
-const INTENTIONS := ["acheter", "relancer", "vendre", "choisir_marche_noir", "continuer_sans_fin"]
+const INTENTIONS := ["acheter", "relancer", "choisir_marche_noir", "continuer_sans_fin"]
 
 var donnees: Donnees
 var arenes: Array[VueArene] = []
@@ -96,7 +96,6 @@ func test_chaque_intention_renvoie_son_resultat() -> void:
 	var appels := {
 		"acheter": func() -> void: source.acheter(99),
 		"relancer": func() -> void: source.relancer(),
-		"vendre": func() -> void: source.vendre(99),
 		"choisir_marche_noir": func() -> void: source.choisir_marche_noir("inconnue"),
 		"continuer_sans_fin": func() -> void: source.continuer_sans_fin(),
 	}
@@ -111,11 +110,12 @@ func test_chaque_intention_renvoie_son_resultat() -> void:
 	source.acheter(99)
 	verifier_egal(resultats[0][1], Types.Resultat.INDICE_INVALIDE)
 	resultats = []
-	source.vendre(99)
-	verifier_egal(resultats[0][1], Types.Resultat.INDICE_INVALIDE)
-	resultats = []
 	source.continuer_sans_fin()
 	verifier_egal(resultats[0][1], Types.Resultat.MAUVAISE_PHASE)
+
+
+func test_la_source_locale_n_a_plus_de_methode_de_vente() -> void:
+	verifier_faux(_creer().has_method("vendre"), "la vente n'existe plus (D23)")
 
 
 func test_un_indice_invalide_ne_change_rien() -> void:

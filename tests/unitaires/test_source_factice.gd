@@ -10,7 +10,6 @@ const METHODES_INTERFACE := [
 	"cible_observee",
 	"acheter",
 	"relancer",
-	"vendre",
 	"choisir_marche_noir",
 	"observer",
 	"continuer_sans_fin",
@@ -26,7 +25,6 @@ const SIGNAUX_INTERFACE := [
 const INTENTIONS := {
 	"acheter": [2],
 	"relancer": [],
-	"vendre": [4],
 	"choisir_marche_noir": ["aiguisage_de_rivière"],
 	"observer": [3],
 	"continuer_sans_fin": [],

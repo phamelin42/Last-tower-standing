@@ -305,10 +305,33 @@ func test_une_intention_deformee_est_refusee_sans_exception_ni_effet() -> void:
 	verifier(_vivant(s, ids[0]) and _vivant(s, ids[1]))
 
 
-func test_un_argument_hors_bornes_est_refuse_pour_chaque_genre_a_indice() -> void:
+func _verifier_vente_retiree_refusee(s: Serveur, ids: Array[int]) -> void:
+	var avant := s.partie.vue_arene(ids[0], ids[0])
+	for arg: int in [0, 1, 3, 255]:
+		_attendre(s, 1.0)
+		var paquet := PackedByteArray([Protocole.Intention.VENDRE_RETIREE, arg])
+		verifier_egal(
+			s.traiter_intention(ids[0], paquet),
+			Types.Resultat.NON_DISPONIBLE,
+			"octet de genre VENDRE_RETIREE, argument %d" % arg
+		)
+		verifier_egal(
+			s.traiter_intention(
+				ids[0], Protocole.encoder_intention(Protocole.Intention.VENDRE_RETIREE, arg)
+			),
+			Types.Resultat.NON_DISPONIBLE,
+			"encodé par le protocole, argument %d" % arg
+		)
+	var apres := s.partie.vue_arene(ids[0], ids[0])
+	verifier_egal(apres.armes.size(), avant.armes.size(), "rien n'a changé")
+	verifier(apres.argent >= avant.argent, "aucun or pris ni rendu en moins")
+
+
+func test_un_argument_hors_bornes_est_refuse_pour_chaque_genre_a_indice_et_la_vente_retiree(
+) -> void:
 	var s := _serveur()
 	var ids := _lancer(s, 1)
-	for genre: int in [Protocole.Intention.ACHETER, Protocole.Intention.VENDRE]:
+	for genre: int in [Protocole.Intention.ACHETER]:
 		for arg: int in [-1, 4, 8, 255, 1 << 30, -(1 << 30)]:
 			_attendre(s, 1.0)
 			var r := _intention(s, ids[0], genre, arg)
@@ -316,6 +339,7 @@ func test_un_argument_hors_bornes_est_refuse_pour_chaque_genre_a_indice() -> voi
 	_attendre(s, 1.0)
 	var inconnue := _intention(s, ids[0], Protocole.Intention.MARCHE_NOIR, 0, "n'existe pas")
 	verifier(inconnue != Types.Resultat.OK, "amélioration inconnue refusée")
+	_verifier_vente_retiree_refusee(s, ids)
 	verifier(_vivant(s, ids[0]))
 
 
@@ -630,7 +654,7 @@ func test_chaque_genre_d_intention_renvoie_son_code_au_seul_expediteur() -> void
 	var ids := _lancer(s, 2)
 	var genres: Array[int] = []
 	for g: int in range(Protocole.Intention.ACHETER, Protocole.Intention.OPTIONS + 1):
-		if g != Protocole.Intention.QUITTER:
+		if g != Protocole.Intention.QUITTER and g != Protocole.Intention.VENDRE_RETIREE:
 			genres.append(g)
 	var attendus := {
 		Protocole.Intention.RELANCER: Types.Resultat.OK,

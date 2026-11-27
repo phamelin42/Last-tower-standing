@@ -1,6 +1,6 @@
 extends CasDeTest
 ## Ce que la joueuse voit et peut faire dans la boutique : quatre cartes lisibles (rareté en
-## texte et en couleur), achat, relance, vente, marché noir, raccourcis 1 à 4 et R. Les
+## texte et en couleur), achat, relance, marché noir, raccourcis 1 à 4 et R. Les
 ## intentions sont notées par `SourceFactice`.
 
 const CSV_BOUTIQUE := "res://i18n/textes_boutique.csv"
@@ -122,8 +122,11 @@ func _vue(argent: int = 5000) -> VueArene:
 func _vue_armes(n: int) -> VueArene:
 	var vue := _vue()
 	var ids := _ids_armes()
+	# Une arme n'est portée qu'une fois (elle monte de niveau) : au-delà du catalogue, des
+	# fiches de test distinctes.
 	for i: int in n:
-		vue.armes.append({"id": ids[i % ids.size()], "recharge_ratio": 0.0})
+		var id: String = ids[i] if i < ids.size() else "arme_test_%d" % i
+		vue.armes.append({"id": id, "recharge_ratio": 0.0})
 	return vue
 
 
@@ -443,42 +446,28 @@ func _cases_armes() -> Array[Button]:
 	return sortie
 
 
-func test_la_vente_a_50_pour_cent_depuis_la_grille_envoie_le_bon_index() -> void:
-	var ratio: float = float(_donnees.partie["vente_ratio"])
-	verifier_proche(ratio, 0.5, 0.0001, "les données vendent à 50 %")
+func test_la_boutique_n_a_plus_de_bouton_vendre_meme_apres_avoir_touche_une_arme() -> void:
 	var vue := _vue_armes(NB_ARMES)
 	_ui.afficher(vue)
 	var cases := _cases_armes()
 	verifier_egal(cases.size(), NB_ARMES, "une case par arme")
-	verifier_egal(_boutons("Vendre").size(), 0, "rien ne se vend sans avoir choisi une arme")
+	verifier_egal(_boutons("Vendre").size(), 0, "aucun bouton Vendre au départ")
 	for i: int in cases.size():
+		verifier_faux(cases[i].toggle_mode, "la case %d n'est pas une sélection" % i)
 		cases[i].pressed.emit()
-		var vente := _boutons("Vendre")
-		verifier_egal(vente.size(), 1, "un bouton Vendre pour l'arme choisie %d" % i)
-		var arme: Dictionary = _donnees.armes[vue.armes[i]["id"]]
-		var prix: int = floori(float(int(arme["prix"])) * ratio)
-		verifier(vente[0].text.contains(Nombres.groupe(prix)), "prix de vente de l'arme %d" % i)
-		vente[0].pressed.emit()
-		verifier_egal(_source.appels.back(), {"nom": "vendre", "args": [i]}, "arme %d" % i)
-		verifier_egal(_boutons("Vendre").size(), 0, "le choix est levé après la vente")
-	verifier_egal(_appels("vendre").size(), NB_ARMES, "une vente par arme, pas plus")
+		verifier_egal(_boutons("Vendre").size(), 0, "toucher l'arme %d ne propose rien" % i)
+	verifier_egal(_source.appels.size(), 0, "toucher une arme n'envoie aucune intention")
+	for texte: String in _textes():
+		verifier_faux(texte.contains("Vendre"), "aucun texte de vente : %s" % texte)
 
 
-func test_un_index_de_vente_hors_de_la_grille_ne_vend_rien() -> void:
-	_ui.afficher(_vue_armes(NB_ARMES))
-	for index: int in [-1, NB_ARMES, NB_ARMES + 1, 255, 1000000]:
-		_ui.vendre(index)
-	_ui.vendre_selection()
-	verifier_egal(_appels("vendre").size(), 0, "aucune intention")
-	var cases := _cases_armes()
-	cases[0].pressed.emit()
-	cases[0].pressed.emit()
-	verifier_egal(_boutons("Vendre").size(), 0, "toucher deux fois la même arme lève le choix")
+func test_la_boutique_n_expose_plus_de_methode_de_vente() -> void:
+	for nom: String in ["vendre", "vendre_selection"]:
+		verifier_faux(_ui.has_method(nom), "BoutiqueUi n'a plus de %s" % nom)
 
 
-func test_sans_arme_aucun_bouton_vendre_et_le_panneau_lateral_s_efface() -> void:
+func test_sans_arme_le_panneau_lateral_s_efface() -> void:
 	_ui.afficher(_vue())
-	verifier_egal(_boutons("Vendre").size(), 0)
 	verifier_egal(_cases_armes().size(), 0, "aucune case")
 	var vide := _ui.find_child("AucuneArme", true, false) as Label
 	verifier_non_nul(vide, "la liste vide est dite en texte")
@@ -578,7 +567,7 @@ func test_une_arme_ou_offre_inconnue_ne_plante_pas() -> void:
 	vue.armes = [{"id": "fantome", "recharge_ratio": 0.0}]
 	_ui.afficher(vue)
 	_cases_armes()[0].pressed.emit()
-	verifier_egal(_boutons("Vendre").size(), 1)
+	verifier_egal(_boutons("Vendre").size(), 0, "toucher une arme ne propose pas de vente")
 	verifier_egal(_cases_armes().size(), 1, "la case existe même sans données")
 
 
@@ -709,9 +698,6 @@ func test_la_grille_des_armes_defile_et_tient_255_armes_sans_deborder() -> void:
 			"%d armes : rien ne dépasse en largeur" % n
 		)
 		verifier_egal(_cases_armes().size(), n, "%d cases" % n)
-		verifier_egal(
-			_boutons("Vendre").size(), 0, "%d armes : aucune vente tant que rien n'est choisi" % n
-		)
 		if n == MAX_ARMES:
 			verifier(
 				colonne.get_combined_minimum_size().y > defilement.size.y,
