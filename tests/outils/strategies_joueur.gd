@@ -12,9 +12,12 @@ const TOUTES: Array[String] = [PASSIVE, RAISONNABLE, BONNE]
 
 const ACHATS_MAX_PAR_APPEL := 24
 ## Or gardé de côté par les stratégies actives, pour ne pas se vider sur une relance.
-## Part du débit de dégâts de base qu'un niveau de plus ajoute (+30 % de dégâts, +10 % de cadence).
-const GAIN_NIVEAU := 0.56
 const RESERVE := 60
+## Améliorations de revenu que la « bonne » stratégie cherche à réunir (Phil, 27/11/2026 : une
+## partie gagnable a « suffisamment d'améliorations d'income », environ 30) ; tant qu'elle en a
+## moins, elle les préfère `BOOST_REVENU` fois plus.
+const REVENUS_VISES := 30
+const BOOST_REVENU := 2.0
 ## La « bonne » stratégie investit dans l'économie jusqu'à cette manche, puis dans les dégâts.
 const MANCHES_ECONOMIE := 8
 const MANCHE_DEFENSE := 14
@@ -109,7 +112,7 @@ static func _valeur_offre(
 		if v.armes.size() >= visees and not possedee:
 			return 0.0
 		var a: Dictionary = d.armes[str(offre["id"])]
-		var base := Equilibrage.rendement(a) * (GAIN_NIVEAU if possedee else 1.0)
+		var base := Equilibrage.rendement(a) * (_gain_niveau(d) if possedee else 1.0)
 		if nom == BONNE:
 			var t: int = Types.type_depuis_nom(str(a["type_degats"]))
 			var eff := 1.0
@@ -125,13 +128,31 @@ static func _valeur_offre(
 		return 0.0
 	var amelioration: Dictionary = d.ameliorations[str(offre["id"])]
 	var poids := 1.0
+	if nom == BONNE and int(amelioration["categorie"]) == Types.Categorie.REVENU:
+		if _nombre_de_revenus(v, d) < REVENUS_VISES:
+			poids *= BOOST_REVENU
 	if nom == BONNE and v.armes.size() < 3 and v.manche >= MANCHES_ECONOMIE:
 		poids = 0.3
 	return _valeur_amelioration(amelioration, types_possedes, nom, v.manche) / prix * poids
 
 
-## Niveau de l'arme `id` dans la vue (0 si elle n'est pas portée). La vue ne le porte pas encore
-## (T12.3) : une arme portée compte pour un niveau.
+## Part du débit de dégâts de base qu'un niveau de plus d'une arme ajoute : le gain de dégâts et le
+## gain de cadence de `partie.json` (`niveaux`), lus dans les données.
+static func _gain_niveau(d: Donnees) -> float:
+	var niveaux: Dictionary = d.partie["niveaux"]
+	return float(niveaux["gain_degats"]) + float(niveaux["gain_cadence"])
+
+
+## Améliorations de revenu possédées (chaque achat compte).
+static func _nombre_de_revenus(v: VueArene, d: Donnees) -> int:
+	var n := 0
+	for id: String in v.ameliorations:
+		if int((d.ameliorations[id] as Dictionary)["categorie"]) == Types.Categorie.REVENU:
+			n += int(v.ameliorations[id])
+	return n
+
+
+## Niveau de l'arme `id` dans la vue (0 si elle n'est pas portée).
 static func _niveau_de(v: VueArene, id: String) -> int:
 	for arme: Dictionary in v.armes:
 		if str(arme["id"]) == id:
