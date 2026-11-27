@@ -2725,6 +2725,9 @@
         "lance_epineuse"
       ],
       "eclairs": true
+    },
+    "impact_siege_cible_unique": {
+      "diametre": 96.0
     }
   }
 }

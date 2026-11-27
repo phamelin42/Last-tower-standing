@@ -22,7 +22,8 @@ const ARMES: Dictionary = {
 }
 ## L'image la plus grande de chaque planche d'impact : c'est là que le coup est au pic.
 const PIC: Dictionary = {"explosion_feu": 2, "pop_petard": 3, "cratere": 3, "onde_choc": 3}
-## Un coup sur une cible seule reste petit : jamais plus de ce diamètre (px).
+## Un coup sur une cible seule reste petit : jamais plus de ce diamètre (px)... sauf le coup de
+## siège, que Phil a voulu plus grand (27/11/2026) : sa taille est une donnée.
 const DIAMETRE_MAX_CIBLE_UNIQUE: float = 60.0
 
 var _a: AttaquesElementaires = null
@@ -38,6 +39,25 @@ func apres_chaque() -> void:
 	if is_instance_valid(_a):
 		_a.free()
 	_a = null
+
+
+## Le diamètre d'un coup de siège sur une cible seule : `data/assets.json`, pas une constante.
+func _diametre_siege_seul() -> float:
+	return PlanchesEffets.diametre_impact_siege_seul()
+
+
+## Le plus petit diamètre (px) d'une zone, d'une bombe ou d'une mine de siège : un coup sur une
+## cible seule, même agrandi, reste au-dessous (sinon il se lirait comme une zone).
+func _plus_petite_zone_de_siege_px() -> float:
+	var plus_petit: float = INF
+	for id: String in _donnees.armes:
+		var arme: Dictionary = _donnees.armes[id]
+		if int(arme["type_degats"]) != Types.TypeDegats.SIEGE:
+			continue
+		var effet: Dictionary = (arme["effets"] as Array)[0]
+		if effet.has("rayon"):
+			plus_petit = minf(plus_petit, float(effet["rayon"]) * Apparence.PX_PAR_UNITE * 2.0)
+	return plus_petit
 
 
 func _avancer(images: int) -> void:

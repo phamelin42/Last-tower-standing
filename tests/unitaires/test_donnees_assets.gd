@@ -154,3 +154,9 @@ func test_les_images_fixes_du_mouvement_reduit_doivent_etre_des_entiers_positifs
 	var a := _donnees()
 	((a["effets"] as Dictionary)["mouvement_reduit"] as Dictionary)["crane"] = -1
 	verifier(_a_une_erreur(_erreurs(a), "mouvement_reduit.crane"))
+
+
+func test_la_taille_du_coup_de_siege_seul_doit_etre_positive() -> void:
+	var a := _donnees()
+	((a["effets"] as Dictionary)["impact_siege_cible_unique"] as Dictionary)["diametre"] = 0.0
+	verifier(_a_une_erreur(_erreurs(a), "impact_siege_cible_unique.diametre"))

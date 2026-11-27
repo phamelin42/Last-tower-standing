@@ -156,6 +156,7 @@ const FORME: Dictionary = {
 		},
 		"?contour_tirs":
 		{"contour": "couleur", "epaisseur": "entier", "planches": ["texte"], "eclairs": "bool"},
+		"?impact_siege_cible_unique": {"diametre": "positif"},
 		"?mouvement_reduit":
 		{"decor": "entier_nul", "flamme_boss": "entier_nul", "crane": "entier_nul"},
 	},
