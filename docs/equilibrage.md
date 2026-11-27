@@ -207,3 +207,40 @@ une lecture de la vue (`test_cout_du_pas`) :
   à tenir avec 1 000 ennemis, à reprendre en T12.9 (budget actuel du test : 7 ms).
 - Comportement inchangé : empreintes de vue identiques avant et après sur 600 pas (catalogue complet) et sous
   charge (1 000 ennemis, 64 alliés), équilibrage identique sur 4 graines pour les trois robots.
+
+## Mesure à 50 graines après la mana chère et la cadence (T12.9, 27/11/2026)
+
+`main` au 27/11/2026 (mana chère #152, cadence des ennemis #157, 15 armes tardives T12.7), graines 1 à 50.
+Robots « bonne » (combat contre le boss jusqu'à 600 s), « bonne » avec priorité au siphon de mana (300 s),
+« raisonnable » (60 s) ; mesures faites avec un compteur temporaire dans l'arène, retiré (rien dans le dépôt).
+
+| Robot                     | Au boss | Morts avant le boss (manche)                             | Boss vaincu | Or au boss (médiane, min, max) |
+| ------------------------- | ------- | -------------------------------------------------------- | ----------- | ------------------------------ |
+| « Bonne »                 | 35/50   | 17, 17, 19, 19, 23, 23, 24 ×4, 25 ×3, 26, 27             | **0/35**    | 431, 130, 1 834                |
+| « Bonne », siphon d'abord | 32/50   | 17, 17, 22, 23, 23, 24 ×4, 25, 25, 26 ×3, 27, 28, 29, 29 | 0/32        | 408, 134, 1 467                |
+| « Raisonnable »           | 25/50   | 9 à 19 (15 graines), 22, 24 ×5, 25, 25, 26, 30           | 0/25        | 383, 174, 619                  |
+
+- **Cible « boss vaincu en moins de 10 min sur 5 graines sur 10 » : non tenue, 0 sur 35 graines au boss.** La tour
+  survit au boss (aucune mort pendant les 600 s) mais ne le tue pas : 35 000 PV, jamais plafonnés (Phil, D23), contre
+  une puissance insuffisante. C'est le levier de la suite : gains par niveau, raretés tardives, `facteur_degats_max`.
+- **Or restant au boss** : 130 à 1 834 or (médiane 431) : l'or est dépensé. La part exacte de l'or gagné reste à
+  mesurer avant de dire que la cible de 10 % est tenue.
+- **D16/D17** : aucune « bonne » ne tombe avant la manche 17 (deux graines, 17 et 17) ; 41 graines sur 50 passent la
+  manche 20. La cible « pas avant 20 sur les graines 1 à 10 » est à vérifier sur ces dix graines après la prochaine
+  passe de leviers.
+- **Armes en manche 2** : médiane 3, de 1 à 4 (« bonne »), 1 à 5 (« raisonnable ») ; la part d'armes en manche 1
+  (`PART_ARMES_AVANT`) se règle avec le levier de poids de genre, à mesurer avec les gains de puissance.
+
+### Vol de vie (Phil l'avait dans son build)
+
+Tour « bonne » : à partir de la manche 20, le vol de vie rend **879 PV/s en médiane** avant le boss (jusqu'à
+6 121), soit 97 % des PV que la tour perd ; au boss, 2 306 PV/s pour 3 038 PV/s perdus bruts (76 %). La tour
+descend sous 100 % de PV sur 29 graines au boss sur 35 et sous 50 % sur 5 : avec la mana chère, elle **n'est plus
+invulnérable**.
+
+Sans vol de vie (même robot, mesure à 120 s de boss) : **1 graine sur 50 atteint le boss**, les autres tombent entre
+les manches 17 et 29 : le vol de vie porte la survie du robot, pas seulement le confort. Un plafond par seconde sur
+le vol de vie (20 graines, 120 s de boss) : sans plafond 14/20 au boss ; plafond 1 000 PV/s 3/20 ; plafond
+400 PV/s 2/20. Un plafond sous le débit médian du boss (2 300 PV/s) casse le robot ; au-dessus, il ne rognerait que
+les 5 graines les plus soignées (jusqu'à 6 000 PV/s). Aucun plafond n'est appliqué : proposition à Phil si le vol de
+vie reste jugé trop fort.
