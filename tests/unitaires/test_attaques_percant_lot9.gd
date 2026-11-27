@@ -43,3 +43,61 @@ func test_mouvement_reduit_la_javeline_sans_particule() -> void:
 	_a.impacter("javeline", CIBLE, 0.0)
 	verifier_egal(_a.particules_actives(), 0)
 	verifier_egal(_a.etats("gerbe").size(), 1, "la gerbe reste")
+
+
+# --- Trait en gerbe : barrage de trois, épines -------------------------------------------------
+
+
+func test_le_trait_en_gerbe_est_un_barrage_de_trois_traits() -> void:
+	_verifier_arme("trait_en_gerbe", "trait_gerbe", "barrage")
+	verifier_egal(int(_effet("trait_en_gerbe")["projectiles"]), 3, "trois traits")
+	verifier_egal(String(_donnees.armes["trait_en_gerbe"]["type_secondaire"]), "epines")
+
+
+func test_chaque_trait_part_deux_images_apres_le_precedent_et_file_droit() -> void:
+	var retard: float = AttaquesElementaires.retard_barrage("trait_gerbe")
+	var premier: float = _a.tirer("trait_gerbe", TOUR, CIBLE, 0.0)
+	var second: float = _a.tirer("trait_gerbe", TOUR, CIBLE, retard)
+	verifier_proche(premier / IMAGE, 10.0, 0.01, "anticipation + vol direct")
+	verifier_proche((second - premier) / IMAGE, 2.0, 0.01, "décalés de 2 images")
+	verifier_egal(_a.etats("aiguille").size(), 2, "un trait par tir")
+	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 3)
+	verifier_proche(_a.etats("aiguille")[0]["position"].y, CIBLE.y, 1.0, "droit")
+
+
+func test_un_seul_anneau_au_rayon_reel_pour_tout_le_trait_en_gerbe() -> void:
+	var rayon: float = _rayon_px("trait_en_gerbe")
+	for k: int in 3:
+		_a.impacter_en_groupe("trait_gerbe", CIBLE + Vector2(0.0, k * 10.0), rayon)
+	verifier_egal(_a.etats("").size(), 0, "aucun anneau par trait")
+	_a.zone("trait_gerbe", CIBLE, rayon)
+	verifier_egal(_a.etats("").size(), 1, "un anneau pour le tir")
+	verifier_proche(_a.diametre_max(), rayon * 2.0, rayon * 2.0 * 0.1, "au rayon réel")
+
+
+func test_chaque_trait_se_plante_un_instant_avec_des_epines() -> void:
+	_a.impacter_en_groupe("trait_gerbe", CIBLE, 22.0)
+	verifier_egal(_a.etats("gerbe").size(), 1, "une gerbe")
+	verifier_egal(_a.etats("plante").size(), 1, "le trait reste planté")
+	verifier(_a.diametre_max() <= 60.0, "petit")
+	verifier_egal(_a.particules_actives(), 2, "éclats de bois et épines")
+	_avancer(40)
+	verifier_egal(_a.nombre_vivants(), 0, "tout se dissipe")
+	verifier_egal(_a.particules_actives(), 0)
+
+
+func test_le_trait_en_gerbe_dans_effets_lance_un_trait_par_impact_et_un_seul_anneau() -> void:
+	var effets: Effets = _effets_de("trait_en_gerbe")
+	verifier_egal(effets.elementaires().etats("aiguille").size(), 4, "quatre traits à la vitrine")
+	var anneaux: int = 0
+	for _i: int in 60:
+		effets.avancer(IMAGE)
+		anneaux = maxi(anneaux, effets.elementaires().etats("").size())
+	verifier_egal(anneaux, 1, "un seul anneau")
+	effets.free()
+
+
+func test_mouvement_reduit_le_trait_en_gerbe_sans_particule() -> void:
+	_a.mouvement_reduit = true
+	_a.impacter_en_groupe("trait_gerbe", CIBLE, 22.0)
+	verifier_egal(_a.particules_actives(), 0)

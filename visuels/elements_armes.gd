@@ -57,6 +57,7 @@ const MOISSONNEUSE: String = "moissonneuse"
 
 ## Les armes perçantes du lot 9 : un élément par arme, comme la famille du carreau.
 const JAVELINE: String = "javeline"
+const TRAIT_GERBE: String = "trait_gerbe"
 
 const ELEMENTS: Array[String] = [
 	FEU,
@@ -99,6 +100,7 @@ const ELEMENTS: Array[String] = [
 	SCIE,
 	MOISSONNEUSE,
 	JAVELINE,
+	TRAIT_GERBE,
 ]
 
 ## id d'arme → élément.
@@ -143,6 +145,7 @@ const TABLE: Dictionary = {
 	"scie_a_ruban": SCIE,
 	"moissonneuse_d_acier": MOISSONNEUSE,
 	"javeline_de_jet": JAVELINE,
+	"trait_en_gerbe": TRAIT_GERBE,
 }
 
 
