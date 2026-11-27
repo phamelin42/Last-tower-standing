@@ -736,7 +736,9 @@ func vue(
 	for offre: Dictionary in boutique.offres:
 		v.offres.append(offre.duplicate())
 	for arme: ArmeEquipee in armes:
-		v.armes.append({"id": arme.id, "recharge_ratio": arme.recharge_ratio(_stats)})
+		v.armes.append(
+			{"id": arme.id, "recharge_ratio": arme.recharge_ratio(_stats), "niveau": arme.niveau}
+		)
 	v.ameliorations = inventaire.ameliorations.duplicate(true)
 	v.marche_noir_ouvert = _stats.marche_noir - inventaire.jetons_marche_noir_utilises > 0
 	ennemis.vers_vue(v)

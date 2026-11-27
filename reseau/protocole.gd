@@ -50,7 +50,8 @@ enum Intention {
 ## 9 : quatre flottants d'apparence de la tour dans l'état d'arène (16 octets), aussi regardée.
 ## 10 : l'état global porte le skin de chaque joueur (1 octet) ; intention `SKIN` au salon.
 ## 11 : plus d'intention `VENDRE` (la vente disparaît du jeu, D23) ; son numéro est refusé.
-const VERSION: int = 11
+## 12 : chaque arme de l'état d'arène porte son niveau (1 octet de plus par arme, D23).
+const VERSION: int = 12
 ## Taille du jeton d'hôte ; un bonjour sans jeton en porte 0.
 const JETON_OCTETS: int = 8
 const MAX_ENNEMIS: int = 2000
@@ -506,7 +507,7 @@ static func encoder_etat_arene(
 		+ ProtocolePoses.octets(v)
 		+ 2 * familles_suivantes.size()
 		+ 5 * indices_offres.size()
-		+ 3 * indices_armes.size()
+		+ 4 * indices_armes.size()
 		+ 3 * indices_amelios.size()
 		+ _OCTETS_ENNEMI * n
 		+ _OCTETS_EVENEMENT * nb_evt
@@ -545,6 +546,7 @@ static func encoder_etat_arene(
 	for i in indices_armes.size():
 		e.u16(indices_armes[i])
 		e.u8(roundi(clampf(float(v.armes[i]["recharge_ratio"]), 0.0, 1.0) * 255.0))
+		e.u8(clampi(int((v.armes[i] as Dictionary).get("niveau", 1)), 1, 255))
 	e.u16(indices_amelios.size())
 	for i in indices_amelios.size():
 		e.u16(indices_amelios[i])
@@ -660,14 +662,17 @@ static func decoder_etat_arene(
 		)
 
 	var n_armes := l.u8()
-	if n_armes > MAX_ARMES or not l.exiger(3 * n_armes):
+	if n_armes > MAX_ARMES or not l.exiger(4 * n_armes):
 		return null
 	for i in n_armes:
 		var idx := l.u16()
 		var ratio := l.u8()
-		if idx >= nb_catalogue:
+		var niveau := l.u8()
+		if idx >= nb_catalogue or niveau < 1:
 			return null
-		v.armes.append({"id": catalogue[idx], "recharge_ratio": float(ratio) / 255.0})
+		v.armes.append(
+			{"id": catalogue[idx], "recharge_ratio": float(ratio) / 255.0, "niveau": niveau}
+		)
 
 	var n_amelios := l.u16()
 	if n_amelios > nb_catalogue or not l.exiger(3 * n_amelios):

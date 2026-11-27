@@ -59,6 +59,7 @@ const SCHEMA_OFFRE: Dictionary = {
 const SCHEMA_ARME: Dictionary = {
 	"id": TYPE_STRING,
 	"recharge_ratio": TYPE_FLOAT,
+	"niveau": TYPE_INT,
 }
 
 const SCHEMA_ALLIE: Dictionary = {"id": TYPE_INT, "pos": TYPE_VECTOR2, "unite": TYPE_INT}
@@ -281,7 +282,7 @@ static func _valide(d: Dictionary) -> bool:
 		return false
 	if not _liste_conforme(d["offres"], SCHEMA_OFFRE):
 		return false
-	if not _liste_conforme(d["armes"], SCHEMA_ARME):
+	if not _liste_conforme(d["armes"], SCHEMA_ARME) or not _niveaux_valides(d["armes"]):
 		return false
 	if not _evenements_conformes(d["evenements"]):
 		return false
@@ -404,6 +405,14 @@ static func _liste_conforme(valeur: Variant, schema: Dictionary) -> bool:
 			return false
 		var entree: Dictionary = item
 		if not _conforme(entree, schema):
+			return false
+	return true
+
+
+## Chaque arme porte un niveau d'au moins 1 (D23) ; `valeur` est déjà conforme au schéma.
+static func _niveaux_valides(valeur: Variant) -> bool:
+	for item: Variant in valeur as Array:
+		if int((item as Dictionary)["niveau"]) < 1:
 			return false
 	return true
 
