@@ -50,6 +50,9 @@ static func _valider_dessin(t: Dictionary, err: Array[String]) -> void:
 	var dossier: Variant = t.get("dossier")
 	if not dossier is String or not String(dossier).ends_with("/"):
 		Donnees._err(err, f, "dossier", "chemin de dossier terminé par « / » attendu")
+	var fanion: Variant = t.get("fanion")
+	if not fanion is String or not String(fanion).ends_with(".png"):
+		Donnees._err(err, f, "fanion", "nom d'un fichier .png du dossier attendu")
 	var fondu := _nombre(t, "fondu_s", 0.05, 2.0, err)
 	if (
 		not Donnees._objet(t, "esquive", f, "", err)
@@ -124,6 +127,7 @@ static func normaliser(t: Dictionary) -> Dictionary:
 			"stats": {},
 			"agrandissement": [],
 			"dossier": "",
+			"fanion": "",
 			"fondu_s": 0.3,
 			"esquive": {},
 			"animation": {}
@@ -133,7 +137,7 @@ static func normaliser(t: Dictionary) -> Dictionary:
 	for nom: String in brutes:
 		stats[nom] = _en_flottants(brutes[nom])
 	var sortie: Dictionary = {"stats": stats, "agrandissement": _en_flottants(t["agrandissement"])}
-	for cle: String in ["dossier", "fondu_s", "esquive", "animation"]:
+	for cle: String in ["dossier", "fanion", "fondu_s", "esquive", "animation"]:
 		sortie[cle] = (
 			(t[cle] as Variant)
 			if not t[cle] is Dictionary

@@ -50,5 +50,6 @@
   "animation": {
     "images": 4,
     "par_seconde": 1.5
-  }
+  },
+  "fanion": "fanion.png"
 }
