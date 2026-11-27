@@ -229,3 +229,66 @@ func test_mouvement_reduit_la_couronne_garde_ses_pointes_sans_tourner() -> void:
 		0.0001,
 		"elles ne tournent pas"
 	)
+
+
+# --- Les neuf armes : en jeu, plafond, impacts -------------------------------------------------
+
+
+func test_les_neuf_armes_percantes_ont_chacune_leur_element_et_leurs_planches() -> void:
+	var vus: Dictionary = {}
+	for id: String in ARMES:
+		var element: String = String(ARMES[id])
+		verifier_egal(ElementsArmes.de(id), element, "table de %s" % id)
+		verifier_faux(vus.has(element), "%s : élément partagé" % id)
+		vus[element] = true
+		verifier(SignaturesArmes.en_jeu(id), "%s : en jeu" % id)
+		var el: AttaqueElement = AttaquesElementaires.registre()[element]
+		for planche: String in el.planches():
+			verifier(
+				ResourceLoader.exists("%s%s.png" % [AttaquesElementaires.DOSSIER, planche]),
+				"%s : planche %s" % [id, planche]
+			)
+	verifier_egal(vus.size(), 9, "neuf armes")
+
+
+func _noter_impact(_ou: Vector2, _rayon: float, _fort: bool) -> void:
+	_impacts_visibles += 1
+
+
+## Un impact visible n'est émis que pour un coup que la simulation émet : l'impact décoratif (le
+## mur, la couronne, le front de pieux) n'ajoute rien à ceux des événements de la vitrine.
+func test_une_arme_percante_n_emet_un_impact_visible_que_par_evenement_d_impact() -> void:
+	for id: String in ARMES:
+		_impacts_visibles = 0
+		var effets: Effets = Effets.new()
+		effets.catalogue = _donnees.ids_catalogue
+		effets.impact_visible.connect(_noter_impact)
+		arbre.root.add_child(effets)
+		var vitrine: VitrineArmes = VitrineArmes.new()
+		vitrine.armes = [id] as Array[String]
+		var attendus: int = 0
+		for evenement: Dictionary in vitrine.evenements_du_cycle(id):
+			attendus += 1 if String(evenement["k"]) == "impact" else 0
+			effets.ajouter(evenement)
+		vitrine.free()
+		for _i: int in 60:
+			effets.avancer(IMAGE)
+		verifier_egal(_impacts_visibles, attendus, "%s : un impact par événement d'impact" % id)
+		effets.free()
+
+
+func test_aucun_effet_percant_ne_depasse_le_plafond_ni_l_opacite_maximale() -> void:
+	for id: String in ARMES:
+		var element: String = String(ARMES[id])
+		var rayon: float = _rayon_px(id) if _effet(id).has("rayon") else 0.0
+		for _tour: int in 30:
+			_a.tirer(element, TOUR, CIBLE)
+			_a.impacter(element, CIBLE, rayon)
+			_a.impacter_en_groupe(element, CIBLE, rayon)
+			_a.zone(element, CIBLE, rayon)
+			_a.aura(element, TOUR, rayon)
+			_a.onde(element, TOUR)
+		_avancer(4)
+		verifier(_a.nombre_vivants() <= _a.place, "%s : plafond" % id)
+		verifier(_a.opacite_max() <= AttaquesElementaires.ALPHA_MAX + 0.0001, "%s : opacité" % id)
+		_a.vider()
