@@ -169,3 +169,60 @@ func test_mouvement_reduit_la_catapulte_sans_particule_ni_gel() -> void:
 	verifier(_a.etats("cratere").size() > 0, "le cratère reste")
 	_avancer(120)
 	verifier_egal(_a.nombre_vivants(), 0)
+
+
+# --- Obusier de brèche : bombe, vulnérabilité -----------------------------------------------------
+
+
+func test_l_obusier_est_une_bombe_de_siege_qui_rend_vulnerable() -> void:
+	_verifier_arme("obusier_de_breche", "obusier", "bombe")
+	verifier_egal(_statut("obusier_de_breche"), "vulnerabilite")
+
+
+func test_l_obus_file_droit_le_nez_vers_la_cible_et_arrive_en_dix_images() -> void:
+	var vise: Vector2 = CIBLE + Vector2(0.0, 120.0)
+	verifier_proche(_a.tirer("obusier", TOUR, vise) / IMAGE, 10.0, 0.01, "3 + 7 images")
+	verifier_egal(_a.etats("ombre").size(), 0, "pas d'ombre : pas de cloche")
+	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 3)
+	var obus: Dictionary = _a.etats("obus")[0]
+	verifier(obus["visible"], "il vole")
+	verifier_proche(obus["rotation"], (vise - TOUR).angle(), 0.01, "le nez vers la cible")
+	verifier(_a.particules_actives() >= 1, "une traînée de fumée")
+
+
+func test_l_obusier_n_explose_pas_a_la_pose_et_explose_une_seule_fois_a_l_impact() -> void:
+	var effets: Effets = _effets_neuf()
+	effets.ajouter(_evenement("obusier_de_breche", "tir"))
+	for _i: int in 40:
+		effets.avancer(IMAGE)
+	verifier_egal(effets.elementaires().etats("pop_petard").size(), 0, "rien à la pose")
+	verifier_faux(effets.formes_vivantes().has("explosion"), "pas d'explosion du pack à la pose")
+	effets.ajouter(_evenement("obusier_de_breche", "impact"))
+	verifier_egal(effets.elementaires().etats("pop_petard").size(), 1, "un pop d'obus")
+	verifier_faux(effets.formes_vivantes().has("explosion"), "jamais deux explosions")
+	verifier_faux(AttaquesElementaires.explosion_du_pack("obusier"), "l'élément porte l'explosion")
+	effets.free()
+
+
+func test_le_pop_de_l_obus_est_au_rayon_reel_avec_un_gel_d_impact() -> void:
+	var rayon: float = _rayon_px("obusier_de_breche")
+	verifier(_a.impacter("obusier", CIBLE, rayon, true))
+	verifier_proche(_a.etats("pop_petard")[0]["diametre"], rayon * 2.0, rayon * 0.2, "au rayon")
+	verifier_egal(_a.etats("").size(), 1, "un anneau fin")
+	verifier_proche(_a.etats("")[0]["diametre"], rayon * 2.0, 0.5, "anneau au rayon exact")
+	verifier(_a.gel_restant() > 0.0, "coup de siège : le gel visuel")
+	verifier(_a.particules_actives() >= 1, "des débris et des étincelles")
+	var total: int = 12
+	var rang: int = _rang_du_pic("pop_petard", int(PIC["pop_petard"]), total)
+	verifier(rang >= 0 and rang <= total / 4, "pic à l'image %d sur %d" % [rang, total])
+
+
+func test_mouvement_reduit_l_obusier_sans_particule_ni_gel() -> void:
+	_a.mouvement_reduit = true
+	_a.tirer("obusier", TOUR, CIBLE)
+	_a.impacter("obusier", CIBLE, 90.0, true)
+	verifier_egal(_a.particules_actives(), 0)
+	verifier_egal(_a.gel_restant(), 0.0)
+	verifier(_a.etats("pop_petard").size() > 0, "le pop reste")
+	_avancer(120)
+	verifier_egal(_a.nombre_vivants(), 0)

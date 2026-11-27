@@ -63,6 +63,7 @@ const ATTENDU: Dictionary = {
 	"baril_a_retardement": "baril",
 	"maillet_de_rempart": "maillet",
 	"catapulte_a_contrepoids": "catapulte",
+	"obusier_de_breche": "obusier",
 }
 
 
