@@ -316,3 +316,32 @@ func test_changer_de_skin_ne_change_pas_les_performances() -> void:
 		ecart < 0.5 + 0.25 * float(mesures[0]), "un autre skin coûte autant (%s ms)" % str(mesures)
 	)
 	_liberer(arene)
+
+
+## Un skin n'est pas forcément du pixel art : son filtre de texture et son échelle (n'importe quel
+## nombre entre 0 et le maximum, entier ou non) se règlent dans ses données, pas dans le code.
+func test_le_filtre_et_l_echelle_d_un_skin_se_reglent_dans_ses_donnees() -> void:
+	var brut := AidesPartie.brut()
+	var skins: Dictionary = brut["skins_tour.json"]
+	var skin: Dictionary = skins["tour_de_guet"]
+	skin["filtre"] = "lineaire"
+	skin["echelle"] = 0.37
+	var donnees := Donnees.depuis_brut(brut)
+	verifier_non_nul(donnees, "données valides avec un filtre lisse et une échelle fractionnaire")
+	if donnees == null:
+		return
+	var sup := SuperpositionsTour.new()
+	sup.construire(_tour, donnees)
+	sup.definir_skin("tour_de_guet", 1)
+	verifier_egal(_tour.texture_filter, CanvasItem.TEXTURE_FILTER_LINEAR, "image lissée")
+	verifier(
+		_tour.scale.is_equal_approx(Vector2.ONE * Apparence.TOUR_ECHELLE * 0.37), "échelle 0,37"
+	)
+	sup.definir_skin("tour_embuscade", 1)
+	verifier_egal(_tour.texture_filter, CanvasItem.TEXTURE_FILTER_NEAREST, "sans champ : pixel net")
+	sup.definir_skin("defaut", 1)
+	verifier_egal(_tour.texture_filter, CanvasItem.TEXTURE_FILTER_PARENT_NODE, "défaut : hérité")
+	for mauvais: Variant in ["bilineaire", "", 3, null, true]:
+		var b2 := AidesPartie.brut()
+		((b2["skins_tour.json"] as Dictionary)["tour_de_guet"] as Dictionary)["filtre"] = mauvais
+		verifier(not Donnees.valider(b2).is_empty(), "filtre %s refusé" % str(mauvais))

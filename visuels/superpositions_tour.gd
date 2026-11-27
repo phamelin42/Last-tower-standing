@@ -101,6 +101,12 @@ func definir_skin(id: String, numero: int = 1) -> void:
 		var c: Dictionary = skin["cadre"]
 		cadre = Rect2(float(c["x"]), float(c["y"]), float(c["largeur"]), float(c["hauteur"]))
 	_parent.texture = texture
+	# Pixel net par défaut ; un skin d'image lissée le dit dans ses données (`filtre`).
+	_parent.texture_filter = (
+		CanvasItem.TEXTURE_FILTER_LINEAR
+		if String(skin.get("filtre", "nearest")) == "lineaire"
+		else CanvasItem.TEXTURE_FILTER_NEAREST
+	)
 	_parent.region_enabled = skin.has("cadre")
 	_parent.region_rect = cadre
 	_parent.offset = Vector2(0.0, cadre.size.y * 0.5 - _pied(id, texture, cadre))
@@ -134,6 +140,7 @@ func _poser_tour_native(numero: int) -> void:
 	if texture == null:
 		return
 	_parent.texture = texture
+	_parent.texture_filter = CanvasItem.TEXTURE_FILTER_PARENT_NODE
 	_parent.region_enabled = false
 	_parent.offset = Vector2(0.0, texture.get_height() * 0.5 - Apparence.TOUR_PIEDS)
 	_parent.material = Apparence.materiau_tour(numero)
