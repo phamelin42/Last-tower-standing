@@ -26,8 +26,8 @@ func avant_chaque() -> void:
 
 
 ## Cinq types, quinze armes par type en 1 / 6 / 6 / 2, 75 armes et 87 améliorations de rareté
-## jusqu'à l'épique : la cible de D18, qu'aucune passe d'équilibrage ne peut changer sans Phil. Les raretés
-## de fin de partie (ancestrale, souveraine) s'y ajoutent sans la toucher.
+## jusqu'à l'épique : la cible de D18, qu'aucune passe d'équilibrage ne peut changer sans Phil.
+## Les raretés de fin de partie (ancestrale, souveraine) s'y ajoutent sans la toucher.
 func test_la_cible_d18_est_toujours_tenue() -> void:
 	verifier_egal(Types.NOMS_TYPES.size(), 5, "cinq types de dégâts")
 	verifier_egal(_d.armes.size() - _tardives(_d.armes), ARMES_TOTAL, "75 armes jusqu'à l'épique")
