@@ -73,6 +73,7 @@ var _sol: Decor = null
 var _graine_partie: int = 0
 var _graine_decor: int = 0
 var _tour: Sprite2D = null
+var _superpositions: SuperpositionsTour = null
 var _noms: Node2D = null
 var _nom: Label = null
 var _camera: CameraArene = null
@@ -227,6 +228,7 @@ func reinitialiser() -> void:
 	_reactions.reinitialiser()
 	_echantillon_affiche = {}
 	_barres.reinitialiser()
+	_superpositions.reinitialiser()
 	_afficher_echantillon()
 
 
@@ -240,6 +242,7 @@ func afficher(vue: VueArene, temps_rendu: float) -> void:
 	_interpolation.reinitialiser()
 	_dernier_tick = -1
 	_recevoir(vue, temps_rendu)
+	_superpositions.avancer(0.0, mouvement_reduit)
 	_afficher_echantillon()
 
 
@@ -291,6 +294,12 @@ func regarde_un_autre() -> bool:
 	return _regarde >= 0
 
 
+## Le dessin de l'apparence de la tour (lecture seule, pour les tests).
+func superpositions() -> SuperpositionsTour:
+	_assurer_construite()
+	return _superpositions
+
+
 func camera() -> CameraArene:
 	_assurer_construite()
 	return _camera
@@ -316,6 +325,7 @@ func _vider_les_vues() -> void:
 	_reactions.reinitialiser()
 	_echantillon_affiche = {}
 	_barres.reinitialiser()
+	_superpositions.reinitialiser()
 	_afficher_echantillon()
 
 
@@ -452,6 +462,7 @@ func _process(delta: float) -> void:
 	_echantillon_affiche = {}
 	_effets.avancer(delta)
 	_poses.avancer(delta)
+	_superpositions.avancer(delta, mouvement_reduit)
 	_avancer_mourants()
 	_reactions.avancer(delta)
 	_sol.avancer(delta)
@@ -478,6 +489,7 @@ func _recevoir(vue: VueArene, temps: float) -> void:
 	_dernier_tick = vue.tick
 	_interpolation.pousser(vue, temps)
 	_poses.afficher(vue)
+	_superpositions.viser(vue)
 	_echantillon_affiche = {}
 	var explosifs: Array[Vector2] = []
 	var tues: Array[Vector2] = []
@@ -937,6 +949,8 @@ func _construire_tour() -> void:
 	var hauteur: float = _tour.texture.get_height() if _tour.texture != null else 256.0
 	_tour.offset = Vector2(0.0, hauteur * 0.5 - Apparence.TOUR_PIEDS)
 	_ennemis.add_child(_tour)
+	_superpositions = SuperpositionsTour.new()
+	_superpositions.construire(_tour, donnees)
 
 
 func _construire_nom() -> void:
