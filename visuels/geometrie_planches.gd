@@ -5,20 +5,19 @@ extends RefCounted
 ## de la plus grande image (la boîte des pixels opaques). Remplacer une planche ne demande que
 ## de remplacer le fichier : aucun nombre à recopier dans le code.
 
-const DOSSIER: String = "res://assets/maison/effets_attaques/"
-
 static var _cases: Dictionary = {}
 static var _visibles: Dictionary = {}
 
 
-## La taille d'une image de la planche carrée `nom`, ou 1×1 si le fichier manque.
+## La taille d'une image de la planche carrée `nom` (chargée par `AttaquesElementaires`, qui garde
+## la liste fermée des images), ou 1×1 si la texture est vide.
 static func case_de(nom: String) -> Vector2i:
 	_mesurer(nom)
 	return _cases[nom]
 
 
-## Le plus grand côté, en pixels de planche, de la boîte des pixels opaques d'une image ; 0 si le
-## fichier manque.
+## Le plus grand côté, en pixels de planche, de la boîte des pixels opaques d'une image ; 0 si la
+## texture est vide.
 static func visible_de(nom: String) -> float:
 	_mesurer(nom)
 	return _visibles[nom]
@@ -29,9 +28,7 @@ static func _mesurer(nom: String) -> void:
 		return
 	_cases[nom] = Vector2i.ONE
 	_visibles[nom] = 0.0
-	if not ResourceLoader.exists(DOSSIER + nom + ".png"):
-		return
-	var texture: Texture2D = load(DOSSIER + nom + ".png") as Texture2D
+	var texture: Texture2D = AttaquesElementaires.texture_de(nom)
 	if texture == null:
 		return
 	var img: Image = texture.get_image()

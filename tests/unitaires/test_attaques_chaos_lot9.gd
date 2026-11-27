@@ -70,8 +70,6 @@ func test_la_geometrie_des_planches_d_impact_se_lit_sur_les_fichiers() -> void:
 			float(_pic_de_planche(planche).y),
 			"diamètre visible de %s" % planche
 		)
-	verifier_egal(GeometriePlanches.case_de("planche_qui_n_existe_pas"), Vector2i.ONE)
-	verifier_egal(GeometriePlanches.visible_de("planche_qui_n_existe_pas"), 0.0)
 
 
 func test_l_anticipation_dure_trois_images_et_le_vol_sept_en_direct_ou_onze_en_cloche() -> void:
