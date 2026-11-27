@@ -101,3 +101,38 @@ func test_mouvement_reduit_le_trait_en_gerbe_sans_particule() -> void:
 	_a.mouvement_reduit = true
 	_a.impacter_en_groupe("trait_gerbe", CIBLE, 22.0)
 	verifier_egal(_a.particules_actives(), 0)
+
+
+# --- Flèche marquante : cible unique, vulnérabilité --------------------------------------------
+
+
+func test_la_fleche_marquante_est_une_cible_unique_qui_rend_vulnerable() -> void:
+	_verifier_arme("fleche_marquante", "fleche_marquante", "cible_unique")
+	verifier_egal(_statut("fleche_marquante"), "vulnerabilite")
+
+
+func test_la_fleche_dure_dix_images_et_laisse_une_trainee_orange() -> void:
+	verifier_proche(_a.tirer("fleche_marquante", TOUR, CIBLE) / IMAGE, 10.0, 0.01)
+	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 3)
+	verifier(_a.etats("fleche_marquante")[0]["visible"], "elle vole")
+	verifier_proche(_a.etats("fleche_marquante")[0]["position"].y, CIBLE.y, 1.0, "droite")
+	verifier(_a.particules_actives() >= 1, "une traînée")
+
+
+func test_la_fleche_se_plante_et_jette_des_eclats_orange_sans_dessiner_la_marque() -> void:
+	_a.impacter("fleche_marquante", CIBLE, 0.0)
+	verifier_egal(_a.etats("gerbe").size(), 1, "une gerbe")
+	verifier_egal(_a.etats("plante").size(), 1, "elle reste plantée")
+	verifier_egal(_a.etats("").size(), 0, "la marque reste celle d'Effets : pas d'anneau ici")
+	verifier(_a.diametre_max() <= 60.0, "cible unique : au plus 60 px")
+	verifier_egal(_a.particules_actives(), 1, "des éclats")
+	_avancer(40)
+	verifier_egal(_a.nombre_vivants(), 0)
+	verifier_egal(_a.particules_actives(), 0)
+
+
+func test_mouvement_reduit_la_fleche_sans_particule() -> void:
+	_a.mouvement_reduit = true
+	_a.tirer("fleche_marquante", TOUR, CIBLE)
+	_a.impacter("fleche_marquante", CIBLE, 0.0)
+	verifier_egal(_a.particules_actives(), 0)
