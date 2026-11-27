@@ -46,10 +46,8 @@ const ATTAQUE_HAUT: int = 4
 const NB_ANIMATIONS: int = 5
 const NOMS_ANIMATIONS: Array[String] = ["repos", "course", "attaque", "attaque_bas", "attaque_haut"]
 
-# gdlint:disable=class-variable-name
 ## Demi-largeur visible de la tour dans sa feuille, en pixels de feuille.
-static var TOUR_DEMI_LARGEUR: float = float(Assets.section("tour").get("demi_largeur", 0.0))
-# gdlint:enable=class-variable-name
+static var tour_demi_largeur: float = float(Assets.section("tour").get("demi_largeur", 0.0))
 
 ## Injectable avant l'entrée dans l'arbre (tests) ; sinon chargé depuis `data/`.
 var donnees: Donnees = null
@@ -190,8 +188,8 @@ func _assurer_construite() -> void:
 	if donnees != null:
 		_preparer_entites()
 		_barres.indice_boss = _pools.size() - 1
-	_texture_mort = load(String(Apparence.MORT["feuille"])) as Texture2D
-	var mort: Dictionary = Apparence.MORT
+	_texture_mort = load(String(Apparence.mort["feuille"])) as Texture2D
+	var mort: Dictionary = Apparence.mort
 	for image: int in int(mort["images"]):
 		var p: Dictionary = Apparence.placement(
 			String(mort["cle_boites"]),
@@ -604,7 +602,7 @@ func _afficher_echantillon() -> void:
 	for f: int in nb:
 		_dimensionner(f, decompte[f])
 		decompte[f] = 0
-	var image_courante: int = int(_horloge * Apparence.IMAGES_PAR_SECONDE)
+	var image_courante: int = int(_horloge * Apparence.images_par_seconde)
 	_marques.debut()
 	for i: int in total:
 		var f: int = familles[i]
@@ -701,7 +699,7 @@ func _creer_sprite(famille: int) -> Sprite2D:
 	var sprite := Lutin.new()
 	sprite.texture = _textures[famille]
 	sprite.region_enabled = true
-	sprite.scale = Vector2.ONE * float(e["echelle"]) * Apparence.ECHELLE_UNITES
+	sprite.scale = Vector2.ONE * float(e["echelle"]) * Apparence.echelle_unites
 	sprite.modulate = e["couleur"]
 	if e.has("accessoire"):
 		var a: Dictionary = e["accessoire"]
@@ -766,7 +764,7 @@ func _creer_mourant(avant: VueArene, rang: int, ou: Vector2) -> Dictionary:
 	sprite.position = _reactions.position_affichee(id, Apparence.vers_pixels(p))
 	var miroir: bool = p.x > 0.0
 	var cle: int = f * NB_ANIMATIONS + _animation(f, p)
-	var image_courante: int = int(_horloge * Apparence.IMAGES_PAR_SECONDE)
+	var image_courante: int = int(_horloge * Apparence.images_par_seconde)
 	var phase: int = _reactions.image_animation(id, image_courante) + id
 	sprite.image = _lignes[cle] * _colonnes[f] + phase % _images[cle]
 	sprite.miroir = miroir
@@ -834,20 +832,20 @@ func _ajouter_mort(ou: Vector2) -> void:
 
 
 func _creer_mort() -> Sprite2D:
-	var m: Dictionary = Apparence.MORT
+	var m: Dictionary = Apparence.mort
 	var sprite := Lutin.new()
 	sprite.name = "Mort"
 	sprite.texture = _texture_mort
 	sprite.region_enabled = true
-	sprite.scale = Vector2.ONE * float(m["echelle"]) * Apparence.ECHELLE_UNITES
+	sprite.scale = Vector2.ONE * float(m["echelle"]) * Apparence.echelle_unites
 	sprite.visible = false
 	_ennemis.add_child(sprite)
 	return sprite
 
 
 func _animer_morts() -> void:
-	var images: int = Apparence.MORT["images"]
-	var par_seconde: float = Apparence.MORT["images_par_seconde"]
+	var images: int = Apparence.mort["images"]
+	var par_seconde: float = Apparence.mort["images_par_seconde"]
 	for i: int in _morts.size():
 		var mort: Lutin = _morts[i] as Lutin
 		if not mort.visible:
@@ -929,8 +927,8 @@ func _preparer_images(e: Dictionary) -> void:
 	_decalages.append(decalages)
 	var repos: Vector2i = e["repos"]
 	var boite: Rect2i = Recadrages.boite(cle, repos.x * colonnes)
-	var echelle: float = float(e["echelle"]) * Apparence.ECHELLE_UNITES
-	var tour: float = TOUR_DEMI_LARGEUR * Apparence.TOUR_ECHELLE
+	var echelle: float = float(e["echelle"]) * Apparence.echelle_unites
+	var tour: float = tour_demi_largeur * Apparence.tour_echelle
 	_couvre_x.append((tour + float(boite.size.x) * echelle * 0.5) / Apparence.PX_PAR_UNITE)
 	_couvre_h.append(float(boite.size.y) * echelle / Apparence.PX_PAR_UNITE)
 
@@ -968,10 +966,10 @@ func _construire_tour() -> void:
 	_tour.name = "Tour"
 	var t: Dictionary = Apparence.tour(_numero)
 	_tour.texture = load(String(t["fichier"])) as Texture2D
-	_tour.scale = Vector2.ONE * Apparence.TOUR_ECHELLE
+	_tour.scale = Vector2.ONE * Apparence.tour_echelle
 	# Le pied de la tour (ombre du pack comprise) repose sur l'origine du monde.
 	var hauteur: float = _tour.texture.get_height() if _tour.texture != null else 256.0
-	_tour.offset = Vector2(0.0, hauteur * 0.5 - Apparence.TOUR_PIEDS)
+	_tour.offset = Vector2(0.0, hauteur * 0.5 - Apparence.tour_pieds)
 	_ennemis.add_child(_tour)
 	_superpositions = SuperpositionsTour.new()
 	_superpositions.construire(_tour, donnees)

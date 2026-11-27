@@ -12,12 +12,10 @@ const RACINE := "res://assets/tiny_swords/"
 ## Étendue de l'eau autour de l'image composée, en pixels du monde : couvre l'écran le plus large.
 const RAYON_EAU: float = 6000.0
 
-# gdlint:disable=class-variable-name
-static var IMAGES_PAR_SECONDE: float = float(
+static var images_par_seconde: float = float(
 	Assets.section("decor").get("images_par_seconde", 10.0)
 )
-static var TAILLE_TUILE: int = int(Assets.section("decor").get("tuile", 64))
-# gdlint:enable=class-variable-name
+static var taille_tuile: int = int(Assets.section("decor").get("tuile", 64))
 
 var plan: PlanDecor = null
 
@@ -67,7 +65,7 @@ func construire(nouveau: PlanDecor) -> void:
 ## Fait avancer l'horloge ; ne touche aux sprites que lorsque l'image change.
 func avancer(delta: float) -> void:
 	_temps += delta
-	var image: int = int(_temps * IMAGES_PAR_SECONDE)
+	var image: int = int(_temps * images_par_seconde)
 	if image == _image and _temps > 0.0:
 		return
 	_image = image
@@ -132,7 +130,7 @@ func _source(fichier: String) -> Image:
 ## Moitié de l'image composée, en pixels de l'image (un pixel de l'image fait `ECHELLE` pixels du
 ## monde) : la tour est au centre.
 func _demi_image() -> Vector2i:
-	return Vector2i(PlanDecor.DEMI_COLONNES * TAILLE_TUILE, PlanDecor.DEMI_LIGNES * TAILLE_TUILE)
+	return Vector2i(PlanDecor.DEMI_COLONNES * taille_tuile, PlanDecor.DEMI_LIGNES * taille_tuile)
 
 
 ## Pixel de l'image composée sous un point du monde.
@@ -153,13 +151,13 @@ func _coller(dest: Image, fichier: String, source: Rect2i, coin: Vector2i, miroi
 func _composer() -> Image:
 	var demi := _demi_image()
 	var image := Image.create(demi.x * 2, demi.y * 2, false, Image.FORMAT_RGBA8)
-	image.fill(_source(PlanDecor.FEUILLE_EAU).get_pixel(0, 0))
-	var ecume := PlanDecor.BOITE_ECUME
+	image.fill(_source(PlanDecor.feuille_eau).get_pixel(0, 0))
+	var ecume := PlanDecor.boite_ecume
 	for c: Vector2i in plan.ecume:
-		var centre := c * TAILLE_TUILE + demi + Vector2i(TAILLE_TUILE / 2, TAILLE_TUILE / 2)
+		var centre := c * taille_tuile + demi + Vector2i(taille_tuile / 2, taille_tuile / 2)
 		_coller(
 			image,
-			PlanDecor.FEUILLE_ECUME,
+			PlanDecor.feuille_ecume,
 			Rect2i(ecume),
 			centre - Vector2i(ecume.size * 0.5),
 			false
@@ -171,8 +169,8 @@ func _composer() -> Image:
 		var retournement: int = int(tuile["retournement"])
 		var cle := Vector2i(atlas.x + 8 * atlas.y, retournement)
 		if not retournees.has(cle):
-			var morceau := _source(PlanDecor.FEUILLE_TERRAIN).get_region(
-				Rect2i(atlas * TAILLE_TUILE, Vector2i(TAILLE_TUILE, TAILLE_TUILE))
+			var morceau := _source(PlanDecor.feuille_terrain).get_region(
+				Rect2i(atlas * taille_tuile, Vector2i(taille_tuile, taille_tuile))
 			)
 			if retournement & 4096 != 0:
 				morceau.flip_x()
@@ -180,7 +178,7 @@ func _composer() -> Image:
 				morceau.flip_y()
 			retournees[cle] = morceau
 		var m: Image = retournees[cle]
-		image.blend_rect(m, Rect2i(Vector2i.ZERO, m.get_size()), c * TAILLE_TUILE + demi)
+		image.blend_rect(m, Rect2i(Vector2i.ZERO, m.get_size()), c * taille_tuile + demi)
 	var immobiles: Array[Dictionary] = []
 	for objet: Dictionary in plan.objets:
 		var type: String = objet["type"]
@@ -200,7 +198,7 @@ func _composer() -> Image:
 
 func _coller_objet(image: Image, objet: Dictionary) -> void:
 	var type: String = objet["type"]
-	var t: Dictionary = PlanDecor.TYPES[type]
+	var t: Dictionary = PlanDecor.types[type]
 	var boite: Rect2 = t["boite"]
 	var origine: Vector2i = t["origine"]
 	var cellule: Vector2i = t["cellule"]
@@ -234,17 +232,17 @@ func _poser_les_bords_d_eau() -> void:
 	for k: int in bandes.size():
 		var bande := Sprite2D.new()
 		bande.name = "Eau%d" % k
-		bande.texture = _texture(PlanDecor.FEUILLE_EAU)
+		bande.texture = _texture(PlanDecor.feuille_eau)
 		bande.centered = false
 		bande.region_enabled = true
-		bande.region_rect = Rect2(0.0, 0.0, float(TAILLE_TUILE), float(TAILLE_TUILE))
+		bande.region_rect = Rect2(0.0, 0.0, float(taille_tuile), float(taille_tuile))
 		bande.position = bandes[k].position
-		bande.scale = bandes[k].size / float(TAILLE_TUILE)
+		bande.scale = bandes[k].size / float(taille_tuile)
 		add_child(bande)
 
 
 func _ajouter(parent: Node2D, type: String, pieds: Vector2, miroir: bool, phase: int) -> void:
-	var t: Dictionary = PlanDecor.TYPES[type]
+	var t: Dictionary = PlanDecor.types[type]
 	var cellule: Vector2i = t["cellule"]
 	var origine: Vector2i = t["origine"]
 	var sprite := Sprite2D.new()

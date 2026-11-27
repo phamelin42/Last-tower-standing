@@ -476,7 +476,9 @@ func _construire_carte(i: int) -> PanelContainer:
 	# prend la largeur de la carte, sous l'en-tête : dans la colonne à droite de l'image, « Or
 	# insuffisant » se rognait (« Or insuffi… ») à 125 %, et à la ligne il coûtait deux lignes.
 	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	note.custom_minimum_size.x = 0.0
+	# Une ligne reste réservée même sans texte : sinon la note qui apparaît (« Or insuffisant »
+	# après un achat) ajoute une ligne à la carte et fait sauter les boutons.
+	note.custom_minimum_size = Vector2(0.0, HAUTEUR_LIGNE_SERREE)
 	note.add_theme_color_override("font_color", ThemeJeu.PARCHEMIN_ATTENU)
 	colonne.add_child(note)
 	# Carte compacte (D13) : l'effet entier et l'ambiance se lisent dans l'infobulle de la carte.
@@ -566,7 +568,7 @@ func _afficher_carte(i: int, offre: Dictionary, vue: VueArene) -> void:
 			libelle.text = ""
 		_images[i].texture = null
 		_notes[i].text = ""
-		_notes[i].visible = false
+		_notes[i].visible = true
 		_cartes[i].tooltip_text = ""
 		return
 	var genre: int = offre["genre"]
@@ -597,7 +599,7 @@ func _afficher_carte(i: int, offre: Dictionary, vue: VueArene) -> void:
 			notes.append(tr("BOUTIQUE_ARMES_AU_MAXIMUM"))
 	_notes[i].text = SEPARATEUR_NOTES.join(notes)
 	_notes[i].tooltip_text = _notes[i].text
-	_notes[i].visible = not _notes[i].text.is_empty()
+	_notes[i].visible = true
 
 
 ## Ruban de la catégorie en tête de la carte `i` ; refait seulement quand la catégorie change,

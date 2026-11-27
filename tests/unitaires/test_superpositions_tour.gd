@@ -14,8 +14,8 @@ func avant_chaque() -> void:
 	d = Donnees.charger()
 	_tour = Sprite2D.new()
 	_tour.texture = load(String(Apparence.tour(1)["fichier"])) as Texture2D
-	_tour.scale = Vector2.ONE * Apparence.TOUR_ECHELLE
-	_tour.offset = Vector2(0.0, _tour.texture.get_height() * 0.5 - Apparence.TOUR_PIEDS)
+	_tour.scale = Vector2.ONE * Apparence.tour_echelle
+	_tour.offset = Vector2(0.0, _tour.texture.get_height() * 0.5 - Apparence.tour_pieds)
 	arbre.root.add_child(_tour)
 	_base = _tour.scale
 	_sup = SuperpositionsTour.new()

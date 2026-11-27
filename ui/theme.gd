@@ -121,19 +121,17 @@ const TYPE_ACHAT_INSUFFISANT := "BoutonAchatInsuffisant"
 ## marges, que la hauteur minimale des contrôles porte à 48 px.
 const MARGE_HAUT_ACHAT := 8.0
 const MARGE_BAS_ACHAT := 16.0
-const MARGE_VERTICALE_CARTE := 4.0
+const MARGE_VERTICALE_CARTE := 2.0
 const TYPE_CELLULE := "CelluleIcone"
 const TYPE_CELLULE_FIXE := "CelluleFixe"
 const TYPE_RUBAN := "TitreRuban"
 
-# gdlint:disable=class-variable-name
 ## Le ruban de catégorie n'utilise que le corps du ruban du pack (sans ses queues) : une bande
 ## qui s'allonge avec le mot et tient sur une seule ligne basse.
-static var CORPS_RUBAN: Rect2 = Assets.typee("ui").get("corps_ruban", Rect2())
+static var corps_ruban: Rect2 = Assets.typee("ui").get("corps_ruban", Rect2())
 ## Zone des icônes (64 px, glyphe centré) : on rogne les marges vides.
-static var ZONE_ICONE: Rect2 = Assets.typee("ui").get("zone_icone", Rect2())
-static var POINTEUR_POINTE: Vector2 = Assets.typee("ui").get("pointeur_pointe", Vector2.ZERO)
-# gdlint:enable=class-variable-name
+static var zone_icone: Rect2 = Assets.typee("ui").get("zone_icone", Rect2())
+static var pointeur_pointe: Vector2 = Assets.typee("ui").get("pointeur_pointe", Vector2.ZERO)
 
 static var _cache: Theme = null
 static var _police: Font = null
@@ -292,7 +290,7 @@ static func appliquer(racine: Control) -> void:
 	racine.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	var pointeur := load(TEX_POINTEUR) as Texture2D
 	if pointeur != null:
-		Input.set_custom_mouse_cursor(pointeur, Input.CURSOR_ARROW, POINTEUR_POINTE)
+		Input.set_custom_mouse_cursor(pointeur, Input.CURSOR_ARROW, pointeur_pointe)
 
 
 ## Icône de la barre du haut (`ICONES_HUD`), entière.
@@ -338,7 +336,7 @@ static func apercu_skin(skin: Dictionary) -> Texture2D:
 static func icone(nom: String) -> Texture2D:
 	var atlas := AtlasTexture.new()
 	atlas.atlas = load(str(ICONES[nom])) as Texture2D
-	atlas.region = ZONE_ICONE
+	atlas.region = zone_icone
 	return atlas
 
 
@@ -423,12 +421,12 @@ static func _construire() -> Theme:
 	return t
 
 
-## Corps d'un ruban (`CORPS_RUBAN`) en bande : répété en largeur, étiré en hauteur, sans marge
+## Corps d'un ruban (`corps_ruban`) en bande : répété en largeur, étiré en hauteur, sans marge
 ## verticale pour que le ruban reste bas.
 static func _bande_ruban(chemin: String) -> StyleBoxTexture:
 	var b := StyleBoxTexture.new()
 	b.texture = load(chemin) as Texture2D
-	b.region_rect = CORPS_RUBAN
+	b.region_rect = corps_ruban
 	b.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_TILE_FIT
 	b.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
 	b.content_margin_left = 6.0
@@ -448,6 +446,28 @@ static func _style_bouton(chemin: String, teinte: Color = Color.WHITE) -> StyleB
 	b.content_margin_right = 24.0
 	b.content_margin_top = 14.0
 	b.content_margin_bottom = 22.0
+	return b
+
+
+## Le pack dessine le bouton enfoncé et l'inactif plus bas (l'ombre disparaît) et le premier un peu
+## plus large : sans correction le corps « saute » à l'appui et quand un achat rend une offre
+## trop chère. On cale l'encre de `chemin` sur celle de `reference` : le haut de la texture est
+## rogné de l'écart (la hauteur reste étirée sur tout le bouton) et les côtés rentrent de leur
+## écart. Les écarts se lisent sur les textures, aucune mesure n'est écrite ici.
+static func _style_bouton_cale(
+	chemin: String, reference: String, teinte: Color = Color.WHITE
+) -> StyleBoxTexture:
+	var b := _style_bouton(chemin, teinte)
+	var image := (load(chemin) as Texture2D).get_image()
+	var encre := image.get_used_rect()
+	var attendu := (load(reference) as Texture2D).get_image().get_used_rect()
+	var bas := maxi(encre.position.y - attendu.position.y, 0)
+	if bas > 0:
+		b.region_rect = Rect2(
+			0.0, float(bas), float(image.get_width()), float(image.get_height() - bas)
+		)
+	b.expand_margin_left = float(encre.position.x - attendu.position.x)
+	b.expand_margin_right = float(attendu.end.x - encre.end.x)
 	return b
 
 
@@ -492,8 +512,8 @@ static func _boutons(t: Theme) -> void:
 		var l: Array = jeux[type]
 		t.set_stylebox("normal", type, _style_bouton(str(l[0])))
 		t.set_stylebox("hover", type, _style_bouton(str(l[1])))
-		t.set_stylebox("pressed", type, _style_bouton(str(l[2]), l[4] as Color))
-		t.set_stylebox("disabled", type, _style_bouton(str(l[3])))
+		t.set_stylebox("pressed", type, _style_bouton_cale(str(l[2]), str(l[0]), l[4] as Color))
+		t.set_stylebox("disabled", type, _style_bouton_cale(str(l[3]), str(l[0])))
 		t.set_stylebox("focus", type, focus)
 		if type == "Button":
 			t.set_type_variation(TYPE_ACHAT, "Button")
