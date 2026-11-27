@@ -16,7 +16,14 @@ func test_la_couronne_d_etoiles_est_un_tir_tournant_de_cinq_branches() -> void:
 
 func test_chaque_etoile_file_droit_le_long_de_son_rayon_en_tournant_sur_elle_meme() -> void:
 	var bout: Vector2 = TOUR + Vector2.from_angle(deg_to_rad(72.0)) * 250.0
-	verifier_proche(_a.tirer("couronne_etoiles", TOUR, bout) / IMAGE, 10.0, 0.01, "3 + 7 images")
+	var vol: int = PlanchesEffets.images_vol("couronne_etoiles")
+	verifier(vol > 0, "durée de vol propre à la couronne, lue dans les données")
+	verifier_proche(
+		_a.tirer("couronne_etoiles", TOUR, bout) / IMAGE,
+		float(AttaquesElementaires.IMAGES_ANTICIPATION + vol),
+		0.01,
+		"anticipation + vol des données"
+	)
 	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 3)
 	var etoile: Dictionary = _a.etats("etoile_astrale")[0]
 	verifier(etoile["visible"], "elle vole")

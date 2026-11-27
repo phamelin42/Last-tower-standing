@@ -94,6 +94,13 @@ static func visibles_de(element: String) -> Dictionary:
 	return _extraire((_maison().get("elements", {}) as Dictionary).get(element, []), _visibles)
 
 
+## Les images de vol du projectile de `element` si `data/assets.json` en fixe le nombre
+## (`effets.maison.images_vol`), 0 sinon : l'élément garde alors la durée de son genre de vol.
+static func images_vol(element: String) -> int:
+	_lire()
+	return int((_maison().get("images_vol", {}) as Dictionary).get(element, 0))
+
+
 static func _extraire(noms: Array, table: Dictionary) -> Dictionary:
 	var sortie: Dictionary = {}
 	for nom: Variant in noms:
