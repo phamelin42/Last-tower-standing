@@ -152,3 +152,18 @@ func test_une_clef_de_niveau_manquante_est_refusee() -> void:
 		(partie["niveaux"] as Dictionary).erase(cle)
 		brut["partie.json"] = partie
 		verifier_faux(Donnees.valider(brut).is_empty(), cle + " manquante")
+
+
+func test_aucune_arme_ne_porte_encore_l_ancien_champ_par_exemplaire() -> void:
+	var ancien := "degats_par_" + "exemplaire"
+	for id: String in d.armes:
+		verifier_faux((d.armes[id] as Dictionary).has(ancien), id)
+	var avec_niveau := 0
+	for id: String in d.armes:
+		if float((d.armes[id] as Dictionary).get("degats_par_niveau", 0.0)) > 0.0:
+			avec_niveau += 1
+	verify_count(avec_niveau)
+
+
+func verify_count(n: int) -> void:
+	verifier_egal(n, 2, "deux armes lisent le niveau (M5)")

@@ -38,8 +38,8 @@ func test_degats_par_pv_max_ajoute_ratio_fois_les_pv_maximum_de_la_tour() -> voi
 	verifier_proche(_dmg(arme, 0.0), BASE, 0.0001, "tour sans PV maximum : aucun bonus")
 
 
-func test_degats_par_exemplaire_croit_avec_chaque_copie() -> void:
-	var arme := _arme({"degats_par_exemplaire": 0.2})
+func test_degats_par_niveau_croit_avec_chaque_copie() -> void:
+	var arme := _arme({"degats_par_niveau": 0.2})
 	verifier_proche(_dmg(arme, 1000.0, 1), BASE, 0.0001, "une seule copie : aucun bonus")
 	verifier_proche(_dmg(arme, 1000.0, 2), 120.0, 0.0001)
 	verifier_proche(_dmg(arme, 1000.0, 5), 180.0, 0.0001)
@@ -60,7 +60,7 @@ func test_le_bonus_total_est_borne_meme_au_niveau_255_et_avec_toutes_les_amelior
 	var arme := _arme(
 		{
 			"degats_par_pv_max": 1.0,
-			"degats_par_exemplaire": 1.0,
+			"degats_par_niveau": 1.0,
 			"degats_par_amelioration": {"stat": "cadence", "ratio": 1.0},
 		}
 	)
@@ -95,7 +95,7 @@ func test_les_trois_bonus_et_la_mana_s_additionnent_avant_le_critique() -> void:
 		{
 			"degats_par_mana_max": 0.5,
 			"degats_par_pv_max": 0.01,
-			"degats_par_exemplaire": 0.1,
+			"degats_par_niveau": 0.1,
 			"degats_par_amelioration": {"stat": "cadence", "ratio": 0.05},
 		}
 	)
@@ -113,7 +113,7 @@ func test_un_champ_absent_ou_nul_ne_change_rien() -> void:
 	for id: String in d.armes:
 		var arme: Dictionary = d.armes[id]
 		var attendu := float(arme["degats"]) + float(arme["degats_par_mana_max"]) * 40.0
-		if float(arme["degats_par_pv_max"]) == 0.0 and float(arme["degats_par_exemplaire"]) == 0.0:
+		if float(arme["degats_par_pv_max"]) == 0.0 and float(arme["degats_par_niveau"]) == 0.0:
 			if float((arme["degats_par_amelioration"] as Dictionary)["ratio"]) == 0.0:
 				var recu := Tir.degats_de_base(
 					arme, StatsTour.new(), 1000.0, 7, {"cadence": 9}, 500.0, 40.0
@@ -124,7 +124,7 @@ func test_un_champ_absent_ou_nul_ne_change_rien() -> void:
 		var arme := _arme(
 			{
 				"degats_par_pv_max": mauvais,
-				"degats_par_exemplaire": mauvais,
+				"degats_par_niveau": mauvais,
 				"degats_par_mana_max": mauvais
 			}
 		)
@@ -197,7 +197,7 @@ func test_le_tir_lit_les_pv_maximum_les_copies_et_les_ameliorations_de_la_lectur
 		"effets": [{"kind": "cible_unique"}],
 		"statuts": [],
 		"degats_par_pv_max": 0.01,
-		"degats_par_exemplaire": 0.1,
+		"degats_par_niveau": 0.1,
 		"degats_par_amelioration": {"stat": "cadence", "ratio": 0.05},
 	}
 	var lecture := Tir.Lecture.new()

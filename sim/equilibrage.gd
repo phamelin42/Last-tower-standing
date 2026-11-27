@@ -63,7 +63,7 @@ static func _tirs_utiles(arme: Dictionary) -> float:
 static func _bonus_selon(arme: Dictionary, base: float) -> float:
 	var selon := maxf(float(arme.get("degats_par_pv_max", 0.0)), 0.0) * REFERENCE_PV_MAX_TOUR
 	selon += (
-		maxf(float(arme.get("degats_par_exemplaire", 0.0)), 0.0)
+		maxf(float(arme.get("degats_par_niveau", 0.0)), 0.0)
 		* float(REFERENCE_EXEMPLAIRES - 1)
 		* base
 	)

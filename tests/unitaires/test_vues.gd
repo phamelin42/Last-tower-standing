@@ -44,14 +44,14 @@ func _vue_pleine() -> VueArene:
 		{"id": "trempe_de_bronze", "genre": 1, "rarete": 0, "prix": 60, "vendu": false},
 	]
 	vue.armes = [
-		{"id": "epee_courte", "recharge_ratio": 0.25},
-		{"id": "lance_de_lin", "recharge_ratio": 0.5},
-		{"id": "hache_de_cendre", "recharge_ratio": 1.0},
-		{"id": "fronde_de_braise", "recharge_ratio": 0.0},
-		{"id": "arc_de_ronce", "recharge_ratio": 0.75},
-		{"id": "faux_de_brume", "recharge_ratio": 0.125},
-		{"id": "marteau_de_gel", "recharge_ratio": 0.333},
-		{"id": "sceptre_ocre", "recharge_ratio": 0.9},
+		{"id": "epee_courte", "recharge_ratio": 0.25, "niveau": 1},
+		{"id": "lance_de_lin", "recharge_ratio": 0.5, "niveau": 1},
+		{"id": "hache_de_cendre", "recharge_ratio": 1.0, "niveau": 1},
+		{"id": "fronde_de_braise", "recharge_ratio": 0.0, "niveau": 1},
+		{"id": "arc_de_ronce", "recharge_ratio": 0.75, "niveau": 1},
+		{"id": "faux_de_brume", "recharge_ratio": 0.125, "niveau": 1},
+		{"id": "marteau_de_gel", "recharge_ratio": 0.333, "niveau": 1},
+		{"id": "sceptre_ocre", "recharge_ratio": 0.9, "niveau": 1},
 	]
 	vue.ameliorations = {"trempe_de_bronze": 2, "force_tranchante": 1}
 
@@ -424,7 +424,7 @@ func test_vue_arene_accepte_255_armes_et_les_evenements_absorption_et_arme() -> 
 	var d := _vue_pleine().to_dict()
 	var armes: Array = []
 	for i in 255:
-		armes.append({"id": "arme_%d" % i, "recharge_ratio": 0.5})
+		armes.append({"id": "arme_%d" % i, "recharge_ratio": 0.5, "niveau": 1})
 	d["armes"] = armes
 	d["evenements"] = [
 		{

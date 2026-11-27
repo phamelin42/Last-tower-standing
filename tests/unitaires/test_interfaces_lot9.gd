@@ -337,7 +337,7 @@ func test_les_textes_des_nouveaux_kinds_refusent_une_valeur_inconnue() -> void:
 func test_les_champs_facultatifs_d_arme_sont_valides() -> void:
 	var cas: Array[Array] = [
 		["degats_par_pv_max", 0.0, -0.1],
-		["degats_par_exemplaire", 0.5, -1.0],
+		["degats_par_niveau", 0.5, -1.0],
 		["type_secondaire", "epines", "feu"],
 		[
 			"degats_par_amelioration",
@@ -371,7 +371,7 @@ func test_les_champs_facultatifs_sont_normalises_avec_leur_valeur_neutre() -> vo
 	var d := AidesPartie.donnees()
 	for id: String in d.armes:
 		var arme: Dictionary = d.armes[id]
-		verifier(arme.has("degats_par_pv_max") and arme.has("degats_par_exemplaire"), id)
+		verifier(arme.has("degats_par_pv_max") and arme.has("degats_par_niveau"), id)
 		verifier(arme.has("degats_par_amelioration") and arme.has("type_secondaire"), id)
 
 

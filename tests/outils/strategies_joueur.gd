@@ -135,7 +135,7 @@ static func _valeur_offre(
 static func _niveau_de(v: VueArene, id: String) -> int:
 	for arme: Dictionary in v.armes:
 		if str(arme["id"]) == id:
-			return 1
+			return int(arme["niveau"])
 	return 0
 
 
