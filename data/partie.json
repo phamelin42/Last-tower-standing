@@ -13,6 +13,7 @@
 	"givre": {"cumuls_max": 8, "ralentissement_par_cumul": 0.08, "plafond": 0.6},
 	"critique": {"palier": 0.05, "puissance_base": 2.0, "coef_exces": 1.0},
 	"esquive_k": 1.0,
+	"reduction_degats_max": 0.85,
 	"vitesses_partie": [1.0, 0.5, 0.25],
 	"reseau": {
 		"hz_arene": 15,

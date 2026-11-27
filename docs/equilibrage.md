@@ -66,6 +66,24 @@ l'arsenal des premières manches :
   l'économie (`ARMES_MINIMUM_BONNE`) ; le joueur raisonnable s'arrête à six armes
   (`ARMES_VISEES_RAISONNABLE`).
 
+## Partie gagnable (Phil, 27/11/2026)
+
+Définition de Phil, citée telle quelle :
+
+> « Pour l'avenir on préparera des scénarios pour jauger la difficulté. Une partie gagnable est une partie
+> où on trouve un peu toutes les bonnes armes et améliorations, il faut aussi trouver suffisamment
+> d'améliorations d'income. »
+
+Conséquences pour toute mesure d'équilibrage :
+
+- Une partie est **gagnable** quand la boutique a donné au joueur assez de bonnes armes et de bonnes
+  améliorations, **et** assez d'améliorations de revenu. Un tirage pauvre (peu de bonnes offres, peu de revenu)
+  peut perdre : c'est voulu, pas un défaut d'équilibrage.
+- Un résultat se juge donc **sur les graines qui ont donné le bon tirage**, pas sur la médiane de toutes les
+  graines. Toute mesure donne la part de graines où le robot a trouvé « les bonnes armes et assez de revenu »
+  et son résultat sur ces graines seulement.
+- Les scénarios à graine fixe qui servent de référence sont décrits en T12.11 du plan.
+
 ## Points ouverts
 
 - Le mur de PV après la manche 20 (×2,8 par manche) est démesuré : la puissance du joueur croît

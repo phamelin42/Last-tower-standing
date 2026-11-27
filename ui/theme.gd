@@ -305,6 +305,14 @@ static func icone_categorie(categorie: int) -> Texture2D:
 	return load(ICONES_CATEGORIE[categorie]) as Texture2D
 
 
+## Icône dont le chemin vient d'un fichier de données (`data/assets.json`), `null` si le chemin est
+## vide ou si le fichier manque.
+static func icone_de_donnees(chemin: String) -> Texture2D:
+	if chemin.is_empty() or not ResourceLoader.exists(chemin):
+		return null
+	return load(chemin) as Texture2D
+
+
 ## Image d'aperçu d'un skin de tour, lue dans `data/skins_tour.json` : le cadre d'une feuille
 ## d'images (`cadre`) si l'entrée en a un, sinon l'image entière, rognée à ses pixels opaques pour
 ## que la tour remplisse l'aperçu. `null` si l'image manque.

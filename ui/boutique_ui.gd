@@ -94,6 +94,8 @@ var _grille_amelios: GridContainer
 var _amelios_vues: Dictionary = {}
 var _rubans: Array[HBoxContainer] = []
 var _categories_cartes: Array[int] = []
+var _reperes: Array[Control] = []
+var _reperes_cartes: Array[String] = []
 var _bouton_repli: Button
 var _replie: bool = false
 var _bandeau: PanelContainer
@@ -432,6 +434,21 @@ func _construire_carte(i: int) -> PanelContainer:
 	colonne.move_child(repere, 0)
 	_rubans.append(repere)
 	_categories_cartes.append(-1)
+	# À droite du ruban, sur la même ligne (la boutique ne peut pas grandir, D13) : type de dégâts,
+	# mécanique et statuts de l'arme, en icônes dont le mot est en infobulle et en nom accessible.
+	var ligne := HFlowContainer.new()
+	ligne.add_theme_constant_override("h_separation", 6)
+	ligne.add_theme_constant_override("v_separation", 0)
+	colonne.add_child(ligne)
+	colonne.move_child(ligne, 0)
+	repere.name = "Ruban%dHote" % i
+	ligne.name = "Repere%d" % i
+	repere.get_parent().remove_child(repere)
+	ligne.add_child(repere)
+	var reperes := ReperesArme.creer_fixe("Reperes%d" % i, ReperesArme.statuts_max_carte())
+	ligne.add_child(reperes)
+	_reperes.append(reperes)
+	_reperes_cartes.append("")
 	# Rareté et prix sur la largeur de la carte : Metamorphous est plus large que l'ancienne
 	# police, et dans la colonne à droite de l'image la rareté passait sur cinq lignes.
 	prix.autowrap_mode = TextServer.AUTOWRAP_OFF
@@ -544,6 +561,7 @@ func _afficher_carte(i: int, offre: Dictionary, vue: VueArene) -> void:
 	_cartes[i].modulate.a = 1.0
 	if offre.is_empty():
 		_poser_ruban(i, -1)
+		_poser_reperes(i, {}, -1)
 		for libelle: Label in [_raretes[i], _noms[i], _prix[i]]:
 			libelle.text = ""
 		_images[i].texture = null
@@ -557,6 +575,7 @@ func _afficher_carte(i: int, offre: Dictionary, vue: VueArene) -> void:
 	var vendu: bool = offre["vendu"]
 	var entree := _entree(str(offre["id"]), genre)
 	_poser_ruban(i, _categorie(str(offre["id"]), genre))
+	_poser_reperes(i, entree, genre)
 	ImageOffre.poser(_images[i], str(offre["id"]))
 	_raretes[i].text = (
 		"%s %s" % [Apparence.symbole_rarete(rarete), tr(Apparence.cle_libelle_rarete(rarete))]
@@ -592,6 +611,16 @@ func _poser_ruban(i: int, categorie: int) -> void:
 		_rubans[i].remove_child(enfant)
 		enfant.free()
 	_rubans[i].add_child(CategorieOffre.creer_ruban(categorie, "Ruban%d" % i))
+
+
+## Repères (type, mécanique, statuts) de l'arme de la carte `i` ; refaits seulement quand l'offre
+## change. Une amélioration ou une carte vide n'en a pas : tous les emplacements sont cachés.
+func _poser_reperes(i: int, entree: Dictionary, genre: int) -> void:
+	var cle := str(entree.get("id", "")) if genre == Types.Genre.ARME else ""
+	if _reperes_cartes[i] == cle:
+		return
+	_reperes_cartes[i] = cle
+	ReperesArme.remplir(_reperes[i], entree if genre == Types.Genre.ARME else {})
 
 
 ## « Relancer » sur une ligne, le prix sur la suivante : le retour à la ligne est voulu, pour que
@@ -631,6 +660,9 @@ func _afficher_armes(vue: VueArene) -> void:
 		case.expand_icon = true
 		case.tooltip_text = _infobulle(entree, Types.Genre.ARME)
 		case.add_child(_coin(_categorie(ids[i], Types.Genre.ARME)))
+		var type_degats := ReperesArme.creer_icone_type(entree, ICONE_COIN)
+		if type_degats != null:
+			case.add_child(type_degats)
 		_grille_armes.add_child(case)
 	if ids.is_empty():
 		_grille_armes.add_child(_etiquette("AucuneArme", "BOUTIQUE_AUCUNE_ARME"))
@@ -730,6 +762,10 @@ func _infobulle(entree: Dictionary, genre: int) -> String:
 	var mot := CategorieOffre.mot(_categorie(str(entree.get("id", "")), genre))
 	if not mot.is_empty():
 		morceaux.append(mot)
+	if genre == Types.Genre.ARME:
+		var reperes := ReperesArme.texte_court(entree)
+		if not reperes.is_empty():
+			morceaux.append(reperes)
 	var effet := DescriptionOffre.ligne_effet(entree, genre, _donnees)
 	if not effet.is_empty():
 		morceaux.append(effet)

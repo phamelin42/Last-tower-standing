@@ -97,6 +97,8 @@ var _evenements: Array[Dictionary] = []
 var _rayon_spawn: float
 var _rayon_tour: float
 var _armure_tour: float
+## Part des dégâts bruts qui atteint toujours la tour : 1 − `partie.json` `reduction_degats_max`.
+var _part_minimale_subie: float
 var _esquive_k: float
 var _intervalle_depart: float
 var _baisse_par_manche: float
@@ -112,6 +114,7 @@ func _init(donnees: Donnees, graine: int) -> void:
 	_rayon_spawn = float(partie["rayon_spawn"])
 	_rayon_tour = float(tour["rayon"])
 	_armure_tour = float(tour["armure"])
+	_part_minimale_subie = 1.0 - float(partie["reduction_degats_max"])
 	_esquive_k = float(partie["esquive_k"])
 	var niveaux: Dictionary = partie["niveaux"]
 	_gain_degats_niveau = float(niveaux["gain_degats"])
@@ -382,6 +385,10 @@ func _pas_tour_et_ennemis(dt: float) -> void:
 	var apres_armure := Combat.degats_subis(subis, _armure_tour + _stats.armure_totale(_temps))
 	if mana > 0.0:
 		apres_armure *= 1.0 - clampf(_stats.reduction_tant_que_mana, 0.0, REDUCTION_MANA_MAX)
+	# Plancher unique, après toutes les couches : quelle que soit la construction, une part au moins
+	# des dégâts bruts du pas atteint la tour (`reduction_degats_max`). Sans lui, esquive, épines,
+	# armure et mana se multiplient jusqu'à l'invulnérabilité.
+	apres_armure = maxf(apres_armure, total * _part_minimale_subie)
 	# Ordre : esquive, réduction des épines, armure, mana, PV. Un point de mana absorbe un point de
 	# dégât.
 	var absorbe := minf(mana, apres_armure)

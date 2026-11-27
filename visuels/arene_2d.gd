@@ -14,8 +14,8 @@ extends Node2D
 signal arene_regardee_quittee
 
 const RESERVE_POOL: int = 16
-## Morts affichées en même temps au plus ; les suivantes de la même vue sont ignorées.
-const PLAFOND_MORTS: int = 64
+## Morts affichées en même temps au plus (crânes, ennemis qui attendent leur impact).
+const PLAFOND_MORTS: int = CranesArene.PLAFOND
 ## Au-delà du bord d'arrêt, un ennemi n'est plus « au contact » : marge de lissage (unités).
 const MARGE_CONTACT: float = 10.0
 const POINTS_CERCLE: int = 96
@@ -28,11 +28,6 @@ const PORTEE_MORT: float = 40.0
 const DELAI_MORT_MAX: float = 20.0 / 60.0
 ## Marge des sommes de `delta` : vingt images à 60 i/s font vingt images, pas vingt et une.
 const MARGE_DELAI: float = 0.000001
-const NOM_LARGEUR: float = 260.0
-const NOM_TAILLE: int = 18
-const NOM_CONTOUR: int = 6
-## Écart entre le pied de la tour et le haut du nom, en pixels d'écran.
-const NOM_ECART: float = 8.0
 
 ## Opacité d'un ennemi qui recouvre la tour : elle reste visible dessous.
 const ALPHA_RECOUVRE: float = 0.4
@@ -80,8 +75,7 @@ var _superpositions: SuperpositionsTour = null
 ## pendant le regard sur l'arène d'un autre.
 var _skin: int = 0
 var _skin_propre: int = 0
-var _noms: Node2D = null
-var _nom: Label = null
+var _noms: NomTour = null
 var _camera: CameraArene = null
 var _zoom_vu: float = 0.0
 var _numero: int = 1
@@ -101,13 +95,9 @@ var _regions: Array[PackedFloat32Array] = []
 var _decalages: Array[PackedFloat32Array] = []
 var _couvre_x: PackedFloat32Array = PackedFloat32Array()
 var _couvre_h: PackedFloat32Array = PackedFloat32Array()
-var _regions_mort: PackedFloat32Array = PackedFloat32Array()
-var _decalages_mort: PackedFloat32Array = PackedFloat32Array()
-var _morts: Array[Sprite2D] = []
-var _morts_debut: PackedFloat64Array = PackedFloat64Array()
+var _cranes: CranesArene = null
 ## Les ennemis tués dont l'impact n'est pas encore visible : `{sprite, ou, id, debut}`.
 var _mourants: Array[Dictionary] = []
-var _texture_mort: Texture2D = null
 var _effets: Effets = null
 ## Les alliés invoqués, posés dans le nœud des ennemis pour se trier en profondeur avec eux.
 var _allies := Allies2D.new()
@@ -187,26 +177,13 @@ func _assurer_construite() -> void:
 	_barres = BarresArene.new()
 	_barres.name = "Barres"
 	add_child(_barres)
-	_construire_nom()
+	_noms = NomTour.new()
+	add_child(_noms)
 	if donnees != null:
 		_preparer_entites()
 		_tirs_ennemis.configurer(donnees)
 		_barres.indice_boss = _pools.size() - 1
-	_texture_mort = load(String(Apparence.mort["feuille"])) as Texture2D
-	var mort: Dictionary = Apparence.mort
-	for image: int in int(mort["images"]):
-		var p: Dictionary = Apparence.placement(
-			String(mort["cle_boites"]),
-			image,
-			mort["case"],
-			int(mort["colonnes"]),
-			float(mort["pieds"]),
-			true
-		)
-		var r: Rect2 = p["region"]
-		var d: Vector2 = p["offset"]
-		_regions_mort.append_array([r.position.x, r.position.y, r.size.x, r.size.y])
-		_decalages_mort.append_array([d.x, d.y])
+	_cranes = CranesArene.new(_ennemis)
 
 
 ## S'abonne aux vues reçues. Un nouveau `lier` remplace le précédent.
@@ -295,7 +272,7 @@ func _poser_joueur(numero: int, nom: String) -> void:
 		_numero = numero
 		_poser_le_decor()
 	_poser_skin()
-	_nom.text = "%d. %s" % [Apparence.numero_valide(numero), nom] if nom != "" else ""
+	_noms.ecrire(numero, nom)
 
 
 ## Affiche l'arène du joueur `id_joueur` (sa tour, son nom, ses vues `vue_regardee_recue`) à la
@@ -413,15 +390,11 @@ func tirs_ennemis() -> TirsEnnemis:
 
 
 func nombre_morts_visibles() -> int:
-	var n: int = 0
-	for mort: Sprite2D in _morts:
-		if mort.visible:
-			n += 1
-	return n
+	return _cranes.nombre_visibles() if _cranes != null else 0
 
 
 func sprite_mort(i: int) -> Sprite2D:
-	return _morts[i] if i >= 0 and i < _morts.size() else null
+	return _cranes.sprite(i) if _cranes != null else null
 
 
 ## La teinte posée sur le rang `i` de la famille `famille` à la dernière image : `Color.WHITE` sans
@@ -517,7 +490,6 @@ func _recevoir(vue: VueArene, temps: float) -> void:
 		return
 	_dernier_tick = vue.tick
 	_interpolation.pousser(vue, temps)
-	_poses.afficher(vue)
 	_superpositions.viser(vue)
 	_echantillon_affiche = {}
 	var explosifs: Array[Vector2] = []
@@ -541,6 +513,8 @@ func _recevoir(vue: VueArene, temps: float) -> void:
 	# Après la boucle : l'impact qui tue peut suivre l'événement de mort dans la même vue.
 	for ou: Vector2 in tues:
 		_annoncer_mort(ou, vue)
+	# Après les événements : le tir qui pose une bombe dit si son projectile est encore en vol.
+	_poses.afficher(vue, _effets)
 	_barres.afficher(vue)
 	_vue_precedente = vue
 
@@ -651,7 +625,7 @@ func _afficher_echantillon() -> void:
 	_marques.fin()
 	_tirs_ennemis.mettre_a_jour(_horloge, ids, positions, familles)
 	_allies.afficher(_interpolation.echantillon_allies(_horloge), image_courante)
-	_animer_morts()
+	_cranes.animer(_horloge)
 
 
 ## Quelle animation joue un ennemi à la position `p` : course tant qu'il avance, puis repos s'il
@@ -730,7 +704,7 @@ func _annoncer_mort(ou: Vector2, vue: VueArene) -> void:
 	if _effets.delai_avant_impact(ou) >= 0.0 and _mourants.size() < PLAFOND_MORTS:
 		rang = _disparu_proche(vue, ou)
 	if rang < 0:
-		_ajouter_mort(ou)
+		_cranes.ajouter(ou, _horloge)
 		return
 	_mourants.append(_creer_mourant(_vue_precedente, rang, ou))
 
@@ -794,7 +768,7 @@ func _avancer_mourants() -> void:
 		var attente: float = _horloge - float(mourant["debut"])
 		if attente >= DELAI_MORT_MAX - MARGE_DELAI or _effets.delai_avant_impact(ou) < 0.0:
 			_liberer_mourant(i)
-			_ajouter_mort(ou)
+			_cranes.ajouter(ou, _horloge)
 
 
 func _liberer_mourant(i: int) -> void:
@@ -820,52 +794,6 @@ func sprite_mourant(i: int) -> Sprite2D:
 	return _mourants[i]["sprite"] if i >= 0 and i < _mourants.size() else null
 
 
-func _ajouter_mort(ou: Vector2) -> void:
-	var sprite: Sprite2D = null
-	for mort: Sprite2D in _morts:
-		if not mort.visible:
-			sprite = mort
-			break
-	if sprite == null:
-		if _morts.size() >= PLAFOND_MORTS:
-			return
-		sprite = _creer_mort()
-		_morts.append(sprite)
-		_morts_debut.append(0.0)
-	var index: int = _morts.find(sprite)
-	_morts_debut[index] = _horloge
-	sprite.position = Apparence.vers_pixels(ou)
-	(sprite as Lutin).image = -1
-	sprite.visible = true
-
-
-func _creer_mort() -> Sprite2D:
-	var m: Dictionary = Apparence.mort
-	var sprite := Lutin.new()
-	sprite.name = "Mort"
-	sprite.texture = _texture_mort
-	sprite.region_enabled = true
-	sprite.scale = Vector2.ONE * float(m["echelle"]) * Apparence.echelle_unites
-	sprite.visible = false
-	_ennemis.add_child(sprite)
-	return sprite
-
-
-func _animer_morts() -> void:
-	var images: int = Apparence.mort["images"]
-	var par_seconde: float = Apparence.mort["images_par_seconde"]
-	for i: int in _morts.size():
-		var mort: Lutin = _morts[i] as Lutin
-		if not mort.visible:
-			continue
-		var image: int = int((_horloge - _morts_debut[i]) * par_seconde)
-		if image >= images or image < 0:
-			mort.visible = false
-		elif image != mort.image:
-			mort.image = image
-			_poser_image(mort, _regions_mort, _decalages_mort, image, false)
-
-
 ## Garde le nom à taille d'écran constante, quel que soit le zoom.
 func _ajuster_nom() -> void:
 	if _camera == null:
@@ -875,8 +803,7 @@ func _ajuster_nom() -> void:
 		return
 	_zoom_vu = grossissement
 	_barres.zoom = grossissement
-	_noms.scale = Vector2.ONE / grossissement
-	_noms.position = Vector2(0.0, NOM_ECART / grossissement)
+	_noms.ajuster(grossissement)
 
 
 func _preparer_entites() -> void:
@@ -981,20 +908,3 @@ func _construire_tour() -> void:
 	_ennemis.add_child(_tour)
 	_superpositions = SuperpositionsTour.new()
 	_superpositions.construire(_tour, donnees)
-
-
-func _construire_nom() -> void:
-	_noms = Node2D.new()
-	_noms.name = "Noms"
-	add_child(_noms)
-	_nom = Label.new()
-	_nom.name = "NomJoueur"
-	_nom.position = Vector2(-NOM_LARGEUR * 0.5, 0.0)
-	_nom.custom_minimum_size = Vector2(NOM_LARGEUR, 0.0)
-	_nom.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_nom.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	_nom.add_theme_font_size_override("font_size", NOM_TAILLE)
-	_nom.add_theme_color_override("font_color", Apparence.COULEUR_NOM)
-	_nom.add_theme_color_override("font_outline_color", Apparence.COULEUR_CONTOUR_NOM)
-	_nom.add_theme_constant_override("outline_size", NOM_CONTOUR)
-	_noms.add_child(_nom)

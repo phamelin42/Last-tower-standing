@@ -187,7 +187,8 @@ func test_un_tonneau_tue_avant_le_contact_rapporte_sa_prime() -> void:
 
 
 func test_l_explosion_peut_etre_esquivee_mais_le_tonneau_disparait_quand_meme() -> void:
-	# Contrôle : sans esquive la tour encaisse ; avec une esquive écrasante, elle ne perd rien.
+	# Contrôle : sans esquive la tour encaisse ; avec une esquive écrasante, il ne reste que le
+	# plancher de défense de la tour.
 	var sans := _arene_avec_tonneau()
 	var pv_sans := sans.pv
 	sans.avancer(DT)
@@ -197,7 +198,9 @@ func test_l_explosion_peut_etre_esquivee_mais_le_tonneau_disparait_quand_meme() 
 	var pv_avant := a.pv
 	var argent := a.economie.argent
 	a.avancer(DT)
-	verifier_proche(a.pv, pv_avant, 0.0001, "coup esquivé")
+	# Le plancher de la tour (`reduction_degats_max`) : un coup esquivé laisse passer 15 % du coup.
+	var plancher := 1.0 - float(d.partie["reduction_degats_max"])
+	verifier_proche(pv_avant - a.pv, (pv_sans - sans.pv) * plancher, 0.0001, "coup esquivé")
 	verifier_egal(a.nombre_ennemis(), 0, "le Tonneau disparaît quand même")
 	verifier_egal(a.economie.argent, argent, "sans prime")
 	var vue := _vue(a)
@@ -226,6 +229,8 @@ func test_l_explosion_ne_declenche_pas_les_epines() -> void:
 func test_mille_tonneaux_au_contact_sous_5_ms_par_pas() -> void:
 	# Armure démesurée : la tour survit aux 1 000 explosions de chaque pas.
 	d.partie["tour"]["armure"] = 1e9
+	# Le plancher de défense laisse passer 15 % des explosions : des PV démesurés pour tenir 200 pas.
+	d.partie["tour"]["pv"] = 1.0e12
 	var a := Arene.new(d, GRAINE)
 	var i := _indice_famille("tonneau_jaune")
 	var durees := PackedInt32Array()

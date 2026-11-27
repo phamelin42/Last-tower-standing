@@ -60,6 +60,15 @@ const ATTENDU: Dictionary = {
 	"vasque_d_arcanes": "vasque",
 	"nuee_d_etincelles": "nuee",
 	"nova_celeste": "nova_celeste",
+	"baril_a_retardement": "baril",
+	"maillet_de_rempart": "maillet",
+	"catapulte_a_contrepoids": "catapulte",
+	"obusier_de_breche": "obusier",
+	"braise_de_siege": "braise",
+	"ecrasement_de_tour": "ecrasement",
+	"colosse_de_pierre": "colosse",
+	"champ_de_ruines": "ruines",
+	"salve_du_rempart": "salve",
 }
 
 

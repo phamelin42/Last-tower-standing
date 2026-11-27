@@ -25,6 +25,8 @@ const ARMES: Array[String] = [
 ## Nombre de bandes, donc d'armes au plus.
 const ARMES_MAX: int = 6
 const OPTION_ARMES: String = "--armes"
+## `-- --large` : une seule arme, la tour au centre de l'écran, pour juger un effet large.
+const OPTION_GRAND: String = "--large"
 
 const FOND := Color(0.24, 0.38, 0.27)
 const COULEUR_SEPARATION := Color(0.16, 0.27, 0.19)
@@ -62,6 +64,8 @@ var reactions: ReactionsCoups = ReactionsCoups.new()
 ## Plus grand nombre d'effets vivants vu depuis le début.
 var pic_vivants: int = 0
 var effets: Effets = null
+## Montre une seule arme en grand ; posé avant l'entrée dans l'arbre, ou par `-- --large`.
+var grand: bool = false
 ## Montre le mode réduit ; posé avant l'entrée dans l'arbre, ou par `-- --mouvement-reduit`.
 var mouvement_reduit: bool = false
 
@@ -77,25 +81,36 @@ var _positions: PackedVector2Array = PackedVector2Array()
 ## Les armes demandées par `-- --armes id1,id2,…` parmi `ids` : celles de `ARMES` sans l'option.
 ## Un id inconnu, une liste vide ou plus de `ARMES_MAX` armes est refusé (message sur stderr) et
 ## on garde le défaut : une vitrine qui montre autre chose que prévu tromperait celui qui la lit.
-static func lire_armes(args: PackedStringArray, ids: PackedStringArray) -> Array[String]:
-	var defaut: Array[String] = ARMES.duplicate()
+static func lire_armes(
+	args: PackedStringArray, ids: PackedStringArray, defaut: Array[String] = ARMES
+) -> Array[String]:
 	var i: int = args.find(OPTION_ARMES)
 	if i < 0:
-		return defaut
+		return defaut.duplicate()
 	if i + 1 >= args.size():
 		printerr("%s demande une liste d'armes séparées par des virgules" % OPTION_ARMES)
-		return defaut
+		return defaut.duplicate()
 	var voulues: Array[String] = []
 	for morceau: String in args[i + 1].split(",", false):
 		var id: String = morceau.strip_edges()
 		if not ids.has(id):
 			printerr("Arme inconnue : %s" % id)
-			return defaut
+			return defaut.duplicate()
 		voulues.append(id)
 	if voulues.is_empty() or voulues.size() > ARMES_MAX:
 		printerr("Entre 1 et %d armes attendues, %d données" % [ARMES_MAX, voulues.size()])
-		return defaut
+		return defaut.duplicate()
 	return voulues
+
+
+## Vrai si `-- --large` est demandé avec exactement une arme ; sinon un message sur stderr.
+static func lire_grand(args: PackedStringArray, nombre_armes: int) -> bool:
+	if not args.has(OPTION_GRAND):
+		return false
+	if nombre_armes != 1:
+		printerr("%s demande une seule arme, %d montrées" % [OPTION_GRAND, nombre_armes])
+		return false
+	return true
 
 
 ## Pixels de l'écran vers unités de jeu, ce que `Effets` attend dans les événements.
@@ -124,7 +139,12 @@ func _ready() -> void:
 	if OS.get_cmdline_user_args().has("--mouvement-reduit"):
 		mouvement_reduit = true
 	_donnees = Donnees.charger()
-	armes = lire_armes(OS.get_cmdline_user_args(), _donnees.ids_catalogue)
+	armes = lire_armes(OS.get_cmdline_user_args(), _donnees.ids_catalogue, armes)
+	if lire_grand(OS.get_cmdline_user_args(), armes.size()):
+		grand = true
+	if grand:
+		# La tour de l'unique bande (40, 54) vient au centre de l'écran : tout suit le déplacement.
+		position = Vector2(LARGEUR_ECRAN, HAUTEUR_ECRAN) * 0.5 - position_tour(0)
 	reactions.mouvement_reduit = mouvement_reduit
 	effets = Effets.new()
 	effets.mouvement_reduit = mouvement_reduit
@@ -160,7 +180,7 @@ func avancer(delta: float) -> void:
 
 
 func _draw() -> void:
-	draw_rect(Rect2(0.0, 0.0, LARGEUR_ECRAN, HAUTEUR_ECRAN), FOND)
+	draw_rect(Rect2(-position, Vector2(LARGEUR_ECRAN, HAUTEUR_ECRAN)), FOND)
 	for bande: int in armes.size():
 		if bande > 0:
 			var y: float = float(bande) * HAUTEUR_BANDE
@@ -218,9 +238,14 @@ func _tirer(bande: int) -> void:
 	var avant: int = _en_jeu()
 	var piege: int = VueArene.genre_depuis_nom("piege")
 	var mine: int = VueArene.genre_depuis_nom("mine")
+	var bombe: int = VueArene.genre_depuis_nom("bombe")
 	for evenement: Dictionary in evenements_du_cycle(id):
 		if evenement["k"] == "impact" and int(evenement["genre"]) in [piege, mine]:
 			_en_retard.append({"reste": DELAI_PIEGE, "evenement": evenement})
+		elif evenement["k"] == "impact" and int(evenement["genre"]) == bombe:
+			# Une bombe n'explose qu'à la fin de son délai, pas avec le tir qui la pose.
+			var effet: Dictionary = (_donnees.armes[id]["effets"] as Array)[0]
+			_en_retard.append({"reste": float(effet["delai"]), "evenement": evenement})
 		else:
 			effets.ajouter(evenement)
 	crees[id] = int(crees.get(id, 0)) + _en_jeu() - avant

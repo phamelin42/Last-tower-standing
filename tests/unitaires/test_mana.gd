@@ -71,14 +71,16 @@ func test_la_mana_absorbe_un_pour_un_apres_l_esquive_et_l_armure() -> void:
 	var pv_max := float(d.partie["tour"]["pv"])
 	verifier_proche(a.pv, pv_max - 5.0, 0.01, "5 points passent aux PV")
 	verifier_proche(a.mana, 0.0, 0.01, "la mana est épuisée")
-	# Esquive quasi certaine : ni la mana ni les PV ne bougent.
+	# Esquive quasi certaine : seul le plancher de la tour (15 % du coup brut) passe, et la mana
+	# l'absorbe : les PV ne bougent pas.
+	var plancher := 30.0 * (1.0 - float(d.partie["reduction_degats_max"]))
 	var b := _arene_avec_mana(15.0, 10.0)
 	b.inventaire.ameliorations[_id_amelioration("esquive")] = 1_000_000
 	b.synchroniser()
 	_attaquant(b, 30.0)
 	b.avancer(DT)
-	verifier_proche(b.mana, 15.0, 0.0001, "esquivé : la mana est intacte")
-	verifier_proche(b.pv, pv_max, 0.0001, "esquivé : les PV aussi")
+	verifier_proche(b.mana, 15.0 - plancher, 0.0001, "esquivé : la mana absorbe le plancher")
+	verifier_proche(b.pv, pv_max, 0.0001, "esquivé : les PV ne bougent pas")
 
 
 func test_la_mana_ne_descend_pas_sous_zero_et_le_reste_va_aux_pv() -> void:

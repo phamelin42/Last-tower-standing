@@ -347,6 +347,7 @@ static func _valider_partie(p: Dictionary, err: Array[String]) -> void:
 		_ent("nb_offres", 1.0),
 		_nn("gel_max_s"),
 		_pos("esquive_k"),
+		_spec("reduction_degats_max", 0.0, true, 0.99),
 	]:
 		_nombre(p, spec, f, "", err)
 	var tour_ok := _objet(p, "tour", f, "", err)
