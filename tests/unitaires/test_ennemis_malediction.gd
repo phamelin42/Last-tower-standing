@@ -121,6 +121,7 @@ func test_la_tour_subit_les_degats_reduits_au_corps_a_corps_et_a_distance() -> v
 
 func test_la_malediction_passe_avant_la_mana() -> void:
 	var a := _arene_avec_attaquant(true)
+	(d.partie["tour"] as Dictionary)["mana_cout_par_pv"] = 1.0
 	a._stats.mana_max_bonus = 200.0
 	a.mana = 100.0
 	var mana_avant := a.mana

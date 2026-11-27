@@ -102,7 +102,7 @@ la manche 20, graines 1 à 10 : `gain_cadence` 0,10 → 19 pour la graine 6 (les
 graine 6 ; **0,20 → 20 sur les dix graines**, valeur retenue. La graine 6 est sensible : une mesure à 50 graines
 et un nouveau réglage sont l'objet de T12.9.
 
-## Rampe de dégâts ennemis (proposition du 27/11/2026, non appliquée)
+## Rampe de dégâts ennemis (proposition du 27/11/2026, appliquée : voir « La mana chère »)
 
 Phil a laissé la décision au lot 12 (T12.9). Mesure du 27/11 sur le robot « bonne », graines 1 à 4, build normal
 (avec siphon de mana) et sans siphon ; `apres_table.degats` agit après la manche 20 seulement, donc D16 et D17
@@ -148,6 +148,44 @@ catalogue d'avant les 15 armes tardives (T12.7), combat contre le boss limité �
 | Boss vaincu en moins de 400 s           | 0 graine sur 9 (une victoire en 142 s sans le boost de revenu, graine 6)      |
 
 La mesure complète (boss, 50 graines, leviers) attend T12.7 (15 armes) et S27 : voir T12.9.
+
+## La mana chère (T12.9, 27/11/2026)
+
+Phil, 27/11/2026 : « arrivé jusqu'au boss avec 1 200 ennemis […] je ne perdais aucun point de vie […] le mana
+ça semble trop fort ». Mesure sur `main` avant changement, robot de siphon (armes et améliorations de mana
+d'abord, puis « bonne »), graine 5, manche 30 : 8 500 dégâts bruts par seconde, ramenés à 2 600 par l'armure et la
+réduction du voile de brume, absorbés par la mana, que le siphon rendait à 4 600 à 5 600 par seconde. Le siphon
+verse un débit **par ennemi** : il croît avec la foule et n'avait aucun plafond. Le vol de vie soigne aussi de
+400 à 5 000 PV par seconde en manches 24 à 30 sur d'autres graines : non touché ici.
+
+Décision de Phil (D12 inchangé : le bouclier absorbe tout, mais il coûte plus et se recharge moins) :
+
+- `tour.siphon_mana_max_par_s` = **600** : plafond du siphon de mana de toute la tour, par seconde ;
+- `tour.mana_cout_par_pv` = **2** : points de mana pour absorber un point de dégât ;
+- `apres_table.degats` = **1,14** (au lieu de 1,06 : table ci-dessus).
+
+Mesure (graines 1 à 8, 60 s de combat contre le boss ; « tient » = vivante après ces 60 s) :
+
+| Configuration                   | Siphon : au boss | Bonne : au boss | Raisonnable : au boss (morts) |
+| ------------------------------- | ---------------- | --------------- | ----------------------------- |
+| Avant (plafond ∞, coût 1, 1,06) | 5/8              | 6/8             | 5/8 (19, 23, 24)              |
+| Rampe 1,14 seule                | 5/8              | 5/8             | 4/8 (19, 23, 24, 26)          |
+| 600/s, coût 2, 1,14 (retenu)    | 6/8              | 3/8             | 4/8 (17, 19, 23, 24)          |
+| 400/s, coût 3, 1,14             | 5/8              | 3/8             | 3/8 (17, 19, 22, 24, 27)      |
+| 600/s, coût 1,5, 1,14           | 5/8              | 4/8             | 4/8 (18, 19, 23, 24)          |
+| 800 ou 1 000/s, coût 2, 1,14    | 6/8              | 3/8             | 4/8 (17, 19, 23, 24)          |
+
+- Un siphon bien construit tient toujours (graines 4, 5, 6, 7 et 8 tiennent) mais ne reste plus à 100 % : graine 5,
+  qui ne perdait aucun PV, passe sous 100 % pendant 79 des 272 secondes mesurées à partir de la manche 24 et
+  descend à 82 %.
+- Aucune « bonne » ne tombe avant la manche 23 (D17 intacte) ; la tour qui achète tout, jouée par un robot qui
+  prend sans réfléchir, ne tenait déjà pas avant le changement (1 graine sur 8 au boss) : pas une référence.
+- Le plafond de 600 par seconde ne pèse presque rien face au coût : 800 ou 1 000 donnent les mêmes résultats.
+  C'est le coût de la mana qui travaille ; le plafond empêche la foule de le contourner.
+- Prix : la « bonne » passe de 6 à 3 graines sur 8 au boss, et la graine 6 de « raisonnable » tombe en manche 17
+  (26 avec la seule rampe, 31 avant). La mesure à 50 graines de T12.9 réajuste les leviers de puissance.
+- Le plafond ne porte que sur le siphon ; la mana rendue au coup (`mana_au_coup`, 500 à 800 par seconde sur la
+  graine 5) n'est pas plafonnée.
 
 ## Coût d'un pas de simulation (S27, 27/11/2026)
 
