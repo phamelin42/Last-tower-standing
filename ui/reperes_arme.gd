@@ -104,6 +104,51 @@ static func creer_rangee(
 	return rangee
 
 
+## Rangée à structure fixe, pour une carte réutilisée d'offre en offre : un emplacement pour le
+## type, un pour la mécanique et `statuts_max` pour les statuts, tous cachés. Le nombre de nœuds
+## ne dépend donc jamais de l'arme montrée ; `remplir` règle les emplacements.
+static func creer_fixe(nom: String, statuts_max: int) -> Control:
+	var rangee := HBoxContainer.new()
+	rangee.name = nom
+	rangee.add_theme_constant_override("separation", ESPACE)
+	rangee.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var groupes: Array[String] = [GROUPE_TYPE, GROUPE_GENRE]
+	for i: int in statuts_max:
+		groupes.append(GROUPE_STATUT)
+	for groupe: String in groupes:
+		var puce := _creer_puce_vide(groupe)
+		puce.visible = false
+		rangee.add_child(puce)
+	return rangee
+
+
+## Montre dans une rangée fixe (`creer_fixe`) les repères de `arme` ; les emplacements en trop
+## sont cachés. Une arme `{}` les cache tous.
+static func remplir(rangee: Control, arme: Dictionary) -> void:
+	var restants: Array[Dictionary] = reperes(arme)
+	for puce: Control in rangee.get_children():
+		var groupe := str(puce.get_meta("groupe"))
+		var trouve := -1
+		for i: int in restants.size():
+			if str(restants[i]["groupe"]) == groupe:
+				trouve = i
+				break
+		puce.visible = false
+		if trouve < 0:
+			continue
+		var repere: Dictionary = restants.pop_at(trouve)
+		var id := str(repere["id"])
+		var image := icone(groupe, id)
+		var mot := texte(groupe, id)
+		if image == null or mot.is_empty():
+			continue
+		(puce.get_node("Icone") as TextureRect).texture = image
+		puce.tooltip_text = mot
+		puce.accessibility_name = mot
+		puce.set_meta("id", id)
+		puce.visible = true
+
+
 ## Petite icône du type de dégâts d'une arme, posée en haut à gauche de son parent. Décorative : le
 ## type s'écrit dans l'infobulle de l'arme. `null` si l'arme n'a pas de type connu.
 static func creer_icone_type(arme: Dictionary, cote: float) -> TextureRect:
@@ -130,25 +175,12 @@ static func _creer_puce(groupe: String, id: String, avec_texte: bool) -> Control
 	var mot := texte(groupe, id)
 	if image == null or mot.is_empty():
 		return null
-	var puce := HBoxContainer.new()
+	var puce := _creer_puce_vide(groupe)
 	puce.name = "Repere_%s_%s" % [groupe, id]
-	puce.add_theme_constant_override("separation", ESPACE)
+	(puce.get_node("Icone") as TextureRect).texture = image
 	puce.tooltip_text = mot
 	puce.accessibility_name = mot
-	puce.mouse_filter = Control.MOUSE_FILTER_STOP
-	puce.set_meta("groupe", groupe)
 	puce.set_meta("id", id)
-	var vignette := TextureRect.new()
-	vignette.name = "Icone"
-	vignette.texture = image
-	vignette.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	vignette.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	vignette.custom_minimum_size = Vector2(taille(), taille())
-	vignette.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	vignette.modulate = ThemeJeu.LAITON_CLAIR
-	vignette.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
-	vignette.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	puce.add_child(vignette)
 	if avec_texte and groupe != GROUPE_STATUT:
 		var libelle := Label.new()
 		libelle.name = "Mot"
@@ -157,4 +189,23 @@ static func _creer_puce(groupe: String, id: String, avec_texte: bool) -> Control
 		libelle.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		libelle.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		puce.add_child(libelle)
+	return puce
+
+
+static func _creer_puce_vide(groupe: String) -> HBoxContainer:
+	var puce := HBoxContainer.new()
+	puce.name = "Repere_%s" % groupe
+	puce.add_theme_constant_override("separation", ESPACE)
+	puce.mouse_filter = Control.MOUSE_FILTER_STOP
+	puce.set_meta("groupe", groupe)
+	var vignette := TextureRect.new()
+	vignette.name = "Icone"
+	vignette.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	vignette.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	vignette.custom_minimum_size = Vector2(taille(), taille())
+	vignette.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	vignette.modulate = ThemeJeu.LAITON_CLAIR
+	vignette.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	vignette.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	puce.add_child(vignette)
 	return puce

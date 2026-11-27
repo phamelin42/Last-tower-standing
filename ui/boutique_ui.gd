@@ -465,7 +465,7 @@ func _construire_carte(i: int) -> PanelContainer:
 	ligne.name = "Repere%d" % i
 	repere.get_parent().remove_child(repere)
 	ligne.add_child(repere)
-	var reperes := ReperesArme.creer_rangee({}, "Reperes%d" % i, false)
+	var reperes := ReperesArme.creer_fixe("Reperes%d" % i, ReperesArme.statuts_max_carte())
 	ligne.add_child(reperes)
 	_reperes.append(reperes)
 	_reperes_cartes.append("")
@@ -634,25 +634,13 @@ func _poser_ruban(i: int, categorie: int) -> void:
 
 
 ## Repères (type, mécanique, statuts) de l'arme de la carte `i` ; refaits seulement quand l'offre
-## change. Une amélioration ou une carte vide n'en a pas : la rangée reste, vide, à sa hauteur.
+## change. Une amélioration ou une carte vide n'en a pas : tous les emplacements sont cachés.
 func _poser_reperes(i: int, entree: Dictionary, genre: int) -> void:
 	var cle := str(entree.get("id", "")) if genre == Types.Genre.ARME else ""
 	if _reperes_cartes[i] == cle:
 		return
 	_reperes_cartes[i] = cle
-	var neuve := ReperesArme.creer_rangee(
-		entree if genre == Types.Genre.ARME else {},
-		"Reperes%d" % i,
-		false,
-		ReperesArme.statuts_max_carte()
-	)
-	var parent := _reperes[i].get_parent()
-	var rang := _reperes[i].get_index()
-	parent.remove_child(_reperes[i])
-	_reperes[i].free()
-	parent.add_child(neuve)
-	parent.move_child(neuve, rang)
-	_reperes[i] = neuve
+	ReperesArme.remplir(_reperes[i], entree if genre == Types.Genre.ARME else {})
 
 
 ## « Relancer » sur une ligne, le prix sur la suivante : le retour à la ligne est voulu, pour que

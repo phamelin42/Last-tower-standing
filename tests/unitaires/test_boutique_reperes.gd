@@ -46,6 +46,14 @@ func _vue_avec(id: String, genre: int) -> VueArene:
 	return vue
 
 
+func _visibles(rangee: Control) -> Array[Control]:
+	var sortie: Array[Control] = []
+	for puce: Control in rangee.get_children():
+		if puce.visible:
+			sortie.append(puce)
+	return sortie
+
+
 func _statuts_distincts(arme: Dictionary) -> int:
 	var vus: Dictionary = {}
 	for statut: Dictionary in arme.get("statuts", []):
@@ -61,8 +69,8 @@ func test_chaque_carte_d_arme_montre_son_type_sa_mecanique_et_ses_statuts_en_ico
 		var attendus := (
 			2 + mini(_statuts_distincts(_donnees.armes[id]), ReperesArme.statuts_max_carte())
 		)
-		verifier_egal(rangee.get_child_count(), attendus, "%s : icônes sur la carte" % id)
-		for puce: Control in rangee.get_children():
+		verifier_egal(_visibles(rangee).size(), attendus, "%s : icônes sur la carte" % id)
+		for puce: Control in _visibles(rangee):
 			verifier(not puce.tooltip_text.is_empty(), "%s : infobulle de %s" % [id, puce.name])
 			verifier_egal(puce.accessibility_name, puce.tooltip_text, "%s : nom accessible" % id)
 
@@ -83,13 +91,13 @@ func test_une_amelioration_n_a_pas_de_reperes_et_la_rangee_suit_l_offre() -> voi
 	var amelios: Array = _donnees.ameliorations.keys()
 	_ui.afficher(_vue_avec(str(armes[0]), Types.Genre.ARME))
 	var rangee := _ui.find_child("Reperes0", true, false) as Control
-	verifier(rangee.get_child_count() > 0, "une arme a des repères")
+	verifier(_visibles(rangee).size() > 0, "une arme a des repères")
 	_ui.afficher(_vue_avec(str(amelios[0]), Types.Genre.AMELIORATION))
 	rangee = _ui.find_child("Reperes0", true, false) as Control
-	verifier_egal(rangee.get_child_count(), 0, "une amélioration n'en a pas")
+	verifier_egal(_visibles(rangee).size(), 0, "une amélioration n'en a pas")
 	_ui.afficher(_vue_avec(str(armes[1]), Types.Genre.ARME))
 	rangee = _ui.find_child("Reperes0", true, false) as Control
-	verifier(rangee.get_child_count() > 0, "l'arme suivante en a de nouveau")
+	verifier(_visibles(rangee).size() > 0, "l'arme suivante en a de nouveau")
 
 
 func test_une_arme_equipee_montre_l_icone_de_son_type_de_degats() -> void:
@@ -100,3 +108,13 @@ func test_une_arme_equipee_montre_l_icone_de_son_type_de_degats() -> void:
 	for i: int in vue.armes.size():
 		var case := _ui.find_child("Arme%d" % i, true, false) as Control
 		verifier(case.find_child("TypeDegats", false, false) != null, "arme %d : icône du type" % i)
+
+
+func test_le_nombre_de_noeuds_de_la_rangee_ne_depend_pas_de_l_arme_montree() -> void:
+	_ui.afficher(_vue_avec(str(_donnees.armes.keys()[0]), Types.Genre.ARME))
+	var rangee := _ui.find_child("Reperes0", true, false) as Control
+	var attendu := rangee.find_children("*", "", true, false).size()
+	for id: String in _donnees.armes:
+		_ui.afficher(_vue_avec(id, Types.Genre.ARME))
+		var noeuds := rangee.find_children("*", "", true, false).size()
+		verifier_egal(noeuds, attendu, "%s : même nombre de nœuds" % id)
