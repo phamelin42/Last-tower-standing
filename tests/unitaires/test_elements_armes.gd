@@ -34,6 +34,7 @@ const ATTENDU: Dictionary = {
 	"vortex_de_verre": "vortex",
 	"horloge_folle": "horloge",
 	"serpe_de_vigne": "serpe",
+	"rasoir_tournoyant": "rasoir",
 }
 
 

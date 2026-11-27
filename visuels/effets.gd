@@ -409,10 +409,8 @@ func ajouter(evenement: Dictionary) -> bool:
 	var signature: Dictionary = _signature(evenement)
 	var arme: int = evenement.get("arme", -1) if typeof(evenement.get("arme")) == TYPE_INT else -1
 	if k == "tir":
-		if genre == "tournant" and _element(arme) == "":
-			var bout: Vector2 = Apparence.vers_pixels(vers)
-			var depart: Vector2 = Apparence.vers_pixels(de)
-			return _mecaniques.rayon(depart, bout, rayon, COULEURS[type_degats])
+		if genre == "tournant":
+			return _tournant(type_degats, de, vers, rayon, signature, arme)
 		return _tir(type_degats, genre, de, vers, signature, arme)
 	return _impact(type_degats, genre, de, vers, rayon, statut, signature, arme)
 
@@ -564,6 +562,21 @@ func _tir(
 	if not signature.is_empty():
 		_trainee(String(signature["trainee"]), depart, arrivee, couleur)
 	return true
+
+
+## Un rayon de tir tournant : le trait de la marque, toujours ; une arme à élément y ajoute son
+## projectile, qui file jusqu'au bout du rayon, et son impact à l'arrivée, à la largeur du rayon.
+func _tournant(
+	type_degats: int, de: Vector2, vers: Vector2, largeur: float, signature: Dictionary, arme: int
+) -> bool:
+	var bout: Vector2 = Apparence.vers_pixels(vers)
+	var cree: bool = _mecaniques.rayon(
+		Apparence.vers_pixels(de), bout, largeur, COULEURS[type_degats]
+	)
+	if _element(arme) == "":
+		return cree
+	cree = _tir(type_degats, "tournant", de, vers, signature, arme) or cree
+	return _impact(type_degats, "tournant", de, vers, largeur, "", signature, arme) or cree
 
 
 ## Le tir d'une arme à élément : l'impact attend l'arrivée du projectile (anticipation comprise).

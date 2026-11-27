@@ -98,3 +98,81 @@ func test_mouvement_reduit_la_serpe_ne_tourne_pas_et_sans_particule() -> void:
 	_a.impacter("serpe", CIBLE, 55.0)
 	verifier_egal(_a.particules_actives(), 0)
 	verifier_egal(_a.etats("balayage").size(), 1, "l'arc reste")
+
+
+# --- Rasoir tournoyant : tir tournant à deux branches -----------------------------------------
+
+
+func test_le_rasoir_est_un_tir_tournant_a_deux_branches() -> void:
+	_verifier_arme("rasoir_tournoyant", "rasoir", "tournant")
+	verifier_egal(int(_effet("rasoir_tournoyant")["branches"]), 2, "deux branches")
+
+
+func test_le_rasoir_dure_dix_images_et_tourne_sur_lui_meme() -> void:
+	verifier_proche(_a.tirer("rasoir", TOUR, CIBLE) / IMAGE, 10.0, 0.01)
+	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 1)
+	var rasoir: Dictionary = _a.etats("rasoir")[0]
+	verifier(rasoir["visible"], "le rasoir vole")
+	var avant: float = rasoir["rotation"]
+	_avancer(2)
+	verifier(absf(_a.etats("rasoir")[0]["rotation"] - avant) > 0.1, "il tourne en volant")
+
+
+func test_l_entaille_du_rasoir_reste_petite() -> void:
+	_a.impacter("rasoir", CIBLE, 0.0)
+	verifier_egal(_a.etats("entaille").size(), 1, "une entaille")
+	verifier(_a.diametre_max() <= 60.0, "au plus 60 px")
+	_avancer(40)
+	verifier_egal(_a.nombre_vivants(), 0, "tout se dissipe")
+	verifier_egal(_a.particules_actives(), 0)
+
+
+## Les bouts des rayons d'un tir de l'arme `id` (pixels), tels que la vitrine les émet.
+func _bouts(id: String) -> Array[Vector2]:
+	var vitrine: VitrineArmes = VitrineArmes.new()
+	vitrine.armes = [id] as Array[String]
+	var bouts: Array[Vector2] = []
+	for evenement: Dictionary in vitrine.evenements_du_cycle(id):
+		bouts.append(Apparence.vers_pixels(evenement["vers"]))
+	vitrine.free()
+	return bouts
+
+
+## Un tir tournant garde les rayons de sa marque ; chaque branche y ajoute une lame qui file
+## jusqu'au bout du rayon et mord là, à l'arrivée du vol.
+func _verifier_tournant_dans_effets(id: String, lame: String, impact: String) -> void:
+	var branches: int = int(_effet(id)["branches"])
+	var bouts: Array[Vector2] = _bouts(id)
+	verifier_egal(bouts.size(), branches, "une branche par événement")
+	var effets: Effets = _effets_de(id)
+	verifier_egal(effets.elementaires().etats(lame).size(), branches, "une lame par branche")
+	var rayons: int = 0
+	for forme: String in effets.formes_vivantes():
+		rayons += 1 if forme == "trait_rayon" else 0
+	verifier_egal(rayons, branches, "les rayons de la marque restent")
+	var arrivee: int = (
+		AttaquesElementaires.IMAGES_ANTICIPATION + AttaquesElementaires.IMAGES_VOL_DIRECT
+	)
+	for _i: int in arrivee:
+		effets.avancer(IMAGE)
+	var coups: Array[Dictionary] = effets.elementaires().etats(impact)
+	verifier_egal(coups.size(), branches, "un impact par bout")
+	for coup: Dictionary in coups:
+		var proche: float = INF
+		for bout: Vector2 in bouts:
+			proche = minf(proche, (coup["position"] as Vector2).distance_to(bout))
+		verifier(proche < 1.0, "l'impact est au bout d'un rayon")
+	effets.free()
+
+
+func test_le_rasoir_dans_effets_file_le_long_de_chaque_rayon_et_mord_au_bout() -> void:
+	_verifier_tournant_dans_effets("rasoir_tournoyant", "rasoir", "entaille")
+
+
+func test_mouvement_reduit_le_rasoir_ne_tourne_pas_et_sans_particule() -> void:
+	_a.mouvement_reduit = true
+	_a.tirer("rasoir", TOUR, CIBLE)
+	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 2)
+	verifier_proche(_a.etats("rasoir")[0]["rotation"], 0.0, 0.0001, "pas de rotation")
+	_a.impacter("rasoir", CIBLE, 0.0)
+	verifier_egal(_a.particules_actives(), 0)

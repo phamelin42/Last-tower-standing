@@ -152,6 +152,7 @@ static func _scripts() -> Array[GDScript]:
 		AttaqueVortex,
 		AttaqueHorloge,
 		AttaqueSerpe,
+		AttaqueRasoir,
 	]
 
 
