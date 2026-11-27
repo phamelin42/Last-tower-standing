@@ -68,6 +68,7 @@ const COURONNE_POINTES: String = "couronne_pointes"
 
 ## Les armes magiques du lot 9 : un élément par arme, comme la famille arcane.
 const RUNE_VEILLE: String = "rune_veille"
+const SIPHONNEUR: String = "siphonneur"
 
 const ELEMENTS: Array[String] = [
 	FEU,
@@ -119,6 +120,7 @@ const ELEMENTS: Array[String] = [
 	MUR_POINTES,
 	COURONNE_POINTES,
 	RUNE_VEILLE,
+	SIPHONNEUR,
 ]
 
 ## id d'arme → élément.
@@ -172,6 +174,7 @@ const TABLE: Dictionary = {
 	"mur_de_pointes": MUR_POINTES,
 	"couronne_de_pointes": COURONNE_POINTES,
 	"rune_de_veille": RUNE_VEILLE,
+	"eclat_siphonneur": SIPHONNEUR,
 }
 
 

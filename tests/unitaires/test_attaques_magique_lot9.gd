@@ -59,3 +59,43 @@ func test_la_rune_dans_effets_ne_dessine_plus_l_anneau_generique_de_la_zone() ->
 	verifier(_pic_de(effets, "eclat_rune", 40) > 0, "l'éclat de la rune à l'arrivée")
 	verifier_faux(effets.formes_vivantes().has("anneau"), "plus d'anneau générique")
 	effets.free()
+
+
+# --- Éclat siphonneur : cible unique, siphon de mana ---------------------------------------------
+
+
+func test_l_eclat_siphonneur_est_une_cible_unique_qui_siphonne_la_mana() -> void:
+	_verifier_arme("eclat_siphonneur", "siphonneur", "cible_unique")
+	verifier_egal(_statut("eclat_siphonneur"), "siphon")
+
+
+func test_l_eclat_siphonneur_dure_dix_images_et_file_droit_derriere_une_traine_violette() -> void:
+	verifier_proche(_a.tirer("siphonneur", TOUR, CIBLE) / IMAGE, 10.0, 0.01, "3 + 7 images")
+	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 3)
+	var orbe: Dictionary = _a.etats("siphon")[0]
+	verifier(orbe["visible"], "il vole")
+	verifier_proche(orbe["position"].y, CIBLE.y, 1.0, "droit, sans arc")
+	verifier(_a.particules_actives() >= 1, "une traînée")
+	verifier_egal(_a.etats("ombre").size(), 0, "pas d'ombre : pas de cloche")
+
+
+func test_le_siphon_se_resserre_sur_la_cible_et_garde_la_marque_d_effets() -> void:
+	verifier(_a.impacter("siphonneur", CIBLE, 0.0))
+	verifier_egal(_a.etats("eclat_siphon").size(), 1, "un éclat")
+	verifier(_a.diametre_max() <= 60.0, "cible unique : au plus 60 px")
+	verifier_egal(_a.etats("").size(), 0, "pas d'anneau : la marque de siphon est celle d'Effets")
+	verifier(_a.particules_actives() >= 1, "des volutes")
+	var total: int = AttaqueSiphonneur.SEQ_ECLAT.size()
+	var rang: int = _rang_du_pic("eclat_siphon", AttaqueSiphonneur.IMAGE_PIC, total)
+	verifier(rang >= 0 and rang <= total / 4, "pic à l'image %d sur %d" % [rang, total])
+	_avancer(total + 30)
+	verifier_egal(_a.nombre_vivants(), 0, "tout se dissipe")
+	verifier_egal(_a.particules_actives(), 0)
+
+
+func test_mouvement_reduit_l_eclat_siphonneur_sans_particule() -> void:
+	_a.mouvement_reduit = true
+	_a.tirer("siphonneur", TOUR, CIBLE)
+	_a.impacter("siphonneur", CIBLE, 0.0)
+	verifier_egal(_a.particules_actives(), 0)
+	verifier_egal(_a.etats("eclat_siphon").size(), 1, "l'éclat reste")
