@@ -35,19 +35,19 @@ func _signature(plan: PlanDecor) -> String:
 
 
 func test_chaque_texture_citee_existe() -> void:
-	var fichiers: Array[String] = [PlanDecor.FEUILLE_TERRAIN, PlanDecor.FEUILLE_EAU]
-	fichiers.append(PlanDecor.FEUILLE_ECUME)
-	for type: String in PlanDecor.TYPES:
-		fichiers.append(String((PlanDecor.TYPES[type] as Dictionary)["fichier"]))
-	verifier(PlanDecor.TYPES.size() >= 25, "catalogue trop court : %d" % PlanDecor.TYPES.size())
+	var fichiers: Array[String] = [PlanDecor.feuille_terrain, PlanDecor.feuille_eau]
+	fichiers.append(PlanDecor.feuille_ecume)
+	for type: String in PlanDecor.types:
+		fichiers.append(String((PlanDecor.types[type] as Dictionary)["fichier"]))
+	verifier(PlanDecor.types.size() >= 25, "catalogue trop court : %d" % PlanDecor.types.size())
 	for f: String in fichiers:
 		verifier(ResourceLoader.exists(RACINE + f), "texture absente : %s" % f)
 		verifier(load(RACINE + f) is Texture2D, "texture illisible : %s" % f)
 
 
 func test_chaque_type_decrit_une_image_contenue_dans_sa_feuille() -> void:
-	for type: String in PlanDecor.TYPES:
-		var t: Dictionary = PlanDecor.TYPES[type]
+	for type: String in PlanDecor.types:
+		var t: Dictionary = PlanDecor.types[type]
 		var texture := load(RACINE + String(t["fichier"])) as Texture2D
 		var cellule: Vector2i = t["cellule"]
 		var origine: Vector2i = t["origine"]
@@ -114,11 +114,11 @@ func test_chaque_tuile_pose_correspond_a_ses_voisines() -> void:
 func test_le_sol_de_marche_est_entierement_de_l_herbe_sans_bord() -> void:
 	for graine: int in GRAINES:
 		var plan := PlanDecor.generer(graine)
-		var rayon: float = PlanDecor.RAYON_ZONE + float(PlanDecor.CASE)
-		var cases: int = ceili(rayon / float(PlanDecor.CASE)) + 1
+		var rayon: float = PlanDecor.RAYON_ZONE + float(PlanDecor.case)
+		var cases: int = ceili(rayon / float(PlanDecor.case)) + 1
 		for j: int in range(-cases, cases + 1):
 			for i: int in range(-cases, cases + 1):
-				var centre := (Vector2(i, j) + Vector2(0.5, 0.5)) * float(PlanDecor.CASE)
+				var centre := (Vector2(i, j) + Vector2(0.5, 0.5)) * float(PlanDecor.case)
 				if centre.length() <= rayon:
 					verifier(
 						plan.terre.has(Vector2i(i, j)), "graine %d : trou en %s" % [graine, centre]
@@ -184,7 +184,7 @@ func test_chaque_categorie_de_decor_demandee_est_presente() -> void:
 		var plan := PlanDecor.generer(graine)
 		var compte: Dictionary = {}
 		for o: Dictionary in plan.objets:
-			var categorie: String = (PlanDecor.TYPES[o["type"]] as Dictionary)["categorie"]
+			var categorie: String = (PlanDecor.types[o["type"]] as Dictionary)["categorie"]
 			compte[categorie] = int(compte.get(categorie, 0)) + 1
 		for categorie: String in exigences:
 			verifier(
@@ -203,7 +203,7 @@ func test_les_objets_reposent_sur_la_terre_et_les_rochers_d_eau_sur_l_eau() -> v
 		for o: Dictionary in plan.objets:
 			var pieds: Vector2 = o["pieds"]
 			var cellule := Vector2i(
-				floori(pieds.x / PlanDecor.CASE), floori(pieds.y / PlanDecor.CASE)
+				floori(pieds.x / PlanDecor.case), floori(pieds.y / PlanDecor.case)
 			)
 			if bool(o["eau"]):
 				verifier_faux(
@@ -322,7 +322,7 @@ func test_l_image_du_sol_est_pleine_a_une_teinte_d_eau_aux_coins_et_d_herbe_au_c
 	verifier_non_nul(image)
 	if image == null:
 		return
-	var eau: Color = (load(RACINE + PlanDecor.FEUILLE_EAU) as Texture2D).get_image().get_pixel(0, 0)
+	var eau: Color = (load(RACINE + PlanDecor.feuille_eau) as Texture2D).get_image().get_pixel(0, 0)
 	verifier_egal(
 		image.get_size(), Vector2i(PlanDecor.DEMI_COLONNES * 128, PlanDecor.DEMI_LIGNES * 128)
 	)

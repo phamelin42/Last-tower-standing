@@ -18,7 +18,7 @@ func _feuilles() -> Array[Dictionary]:
 	var feuilles: Array[Dictionary] = []
 	for id: String in Apparence.ids_entites(_donnees):
 		feuilles.append(Apparence.entree(id))
-	feuilles.append(Apparence.MORT)
+	feuilles.append(Apparence.mort)
 	return feuilles
 
 
@@ -44,8 +44,8 @@ func test_chaque_feuille_a_ses_boites_de_recadrage() -> void:
 
 
 func test_les_boites_d_un_modele_couvrent_ses_quatre_couleurs() -> void:
-	for cle: String in Apparence.MODELES:
-		var modele: Dictionary = Apparence.MODELES[cle]
+	for cle: String in Apparence.modeles:
+		var modele: Dictionary = Apparence.modeles[cle]
 		if not String(modele["chemin"]).contains("%s"):
 			continue
 		for couleur: String in ["Yellow", "Red", "Purple", "Blue"]:

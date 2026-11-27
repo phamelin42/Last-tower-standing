@@ -24,10 +24,10 @@ func _init() -> void:
 		"const BOITES: Dictionary = {",
 	]
 	var cles: Array[String] = []
-	for cle: String in Apparence.MODELES:
+	for cle: String in Apparence.modeles:
 		cles.append(cle)
 	for cle: String in cles:
-		var modele: Dictionary = Apparence.MODELES[cle]
+		var modele: Dictionary = Apparence.modeles[cle]
 		var chemin: String = modele["chemin"]
 		var fichiers: Array[String] = []
 		if chemin.contains("%s"):
@@ -36,7 +36,7 @@ func _init() -> void:
 		else:
 			fichiers.append(chemin if chemin.begins_with("res://") else Apparence.RACINE + chemin)
 		lignes.append(_entree(cle, fichiers, modele))
-	var mort: Dictionary = Apparence.MORT
+	var mort: Dictionary = Apparence.mort
 	lignes.append(_entree("mort", [String(mort["feuille"])], mort))
 	lignes.append("}")
 	lignes.append("")

@@ -131,25 +131,25 @@ func test_chaque_objet_du_decor_existe_et_sa_boite_tient_dans_sa_cellule() -> vo
 
 
 func test_chaque_son_decrit_est_celui_du_catalogue() -> void:
-	verifier_egal(CatalogueSons.IDS_ARMES.size(), 75)
-	verifier_egal(CatalogueSons.SUFFIXES_IMPACT.size(), 5)
-	verifier(CatalogueSons.DOSSIER.begins_with("res://"))
-	verifier(CatalogueSons.EXTENSION.begins_with("."))
+	verifier_egal(CatalogueSons.liste_ids_armes.size(), 75)
+	verifier_egal(CatalogueSons.liste_suffixes_impact.size(), 5)
+	verifier(CatalogueSons.dossier.begins_with("res://"))
+	verifier(CatalogueSons.extension.begins_with("."))
 
 
 func test_un_sprite_remplace_par_une_autre_taille_s_affiche_avec_la_nouvelle_case() -> void:
-	var avant: Dictionary = Apparence.MODELES.duplicate(true)
-	var modele: Dictionary = (Apparence.MODELES["torch"] as Dictionary).duplicate(true)
+	var avant: Dictionary = Apparence.modeles.duplicate(true)
+	var modele: Dictionary = (Apparence.modeles["torch"] as Dictionary).duplicate(true)
 	modele["case"] = Vector2i(256, 160)
 	modele["colonnes"] = 5
 	modele["pieds"] = 140.0
-	Apparence.MODELES["torch"] = modele
+	Apparence.modeles["torch"] = modele
 	Apparence._entrees.clear()
 	var entree: Dictionary = Apparence.entree("torche_jaune")
 	verifier_egal(entree["case"], Vector2i(256, 160))
 	verifier_egal(entree["colonnes"], 5)
 	verifier_egal(entree["pieds"], 140.0)
-	Apparence.MODELES = avant
+	Apparence.modeles = avant
 	Apparence._entrees.clear()
 	var apres: Dictionary = Apparence.entree("torche_jaune")
 	verifier_egal(apres["case"], Vector2i(192, 192))
@@ -157,11 +157,11 @@ func test_un_sprite_remplace_par_une_autre_taille_s_affiche_avec_la_nouvelle_cas
 
 func test_les_valeurs_du_fichier_sont_celles_des_tables() -> void:
 	var u: Dictionary = Assets.typee("unites")
-	verifier_egal(Apparence.MODELES, u["modeles"])
-	verifier_egal(Apparence.ENTITES, u["entites"])
-	verifier_egal(Apparence.ALLIES, u["allies"])
-	verifier_egal(Apparence.MORT, u["mort"])
-	verifier_egal(PlanDecor.TYPES, Assets.typee("decor")["types"])
-	verifier_egal(Apparence.TOUR_ECHELLE, 2.1)
-	verifier_egal(Apparence.TOURS_PACK.size(), 4)
-	verifier_egal(Apparence.TEINTES_CALCULEES.size(), 4)
+	verifier_egal(Apparence.modeles, u["modeles"])
+	verifier_egal(Apparence.entites, u["entites"])
+	verifier_egal(Apparence.allies, u["allies"])
+	verifier_egal(Apparence.mort, u["mort"])
+	verifier_egal(PlanDecor.types, Assets.typee("decor")["types"])
+	verifier_egal(Apparence.tour_echelle, 2.1)
+	verifier_egal(Apparence.tours_pack.size(), 4)
+	verifier_egal(Apparence.teintes_calculees.size(), 4)
