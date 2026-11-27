@@ -119,8 +119,38 @@ func test_sept_cents_tireurs_ne_depassent_pas_le_plafond_de_projectiles() -> voi
 		if _a_distance(i):
 			archer = i
 			break
+	var plafond := _arene.tirs_ennemis().plafond()
 	var plus := _maximum(_vue(archer, _arret(archer), 700), 3.0)
 	verifier(plus >= 1, "des projectiles volent")
-	verifier(
-		plus <= TirsEnnemis.PLAFOND, "au plus %d projectiles (vus %d)" % [TirsEnnemis.PLAFOND, plus]
-	)
+	verifier(plus <= plafond, "au plus %d projectiles (vus %d)" % [plafond, plus])
+
+
+func test_le_plafond_le_vol_et_les_images_viennent_de_assets_json() -> void:
+	# Règle des assets remplaçables : changer de pack ne demande que de changer le JSON.
+	var reglages: Dictionary = Assets.section("tirs_ennemis")
+	verifier_egal(_arene.tirs_ennemis().plafond(), int(reglages["plafond"]))
+	for cle: String in ["fleche", "bombe"]:
+		var chemin: String = Apparence.RACINE + String((reglages[cle] as Dictionary)["chemin"])
+		verifier(ResourceLoader.exists(chemin), "%s : l'image existe (%s)" % [cle, chemin])
+	var modifie: Dictionary = Assets.tout().duplicate(true)
+	(modifie["tirs_ennemis"] as Dictionary)["plafond"] = 3
+	Assets.remplacer(modifie)
+	var arene := (load(SCENE) as PackedScene).instantiate() as Arene2D
+	arbre.root.add_child(arene)
+	arene.reinitialiser()
+	verifier_egal(arene.tirs_ennemis().plafond(), 3, "le plafond suit le JSON")
+	arene.get_parent().remove_child(arene)
+	arene.free()
+	Assets.reinitialiser()
+
+
+func test_assets_json_refuse_une_section_de_tirs_incomplete() -> void:
+	for cle: String in ["plafond", "vol_s", "fleche", "bombe"]:
+		var assets: Dictionary = Assets.tout().duplicate(true)
+		(assets["tirs_ennemis"] as Dictionary).erase(cle)
+		var erreurs: Array[String] = []
+		DonneesAssets.valider(assets, erreurs)
+		var cite := false
+		for m: String in erreurs:
+			cite = cite or m.contains("tirs_ennemis.%s" % cle)
+		verifier(cite, "section sans %s : %s" % [cle, erreurs])
