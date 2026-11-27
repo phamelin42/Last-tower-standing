@@ -304,3 +304,57 @@ func test_mouvement_reduit_la_faucheuse_ne_tourne_pas_et_sans_particule() -> voi
 	verifier_proche(_a.etats("lame_tournante")[0]["rotation"], 0.0, 0.0001, "pas de rotation")
 	_a.impacter("faucheuse", CIBLE, 0.0)
 	verifier_egal(_a.particules_actives(), 0)
+
+
+# --- Fléau de rasoirs : rebond, vulnérabilité --------------------------------------------------
+
+
+func test_le_fleau_est_un_rebond_qui_rend_vulnerable() -> void:
+	_verifier_arme("fleau_de_rasoirs", "fleau", "rebond")
+	verifier_egal(String(_donnees.armes["fleau_de_rasoirs"]["statuts"][0]["kind"]), "vulnerabilite")
+
+
+func test_le_fleau_dure_dix_images_et_ses_rasoirs_tournent() -> void:
+	verifier_proche(_a.tirer("fleau", TOUR, CIBLE) / IMAGE, 10.0, 0.01)
+	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 1)
+	var avant: float = _a.etats("rasoir")[0]["rotation"]
+	_avancer(2)
+	verifier(absf(_a.etats("rasoir")[0]["rotation"] - avant) > 0.3, "il tourne en volant")
+
+
+func test_un_saut_du_fleau_est_un_vol_de_sept_images_sans_anticipation() -> void:
+	var fin: float = _a.saut("fleau", CIBLE, CIBLE + Vector2(90.0, 20.0), 4.0 * IMAGE)
+	verifier_proche(fin / IMAGE, 4.0 + AttaquesElementaires.IMAGES_VOL_DIRECT, 0.01)
+	verifier_egal(_a.etats("depart").size(), 0, "pas d'anticipation à chaque saut")
+	verifier_faux(_a.etats("rasoir")[0]["visible"], "il attend la fin du saut précédent")
+	_avancer(5)
+	verifier(_a.etats("rasoir")[0]["visible"], "il vole")
+	_avancer(10)
+	verifier_egal(_a.nombre_vivants(), 0, "arrivé, il disparaît")
+
+
+func test_chaque_saut_du_fleau_mord_petit_avec_un_eclat_d_acier() -> void:
+	_a.impacter("fleau", CIBLE, 0.0)
+	verifier_egal(_a.etats("eclat_acier").size(), 1, "un éclat d'acier")
+	verifier(_a.diametre_max() <= 60.0, "cible unique : au plus 60 px")
+	verifier_egal(_a.particules_actives(), 1, "des étincelles")
+	_avancer(40)
+	verifier_egal(_a.nombre_vivants(), 0, "tout se dissipe")
+
+
+func test_le_fleau_dans_effets_envoie_un_rasoir_par_saut() -> void:
+	var effets: Effets = _effets_de("fleau_de_rasoirs")
+	verifier_egal(effets.elementaires().etats("rasoir").size(), 3, "un tir puis deux sauts")
+	effets.free()
+
+
+func test_mouvement_reduit_le_fleau_ne_tourne_pas_et_sans_particule() -> void:
+	_a.mouvement_reduit = true
+	_a.tirer("fleau", TOUR, CIBLE)
+	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 1)
+	var avant: int = _a.etats("rasoir")[0]["image"]
+	verifier_proche(_a.etats("rasoir")[0]["rotation"], 0.0, 0.0001, "pas de rotation")
+	_avancer(2)
+	verifier_egal(_a.etats("rasoir")[0]["image"], avant, "image fixe")
+	_a.impacter("fleau", CIBLE, 0.0)
+	verifier_egal(_a.particules_actives(), 0)
