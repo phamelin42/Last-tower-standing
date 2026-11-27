@@ -83,3 +83,22 @@ static func scripts() -> Array[GDScript]:
 		AttaqueLegion,
 		AttaqueMalefices,
 	]
+
+
+## Les éléments de fin de partie (T12.8) : un par arme de `signatures.familles_tardives`
+## (`data/assets.json`), construit sur l'élément de sa famille (`base`, par identifiant) et
+## teinté de la teinte de sa rareté (`signatures.raretes_tardives`). Une famille ou une rareté
+## inconnue n'en fait aucun : l'arme garde alors son rendu par signature.
+static func tardives(base: Dictionary) -> Array[AttaqueElement]:
+	var sortie: Array[AttaqueElement] = []
+	var signatures: Dictionary = Assets.typee("signatures")
+	var familles: Dictionary = signatures.get("familles_tardives", {})
+	var teintes: Dictionary = signatures.get("raretes_tardives", {})
+	for arme: String in familles:
+		var fiche: Dictionary = familles[arme]
+		var famille: AttaqueElement = base.get(str(fiche.get("famille", "")))
+		var rarete: Dictionary = teintes.get(str(fiche.get("rarete", "")), {})
+		if famille == null or rarete.is_empty():
+			continue
+		sortie.append(AttaqueTardive.creer(arme, famille, rarete["teinte"]))
+	return sortie

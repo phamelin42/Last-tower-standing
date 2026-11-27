@@ -173,6 +173,22 @@ const ELEMENTS: Array[String] = [
 	COUPE,
 	LEGION,
 	MALEFICES,
+	# Armes de fin de partie (T12.8) : la famille d'une arme existante, teintée par rareté.
+	"lame_des_aieux",
+	"ouragan_de_lames",
+	"faux_du_dernier_jour",
+	"carquois_des_ancetres",
+	"epine_de_mille_ans",
+	"pique_du_souverain",
+	"sceptre_des_astres",
+	"sablier_d_aurore",
+	"oeil_du_firmament",
+	"catapulte_des_anciens",
+	"lance_braise_du_conquerant",
+	"canon_du_dernier_rempart",
+	"urne_des_mille_ombres",
+	"pendule_du_desordre",
+	"couronne_du_vide",
 ]
 
 ## id d'arme → élément.
@@ -252,6 +268,21 @@ const TABLE: Dictionary = {
 	"coupe_d_oubli": COUPE,
 	"legion_de_cendre": LEGION,
 	"tempete_de_malefices": MALEFICES,
+	"lame_des_aieux": "lame_des_aieux",
+	"ouragan_de_lames": "ouragan_de_lames",
+	"faux_du_dernier_jour": "faux_du_dernier_jour",
+	"carquois_des_ancetres": "carquois_des_ancetres",
+	"epine_de_mille_ans": "epine_de_mille_ans",
+	"pique_du_souverain": "pique_du_souverain",
+	"sceptre_des_astres": "sceptre_des_astres",
+	"sablier_d_aurore": "sablier_d_aurore",
+	"oeil_du_firmament": "oeil_du_firmament",
+	"catapulte_des_anciens": "catapulte_des_anciens",
+	"lance_braise_du_conquerant": "lance_braise_du_conquerant",
+	"canon_du_dernier_rempart": "canon_du_dernier_rempart",
+	"urne_des_mille_ombres": "urne_des_mille_ombres",
+	"pendule_du_desordre": "pendule_du_desordre",
+	"couronne_du_vide": "couronne_du_vide",
 }
 
 
