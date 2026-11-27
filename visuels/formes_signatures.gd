@@ -4,8 +4,10 @@ extends RefCounted
 ## blanc sur fond transparent : l'appelant les teinte. Aucune image tierce. Les traînées sont des
 ## bandeaux de 64 × 16 px, tout le reste tient dans 48 × 48 px.
 
-const TAILLE: int = 48
-const BANDEAU := Vector2i(64, 16)
+# gdlint:disable=class-variable-name
+static var TAILLE: int = int(Assets.section("signatures").get("taille", 48))
+static var BANDEAU: Vector2i = Assets.typee("signatures").get("bandeau", Vector2i(64, 16))
+# gdlint:enable=class-variable-name
 
 static var _cache: Dictionary = {}
 

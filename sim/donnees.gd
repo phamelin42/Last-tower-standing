@@ -21,12 +21,15 @@ const FICHIERS_OBJET: Array[String] = [
 	"ennemis.json",
 	"apparence_tour.json",
 	"skins_tour.json",
+	"assets.json",
 ]
+## Les fichiers du rendu : ni la simulation ni l'empreinte réseau ne les lisent.
+const FICHIERS_VISUELS: Array[String] = ["apparence_tour.json", "skins_tour.json", "assets.json"]
 const FICHIERS_LISTE: Array[String] = [
 	"armes.json", "ameliorations.json", "unites.json", "defis.json"
 ]
 const FICHIERS_OPTIONNELS_EN_TEST: Array[String] = (
-	FICHIERS_LISTE + ["ennemis.json", "apparence_tour.json", "skins_tour.json"]
+	FICHIERS_LISTE + ["ennemis.json"] + FICHIERS_VISUELS
 )
 const PORTEES: Array[int] = [500, 750, 1000, 1250]
 const CATEGORIES: Array[String] = ["A", "B", "C"]
@@ -222,8 +225,8 @@ static func depuis_brut(brut: Dictionary) -> Donnees:
 	if not complet.has("unites.json"):
 		complet["unites.json"] = []
 	complet.erase("defis.json")
-	complet.erase("apparence_tour.json")
-	complet.erase("skins_tour.json")
+	for nom: String in FICHIERS_VISUELS:
+		complet.erase(nom)
 	d.empreinte = _empreinte(complet)
 	return d
 
@@ -286,7 +289,7 @@ static func valider(brut: Dictionary) -> PackedStringArray:
 	for nom in tout:
 		if not brut.has(nom):
 			# Un jeu de données bâti à la main peut ignorer les unités : liste vide.
-			if nom not in ["unites.json", "defis.json", "apparence_tour.json", "skins_tour.json"]:
+			if nom not in ["unites.json", "defis.json"] + FICHIERS_VISUELS:
 				err.append("%s: absent du jeu de données" % nom)
 			continue
 		var contenu: Variant = brut[nom]
@@ -321,6 +324,7 @@ static func valider(brut: Dictionary) -> PackedStringArray:
 		DonneesEnnemis.valider(presents["ennemis.json"], err)
 	DonneesApparence.valider(presents.get("apparence_tour.json", {}), err)
 	DonneesApparence.valider_skins(presents.get("skins_tour.json", {}), err)
+	DonneesAssets.valider(presents.get("assets.json", {}), err)
 	return PackedStringArray(err)
 
 
@@ -939,7 +943,7 @@ static func _normaliser_arme(v: Variant) -> Dictionary:
 static func _contenu_vide(nom: String) -> Variant:
 	if nom == "ennemis.json":
 		return {"modeles": [], "paliers": [], "convoi": {}, "boss": {}}
-	return {} if nom in ["apparence_tour.json", "skins_tour.json"] else []
+	return {} if nom in FICHIERS_VISUELS else []
 
 
 ## Hash SHA-256 du contenu canonique de chaque fichier (clés triées, entiers et flottants

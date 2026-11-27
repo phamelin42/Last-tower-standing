@@ -15,221 +15,77 @@ const COULEUR_REPLI := Color("#ff00ff")
 ## Un pixel du monde vaut cette fraction d'unité de jeu : le cercle d'apparition (1 300 unités)
 ## fait ainsi 650 px de rayon, la tour (60 unités) une trentaine.
 const PX_PAR_UNITE: float = 0.5
-const IMAGES_PAR_SECONDE: float = 10.0
 ## Au-delà, l'ennemi tire de loin et s'arrête à sa portée (règle de `sim/ennemis.gd`).
 const PORTEE_CORPS_A_CORPS: float = 60.0
 const NB_TOURS: int = 8
 
-## Feuilles par type d'unité : `{chemin}` prend la couleur du pack. `pieds` est la ligne de pixels
-## de la case où les pieds touchent le sol (ombre du pack comprise).
-const MODELES: Dictionary = {
-	"torch":
-	{
-		"chemin": "Factions/Goblins/Troops/Torch/%s/Torch_%s.png",
-		"case": Vector2i(192, 192),
-		"colonnes": 7,
-		"lignes": 5,
-		"repos": Vector2i(0, 7),
-		"course": Vector2i(1, 6),
-		"attaque": Vector2i(2, 6),
-		"attaque_bas": Vector2i(3, 6),
-		"attaque_haut": Vector2i(4, 6),
-		"pieds": 126.0,
-	},
-	"pawn":
-	{
-		"chemin": "Factions/Knights/Troops/Pawn/%s/Pawn_%s.png",
-		"case": Vector2i(192, 192),
-		"colonnes": 6,
-		"lignes": 6,
-		"repos": Vector2i(0, 6),
-		"course": Vector2i(1, 6),
-		"attaque": Vector2i(2, 6),
-		"attaque_bas": Vector2i(2, 6),
-		"attaque_haut": Vector2i(2, 6),
-		"pieds": 122.0,
-	},
-	"archer":
-	{
-		"chemin": "Factions/Knights/Troops/Archer/%s/Archer_%s.png",
-		"case": Vector2i(192, 192),
-		"colonnes": 8,
-		"lignes": 7,
-		"repos": Vector2i(0, 6),
-		"course": Vector2i(1, 6),
-		"attaque": Vector2i(4, 8),
-		"attaque_bas": Vector2i(6, 8),
-		"attaque_haut": Vector2i(2, 8),
-		"pieds": 128.0,
-		# Le pack écrit « Purlple » dans le nom de la feuille violette de l'archer.
-		"noms_irreguliers": {"Purple": "Purlple"},
-	},
-	"warrior":
-	{
-		"chemin": "Factions/Knights/Troops/Warrior/%s/Warrior_%s.png",
-		"case": Vector2i(192, 192),
-		"colonnes": 6,
-		"lignes": 8,
-		"repos": Vector2i(0, 6),
-		"course": Vector2i(1, 6),
-		"attaque": Vector2i(2, 6),
-		"attaque_bas": Vector2i(4, 6),
-		"attaque_haut": Vector2i(6, 6),
-		"pieds": 130.0,
-	},
-	"barrel":
-	{
-		"chemin": "Factions/Goblins/Troops/Barrel/%s/Barrel_%s.png",
-		"case": Vector2i(128, 128),
-		"colonnes": 6,
-		"lignes": 6,
-		"repos": Vector2i(2, 1),
-		"course": Vector2i(4, 3),
-		"attaque": Vector2i(5, 3),
-		"attaque_bas": Vector2i(5, 3),
-		"attaque_haut": Vector2i(5, 3),
-		"pieds": 94.0,
-	},
-	"tnt":
-	{
-		"chemin": "Factions/Goblins/Troops/TNT/%s/TNT_%s.png",
-		"case": Vector2i(192, 192),
-		"colonnes": 7,
-		"lignes": 3,
-		"repos": Vector2i(0, 6),
-		"course": Vector2i(1, 6),
-		"attaque": Vector2i(2, 7),
-		"attaque_bas": Vector2i(2, 7),
-		"attaque_haut": Vector2i(2, 7),
-		"pieds": 130.0,
-	},
-	"mouton":
-	{
-		"chemin": "Resources/Sheep/HappySheep_All.png",
-		"case": Vector2i(128, 128),
-		"colonnes": 8,
-		"lignes": 2,
-		"repos": Vector2i(0, 8),
-		"course": Vector2i(1, 6),
-		"attaque": Vector2i(1, 6),
-		"attaque_bas": Vector2i(1, 6),
-		"attaque_haut": Vector2i(1, 6),
-		"pieds": 85.0,
-	},
-}
-
-## Une entrée par entité (24 familles, convoi, boss) : le modèle du pack suit le modèle de jeu et
-## la couleur du pack suit le palier (jaune, rouge, violet, bleu). `couleur_pack` est la couleur du
-## pack ; `echelle` agrandit le sprite.
-const ENTITES: Dictionary = {
-	"torche_jaune": {"modele": "torch", "couleur_pack": "Yellow", "echelle": 1.0},
-	"torche_rouge": {"modele": "torch", "couleur_pack": "Red", "echelle": 1.0},
-	"torche_violet": {"modele": "torch", "couleur_pack": "Purple", "echelle": 1.0},
-	"torche_bleu": {"modele": "torch", "couleur_pack": "Blue", "echelle": 1.0},
-	"paysan_jaune": {"modele": "pawn", "couleur_pack": "Yellow", "echelle": 1.0},
-	"paysan_rouge": {"modele": "pawn", "couleur_pack": "Red", "echelle": 1.0},
-	"paysan_violet": {"modele": "pawn", "couleur_pack": "Purple", "echelle": 1.0},
-	"paysan_bleu": {"modele": "pawn", "couleur_pack": "Blue", "echelle": 1.0},
-	"guerrier_jaune": {"modele": "warrior", "couleur_pack": "Yellow", "echelle": 1.0},
-	"guerrier_rouge": {"modele": "warrior", "couleur_pack": "Red", "echelle": 1.0},
-	"guerrier_violet": {"modele": "warrior", "couleur_pack": "Purple", "echelle": 1.0},
-	"guerrier_bleu": {"modele": "warrior", "couleur_pack": "Blue", "echelle": 1.0},
-	"tonneau_jaune": {"modele": "barrel", "couleur_pack": "Yellow", "echelle": 1.5},
-	"tonneau_rouge": {"modele": "barrel", "couleur_pack": "Red", "echelle": 1.5},
-	"tonneau_violet": {"modele": "barrel", "couleur_pack": "Purple", "echelle": 1.5},
-	"tonneau_bleu": {"modele": "barrel", "couleur_pack": "Blue", "echelle": 1.5},
-	"dynamite_jaune": {"modele": "tnt", "couleur_pack": "Yellow", "echelle": 1.0},
-	"dynamite_rouge": {"modele": "tnt", "couleur_pack": "Red", "echelle": 1.0},
-	"dynamite_violet": {"modele": "tnt", "couleur_pack": "Purple", "echelle": 1.0},
-	"dynamite_bleu": {"modele": "tnt", "couleur_pack": "Blue", "echelle": 1.0},
-	"archer_jaune": {"modele": "archer", "couleur_pack": "Yellow", "echelle": 1.0},
-	"archer_rouge": {"modele": "archer", "couleur_pack": "Red", "echelle": 1.0},
-	"archer_violet": {"modele": "archer", "couleur_pack": "Purple", "echelle": 1.0},
-	"archer_bleu": {"modele": "archer", "couleur_pack": "Blue", "echelle": 1.0},
-	"troupeau_du_colporteur":
-	{
-		"modele": "mouton",
-		"couleur_pack": "",
-		"echelle": 2.0,
-		"accessoire":
-		{
-			"feuille": "Resources/Resources/G_Idle_(NoShadow).png",
-			"decalage": Vector2(0.0, -42.0),
-			"echelle": 0.5,
-		},
-	},
-	"aieul_de_fer": {"modele": "warrior", "couleur_pack": "Blue", "echelle": 3.0},
-}
-
-## Les alliés invoqués (`data/unites.json` `modele`) : la feuille du pack d'un modèle d'ennemi, mais
-## une teinte (`teinte`, posée sur le sprite) qu'aucune famille ni aucun statut n'a, et un anneau
-## au sol (`anneau`) que les ennemis n'ont pas. Un modèle inconnu n'a pas d'entrée.
-const ALLIES: Dictionary = {
-	"guerrier":
-	{
-		"modele": "warrior",
-		"couleur_pack": "Blue",
-		"echelle": 1.0,
-		"teinte": Color(1.0, 0.65, 0.92),
-	},
-	"archer":
-	{
-		"modele": "archer",
-		"couleur_pack": "Blue",
-		"echelle": 1.0,
-		"teinte": Color(1.0, 0.65, 0.92),
-	},
-	"paysan":
-	{
-		"modele": "pawn",
-		"couleur_pack": "Blue",
-		"echelle": 1.0,
-		"teinte": Color(1.0, 0.65, 0.92),
-	},
-}
-## L'anneau double au sol des alliés : couleur du trait extérieur et de l'intérieur.
-const ANNEAU_ALLIE_EXTERIEUR := Color(1.0, 0.95, 0.75)
-const ANNEAU_ALLIE_INTERIEUR := Color(0.62, 0.3, 0.85)
-const CONTOUR_ANNEAU_ALLIE := Color(0.1, 0.07, 0.15, 0.9)
-
-## La mort de toutes les familles : le crâne de `Dead.png`, 14 images lues ligne après ligne.
-const MORT: Dictionary = {
-	"feuille": "res://assets/tiny_swords/Factions/Knights/Troops/Dead/Dead.png",
-	"case": Vector2i(128, 128),
-	"colonnes": 7,
-	"lignes": 2,
-	"images": 14,
-	"pieds": 92.0,
-	"echelle": 1.0,
-	"images_par_seconde": 14.0,
-	"cle_boites": "mort",
-}
-
-## Grossissement de tous les sprites d'unités par rapport au pack : à 720p, au zoom par défaut, un
-## ennemi ordinaire mesure environ 6 à 7 % de la hauteur de l'écran.
-const ECHELLE_UNITES: float = 1.9
-## La tour mesure environ 18 % de la hauteur de l'écran.
-const TOUR_ECHELLE: float = 2.1
-const TOUR_PIEDS: float = 228.0
-## Sprite de tour dont on décale la teinte pour les joueurs 5 à 8.
-const TOUR_BASE := "Factions/Knights/Buildings/Tower/Tower_Blue.png"
-const TOUR_TEINTE_BASE: float = 190.0
 const SHADER_TOUR := "res://visuels/teinte_tour.gdshader"
-## Joueurs 1 à 4 : les quatre couleurs du pack et la teinte dominante de leur pierre, en degrés.
-const TOURS_PACK: Array[Dictionary] = [
-	{"couleur": "Blue", "teinte": 190.0},
-	{"couleur": "Red", "teinte": 355.0},
-	{"couleur": "Yellow", "teinte": 55.0},
-	{"couleur": "Purple", "teinte": 280.0},
-]
-## Joueurs 5 à 8 : vert, orange, turquoise, rose (teinte visée, en degrés).
-const TEINTES_CALCULEES: Array[float] = [125.0, 28.0, 160.0, 325.0]
 
 const COULEUR_CERCLE := Color(1.0, 1.0, 1.0, 0.55)
 const COULEUR_NOM := Color(1.0, 1.0, 1.0, 1.0)
 const COULEUR_CONTOUR_NOM := Color(0.1, 0.07, 0.15, 1.0)
 
+# gdlint:disable=class-variable-name
+static var IMAGES_PAR_SECONDE: float = float(_unites().get("images_par_seconde", 10.0))
+## Les tables d'assets (modèles de feuilles, entités, alliés, mort, tour) vivent dans
+## `data/assets.json`, lues par `Assets` (T10.4) : changer de pack ne demande que les fichiers et ce
+## JSON. `pieds` est la ligne de pixels de la case où les pieds touchent le sol (ombre comprise).
+static var MODELES: Dictionary = _unites().get("modeles", {})
+## Une entrée par entité (24 familles, convoi, boss) : le modèle du pack suit le modèle de jeu et
+## la couleur du pack suit le palier. `echelle` agrandit le sprite.
+static var ENTITES: Dictionary = _unites().get("entites", {})
+## Les alliés invoqués (`data/unites.json` `modele`) : feuille d'un modèle d'ennemi, teinte propre
+## et anneau au sol. Un modèle inconnu n'a pas d'entrée.
+static var ALLIES: Dictionary = _unites().get("allies", {})
+## L'anneau double au sol des alliés : couleur du trait extérieur et de l'intérieur.
+static var ANNEAU_ALLIE_EXTERIEUR: Color = _anneau("exterieur", Color.WHITE)
+static var ANNEAU_ALLIE_INTERIEUR: Color = _anneau("interieur", Color.WHITE)
+static var CONTOUR_ANNEAU_ALLIE: Color = _anneau("contour", Color.BLACK)
+## La mort de toutes les familles : 14 images lues ligne après ligne.
+static var MORT: Dictionary = _unites().get("mort", {})
+## Grossissement de tous les sprites d'unités par rapport au pack.
+static var ECHELLE_UNITES: float = float(_unites().get("echelle", 1.0))
+## La tour mesure environ 18 % de la hauteur de l'écran ; `pieds` : ligne de ses pieds.
+static var TOUR_ECHELLE: float = float(Assets.section("tour").get("echelle", 1.0))
+static var TOUR_PIEDS: float = float(Assets.section("tour").get("pieds", 0.0))
+## Sprite de tour dont on décale la teinte pour les joueurs 5 à 8.
+static var TOUR_BASE: String = str(Assets.section("tour").get("fichier_base", ""))
+static var TOUR_TEINTE_BASE: float = float(Assets.section("tour").get("teinte_base", 0.0))
+## Joueurs 1 à 4 : les quatre couleurs du pack et la teinte dominante de leur pierre, en degrés.
+static var TOURS_PACK: Array[Dictionary] = _dictionnaires(
+	Assets.section("tour").get("couleurs_pack", [])
+)
+## Joueurs 5 à 8 : teinte visée, en degrés.
+static var TEINTES_CALCULEES: Array[float] = _flottants(
+	Assets.section("tour").get("teintes_calculees", [])
+)
+# gdlint:enable=class-variable-name
+
 static var _entrees: Dictionary = {}
+
+
+static func _unites() -> Dictionary:
+	return Assets.typee("unites")
+
+
+static func _anneau(cle: String, repli: Color) -> Color:
+	var anneau: Dictionary = _unites().get("anneau_allie", {})
+	return anneau.get(cle, repli)
+
+
+static func _dictionnaires(liste: Array) -> Array[Dictionary]:
+	var sortie: Array[Dictionary] = []
+	for x: Variant in liste:
+		var d: Dictionary = x
+		sortie.append(d)
+	return sortie
+
+
+static func _flottants(liste: Array) -> Array[float]:
+	var sortie: Array[float] = []
+	for x: Variant in liste:
+		sortie.append(float(x))
+	return sortie
 
 
 ## Identifiants des entités dans l'ordre des index de `VueArene.ennemis_famille` : les familles,

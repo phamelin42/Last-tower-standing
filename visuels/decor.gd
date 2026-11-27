@@ -8,11 +8,16 @@ extends Node2D
 ## images changent, et seulement quand l'horloge passe à l'image suivante. Le nœud se pose avant
 ## les ennemis : rien du décor ne les recouvre.
 
-const IMAGES_PAR_SECONDE: float = 10.0
 const RACINE := "res://assets/tiny_swords/"
 ## Étendue de l'eau autour de l'image composée, en pixels du monde : couvre l'écran le plus large.
 const RAYON_EAU: float = 6000.0
-const TAILLE_TUILE: int = 64
+
+# gdlint:disable=class-variable-name
+static var IMAGES_PAR_SECONDE: float = float(
+	Assets.section("decor").get("images_par_seconde", 10.0)
+)
+static var TAILLE_TUILE: int = int(Assets.section("decor").get("tuile", 64))
+# gdlint:enable=class-variable-name
 
 var plan: PlanDecor = null
 
@@ -232,9 +237,9 @@ func _poser_les_bords_d_eau() -> void:
 		bande.texture = _texture(PlanDecor.FEUILLE_EAU)
 		bande.centered = false
 		bande.region_enabled = true
-		bande.region_rect = Rect2(0.0, 0.0, 64.0, 64.0)
+		bande.region_rect = Rect2(0.0, 0.0, float(TAILLE_TUILE), float(TAILLE_TUILE))
 		bande.position = bandes[k].position
-		bande.scale = bandes[k].size / 64.0
+		bande.scale = bandes[k].size / float(TAILLE_TUILE)
 		add_child(bande)
 
 
