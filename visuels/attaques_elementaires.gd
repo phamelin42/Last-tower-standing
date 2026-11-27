@@ -53,8 +53,9 @@ const PLANCHES_COMMUNES: Dictionary = {
 	"depart": Vector2i(12, 12),
 	"ombre": Vector2i(12, 6),
 	"etincelle": Vector2i(8, 8),
+	"bombe_meche": Vector2i(18, 18),
 }
-const VISIBLES_COMMUNES: Dictionary = {"etincelle": 8.0}
+const VISIBLES_COMMUNES: Dictionary = {"etincelle": 8.0, "bombe_meche": 16.0}
 
 ## Image de planche à chaque image à 60 i/s : le pic est dans le premier quart de l'impact.
 const SEQ_EXPLOSION: Array[int] = [0, 1, 2, 2, 3, 3, 4, 4, 4, 5, 5, 5]
@@ -90,6 +91,7 @@ const IMAGES_NUAGE: int = 36
 const ALPHA_NUAGE: float = 0.6
 const MONTEE_NUAGE: float = 24.0
 
+static var _textures_vue: Dictionary = {}
 static var _registre: Dictionary = {}
 static var _planches: Dictionary = {}
 static var _visibles: Dictionary = {}
@@ -152,6 +154,19 @@ static func explosion_du_pack(element: String) -> bool:
 static func planche_projectile(element: String) -> String:
 	var e: AttaqueElement = registre().get(element)
 	return "" if e == null else String(e.conf()["projectile"])
+
+
+## Le nom de la planche du disque au sol de `element` (zone posée), `""` s'il n'en a pas.
+static func disque_de(element: String) -> String:
+	var e: AttaqueElement = registre().get(element)
+	return "" if e == null else String(e.conf().get("disque", ""))
+
+
+## La texture de `planche`, pour ce que la vue dessine elle-même (bombe, disque au sol).
+static func texture_de(planche: String) -> Texture2D:
+	if not _textures_vue.has(planche):
+		_textures_vue[planche] = load(DOSSIER + planche + ".png") as Texture2D
+	return _textures_vue[planche]
 
 
 ## Diamètre visible (pixels de planche) de la plus grande image de `planche`, 0 si inconnue.
