@@ -156,7 +156,7 @@ BOUTIQUE_EFFET_MANA_RUPTURE_ETOURDIT,"quand la mana tombe à 0 sous un coup, ét
 BOUTIQUE_EFFET_DEGATS_TANT_QUE_MANA,+%s de dégâts tant qu’il reste de la mana
 BOUTIQUE_EFFET_REDUCTION_TANT_QUE_MANA,−%s de dégâts reçus tant qu’il reste de la mana
 BOUTIQUE_EFFET_REVENU_CONTRE_PV,"+%s or toutes les %s s, contre −%s PV max (jamais sous 1 PV)"
-BOUTIQUE_EFFET_COPIE_PROCHAINE_OFFRE,"le prochain achat d’une offre de rareté %s au plus donne un second exemplaire gratuit, une fois par exemplaire"
+BOUTIQUE_EFFET_COPIE_PROCHAINE_OFFRE,"le prochain achat d’une offre de rareté %s au plus donne un second exemplaire gratuit (un niveau de plus pour une arme), une fois par exemplaire"
 BOUTIQUE_EFFET_AURA_MIXTE,aura de rayon %s : %s dégâts de chaos par seconde aux ennemis et %s PV par seconde rendus à la tour tant qu’un ennemi s’y trouve
 BOUTIQUE_STAT_DEGATS_TYPE,dégâts d’un type
 BOUTIQUE_STAT_DEGATS_GLOBAL,dégâts de toutes les armes
@@ -238,3 +238,7 @@ REPERE_STATUT_MALEDICTION_TOUCHER,Malédiction du toucher
 REPERE_STATUT_REPOUSSEMENT,Repoussement
 REPERE_STATUT_SIPHON,Siphon
 REPERE_STATUT_MANA_AU_COUP,Mana au coup
+BOUTIQUE_NIVEAU_SUIVANT,Niv. %d → %d : +%s
+BOUTIQUE_NIVEAU_GAIN,Niveau suivant : +%s dégâts
+BOUTIQUE_NIVEAU_INFOBULLE,Niveau %d : %s dégâts
+BOUTIQUE_NIVEAU_INSIGNE,%d

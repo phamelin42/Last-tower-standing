@@ -76,6 +76,7 @@ var _donnees: Donnees = null
 var _source: SourceVue = null
 var _offres: Array[Dictionary] = []
 var _armes_ids: Array[String] = []
+var _armes_niveaux: Array[int] = []
 var _cartes: Array[PanelContainer] = []
 var _raretes: Array[Label] = []
 var _noms: Array[Label] = []
@@ -596,6 +597,20 @@ func _afficher_carte(i: int, offre: Dictionary, vue: VueArene) -> void:
 			notes.append(tr("BOUTIQUE_OR_INSUFFISANT"))
 		if genre == Types.Genre.ARME and vue.armes.size() >= Inventaire.ARMES_MAX:
 			notes.append(tr("BOUTIQUE_ARMES_AU_MAXIMUM"))
+		# Une arme déjà portée n'est pas un doublon : l'achat la monte d'un niveau (D23).
+		var niveau := _niveau_dans(vue, str(offre["id"])) if genre == Types.Genre.ARME else 0
+		if niveau > 0:
+			var gain := (
+				_degats_au_niveau(str(offre["id"]), niveau + 1)
+				- _degats_au_niveau(str(offre["id"]), niveau)
+			)
+			# Court, pour tenir sur la ligne de note ; les « dégâts » sont dans l'infobulle.
+			notes.push_front(
+				tr("BOUTIQUE_NIVEAU_SUIVANT") % [niveau, niveau + 1, Nombres.groupe(roundi(gain))]
+			)
+			_cartes[i].tooltip_text += (
+				"\n" + tr("BOUTIQUE_NIVEAU_GAIN") % Nombres.groupe(roundi(gain))
+			)
 	_notes[i].text = SEPARATEUR_NOTES.join(notes)
 	_notes[i].tooltip_text = _notes[i].text
 	_notes[i].visible = true
@@ -644,11 +659,14 @@ func _afficher_relance(vue: VueArene) -> void:
 ## refaire les cases à chaque fois leur ferait perdre le survol et le focus.
 func _afficher_armes(vue: VueArene) -> void:
 	var ids: Array[String] = []
+	var niveaux: Array[int] = []
 	for arme: Dictionary in vue.armes:
 		ids.append(str(arme["id"]))
-	if ids == _armes_ids and _grille_armes.get_child_count() > 0:
+		niveaux.append(int(arme.get("niveau", 1)))
+	if ids == _armes_ids and niveaux == _armes_niveaux and _grille_armes.get_child_count() > 0:
 		return
 	_armes_ids = ids
+	_armes_niveaux = niveaux
 	_vider(_grille_armes)
 	for i: int in ids.size():
 		var entree := _entree(ids[i], Types.Genre.ARME)
@@ -658,7 +676,16 @@ func _afficher_armes(vue: VueArene) -> void:
 		case.custom_minimum_size = Vector2(CELLULE, CELLULE)
 		case.icon = ImageOffre.texture(ids[i])
 		case.expand_icon = true
-		case.tooltip_text = _infobulle(entree, Types.Genre.ARME)
+		case.tooltip_text = (
+			_infobulle(entree, Types.Genre.ARME)
+			+ "\n"
+			+ (
+				tr("BOUTIQUE_NIVEAU_INFOBULLE")
+				% [niveaux[i], Nombres.groupe(roundi(_degats_au_niveau(ids[i], niveaux[i])))]
+			)
+		)
+		if niveaux[i] > 1:
+			case.add_child(_insigne_niveau(i, niveaux[i]))
 		case.add_child(_coin(_categorie(ids[i], Types.Genre.ARME)))
 		var type_degats := ReperesArme.creer_icone_type(entree, ICONE_COIN)
 		if type_degats != null:
@@ -708,6 +735,37 @@ func _afficher_ameliorations(vue: VueArene) -> void:
 
 
 ## Repère de catégorie dans le coin bas droit d'une case : l'icône, le mot est dans l'infobulle.
+## Niveau de l'arme `id` dans la vue (0 si elle n'est pas portée).
+func _niveau_dans(vue: VueArene, id: String) -> int:
+	for arme: Dictionary in vue.armes:
+		if str(arme["id"]) == id:
+			return int(arme.get("niveau", 1))
+	return 0
+
+
+## Dégâts de l'arme au niveau `niveau` : sa base plus `niveaux.gain_degats` par niveau au-dessus
+## du premier (la même formule que la simulation, lue dans les mêmes données).
+func _degats_au_niveau(id: String, niveau: int) -> float:
+	if _donnees == null or not _donnees.armes.has(id):
+		return 0.0
+	var base := float((_donnees.armes[id] as Dictionary)["degats"])
+	var gain := float((_donnees.partie["niveaux"] as Dictionary)["gain_degats"])
+	return base * (1.0 + gain * float(maxi(niveau - 1, 0)))
+
+
+## Le niveau d'une arme, en haut à droite de sa case ; le détail est dans l'infobulle.
+func _insigne_niveau(index: int, niveau: int) -> Label:
+	var insigne := Label.new()
+	insigne.name = "Niveau%d" % index
+	insigne.text = tr("BOUTIQUE_NIVEAU_INSIGNE") % niveau
+	insigne.theme_type_variation = "Petit"
+	insigne.add_theme_color_override("font_color", ThemeJeu.LAITON_CLAIR)
+	insigne.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	insigne.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	insigne.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	return insigne
+
+
 func _coin(categorie: int) -> TextureRect:
 	var icone := CategorieOffre.creer_icone(categorie, CategorieOffre.NOM_REPERE, ICONE_COIN)
 	icone.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
