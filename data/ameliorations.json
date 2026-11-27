@@ -1370,5 +1370,337 @@
     "regen": 6.0
    }
   ]
+ },
+ {
+  "id": "balancier_des_ages",
+  "nom": "Balancier des âges",
+  "description": "Un vieux balancier fait mieux frapper chaque arme.",
+  "rarete": "ancestrale",
+  "prix": 3600,
+  "categorie": "amelioration",
+  "famille": "degats_global",
+  "effets": [
+   {
+    "stat": "degats_global",
+    "valeur": 0.24,
+    "categorie": "C"
+   }
+  ]
+ },
+ {
+  "id": "cadran_souverain",
+  "nom": "Cadran souverain",
+  "description": "Sur le cadran, chaque arme frappe plus fort.",
+  "rarete": "souveraine",
+  "prix": 9000,
+  "categorie": "amelioration",
+  "famille": "degats_global",
+  "effets": [
+   {
+    "stat": "degats_global",
+    "valeur": 0.3,
+    "categorie": "C"
+   }
+  ]
+ },
+ {
+  "id": "rouage_des_tempetes",
+  "nom": "Rouage des tempêtes",
+  "description": "Un rouage emballé fait tirer toutes les armes plus vite.",
+  "rarete": "ancestrale",
+  "prix": 3500,
+  "categorie": "amelioration",
+  "famille": "cadence",
+  "effets": [
+   {
+    "stat": "cadence",
+    "valeur": 0.3
+   }
+  ]
+ },
+ {
+  "id": "volant_d_eternite",
+  "nom": "Volant d’éternité",
+  "description": "Il ne s’arrête jamais, les armes tirent sans souffler.",
+  "rarete": "souveraine",
+  "prix": 8800,
+  "categorie": "amelioration",
+  "famille": "cadence",
+  "effets": [
+   {
+    "stat": "cadence",
+    "valeur": 0.375
+   }
+  ]
+ },
+ {
+  "id": "forge_des_tresors",
+  "nom": "Forge des trésors",
+  "description": "Une forge de fin de règne bat monnaie sur chaque rente.",
+  "rarete": "ancestrale",
+  "prix": 3600,
+  "categorie": "revenu",
+  "famille": "revenu",
+  "effets": [
+   {
+    "stat": "revenu_mult",
+    "valeur": 0.3
+   }
+  ]
+ },
+ {
+  "id": "tresor_du_royaume",
+  "nom": "Trésor du royaume",
+  "description": "Les coffres du royaume ruissellent jusque dans vos caisses.",
+  "rarete": "souveraine",
+  "prix": 9000,
+  "categorie": "revenu",
+  "famille": "revenu",
+  "effets": [
+   {
+    "stat": "revenu_mult",
+    "valeur": 0.375
+   }
+  ]
+ },
+ {
+  "id": "affiloir_des_ages",
+  "nom": "Affiloir des âges",
+  "description": "Chaque lame commune de plus lui donne du fil.",
+  "rarete": "ancestrale",
+  "prix": 3800,
+  "categorie": "amelioration",
+  "famille": "degats_type",
+  "effets": [
+   {
+    "stat": "degats_type",
+    "type_degats": "tranchant",
+    "valeur": 0.42,
+    "categorie": "C",
+    "par_arme_commune": 0.06
+   }
+  ]
+ },
+ {
+  "id": "lame_du_souverain",
+  "nom": "Lame du souverain",
+  "description": "Elle pèse plus lourd à chaque lame commune qui la suit.",
+  "rarete": "souveraine",
+  "prix": 9200,
+  "categorie": "amelioration",
+  "famille": "degats_type",
+  "effets": [
+   {
+    "stat": "degats_type",
+    "type_degats": "tranchant",
+    "valeur": 0.525,
+    "categorie": "C",
+    "par_arme_commune": 0.075
+   }
+  ]
+ },
+ {
+  "id": "carquois_des_legendes",
+  "nom": "Carquois des légendes",
+  "description": "Chaque flèche commune de plus alourdit ce carquois.",
+  "rarete": "ancestrale",
+  "prix": 3900,
+  "categorie": "amelioration",
+  "famille": "degats_type",
+  "effets": [
+   {
+    "stat": "degats_type",
+    "type_degats": "perçant",
+    "valeur": 0.42,
+    "categorie": "C",
+    "par_arme_commune": 0.06
+   }
+  ]
+ },
+ {
+  "id": "arc_du_souverain",
+  "nom": "Arc du souverain",
+  "description": "Il tend plus loin à chaque flèche commune.",
+  "rarete": "souveraine",
+  "prix": 9400,
+  "categorie": "amelioration",
+  "famille": "degats_type",
+  "effets": [
+   {
+    "stat": "degats_type",
+    "type_degats": "perçant",
+    "valeur": 0.525,
+    "categorie": "C",
+    "par_arme_commune": 0.075
+   }
+  ]
+ },
+ {
+  "id": "chaire_des_veilleurs",
+  "nom": "Chaire des veilleurs",
+  "description": "Du haut de la chaire, les sortilèges simples brillent.",
+  "rarete": "ancestrale",
+  "prix": 4000,
+  "categorie": "amelioration",
+  "famille": "degats_type",
+  "effets": [
+   {
+    "stat": "degats_type",
+    "type_degats": "magique",
+    "valeur": 0.42,
+    "categorie": "C",
+    "par_arme_commune": 0.06
+   }
+  ]
+ },
+ {
+  "id": "grimoire_du_souverain",
+  "nom": "Grimoire du souverain",
+  "description": "Il gonfle de chaque sortilège simple.",
+  "rarete": "souveraine",
+  "prix": 9600,
+  "categorie": "amelioration",
+  "famille": "degats_type",
+  "effets": [
+   {
+    "stat": "degats_type",
+    "type_degats": "magique",
+    "valeur": 0.525,
+    "categorie": "C",
+    "par_arme_commune": 0.075
+   }
+  ]
+ },
+ {
+  "id": "bastion_des_machines",
+  "nom": "Bastion des machines",
+  "description": "Chaque machine commune du rempart y ajoute sa poudre.",
+  "rarete": "ancestrale",
+  "prix": 4000,
+  "categorie": "amelioration",
+  "famille": "degats_type",
+  "effets": [
+   {
+    "stat": "degats_type",
+    "type_degats": "siège",
+    "valeur": 0.42,
+    "categorie": "C",
+    "par_arme_commune": 0.06
+   }
+  ]
+ },
+ {
+  "id": "arsenal_du_souverain",
+  "nom": "Arsenal du souverain",
+  "description": "Il grossit de chaque machine commune.",
+  "rarete": "souveraine",
+  "prix": 9600,
+  "categorie": "amelioration",
+  "famille": "degats_type",
+  "effets": [
+   {
+    "stat": "degats_type",
+    "type_degats": "siège",
+    "valeur": 0.525,
+    "categorie": "C",
+    "par_arme_commune": 0.075
+   }
+  ]
+ },
+ {
+  "id": "vacarme_des_ages",
+  "nom": "Vacarme des âges",
+  "description": "Chaque bricole chaotique de plus gonfle ce vacarme.",
+  "rarete": "ancestrale",
+  "prix": 3900,
+  "categorie": "amelioration",
+  "famille": "degats_type",
+  "effets": [
+   {
+    "stat": "degats_type",
+    "type_degats": "chaos",
+    "valeur": 0.42,
+    "categorie": "C",
+    "par_arme_commune": 0.06
+   }
+  ]
+ },
+ {
+  "id": "tumulte_souverain",
+  "nom": "Tumulte souverain",
+  "description": "Il enfle avec chaque bricole chaotique.",
+  "rarete": "souveraine",
+  "prix": 9400,
+  "categorie": "amelioration",
+  "famille": "degats_type",
+  "effets": [
+   {
+    "stat": "degats_type",
+    "type_degats": "chaos",
+    "valeur": 0.525,
+    "categorie": "C",
+    "par_arme_commune": 0.075
+   }
+  ]
+ },
+ {
+  "id": "rempart_des_ages",
+  "nom": "Rempart des âges",
+  "description": "Des pierres de tous les âges, presque une seconde tour.",
+  "rarete": "ancestrale",
+  "prix": 3800,
+  "categorie": "amelioration",
+  "famille": "pv_max",
+  "effets": [
+   {
+    "stat": "pv_max_mult",
+    "valeur": 0.96
+   }
+  ]
+ },
+ {
+  "id": "citadelle_souveraine",
+  "nom": "Citadelle souveraine",
+  "description": "Une forteresse entière dressée autour de la tour.",
+  "rarete": "souveraine",
+  "prix": 9200,
+  "categorie": "amelioration",
+  "famille": "pv_max",
+  "effets": [
+   {
+    "stat": "pv_max_mult",
+    "valeur": 1.2
+   }
+  ]
+ },
+ {
+  "id": "cendre_des_ages",
+  "nom": "Cendre des âges",
+  "description": "Une fois par partie, la tour se relève de vieilles cendres.",
+  "rarete": "ancestrale",
+  "prix": 4000,
+  "categorie": "amelioration",
+  "famille": "pv_max",
+  "effets": [
+   {
+    "stat": "resurrection",
+    "valeur": 60
+   }
+  ]
+ },
+ {
+  "id": "flamme_souveraine",
+  "nom": "Flamme souveraine",
+  "description": "Une fois par partie, une flamme relève la tour.",
+  "rarete": "souveraine",
+  "prix": 9500,
+  "categorie": "amelioration",
+  "famille": "pv_max",
+  "effets": [
+   {
+    "stat": "resurrection",
+    "valeur": 75
+   }
+  ]
  }
 ]

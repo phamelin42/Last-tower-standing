@@ -7,7 +7,8 @@ const PAS_MAX := 40000
 ## Le bot rejoue la boutique toutes les 10 s de jeu.
 const PERIODE_BOT := 200
 const PAS_APRES_BOSS := 600
-## Budget du plan : un pas reste sous 5 ms par arène en moyenne.
+## Budget du plan : un pas reste sous 5 ms par arène (10e centile ; coût local : 0,05 ms par arène,
+## soit un budget cent fois plus large).
 const BUDGET_US_PAR_ARENE := 5000.0
 
 var d: Donnees
@@ -81,7 +82,9 @@ func test_cout_d_un_pas_a_8_joueurs_en_fin_de_partie() -> void:
 	var courante: Array[int] = [0]
 	p.manche_commencee.connect(func(n: int) -> void: courante[0] = n)
 	var pas_faits := 0
-	var duree_us := 0
+	# Durée de chaque appel, rapportée à un pas : le budget se juge au 10e centile (S16,
+	# `MesurePas`), car la moyenne suit la charge de la machine.
+	var durees := PackedInt32Array()
 	var pas_mesures := 0
 	var ennemis_vus := 0
 	while not p.est_terminee() and pas_faits < PAS_MAX and courante[0] < manche_boss + 3:
@@ -93,17 +96,17 @@ func test_cout_d_un_pas_a_8_joueurs_en_fin_de_partie() -> void:
 		var fin := Time.get_ticks_usec()
 		pas_faits += n
 		if courante[0] >= manche_boss - 6:
-			duree_us += fin - debut
+			durees.append((fin - debut) / maxi(n, 1))
 			pas_mesures += n
 	for id: int in ids:
 		ennemis_vus = maxi(ennemis_vus, p.vue_arene(id, id).ennemis_id.size())
 	verifier(pas_mesures > 0, "la fin de partie a été atteinte")
 	verifier(courante[0] >= manche_boss, "les 8 tours tiennent jusqu au boss")
-	var par_pas := float(duree_us) / maxf(float(pas_mesures), 1.0)
+	var par_pas := MesurePas.centile_bas_ms(durees) * 1000.0
 	var par_arene := par_pas / float(ids.size())
 	print(
 		(
-			"MESURE T1.10 : %d pas, %.0f µs par pas à 8 joueurs, %.0f µs par arène, %d ennemis"
+			"MESURE T1.10 : %d pas, %.0f µs par pas à 8 joueurs (10e centile), %.0f µs par arène, %d ennemis"
 			% [pas_mesures, par_pas, par_arene, ennemis_vus]
 		)
 	)
