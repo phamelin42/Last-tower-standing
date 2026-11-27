@@ -7,8 +7,8 @@ extends CasDeTest
 ## des images au lieu de les afficher).
 
 ## Fichiers qui écrivent un chemin d'image : correspondance entité → sprites, images des offres,
-## thème de l'interface (le décor lit `Apparence.RACINE`, il n'écrit plus de chemin). Les chemins des effets, des planches maison et du terrain sont dans
-## `data/assets.json` (T10.4) : la liste ne fait que rétrécir, et chaque fichier qui y reste cite
+## thème de l'interface (le décor lit `Apparence.RACINE`, il n'écrit plus de chemin). Les chemins
+## des effets, des planches maison et du terrain sont dans `data/assets.json` (T10.4) : la liste ne fait que rétrécir, et chaque fichier qui y reste cite
 ## encore une image (`test_la_liste_fermee_contient_bien_des_citations_et_des_chargements`).
 const CITENT_DES_IMAGES: Array[String] = [
 	"res://visuels/apparence.gd",
