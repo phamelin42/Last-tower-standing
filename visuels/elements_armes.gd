@@ -44,6 +44,9 @@ const VORTEX: String = "vortex"
 
 const HORLOGE: String = "horloge"
 
+## Les armes tranchantes du lot 9 : un élément par arme, comme la famille acier.
+const SERPE: String = "serpe"
+
 const ELEMENTS: Array[String] = [
 	FEU,
 	GLACE,
@@ -75,6 +78,7 @@ const ELEMENTS: Array[String] = [
 	MIROIR,
 	VORTEX,
 	HORLOGE,
+	SERPE,
 ]
 
 ## id d'arme → élément.
@@ -109,6 +113,7 @@ const TABLE: Dictionary = {
 	"miroir_brise": MIROIR,
 	"vortex_de_verre": VORTEX,
 	"horloge_folle": HORLOGE,
+	"serpe_de_vigne": SERPE,
 }
 
 
