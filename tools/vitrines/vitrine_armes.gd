@@ -282,6 +282,19 @@ func evenements_du_cycle(id: String) -> Array[Dictionary]:
 				liste.append(impact)
 				depart = arrivee
 				rang = (rang + 1) % ENNEMIS_DANS_BANDE.size()
+		"tournant":
+			# Un tir tournant n'émet que ses rayons : `branches` traits de la tour, répartis sur le
+			# cercle, au bout de la portée, de la largeur de l'effet (pas d'impact séparé).
+			liste.clear()
+			var tour: Vector2 = position_tour(bande)
+			var portee: float = float(arme["portee"]) * Apparence.PX_PAR_UNITE
+			var branches: int = int(effet["branches"])
+			for k: int in branches:
+				var rayon_tir: Dictionary = evenement_de(id, "tir")
+				var bout: Vector2 = tour + Vector2.from_angle(TAU * k / branches) * portee
+				rayon_tir["vers"] = en_unites(bout)
+				rayon_tir["rayon"] = float(effet["largeur"])
+				liste.append(rayon_tir)
 		"aura", "onde":
 			# Rien ne part vers un ennemi : l'impact est centré sur la tour, au rayon de l'effet
 			# (celui de l'onde à son dernier pas). Une aura n'émet aucun tir.

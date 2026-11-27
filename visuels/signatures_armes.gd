@@ -225,11 +225,11 @@ static func ids() -> PackedStringArray:
 	return liste
 
 
-## Vrai pour les seules signatures validées par Phil (`TABLE`) : `Effets` n'utilise que celles-là,
-## une arme dont la signature est seulement proposée garde le rendu par type de dégâts. T9.19
-## lèvera cette garde (ou fera passer les 45 armes aux éléments D22) une fois la planche validée.
+## Vrai pour les signatures validées par Phil (`TABLE`) et pour les armes du lot 9 qui ont reçu leur
+## élément (`ElementsArmes`) : `Effets` n'utilise que celles-là, une arme dont la signature est
+## seulement proposée garde le rendu par type de dégâts. T9.19 lève la garde famille par famille.
 static func en_jeu(id_arme: String) -> bool:
-	return TABLE.has(id_arme)
+	return TABLE.has(id_arme) or ElementsArmes.de(id_arme) != ""
 
 
 ## `{}` pour une arme inconnue.

@@ -151,6 +151,15 @@ static func _scripts() -> Array[GDScript]:
 		AttaqueMiroir,
 		AttaqueVortex,
 		AttaqueHorloge,
+		AttaqueSerpe,
+		AttaqueRasoir,
+		AttaqueCouperet,
+		AttaqueBrume,
+		AttaqueFaucheuse,
+		AttaqueFleau,
+		AttaqueHache,
+		AttaqueScie,
+		AttaqueMoissonneuse,
 	]
 
 
@@ -297,7 +306,7 @@ func tirer(element: String, depart: Vector2, arrivee: Vector2, retard: float = 0
 			projectile["age"] = -attente
 			projectile["depart"] = depart
 			projectile["arrivee"] = arrivee
-			projectile["couleur"] = Color.WHITE
+			projectile["couleur"] = conf.get("teinte", Color.WHITE)
 			projectile["echelle"] = ECHELLE * float(conf.get("echelle", 1.0))
 			projectile["fps"] = float(conf["fps"])
 			projectile["cloche"] = float(conf["cloche"])
