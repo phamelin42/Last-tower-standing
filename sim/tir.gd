@@ -41,10 +41,68 @@ class Lecture:
 	var gain_degats: float = 0.0
 	## stat d'amélioration → nombre d'améliorations possédées qui la portent (chaque achat compte).
 	var ameliorations_par_stat: Dictionary = {}
+	## `communes_par_type` des niveaux portés, calculé une fois par pas par l'arène : le refaire pour
+	## chaque arme coûtait plus de 4 ms par pas à 75 armes. Vide : `_creer` le calcule lui-même.
+	var communes: PackedInt32Array = PackedInt32Array()
 	## Zones et bombes de l'arène : sans elles (tests de tir), une arme qui pose ne pose rien.
 	var poses: Poses = null
 	## Alliés de l'arène : sans eux (tests de tir), une arme qui invoque n'invoque rien.
 	var allies: Allies = null
+	var _cache_stats: StatsTour = null
+	var _cache_temps: float = -1.0
+	var _cache_type: PackedFloat64Array = PackedFloat64Array()
+	var _cache_type_communes: PackedInt32Array = PackedInt32Array()
+	var _cache_global: float = NAN
+	var _cache_global_communes: int = -1
+
+	## `StatsTour.facteur_degats_type`, calculé une fois par type et par pas : il ne dépend pas de
+	## l'arme, et le refaire pour chacune coûtait environ 6 µs par arme (T27). Le cache vaut pour
+	## les statistiques, l'instant et le nombre d'armes communes qu'on lui donne.
+	func facteur_type(stats: StatsTour, type: int, temps_s: float, communes_du_type: int) -> float:
+		_valider(stats, temps_s)
+		if type < 0 or type >= _cache_type.size():
+			return stats.facteur_degats_type(type, temps_s, communes_du_type)
+		if is_nan(_cache_type[type]) or _cache_type_communes[type] != communes_du_type:
+			_cache_type[type] = stats.facteur_degats_type(type, temps_s, communes_du_type)
+			_cache_type_communes[type] = communes_du_type
+		return _cache_type[type]
+
+	## `StatsTour.facteur_degats_global`, calculé une fois par pas.
+	func facteur_global(stats: StatsTour, temps_s: float, communes: int) -> float:
+		_valider(stats, temps_s)
+		if is_nan(_cache_global) or _cache_global_communes != communes:
+			_cache_global = stats.facteur_degats_global(temps_s, communes)
+			_cache_global_communes = communes
+		return _cache_global
+
+	func _valider(stats: StatsTour, temps_s: float) -> void:
+		if stats == _cache_stats and temps_s == _cache_temps:
+			return
+		_cache_stats = stats
+		_cache_temps = temps_s
+		_cache_type = PackedFloat64Array([NAN, NAN, NAN, NAN, NAN])
+		_cache_type_communes = PackedInt32Array([-1, -1, -1, -1, -1])
+		_cache_global = NAN
+		_cache_global_communes = -1
+
+
+## Un statut de l'arme prêt à poser : `a`, `b` et `c` portent les nombres déjà calculés (ratio ou
+## total, facteur de bonus, durée), `ressource` le type de dégâts ou la ressource du statut.
+class PlanStatut:
+	const POISON := 0
+	const BRULURE := 1
+	const GIVRE := 2
+	const ETOURDISSEMENT := 3
+	const VULNERABILITE := 4
+	const SIPHON := 5
+	const MALEDICTION_DEGATS := 6
+	const MALEDICTION_TOUCHER := 7
+	const REPOUSSEMENT := 8
+	var kind: int = 0
+	var a: float = 0.0
+	var b: float = 1.0
+	var c: float = 0.0
+	var ressource: int = 0
 
 
 ## Ce qui est commun à toutes les résolutions d'un même pas.
@@ -70,6 +128,13 @@ class Contexte:
 	## `facteur_degats`.
 	var facteur_fixe: float = 1.0
 	var facteur_max: float = INF
+	## `facteur_degats(ctx, 0)`, et `facteur_degats` par état de la cible rencontré : calculés au
+	## premier coup, puisque le contexte ne change plus ensuite (T27 : 4 µs par ennemi touché).
+	var sans_etat: float = NAN
+	var par_etat: Dictionary = {}
+	## Les statuts de l'arme, préparés par `_preparer_plan` au premier coup.
+	var plan: Array[PlanStatut] = []
+	var plan_pret: bool = false
 	var statuts: Array
 	var palier: float
 	var puissance_base: float
@@ -107,6 +172,16 @@ static func avancer_arme(
 		and (not arme.a_aura or arme.aura_restante - dt > 0.0)
 	):
 		arme.recharge_restante -= dt
+		arme.aura_restante = maxf(arme.aura_restante - dt, 0.0)
+		return
+	# Prête mais sans ennemi à sa portée : aucun effet ne trouve de cible (tous commencent par la
+	# même recherche), il ne reste que les minuteurs. Le contexte, lui, coûte environ 30 µs.
+	if (
+		arme.ondes.is_empty()
+		and arme.mines.is_empty()
+		and ennemis.distance2_minimale(centre) > arme.reperage2
+	):
+		arme.recharge_restante = maxf(arme.recharge_restante - dt, 0.0)
 		arme.aura_restante = maxf(arme.aura_restante - dt, 0.0)
 		return
 	var ctx := _creer(arme, stats, ennemis, centre, donnees, rng, resistance, bilan, lecture)
@@ -176,12 +251,16 @@ static func _creer(
 	ctx.facteur_max = float(reglages.get("facteur_degats_max", INF))
 	var communes := PackedInt32Array([0, 0, 0, 0, 0])
 	if stats.a_des_degats_dynamiques():
-		communes = communes_par_type(vue_tour.niveaux, donnees)
+		communes = (
+			vue_tour.communes
+			if vue_tour.communes.size() == communes.size()
+			else communes_par_type(vue_tour.niveaux, donnees)
+		)
 	var temps_s := vue_tour.temps_s
 	ctx.facteur_fixe = (
-		stats.facteur_degats_type(ctx.type_degats, temps_s, communes[ctx.type_degats])
-		* stats.facteur_degats_global(
-			temps_s, communes[0] + communes[1] + communes[2] + communes[3] + communes[4]
+		vue_tour.facteur_type(stats, ctx.type_degats, temps_s, communes[ctx.type_degats])
+		* vue_tour.facteur_global(
+			stats, temps_s, communes[0] + communes[1] + communes[2] + communes[3] + communes[4]
 		)
 		* stats.facteur_classe(arme.def)
 		* stats.facteur_pv_max(vue_tour.pv_max_tour)
@@ -307,94 +386,123 @@ static func _evenement(
 
 ## Un coup sur un ennemi : dégâts, vol de vie, mort ou statuts. Rend les dégâts réels.
 static func _frapper(ctx: Contexte, i: int, degats: float) -> float:
-	if not ctx.stats.degats_contre_etat.is_empty():
+	var ennemis := ctx.ennemis
+	var stats := ctx.stats
+	if not stats.degats_contre_etat.is_empty():
 		# Le coup est déjà au facteur sans contre-état : on y ajoute celui de l'état de la cible,
 		# le produit total restant sous le plafond.
-		var sans_etat := facteur_degats(ctx, 0)
-		if sans_etat > 0.0:
-			degats *= facteur_degats(ctx, int(ctx.ennemis.statuts[i])) / sans_etat
-	var reels := ctx.ennemis.infliger(i, degats, ctx.type_degats)
+		if is_nan(ctx.sans_etat):
+			ctx.sans_etat = facteur_degats(ctx, 0)
+		if ctx.sans_etat > 0.0:
+			var bits := int(ennemis.statuts[i])
+			if not ctx.par_etat.has(bits):
+				ctx.par_etat[bits] = facteur_degats(ctx, bits)
+			degats *= float(ctx.par_etat[bits]) / ctx.sans_etat
+	var reels := ennemis.infliger(i, degats, ctx.type_degats)
 	if reels <= 0.0:
 		return 0.0
 	var bilan := ctx.bilan
 	bilan.degats += reels
-	bilan.soin += Combat.soin_vol_de_vie(reels, ctx.stats.vol_de_vie_coup)
+	# `soin_vol_de_vie` d'un coup de `reels` > 0 : ne rien ajouter quand le ratio est nul (le cas
+	# courant), c'était un appel par coup et par ennemi touché.
+	var vol_de_vie_coup := stats.vol_de_vie_coup
+	if vol_de_vie_coup > 0.0:
+		bilan.soin += Combat.soin_vol_de_vie(reels, vol_de_vie_coup)
 	for brut: Variant in ctx.statuts:
 		var statut: Dictionary = brut
 		if statut["kind"] == "vol_de_vie" and not statut.get("a_la_mort", false):
 			bilan.soin += Combat.soin_vol_de_vie(reels, float(statut["ratio"]))
 		elif statut["kind"] == "mana_au_coup":
 			bilan.mana += float(statut["valeur"])
-	if ctx.ennemis.mort[i] != 0:
+	if ennemis.mort[i] != 0:
 		bilan.tues_directs += 1
-		bilan.soin += maxf(ctx.stats.vol_de_vie_mort, 0.0)
+		bilan.soin += maxf(stats.vol_de_vie_mort, 0.0)
 		for brut: Variant in ctx.statuts:
 			var statut: Dictionary = brut
 			if statut["kind"] == "vol_de_vie" and statut.get("a_la_mort", false):
-				bilan.soin += maxf(float(statut["ratio"]), 0.0) * ctx.ennemis.pv_max[i]
+				bilan.soin += maxf(float(statut["ratio"]), 0.0) * ennemis.pv_max[i]
 		return reels
-	for brut: Variant in ctx.statuts:
-		var statut: Dictionary = brut
-		match String(statut["kind"]):
-			"poison":
-				(
-					ctx
-					. ennemis
-					. empoisonner(
-						i,
-						(
-							float(statut["total_ratio"])
-							* reels
-							* (1.0 + _bonus_etat(ctx, "etat_degats", "poison"))
-						),
-						float(statut["duree"]) * (1.0 + _bonus_etat(ctx, "etat_duree", "poison")),
-					)
-				)
-			"brulure":
-				(
-					ctx
-					. ennemis
-					. bruler(
-						i,
-						float(statut["ratio"]) * (1.0 + _bonus_etat(ctx, "etat_degats", "brulure")),
-						reels,
-						float(statut["duree"]) * (1.0 + _bonus_etat(ctx, "etat_duree", "brulure")),
-					)
-				)
-			"givre":
-				ctx.ennemis.givrer(i, ctx.resistance)
-			"etourdissement":
-				ctx.ennemis.etourdir(
-					i,
-					(
-						float(statut["duree"])
-						* (1.0 + _bonus_etat(ctx, "etat_duree", "etourdissement"))
-					),
-					ctx.resistance
-				)
-			"vulnerabilite":
-				var type_vulnerable := int(statut.get("type_degats", -1))
-				if type_vulnerable < 0:
-					type_vulnerable = ctx.type_degats
-				ctx.ennemis.vulnerabiliser(
-					i, type_vulnerable, float(statut["ratio"]), float(statut["duree"])
-				)
-			"siphon":
-				var ressource := 0 if String(statut["ressource"]) == "mana" else 1
-				ctx.ennemis.siphonner(
-					i, ressource, float(statut["par_seconde"]), float(statut["duree"])
-				)
-			"malediction_degats":
-				ctx.ennemis.maudire_degats(i, float(statut["ratio"]), float(statut["duree"]))
-			"malediction_toucher":
-				ctx.ennemis.maudire_toucher(i, float(statut["ratio"]), float(statut["duree"]))
-			"repoussement":
+	if not ctx.plan_pret:
+		_preparer_plan(ctx)
+	for plan: PlanStatut in ctx.plan:
+		match plan.kind:
+			PlanStatut.POISON:
+				ennemis.empoisonner(i, plan.a * reels * plan.b, plan.c)
+			PlanStatut.BRULURE:
+				ennemis.bruler(i, plan.a, reels, plan.c)
+			PlanStatut.GIVRE:
+				ennemis.givrer(i, ctx.resistance)
+			PlanStatut.ETOURDISSEMENT:
+				ennemis.etourdir(i, plan.c, ctx.resistance)
+			PlanStatut.VULNERABILITE:
+				ennemis.vulnerabiliser(i, plan.ressource, plan.a, plan.c)
+			PlanStatut.SIPHON:
+				ennemis.siphonner(i, plan.ressource, plan.a, plan.c)
+			PlanStatut.MALEDICTION_DEGATS:
+				ennemis.maudire_degats(i, plan.a, plan.c)
+			PlanStatut.MALEDICTION_TOUCHER:
+				ennemis.maudire_toucher(i, plan.a, plan.c)
+			PlanStatut.REPOUSSEMENT:
 				var facteur := 1.0
-				if ctx.ennemis.armure[i] == Types.Armure.BOSS:
+				if ennemis.armure[i] == Types.Armure.BOSS:
 					facteur = ctx.facteur_boss_repoussement
 				if facteur > 0.0:
-					ctx.ennemis.repousser(i, float(statut["distance"]), ctx.centre, facteur)
+					ennemis.repousser(i, plan.a, ctx.centre, facteur)
 	return reels
+
+
+## Les statuts que l'arme pose, avec leurs nombres déjà lus et multipliés par les bonus de la tour :
+## ils ne changent pas d'un coup à l'autre, et les relire dans les dictionnaires coûtait l'essentiel
+## d'un coup sur un ennemi (T27). Même formules que les coups d'avant, dans le même ordre.
+static func _preparer_plan(ctx: Contexte) -> void:
+	ctx.plan_pret = true
+	for brut: Variant in ctx.statuts:
+		var statut: Dictionary = brut
+		var plan := PlanStatut.new()
+		match String(statut["kind"]):
+			"poison":
+				plan.kind = PlanStatut.POISON
+				plan.a = float(statut["total_ratio"])
+				plan.b = 1.0 + _bonus_etat(ctx, "etat_degats", "poison")
+				plan.c = float(statut["duree"]) * (1.0 + _bonus_etat(ctx, "etat_duree", "poison"))
+			"brulure":
+				plan.kind = PlanStatut.BRULURE
+				plan.a = float(statut["ratio"]) * (1.0 + _bonus_etat(ctx, "etat_degats", "brulure"))
+				plan.c = float(statut["duree"]) * (1.0 + _bonus_etat(ctx, "etat_duree", "brulure"))
+			"givre":
+				plan.kind = PlanStatut.GIVRE
+			"etourdissement":
+				plan.kind = PlanStatut.ETOURDISSEMENT
+				plan.c = (
+					float(statut["duree"])
+					* (1.0 + _bonus_etat(ctx, "etat_duree", "etourdissement"))
+				)
+			"vulnerabilite":
+				plan.kind = PlanStatut.VULNERABILITE
+				plan.ressource = int(statut.get("type_degats", -1))
+				if plan.ressource < 0:
+					plan.ressource = ctx.type_degats
+				plan.a = float(statut["ratio"])
+				plan.c = float(statut["duree"])
+			"siphon":
+				plan.kind = PlanStatut.SIPHON
+				plan.ressource = 0 if String(statut["ressource"]) == "mana" else 1
+				plan.a = float(statut["par_seconde"])
+				plan.c = float(statut["duree"])
+			"malediction_degats":
+				plan.kind = PlanStatut.MALEDICTION_DEGATS
+				plan.a = float(statut["ratio"])
+				plan.c = float(statut["duree"])
+			"malediction_toucher":
+				plan.kind = PlanStatut.MALEDICTION_TOUCHER
+				plan.a = float(statut["ratio"])
+				plan.c = float(statut["duree"])
+			"repoussement":
+				plan.kind = PlanStatut.REPOUSSEMENT
+				plan.a = float(statut["distance"])
+			_:
+				continue
+		ctx.plan.append(plan)
 
 
 ## Meilleur vivant à portée du centre selon le ciblage de l'arme, hors `exclus` (identifiants) ;
@@ -609,12 +717,17 @@ static func _tournant(ctx: Contexte, effet: Dictionary) -> bool:
 		var bout := ctx.centre + Vector2(cos(angle), sin(angle)) * portee
 		_evenement(ctx, "tir", ctx.centre, bout, largeur)
 		var degats := ctx.degats_base * _critique(ctx)
-		for i: int in ennemis.ids.size():
-			if ennemis.mort[i] != 0 or deja.has(ennemis.ids[i]):
+		# Les tableaux sont lus une fois : un coup ne change que l'ennemi déjà passé.
+		var mort := ennemis.mort
+		var positions := ennemis.pos
+		var identifiants := ennemis.ids
+		for i: int in identifiants.size():
+			if mort[i] != 0:
 				continue
-			var proche := Geometry2D.get_closest_point_to_segment(ennemis.pos[i], ctx.centre, bout)
-			if proche.distance_to(ennemis.pos[i]) <= largeur:
-				deja[ennemis.ids[i]] = true
+			var p := positions[i]
+			var proche := Geometry2D.get_closest_point_to_segment(p, ctx.centre, bout)
+			if proche.distance_to(p) <= largeur and not deja.has(identifiants[i]):
+				deja[identifiants[i]] = true
 				_frapper(ctx, i, degats)
 	var sens := -1.0 if String(effet["sens"]) == "antihoraire" else 1.0
 	ctx.arme.phase_deg = fposmod(phase + sens * float(effet["pas_deg"]), 360.0)
@@ -697,16 +810,21 @@ static func _choisir_autour(ctx: Contexte, point: Vector2, rayon: float, exclus:
 	var r2 := rayon * rayon
 	var meilleur := -1
 	var meilleur_d2 := 0.0
-	for i: int in ennemis.ids.size():
-		if ennemis.mort[i] != 0 or exclus.has(ennemis.ids[i]):
+	# Les tableaux sont lus une fois, et la portée se teste avant la liste des exclus : un rebond
+	# parcourait mille ennemis par saut, propriété par propriété (T27).
+	var mort := ennemis.mort
+	var positions := ennemis.pos
+	var identifiants := ennemis.ids
+	for i: int in identifiants.size():
+		if mort[i] != 0:
 			continue
-		var d2 := ennemis.pos[i].distance_squared_to(point)
-		if d2 > r2:
+		var d2 := positions[i].distance_squared_to(point)
+		if d2 > r2 or exclus.has(identifiants[i]):
 			continue
 		if (
 			meilleur == -1
 			or d2 < meilleur_d2
-			or (d2 == meilleur_d2 and ennemis.ids[i] < ennemis.ids[meilleur])
+			or (d2 == meilleur_d2 and identifiants[i] < identifiants[meilleur])
 		):
 			meilleur = i
 			meilleur_d2 = d2
@@ -775,10 +893,14 @@ static func _avancer_ondes(ctx: Contexte, effets: Array, dt: float) -> void:
 		var degats := float(onde["degats"])
 		var r2 := rayon * rayon
 		var nouveaux := 0
-		for i: int in ennemis.ids.size():
-			if ennemis.mort[i] != 0 or ennemis.pos[i].distance_squared_to(ctx.centre) > r2:
+		# Les tableaux sont lus une fois : un coup ne change que l'ennemi déjà passé.
+		var mort := ennemis.mort
+		var positions := ennemis.pos
+		var identifiants := ennemis.ids
+		for i: int in identifiants.size():
+			if mort[i] != 0 or positions[i].distance_squared_to(ctx.centre) > r2:
 				continue
-			var id := ennemis.ids[i]
+			var id := identifiants[i]
 			var rang := touches.bsearch(id)
 			if rang < touches.size() and touches[rang] == id:
 				continue

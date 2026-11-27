@@ -3,8 +3,9 @@ extends CasDeTest
 
 const DT := 0.05
 const GRAINE := 5
-## Budget du plan : moins de 5 ms par pas (10e centile des mesures, voir `MesurePas`).
-const BUDGET_MS := 5.0
+## Moins de 2,5 ms par pas (10e centile des mesures, voir `MesurePas`) : le plan en autorise 5, et
+## ces charges en coûtent 0,5 (S27). Le catalogue complet a ses propres budgets, `test_cout_du_pas`.
+const BUDGET_MS := 2.5
 
 var d: Donnees
 

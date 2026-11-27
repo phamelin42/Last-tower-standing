@@ -2397,6 +2397,7 @@ décisions) se corrige sans attendre.
 ### Task 10.1 : Revues par domaine, une par skill — `sonnet` (en parallèle)
 
 - [ ] **Objectif :** une revue par domaine, chacune menée avec son skill du dépôt (`.claude/skills/`), sur `main` à jour : `game-feel` (retour des coups, tremblement, gel d'impact, poids des actions) ; `tower-defense` (rythme des vagues, économie, ciblage, contre-mesures d'armure) ; `game-ai` (déplacement et ciblage des ennemis, alliés) ; `performance-optimization` (mesure avant tout : 1 000 ennemis, 255 armes, réseau) ; `particles-vfx`, `godot-shaders`, `shader-programming` et `animer-attaques-sorts` (lisibilité des 75 signatures et des effets) ; `godot-multiplayer` (robustesse du réseau, triche côté client) ; `godot-gdscript`, `godot-signals-groups` et `godot-animation` (qualité du code) ; `godot-gdscript-headless-testing` (tests et CI) ; `code-review` et `improve-codebase-architecture` (architecture, dépendances `sim/` → `data/`).
+- **Coût du pas (S27, décision de la pilote du 27/11/2026)** : la revue `performance-optimization` part des mesures de `docs/equilibrage.md` (§ « Coût d'un pas de simulation ») : 7 ms au pire cas (1 000 ennemis à portée de 90 armes), 500 ennemis sous 5 ms. Elle ne revoit le coût par coup (environ 4 µs par ennemi touché, 8 à 12 avec statuts) que si une mesure en jeu le demande.
 - **Livrable :** un rapport par revue (dans le rapport de l'agent, pas dans le dépôt) : constats prouvés, classés « défaut », « amélioration » ou « conforme », chacun avec sa preuve, la règle du skill et un coût estimé.
 
 ### Task 10.2 : Veille sur les bonnes pratiques et les tendances — `sonnet`
@@ -2652,6 +2653,7 @@ validation de Phil sur la planche ; T12.9 après T12.1 à T12.7b ; T12.11 apr�
   `gain_cadence` 0, 0,10, 0,20 et 0,30, graines 1 à 10, et le choix consigné ; mesure de base avant le lot reprise dans `docs/equilibrage.md` (ci-dessus :
   or au boss de 160 à 1 040 sauf la graine 1, combats de 2 200 et 2 691 s, six graines sans victoire en 3 070 s).
 - **Repris de T9.22 (pilote, 27/11/2026)** : la mesure à 50 graines et la part d'armes dans les offres de la manche 1 (`PART_ARMES_AVANT` mesurée sur les données d'avant T9.13, levier `poids_genre`) se font ici, sur le catalogue final du lot 12.
+- **Coût du pas (S27)** : avec 90 armes et 1 000 ennemis à portée, un pas coûte 5,2 à 5,7 ms au 10e centile (budget du test 7 ms, cible du plan 5 ms) ; le coût vient des coups sur les ennemis touchés (statuts compris). Tout ajout d'une arme à zone large ou à statuts le rejoue : relever `test_cout_du_pas` avant et après.
 - **Dépend de :** T12.1 à T12.7b.
 
 ### Task 12.11 : Scénarios de difficulté — `sonnet`

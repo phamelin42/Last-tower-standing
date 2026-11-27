@@ -99,11 +99,26 @@ var _centre_d2: Vector2 = Vector2.ZERO
 var _indice_par_id: Dictionary = {}
 ## Nombre d'entrées des tableaux, morts en attente compris.
 var _n: int = 0
+var _eff_plat: PackedFloat64Array = PackedFloat64Array()
+var _eff_types: int = 0
+var _eff_armures: int = 0
 
 
 func _init(donnees: Donnees) -> void:
 	_donnees = donnees
 	_table_efficacite = donnees.efficacite
+	# La table à plat, si elle est rectangulaire : `Combat.efficacite` coûtait un appel et deux
+	# indexations de tableaux imbriqués par coup (T27).
+	_eff_types = _table_efficacite.size()
+	for ligne: Array in _table_efficacite:
+		_eff_armures = maxi(_eff_armures, ligne.size())
+	for ligne: Array in _table_efficacite:
+		if ligne.size() != _eff_armures:
+			_eff_armures = 0
+	if _eff_armures > 0:
+		for ligne: Array in _table_efficacite:
+			for valeur: Variant in ligne:
+				_eff_plat.append(float(valeur))
 	_gel_max = float(donnees.partie["gel_max_s"])
 	var givre: Dictionary = donnees.partie["givre"]
 	_cumuls_max = int(givre["cumuls_max"])
@@ -216,16 +231,20 @@ func _tuer(i: int) -> void:
 ## plafonnés aux PV restants (c'est ce montant qui nourrit le score et le vol de vie) ; 0 pour
 ## un mort, un indice inconnu ou un montant négatif, nul ou NaN, qui ne soigne jamais.
 func infliger(i: int, montant: float, type_degats: int) -> float:
-	if not _vivant(i) or not montant > 0.0:
+	if i < 0 or i >= _n or mort[i] != 0 or not montant > 0.0:
 		return 0.0
 	# La vulnérabilité du type passe avant l'efficacité contre l'armure.
 	var vuln := 0.0
 	if type_degats >= 0 and type_degats < 5:
 		vuln = vulnerabilite[i * 5 + type_degats]
-	var apres := (
-		minf(montant * (1.0 + vuln), DEGATS_MAX)
-		* Combat.efficacite(_table_efficacite, type_degats, armure[i])
-	)
+	var efficacite := 1.0
+	var genre_armure := armure[i]
+	if _eff_armures > 0:
+		if type_degats >= 0 and type_degats < _eff_types and genre_armure < _eff_armures:
+			efficacite = _eff_plat[type_degats * _eff_armures + genre_armure]
+	else:
+		efficacite = Combat.efficacite(_table_efficacite, type_degats, genre_armure)
+	var apres := minf(montant * (1.0 + vuln), DEGATS_MAX) * efficacite
 	var reels := minf(apres, pv[i])
 	pv[i] -= apres
 	if pv[i] <= 0.0:
@@ -237,40 +256,47 @@ func infliger(i: int, montant: float, type_degats: int) -> float:
 ## ennemi ; la durée commune se rafraîchit (jamais additionnée) jusqu'à `duree_max`. Un ratio ou une
 ## durée non finis, nuls ou négatifs, un mort et un type inconnu sont ignorés.
 func vulnerabiliser(i: int, type_degats: int, ratio: float, duree: float) -> void:
-	if not _vivant(i) or type_degats < 0 or type_degats >= 5:
+	# La vérification d'un statut valide est en ligne : deux appels par statut et par ennemi touché.
+	if i < 0 or i >= _n or mort[i] != 0 or type_degats < 0 or type_degats >= 5:
 		return
-	if not _dot_valide(ratio, duree):
+	if not (ratio > 0.0 and duree > 0.0 and is_finite(ratio) and is_finite(duree)):
 		return
 	var k := i * 5 + type_degats
 	vulnerabilite[k] = minf(vulnerabilite[k] + ratio, _vuln_plafond)
 	vuln_reste[i] = maxf(vuln_reste[i], minf(duree, _vuln_duree_max))
-	_recalculer_bits(i)
+	statuts[i] |= Types.STATUT_VULNERABLE
 
 
 ## Malédiction de dégâts : l'ennemi inflige `1 − ratio` de ses dégâts. Non cumulable : le plus fort
 ## l'emporte (plafond `malediction.plafond`), la durée se rafraîchit.
 func maudire_degats(i: int, ratio: float, duree: float) -> void:
-	if not _vivant(i) or not _dot_valide(ratio, duree):
+	if i < 0 or i >= _n or mort[i] != 0:
+		return
+	if not (ratio > 0.0 and duree > 0.0 and is_finite(ratio) and is_finite(duree)):
 		return
 	maudit_degats[i] = maxf(maudit_degats[i], minf(ratio, _maudit_plafond))
 	maudit_degats_t[i] = maxf(maudit_degats_t[i], duree)
-	_recalculer_bits(i)
+	statuts[i] |= Types.STATUT_MAUDIT
 
 
 ## Malédiction de toucher : ses attaques échouent `ratio` du temps, en moyenne (réduction des
 ## dégâts, sans tirage). Mêmes règles que `maudire_degats`.
 func maudire_toucher(i: int, ratio: float, duree: float) -> void:
-	if not _vivant(i) or not _dot_valide(ratio, duree):
+	if i < 0 or i >= _n or mort[i] != 0:
+		return
+	if not (ratio > 0.0 and duree > 0.0 and is_finite(ratio) and is_finite(duree)):
 		return
 	maudit_toucher[i] = maxf(maudit_toucher[i], minf(ratio, _maudit_plafond))
 	maudit_toucher_t[i] = maxf(maudit_toucher_t[i], duree)
-	_recalculer_bits(i)
+	statuts[i] |= Types.STATUT_MAUDIT
 
 
 ## Siphon : pendant `duree`, l'ennemi verse `par_seconde` à la tour (`ressource` : 0 mana, 1 vie).
 ## Un nouveau siphon de la même ressource rafraîchit la durée et garde le plus fort débit.
 func siphonner(i: int, ressource: int, par_seconde: float, duree: float) -> void:
-	if not _vivant(i) or not _dot_valide(par_seconde, duree):
+	if i < 0 or i >= _n or mort[i] != 0:
+		return
+	if not (par_seconde > 0.0 and duree > 0.0 and is_finite(par_seconde) and is_finite(duree)):
 		return
 	if ressource == 0:
 		siphon_mana[i] = maxf(siphon_mana[i], par_seconde)
@@ -280,7 +306,7 @@ func siphonner(i: int, ressource: int, par_seconde: float, duree: float) -> void
 		siphon_vie_t[i] = maxf(siphon_vie_t[i], duree)
 	else:
 		return
-	_recalculer_bits(i)
+	statuts[i] |= Types.STATUT_SIPHONNE
 
 
 ## Recul immédiat de `distance` (au plus `distance_max`, multipliée par `facteur`) à l'opposé de
@@ -306,21 +332,25 @@ func repousser(i: int, distance: float, depuis: Vector2, facteur: float) -> void
 
 
 func empoisonner(i: int, total: float, duree: float) -> void:
-	if not _vivant(i) or not _dot_valide(total, duree):
+	if i < 0 or i >= _n or mort[i] != 0:
+		return
+	if not (total > 0.0 and duree > 0.0 and is_finite(total) and is_finite(duree)):
 		return
 	poison_reste[i] += total
 	poison_duree[i] = maxf(poison_duree[i], duree)
-	_recalculer_bits(i)
+	statuts[i] |= Types.STATUT_EMPOISONNE
 
 
 ## Brûlure : `ratio` des dégâts du coup, répartis sur `duree`, cumulative.
 func bruler(i: int, ratio: float, degats_du_coup: float, duree: float) -> void:
 	var total := ratio * degats_du_coup
-	if not _vivant(i) or not _dot_valide(total, duree):
+	if i < 0 or i >= _n or mort[i] != 0:
+		return
+	if not (total > 0.0 and duree > 0.0 and is_finite(total) and is_finite(duree)):
 		return
 	brule_reste[i] += total
 	brule_duree[i] = maxf(brule_duree[i], duree)
-	_recalculer_bits(i)
+	statuts[i] |= Types.STATUT_BRULE
 
 
 ## Pas de nouveau cumul pendant un gel, ni de prolongation du gel en cours. Un gel dure
@@ -371,10 +401,6 @@ func _resistance_saine(resistance: float) -> float:
 	return resistance if resistance > 0.0 and is_finite(resistance) else 0.0
 
 
-func _dot_valide(total: float, duree: float) -> bool:
-	return total > 0.0 and duree > 0.0 and is_finite(total) and is_finite(duree)
-
-
 func _recalculer_bits(i: int) -> void:
 	var bits := 0
 	if gel[i] > 0.0:
@@ -396,37 +422,52 @@ func _recalculer_bits(i: int) -> void:
 	statuts[i] = bits
 
 
-## Un pas de dégâts sur la durée : (dégâts, reste, durée restante). Le dernier pas verse tout
-## le reste, pour que la somme des pas soit exactement le total malgré les flottants.
-func _pas_dot(reste: float, duree: float, dt: float) -> Vector3:
-	var fin := duree - dt
-	if fin <= EPSILON_TEMPS:
-		return Vector3(reste, 0.0, 0.0)
-	var d := Combat.repartir_dot(reste, duree, dt)
-	return Vector3(d, reste - d, fin)
-
-
 ## Fait avancer les minuteurs de statut d'un ennemi vivant. Peut le tuer.
 func _avancer_statuts(i: int, dt: float) -> void:
 	var perdu := 0.0
-	if poison_duree[i] > 0.0:
-		var p := _pas_dot(poison_reste[i], poison_duree[i], dt)
-		perdu += p.x
-		poison_reste[i] = p.y
-		poison_duree[i] = p.z
-	if brule_duree[i] > 0.0:
-		var b := _pas_dot(brule_reste[i], brule_duree[i], dt)
-		perdu += b.x
-		brule_reste[i] = b.y
-		brule_duree[i] = b.z
+	# Les bits sont rebâtis au fil des minuteurs, qu'on vient d'écrire : les relire tous dans
+	# `_recalculer_bits` coûtait douze lectures par ennemi et par pas (T27).
+	var bits := 0
+	# Les deux dégâts sur la durée sont calculés sur place, en une passe : une fonction et un
+	# `Vector3` par statut et par ennemi coûtaient plus que le reste du pas d'un ennemi.
+	var duree_poison := poison_duree[i]
+	if duree_poison > 0.0:
+		var reste_poison := poison_reste[i]
+		if duree_poison - dt <= EPSILON_TEMPS:
+			perdu += reste_poison
+			poison_reste[i] = 0.0
+			poison_duree[i] = 0.0
+		else:
+			var d_poison := reste_poison * dt / duree_poison
+			perdu += d_poison
+			poison_reste[i] = reste_poison - d_poison
+			poison_duree[i] = duree_poison - dt
+			bits |= Types.STATUT_EMPOISONNE
+	var duree_brulure := brule_duree[i]
+	if duree_brulure > 0.0:
+		var reste_brulure := brule_reste[i]
+		if duree_brulure - dt <= EPSILON_TEMPS:
+			perdu += reste_brulure
+			brule_reste[i] = 0.0
+			brule_duree[i] = 0.0
+		else:
+			var d_brulure := reste_brulure * dt / duree_brulure
+			perdu += d_brulure
+			brule_reste[i] = reste_brulure - d_brulure
+			brule_duree[i] = duree_brulure - dt
+			bits |= Types.STATUT_BRULE
 	if gel[i] > 0.0:
 		gel[i] = gel[i] - dt if gel[i] - dt > EPSILON_TEMPS else 0.0
 		if gel[i] == 0.0:
 			_proteger_boss(i)
+		else:
+			bits |= Types.STATUT_GELE
 	if etourdi[i] > 0.0:
 		etourdi[i] = etourdi[i] - dt if etourdi[i] - dt > EPSILON_TEMPS else 0.0
 		if etourdi[i] == 0.0:
 			_proteger_boss(i)
+		else:
+			bits |= Types.STATUT_ETOURDI
 	elif etourdi[i] < 0.0:
 		etourdi[i] = etourdi[i] + dt if etourdi[i] + dt < -EPSILON_TEMPS else 0.0
 	if givre_cumuls[i] > 0:
@@ -436,23 +477,31 @@ func _avancer_statuts(i: int, dt: float) -> void:
 			givre_t[i] -= 1.0
 		if givre_cumuls[i] == 0:
 			givre_t[i] = 0.0
+		else:
+			bits |= Types.STATUT_RALENTI
 	if vuln_reste[i] > 0.0:
 		vuln_reste[i] = vuln_reste[i] - dt if vuln_reste[i] - dt > EPSILON_TEMPS else 0.0
 		if vuln_reste[i] == 0.0:
 			for t: int in 5:
 				vulnerabilite[i * 5 + t] = 0.0
+		else:
+			bits |= Types.STATUT_VULNERABLE
 	if maudit_degats_t[i] > 0.0:
 		maudit_degats_t[i] = (
 			maudit_degats_t[i] - dt if maudit_degats_t[i] - dt > EPSILON_TEMPS else 0.0
 		)
 		if maudit_degats_t[i] == 0.0:
 			maudit_degats[i] = 0.0
+		else:
+			bits |= Types.STATUT_MAUDIT
 	if maudit_toucher_t[i] > 0.0:
 		maudit_toucher_t[i] = (
 			maudit_toucher_t[i] - dt if maudit_toucher_t[i] - dt > EPSILON_TEMPS else 0.0
 		)
 		if maudit_toucher_t[i] == 0.0:
 			maudit_toucher[i] = 0.0
+		else:
+			bits |= Types.STATUT_MAUDIT
 	var verse_mana := 0.0
 	var verse_vie := 0.0
 	if siphon_mana_t[i] > 0.0:
@@ -460,12 +509,16 @@ func _avancer_statuts(i: int, dt: float) -> void:
 		siphon_mana_t[i] = (siphon_mana_t[i] - dt if siphon_mana_t[i] - dt > EPSILON_TEMPS else 0.0)
 		if siphon_mana_t[i] == 0.0:
 			siphon_mana[i] = 0.0
+		else:
+			bits |= Types.STATUT_SIPHONNE
 	if siphon_vie_t[i] > 0.0:
 		verse_vie = siphon_vie[i] * minf(dt, siphon_vie_t[i])
 		siphon_vie_t[i] = siphon_vie_t[i] - dt if siphon_vie_t[i] - dt > EPSILON_TEMPS else 0.0
 		if siphon_vie_t[i] == 0.0:
 			siphon_vie[i] = 0.0
-	_recalculer_bits(i)
+		else:
+			bits |= Types.STATUT_SIPHONNE
+	statuts[i] = bits
 	if perdu > 0.0:
 		pv[i] -= perdu
 		if pv[i] <= 0.0:

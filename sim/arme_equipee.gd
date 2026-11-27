@@ -19,6 +19,10 @@ var ondes: Array[Dictionary] = []
 var phase_deg: float = 0.0
 ## Vrai si l'arme porte une aura (sa frappe a son propre minuteur).
 var a_aura: bool = false
+## Carré de la plus grande distance à laquelle un de ses effets trouve une cible (portée, ou rayon
+## pour l'aura) : au-delà du plus proche ennemi, l'arme n'a rien à résoudre ce pas (`Tir`). Infini
+## si la définition ne dit pas sa portée.
+var reperage2: float = INF
 ## Niveau de l'arme (D23), 1 au premier achat ; posé par `definir_niveau`.
 var niveau: int = 1
 ## Cadence gagnée par les niveaux au-dessus du premier, qui s'ajoute à celle des améliorations.
@@ -31,9 +35,15 @@ var cadence_max: float = INF
 func _init(definition: Dictionary) -> void:
 	def = definition
 	id = String(definition["id"])
+	var portee: float = float(definition.get("portee", INF))
+	var reperage := 0.0
 	for effet: Dictionary in definition["effets"]:
 		if effet["kind"] == "aura":
 			a_aura = true
+			reperage = maxf(reperage, float(effet["rayon"]))
+		else:
+			reperage = maxf(reperage, portee)
+	reperage2 = reperage * reperage
 
 
 ## 0 = prête, 1 = vient de tirer ; tient compte de la cadence.
