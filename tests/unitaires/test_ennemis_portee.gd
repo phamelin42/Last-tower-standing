@@ -36,7 +36,7 @@ func _indice_famille(id: String) -> int:
 ## remplace la vitesse de la famille (0 : il reste où on le pose).
 func _ajouter_famille(e: Ennemis, indice: int, position: Vector2, vitesse: float = -1.0) -> int:
 	var f: Dictionary = d.familles[indice]
-	return e.ajouter(
+	var id := e.ajouter(
 		indice,
 		position,
 		float(f["pv"]),
@@ -46,9 +46,10 @@ func _ajouter_famille(e: Ennemis, indice: int, position: Vector2, vitesse: float
 		float(f["cadence_attaque"]),
 		int(f["prime"]),
 		int(f["armure"]),
-		bool(f["explose"]),
-		int(int(f["classe_portee"]) == Types.ClassePortee.CORPS_A_CORPS)
+		bool(f["explose"])
 	)
+	e.definir_contact(id, int(f["classe_portee"]) == Types.ClassePortee.CORPS_A_CORPS)
+	return id
 
 
 func _vue(a: Arene) -> VueArene:

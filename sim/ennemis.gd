@@ -150,8 +150,7 @@ func ajouter(
 	cadence: float,
 	prime_or: int,
 	type_armure: int,
-	explose_au_contact: bool = false,
-	attaque_au_contact: int = -1
+	explose_au_contact: bool = false
 ) -> int:
 	if not points_de_vie > 0.0 or not is_finite(points_de_vie):
 		return -1
@@ -175,11 +174,8 @@ func ajouter(
 	attaque_cd.append(0.0)
 	prime.append(prime_or)
 	explose.append(1 if explose_au_contact else 0)
-	# -1 : repli sur la portée, pour les ennemis posés à la main (tests, convoi).
-	var au_contact := (
-		attaque_au_contact == 1 if attaque_au_contact >= 0 else _contact_par_portee(portee_attaque)
-	)
-	contact.append(1 if au_contact else 0)
+	# Par défaut au contact si la portée est courte ; `definir_contact` pose la classe des données.
+	contact.append(1 if _contact_par_portee(portee_attaque) else 0)
 	sans_prime.append(0)
 	armure.append(clampi(type_armure, 0, 255))
 	mort.append(0)
@@ -729,6 +725,14 @@ func _noter_retrait(i: int, retires: Array[Dictionary], cles: PackedInt64Array) 
 		)
 	)
 	_indice_par_id.erase(ids[i])
+
+
+## Pose la classe d'attaque de l'ennemi `id` : au contact (vrai) ou de loin, d'après la classe de
+## portée des données, quelle que soit sa portée.
+func definir_contact(id: int, au_contact: bool) -> void:
+	var i := indice_de(id)
+	if i >= 0:
+		contact[i] = 1 if au_contact else 0
 
 
 static func _contact_par_portee(portee_attaque: float) -> bool:

@@ -192,9 +192,11 @@ func demarrer_boss(mult: Dictionary) -> void:
 		float(b["portee_attaque"]),
 		float(b["cadence_attaque"]),
 		int(b.get("prime", 0)),
-		Types.Armure.BOSS,
-		false,
-		int(b["classe_portee"] == Types.NOMS_CLASSES_PORTEE[Types.ClassePortee.CORPS_A_CORPS])
+		Types.Armure.BOSS
+	)
+	var classe_boss: String = b["classe_portee"]
+	ennemis.definir_contact(
+		_boss_id, classe_boss == Types.NOMS_CLASSES_PORTEE[Types.ClassePortee.CORPS_A_CORPS]
 	)
 
 
@@ -333,7 +335,7 @@ func _apparaitre() -> void:
 		)
 		return
 	var f: Dictionary = _donnees.familles[famille]
-	ennemis.ajouter(
+	var id := ennemis.ajouter(
 		famille,
 		position,
 		float(f["pv"]) * _mult_pv,
@@ -343,9 +345,9 @@ func _apparaitre() -> void:
 		float(f["cadence_attaque"]),
 		int(f["prime"]),
 		int(f["armure"]),
-		bool(f["explose"]),
-		int(int(f["classe_portee"]) == Types.ClassePortee.CORPS_A_CORPS)
+		bool(f["explose"])
 	)
+	ennemis.definir_contact(id, int(f["classe_portee"]) == Types.ClassePortee.CORPS_A_CORPS)
 
 
 func _point_d_apparition() -> Vector2:
