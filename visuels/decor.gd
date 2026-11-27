@@ -8,7 +8,6 @@ extends Node2D
 ## images changent, et seulement quand l'horloge passe à l'image suivante. Le nœud se pose avant
 ## les ennemis : rien du décor ne les recouvre.
 
-const RACINE := "res://assets/tiny_swords/"
 ## Étendue de l'eau autour de l'image composée, en pixels du monde : couvre l'écran le plus large.
 const RAYON_EAU: float = 6000.0
 
@@ -114,7 +113,7 @@ func _poser_image(entree: Array) -> void:
 
 func _texture(fichier: String) -> Texture2D:
 	if not _textures.has(fichier):
-		_textures[fichier] = load(RACINE + fichier) as Texture2D
+		_textures[fichier] = load(Apparence.RACINE + fichier) as Texture2D
 	return _textures[fichier]
 
 

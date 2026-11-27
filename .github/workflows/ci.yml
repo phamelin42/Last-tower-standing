@@ -12,6 +12,9 @@ jobs:
   qualite:
     name: Qualité
     runs-on: ubuntu-latest
+    # Un godot figé ou un test en boucle garderait le job jusqu'au plafond de GitHub (6 h) : la CI
+    # dure 11 à 13 minutes (mesure du 27/11/2026), le plafond en laisse plus du double.
+    timeout-minutes: 30
     steps:
       - name: Récupérer le dépôt
         uses: actions/checkout@v7
