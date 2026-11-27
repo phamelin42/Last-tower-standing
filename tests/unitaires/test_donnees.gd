@@ -134,6 +134,7 @@ func _ennemis_valides() -> Dictionary:
 			"vitesse": 35,
 			"degats": 60,
 			"portee_attaque": 80,
+			"classe_portee": "corps_a_corps",
 			"cadence_attaque": 1.5,
 		},
 	}

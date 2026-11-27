@@ -183,6 +183,16 @@ func _cas_invalides() -> Array[Array]:
 			"classe_portee"
 		],
 		[
+			"classe de portée du boss inconnue",
+			func(e: Dictionary) -> void: e["boss"]["classe_portee"] = "courte",
+			"boss.classe_portee"
+		],
+		[
+			"classe de portée du boss absente",
+			func(e: Dictionary) -> void: (e["boss"] as Dictionary).erase("classe_portee"),
+			"boss.classe_portee"
+		],
+		[
 			"palier en double",
 			func(e: Dictionary) -> void: e["paliers"][1]["id"] = e["paliers"][0]["id"],
 			"id"
