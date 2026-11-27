@@ -456,6 +456,27 @@ func test_un_salon_plein_est_refuse() -> void:
 	verifier_egal(e.pertes.size(), 1)
 
 
+## Serveur dédié après une partie : il rouvre son salon sans fermer les connexions. Un client qui
+## attend sur l'écran de fin n'est pas coupé cinq secondes plus tard : il redit bonjour au salon
+## neuf.
+func test_un_salon_rouvert_re_enregistre_les_clients_au_lieu_de_les_couper() -> void:
+	verifier(_monter_serveur(), "un port libre")
+	var a := _nouveau_client("A")
+	var ea := _espionner(a)
+	verifier_egal(a.connecter("127.0.0.1", port, "Aki"), OK)
+	verifier(await _jusqua(func() -> bool: return a.salon != null), "A reçoit le salon")
+	var id := a.id_local()
+	serveur.rouvrir_salon()
+	# Quatorze secondes de serveur, par pas de 0,5 s, avec des images entre deux pour le réseau.
+	for _i: int in 28:
+		serveur.tick(0.5)
+		for _k: int in 3:
+			await arbre.process_frame
+	verifier(ea.pertes.is_empty(), "aucune perte signalée : %s" % [ea.pertes])
+	verifier_egal(serveur.nb_pairs(), 1, "le pair est toujours là")
+	verifier(serveur.salon.joueurs.has(id), "et réenregistré dans le salon neuf")
+
+
 func test_le_serveur_arrete_en_pleine_partie_donne_une_seule_perte() -> void:
 	var cs := await _partie_a_deux()
 	var a: Client = cs[0]
