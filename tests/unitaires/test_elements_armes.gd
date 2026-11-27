@@ -56,6 +56,7 @@ const ATTENDU: Dictionary = {
 	"lueur_vagabonde": "lueur",
 	"prisme_de_faille": "prisme",
 	"orage_en_cage": "orage",
+	"couronne_d_etoiles": "couronne_etoiles",
 }
 
 
