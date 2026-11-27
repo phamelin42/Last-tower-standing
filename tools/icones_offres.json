@@ -1,0 +1,36 @@
+{
+  "types_degats": {
+    "tranchant": "lorc/broadsword",
+    "perçant": "lorc/arrowhead",
+    "magique": "lorc/magic-swirl",
+    "siège": "delapouite/trebuchet",
+    "chaos": "lorc/vortex"
+  },
+  "genres": {
+    "cible_unique": "delapouite/crosshair",
+    "zone": "lorc/explosion-rays",
+    "rebond": "lorc/bouncing-sword",
+    "aura": "lorc/aura",
+    "onde": "lorc/sonic-boom",
+    "barrage": "lorc/arrow-cluster",
+    "piege": "lorc/mantrap",
+    "mine": "lorc/land-mine",
+    "tournant": "lorc/spinning-blades",
+    "zone_posee": "lorc/circle-cage",
+    "bombe": "delapouite/falling-bomb",
+    "invocation": "lorc/ghost-ally"
+  },
+  "statuts": {
+    "poison": "lorc/poison-bottle",
+    "brulure": "lorc/small-fire",
+    "givre": "lorc/snowflake-2",
+    "etourdissement": "lorc/star-swirl",
+    "vol_de_vie": "delapouite/vampire-dracula",
+    "vulnerabilite": "lorc/broken-shield",
+    "malediction_degats": "lorc/cursed-star",
+    "malediction_toucher": "delapouite/eye-target",
+    "repoussement": "delapouite/push",
+    "siphon": "lorc/marrow-drain",
+    "mana_au_coup": "lorc/bubbling-flask"
+  }
+}

@@ -33,6 +33,8 @@ const CHARGENT_DES_IMAGES: Array[String] = [
 	"res://visuels/textures_effets.gd",
 	"res://visuels/flamme_boss.gd",
 	"res://visuels/arene_2d.gd",
+	"res://visuels/cranes_arene.gd",
+	"res://visuels/tirs_ennemis.gd",
 	"res://visuels/allies_2d.gd",
 	"res://ui/image_offre.gd",
 ]
