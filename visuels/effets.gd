@@ -733,6 +733,9 @@ func _impact_maintenant(
 		# rien ; l'aura se dessine à chaque coup.
 		if genre == "aura":
 			cree = _el().aura(element, arrivee, rayon * Apparence.PX_PAR_UNITE, _age_initial)
+	elif element != "" and genre == "zone_posee":
+		# Chaque impulsion d'une zone posée à élément se dessine par l'élément, au rayon réel.
+		cree = _impact_element(element, type_degats, arrivee, rayon, groupe)
 	elif anneau:
 		var effet: Dictionary = _creer("anneau", "anneau", DUREE_ANNEAU, couleur, COUCHE_DESSUS)
 		if not effet.is_empty():
