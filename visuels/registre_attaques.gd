@@ -69,4 +69,5 @@ static func scripts() -> Array[GDScript]:
 		AttaqueCatapulte,
 		AttaqueObusier,
 		AttaqueBraise,
+		AttaqueEcrasement,
 	]
