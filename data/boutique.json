@@ -1,10 +1,12 @@
 {
 	"poids": [
-		{"manche": 1, "commune": 30, "peu_commune": 55, "rare": 15, "epique": 0},
-		{"manche": 6, "commune": 55, "peu_commune": 30, "rare": 12, "epique": 3},
-		{"manche": 12, "commune": 40, "peu_commune": 32, "rare": 20, "epique": 8},
-		{"manche": 20, "commune": 28, "peu_commune": 32, "rare": 26, "epique": 14},
-		{"manche": 28, "commune": 20, "peu_commune": 30, "rare": 30, "epique": 20}
+		{"manche": 1, "commune": 30, "peu_commune": 55, "rare": 15, "epique": 0, "ancestrale": 0, "souveraine": 0},
+		{"manche": 6, "commune": 55, "peu_commune": 30, "rare": 12, "epique": 3, "ancestrale": 0, "souveraine": 0},
+		{"manche": 12, "commune": 40, "peu_commune": 32, "rare": 20, "epique": 8, "ancestrale": 0, "souveraine": 0},
+		{"manche": 14, "commune": 40, "peu_commune": 32, "rare": 20, "epique": 8, "ancestrale": 4, "souveraine": 0},
+		{"manche": 20, "commune": 28, "peu_commune": 32, "rare": 26, "epique": 14, "ancestrale": 4, "souveraine": 0},
+		{"manche": 22, "commune": 28, "peu_commune": 32, "rare": 26, "epique": 14, "ancestrale": 4, "souveraine": 2},
+		{"manche": 28, "commune": 20, "peu_commune": 30, "rare": 30, "epique": 20, "ancestrale": 10, "souveraine": 6}
 	],
 	"poids_genre": [
 		{"manche": 1, "arme": 3.0, "amelioration": 1.0},

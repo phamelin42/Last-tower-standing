@@ -5,7 +5,7 @@ extends RefCounted
 
 enum TypeDegats { TRANCHANT, PERCANT, MAGIQUE, SIEGE, CHAOS }
 enum Armure { LEGERE, MOYENNE, LOURDE, FORTIFIEE, AUCUNE, BOSS }
-enum Rarete { COMMUNE, PEU_COMMUNE, RARE, EPIQUE }
+enum Rarete { COMMUNE, PEU_COMMUNE, RARE, EPIQUE, ANCESTRALE, SOUVERAINE }
 enum Ciblage { PLUS_PROCHE, PLUS_FORT, PLUS_FAIBLE }
 enum Phase { PREPARATION, MANCHE, BOSS, VICTOIRE, DEFAITE }
 enum Genre { ARME, AMELIORATION }
@@ -43,7 +43,9 @@ const STATUT_SIPHONNE := 128
 # qu'une faute de frappe dans un fichier soit vue au chargement et non ignorée.
 const NOMS_TYPES: Array[String] = ["tranchant", "perçant", "magique", "siège", "chaos"]
 const NOMS_ARMURES: Array[String] = ["légère", "moyenne", "lourde", "fortifiée", "aucune", "boss"]
-const NOMS_RARETES: Array[String] = ["commune", "peu_commune", "rare", "epique"]
+const NOMS_RARETES: Array[String] = [
+	"commune", "peu_commune", "rare", "epique", "ancestrale", "souveraine"
+]
 const NOMS_CIBLAGES: Array[String] = ["plus_proche", "plus_fort", "plus_faible"]
 const NOMS_CATEGORIES: Array[String] = ["arme", "amelioration", "revenu"]
 const NOMS_CLASSES_PORTEE: Array[String] = ["corps_a_corps", "moyenne", "longue"]
