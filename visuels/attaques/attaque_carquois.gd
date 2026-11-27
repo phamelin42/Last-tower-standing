@@ -11,7 +11,6 @@ const CONF: Dictionary = {
 	"couleur": COULEUR_PLUME,
 	"projectile": "aiguille",
 	"cloche": 0.0,
-	"fps": 0.0,
 	"echelle": 0.9,
 	"teinte": TEINTE,
 }
@@ -28,14 +27,6 @@ func id() -> String:
 
 func conf() -> Dictionary:
 	return CONF
-
-
-func planches() -> Dictionary:
-	return PLANCHES_PERCANTES.merged({"aiguille": Vector2i(14, 4)})
-
-
-func visibles() -> Dictionary:
-	return VISIBLES_PERCANTES
 
 
 func impacter(

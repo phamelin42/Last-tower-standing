@@ -90,11 +90,11 @@ static func _orienter_vol(
 	match forme:
 		"fleche":
 			noeud.rotation = angle
-			noeud.scale = Vector2.ONE * Effets.ECHELLE_FLECHE
+			noeud.scale = Vector2.ONE * float(PlanchesEffets.pack("fleche")["echelle"])
 		"dynamite":
 			noeud.position.y -= sin(t * PI) * Effets.ARC_DYNAMITE
 			noeud.rotation = t * TAU * 2.0
-			noeud.scale = Vector2.ONE * Effets.ECHELLE_DYNAMITE
+			noeud.scale = Vector2.ONE * float(PlanchesEffets.pack("dynamite")["echelle"])
 		"trait":
 			noeud.rotation = angle
 			noeud.scale = Vector2(taille * 2.2 / 64.0, Effets.EPAISSEUR_TRAIT / 8.0)
@@ -110,16 +110,14 @@ static func _orienter_vol(
 static func _image(
 	effet: Dictionary, noeud: Sprite2D, forme: String, t: float, taille: float
 ) -> void:
-	var nb: int = Effets.IMAGES_EXPLOSION if forme == "explosion" else Effets.IMAGES_FEU
-	var case_px: int = Effets.CASE_EXPLOSION if forme == "explosion" else Effets.CASE_FEU
+	var feuille: Dictionary = PlanchesEffets.pack("explosion" if forme == "explosion" else "feu")
+	var nb: int = feuille["images"]
+	var case_px: Vector2i = feuille["case"]
 	var image: int = mini(int(t * nb), nb - 1)
 	if image != int(effet["image"]):
 		effet["image"] = image
-		noeud.region_rect = Rect2(image * case_px, 0.0, case_px, case_px)
-	var visible_px: float = (
-		Effets.DIAMETRE_EXPLOSION if forme == "explosion" else float(case_px) * 0.6
-	)
-	noeud.scale = Vector2.ONE * taille / visible_px
+		noeud.region_rect = Rect2(image * case_px.x, 0.0, case_px.x, case_px.y)
+	noeud.scale = Vector2.ONE * taille / float(feuille["visible"])
 
 
 ## Échelle qui donne à une forme (texture de 32 px, 64 px pour l'anneau) la taille voulue en pixels.
@@ -128,7 +126,7 @@ static func _echelle(forme: String, taille: float) -> float:
 		"anneau":
 			return taille / 64.0
 		"mine", "dynamite":
-			return taille / Effets.REGION_DYNAMITE.size.y
+			return taille / (PlanchesEffets.pack("dynamite")["region"] as Rect2).size.y
 	if not Effets.FORMES_PROPRES.has(forme) and forme != "fleche" and forme != "explosion":
 		return taille / float(FormesSignatures.taille)
 	return taille / 32.0

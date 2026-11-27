@@ -15,7 +15,7 @@ func id() -> String:
 
 
 ## La fiche : `couleur`, `projectile` (planche, `""` sans projectile), `cloche` (hauteur du sommet
-## en fraction de la distance, 0 en direct), `fps` (animation du projectile, 0 sans), et au besoin
+## en fraction de la distance, 0 en direct), et au besoin
 ## `anticipation` (couleur de la bouffée de départ), `tour` (rotation sur le vol, radians),
 ## `bosse` (grossissement au sommet), `teinte` (teinte du projectile, blanc sans), `fige_reduit`
 ## (vrai : l'animation d'images est un tour sur soi-même, figée en mouvement réduit), `vrille`
@@ -25,14 +25,17 @@ func conf() -> Dictionary:
 	return {}
 
 
-## Taille d'une image des planches propres à cet élément, en pixels.
+## Taille d'une image des planches propres à cet élément, en pixels : celles que
+## `data/assets.json` lui attribue (`effets.maison.elements`). Un élément dont les planches sont
+## carrées les lit sur les images (`AttaqueChaos.cases`) et ajoute celles-là.
 func planches() -> Dictionary:
-	return {}
+	return PlanchesEffets.cases_de(id())
 
 
-## Diamètre visible, en pixels de planche, de l'image la plus grande de chaque impact.
+## Diamètre visible, en pixels de planche, de l'image la plus grande de chaque impact (celles de
+## `planches()` qui en ont un dans `data/assets.json`).
 func visibles() -> Dictionary:
-	return {}
+	return PlanchesEffets.visibles_de(id())
 
 
 ## Ce qui accompagne le projectile `vol` : traînée, éclats qui suivent, points qui tournent.

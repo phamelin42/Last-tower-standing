@@ -7,13 +7,13 @@ extends AttaqueElement
 const COULEUR_BOIS := Color(0.66, 0.45, 0.23)
 const COULEUR_ACIER := Color(0.81, 0.85, 0.92)
 const COULEUR_VENIN := Color(0.3, 0.72, 0.29)
-const PLANCHES_PERCANTES: Dictionary = {"gerbe": Vector2i(24, 24), "plante": Vector2i(12, 12)}
-const VISIBLES_PERCANTES: Dictionary = {"gerbe": 22.0, "plante": 11.0}
 const SEQ_GERBE: Array[int] = [0, 0, 1, 1, 2, 2, 3, 3]
 ## Images de la planche `plante` : elle oscille deux images, puis ne bouge plus.
 const IMAGES_OSCILLATION: int = 2
-## Un projectile planté garde les pixels du jeu : 11 px de planche, donc ×1, ×2, ×3 ou ×4.
-const DIAMETRE_PLANTE: float = 33.0
+## Un projectile planté garde les pixels du jeu : son diamètre est un multiple entier de celui,
+## visible, de la planche `plante`. Le multiple ordinaire est l'échelle des planches ; les
+## projectiles lourds prennent ×4.
+const MULTIPLE_PLANTE_LOURD: float = 4.0
 
 
 ## Une gerbe d'éclats de bois et d'acier de `diametre` pixels.
@@ -23,11 +23,13 @@ func gerbe(m: AttaquesElementaires, ou: Vector2, diametre: float, age: float) ->
 
 ## Un projectile planté en `ou`, visible `images` images (il s'efface sur le dernier quart).
 func planter(
-	m: AttaquesElementaires, ou: Vector2, images: int, age: float, diametre: float = DIAMETRE_PLANTE
+	m: AttaquesElementaires, ou: Vector2, images: int, age: float, multiple: float = 0.0
 ) -> bool:
 	var seq: Array[int] = []
 	for i: int in images:
 		seq.append(0 if i < IMAGES_OSCILLATION else 1)
+	var pixels: float = multiple if multiple > 0.0 else PlanchesEffets.echelle()
+	var diametre: float = AttaquesElementaires.visible_de("plante") * pixels
 	return not m.image_impact("plante", ou, diametre, seq, age).is_empty()
 
 

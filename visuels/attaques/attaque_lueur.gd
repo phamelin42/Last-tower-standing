@@ -10,7 +10,6 @@ const CONF: Dictionary = {
 	"couleur": COULEUR,
 	"projectile": "lueur",
 	"cloche": 0.0,
-	"fps": 15.0,
 	"fige_reduit": true,
 }
 const IMAGE_PIC: int = 3
@@ -24,14 +23,6 @@ func id() -> String:
 
 func conf() -> Dictionary:
 	return CONF
-
-
-func planches() -> Dictionary:
-	return {"lueur": Vector2i(10, 10), "eclat_rune": Vector2i(24, 24)}
-
-
-func visibles() -> Dictionary:
-	return {"eclat_rune": 24.0}
 
 
 func suivre_vol(

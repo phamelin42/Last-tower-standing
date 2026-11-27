@@ -7,7 +7,6 @@ const CONF: Dictionary = {
 	"couleur": Color(0.82, 0.29, 0.26),
 	"projectile": "petard",
 	"cloche": 0.3,
-	"fps": 8.0,
 	"tour": TAU,
 }
 const ECHELLE_PETARD: float = 2.0
@@ -22,17 +21,16 @@ func conf() -> Dictionary:
 	return CONF
 
 
-func planches() -> Dictionary:
-	return {"petard": Vector2i(10, 16), "pop_petard": Vector2i(32, 32)}
-
-
-func visibles() -> Dictionary:
-	return {"pop_petard": 30.0}
-
-
 func piege(m: AttaquesElementaires, depart: Vector2, arrivee: Vector2) -> bool:
 	return lancer_et_poser(
-		m, "petard", depart, arrivee, CONF["cloche"], ECHELLE_PETARD, CONF["fps"], CONF["tour"]
+		m,
+		"petard",
+		depart,
+		arrivee,
+		CONF["cloche"],
+		ECHELLE_PETARD,
+		PlanchesEffets.cadence_de("petard"),
+		CONF["tour"]
 	)
 
 

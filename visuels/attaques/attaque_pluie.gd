@@ -8,7 +8,6 @@ const CONF: Dictionary = {
 	"couleur": COULEUR_ACIER,
 	"projectile": "aiguille",
 	"cloche": 0.0,
-	"fps": 0.0,
 	"chute": 150.0,
 	"echelle": 1.0,
 	"images_vol": 5,
@@ -31,16 +30,6 @@ func conf() -> Dictionary:
 	return CONF
 
 
-func planches() -> Dictionary:
-	return PLANCHES_PERCANTES.merged(
-		{"aiguille": Vector2i(14, 4), "trait_aiguille": Vector2i(12, 4)}
-	)
-
-
-func visibles() -> Dictionary:
-	return VISIBLES_PERCANTES
-
-
 ## Un trait clair, deux images derrière l'aiguille, pour lire la chute ; rien en mouvement réduit.
 func suivre_vol(
 	m: AttaquesElementaires, vol: Dictionary, _attente: float, duree_vol: float
@@ -54,7 +43,7 @@ func suivre_vol(
 	trace["depart"] = vol["depart"]
 	trace["arrivee"] = vol["arrivee"]
 	trace["couleur"] = Color.WHITE
-	trace["echelle"] = AttaquesElementaires.ECHELLE
+	trace["echelle"] = PlanchesEffets.echelle()
 	trace["vol"] = duree_vol
 	m.poser(trace)
 

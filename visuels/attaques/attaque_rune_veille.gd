@@ -9,7 +9,6 @@ const CONF: Dictionary = {
 	"couleur": COULEUR,
 	"projectile": "rune",
 	"cloche": 0.3,
-	"fps": 12.0,
 	"echelle": 1.2,
 }
 ## Le pic de l'éclat (image 3 de la planche) est atteint à la troisième image sur douze.
@@ -26,14 +25,6 @@ func id() -> String:
 
 func conf() -> Dictionary:
 	return CONF
-
-
-func planches() -> Dictionary:
-	return {"rune": Vector2i(12, 12), "eclat_rune": Vector2i(24, 24)}
-
-
-func visibles() -> Dictionary:
-	return {"eclat_rune": 24.0}
 
 
 func suivre_vol(

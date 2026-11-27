@@ -8,15 +8,18 @@ const CONF: Dictionary = {
 	"couleur": Color(0.75, 0.95, 1.0),
 	"projectile": "",
 	"cloche": 0.0,
-	"fps": 0.0,
 }
 const CRISTAUX: int = 8
-## Le cristal est tangent à la couronne : la moitié de sa hauteur (8 px de planche) dépasse du
-## cercle des centres, qui est reculé d'autant pour que le bord extérieur soit au rayon.
-const DEMI_EPAISSEUR: float = 4.0 * AttaquesElementaires.ECHELLE
 const IMAGES_GIVRE: int = 24
 const IMAGES_ANNEAU: int = 10
 const FLOCONS: int = 6
+
+
+## Le cristal est tangent à la couronne : la moitié de sa hauteur dépasse du cercle des centres,
+## qui est reculé d'autant pour que le bord extérieur soit au rayon. Ici : la moitié de la hauteur
+## de la planche `eclat_glace`, à l'écran.
+static func demi_epaisseur() -> float:
+	return float(AttaquesElementaires.planches()["eclat_glace"].y) * 0.5 * PlanchesEffets.echelle()
 
 
 func id() -> String:
@@ -27,18 +30,10 @@ func conf() -> Dictionary:
 	return CONF
 
 
-func planches() -> Dictionary:
-	return {"eclat_glace": Vector2i(20, 8), "givre_sol": Vector2i(32, 16)}
-
-
-func visibles() -> Dictionary:
-	return {"givre_sol": 31.0}
-
-
 func aura(m: AttaquesElementaires, centre: Vector2, rayon_px: float, age: float) -> bool:
 	var couleur: Color = CONF["couleur"]
 	var cree: bool = m.couronne(
-		"eclat_glace", centre, maxf(rayon_px - DEMI_EPAISSEUR, 0.0), CRISTAUX, age, Color.WHITE
+		"eclat_glace", centre, maxf(rayon_px - demi_epaisseur(), 0.0), CRISTAUX, age, Color.WHITE
 	)
 	var diametre: float = rayon_px * 2.0
 	var sol: Dictionary = m.nouveau("sol", "givre_sol", IMAGES_GIVRE * AttaquesElementaires.IMAGE)

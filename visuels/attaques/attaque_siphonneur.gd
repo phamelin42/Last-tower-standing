@@ -9,7 +9,6 @@ const CONF: Dictionary = {
 	"couleur": COULEUR,
 	"projectile": "siphon",
 	"cloche": 0.0,
-	"fps": 12.0,
 	"fige_reduit": true,
 }
 ## L'anneau de la planche se resserre : sa plus grande image est la première, donc le pic.
@@ -25,14 +24,6 @@ func id() -> String:
 
 func conf() -> Dictionary:
 	return CONF
-
-
-func planches() -> Dictionary:
-	return {"siphon": Vector2i(12, 12), "eclat_siphon": Vector2i(24, 24)}
-
-
-func visibles() -> Dictionary:
-	return {"eclat_siphon": 24.0}
 
 
 func suivre_vol(

@@ -8,7 +8,6 @@ const CONF: Dictionary = {
 	"couleur": Color(1.0, 0.48, 0.23),
 	"projectile": "mine_forge",
 	"cloche": 0.2,
-	"fps": 4.0,
 	"tour": PI,
 	"explosion": true,
 }
@@ -24,13 +23,16 @@ func conf() -> Dictionary:
 	return CONF
 
 
-func planches() -> Dictionary:
-	return {"mine_forge": Vector2i(16, 12)}
-
-
 func piege(m: AttaquesElementaires, depart: Vector2, arrivee: Vector2) -> bool:
 	return lancer_et_poser(
-		m, "mine_forge", depart, arrivee, CONF["cloche"], ECHELLE_MINE, CONF["fps"], CONF["tour"]
+		m,
+		"mine_forge",
+		depart,
+		arrivee,
+		CONF["cloche"],
+		ECHELLE_MINE,
+		PlanchesEffets.cadence_de("mine_forge"),
+		CONF["tour"]
 	)
 
 

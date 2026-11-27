@@ -8,7 +8,6 @@ const CONF: Dictionary = {
 	"anticipation": AttaquesElementaires.COULEUR_BOUFFEE,
 	"projectile": "fiole",
 	"cloche": 0.25,
-	"fps": 0.0,
 	"tour": 3.0 * PI,
 }
 const NUAGES: int = 3
@@ -20,18 +19,6 @@ func id() -> String:
 
 func conf() -> Dictionary:
 	return CONF
-
-
-func planches() -> Dictionary:
-	return {
-		"fiole": Vector2i(10, 14),
-		"eclaboussure_poison": Vector2i(32, 32),
-		"nuage_poison": Vector2i(16, 16),
-	}
-
-
-func visibles() -> Dictionary:
-	return {"eclaboussure_poison": 32.0}
 
 
 func impacter(

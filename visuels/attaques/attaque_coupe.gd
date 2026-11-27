@@ -9,7 +9,6 @@ const CONF: Dictionary = {
 	"couleur": VIOLET,
 	"projectile": "",
 	"cloche": 0.0,
-	"fps": 0.0,
 }
 const COUPES: int = 5
 const VOLUTES: int = 4
@@ -27,18 +26,18 @@ func conf() -> Dictionary:
 
 
 func planches() -> Dictionary:
-	return cases(["volute_oubli"]).merged({"coupe": Vector2i(14, 12)})
+	return cases(["volute_oubli"]).merged(super.planches())
 
 
 func visibles() -> Dictionary:
-	return mesures(["volute_oubli"])
+	return mesures(["volute_oubli"]).merged(super.visibles())
 
 
 func aura(m: AttaquesElementaires, centre: Vector2, rayon_px: float, age: float) -> bool:
 	# La coupe est tangente à la couronne : la moitié de sa hauteur dépasse du cercle des centres,
 	# reculé d'autant (lue sur la planche, pas en dur).
 	var demi: float = float(AttaquesElementaires.planches()["coupe"].y) * 0.5
-	var recul: float = demi * AttaquesElementaires.ECHELLE
+	var recul: float = demi * PlanchesEffets.echelle()
 	var cree: bool = m.couronne(
 		"coupe", centre, maxf(rayon_px - recul, 0.0), COUPES, age, Color.WHITE
 	)

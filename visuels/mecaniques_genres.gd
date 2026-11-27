@@ -82,8 +82,8 @@ static func saut(
 	projectile["depart"] = depart
 	projectile["arrivee"] = arrivee
 	projectile["couleur"] = Color.WHITE
-	projectile["echelle"] = AttaquesElementaires.ECHELLE * float(conf.get("echelle", 1.0))
-	projectile["fps"] = float(conf["fps"])
+	projectile["echelle"] = PlanchesEffets.echelle() * float(conf.get("echelle", 1.0))
+	projectile["fps"] = PlanchesEffets.cadence_de(String(conf["projectile"]))
 	projectile["vrille"] = float(conf.get("vrille", 0.0))
 	projectile["fige_reduit"] = bool(conf.get("fige_reduit", false))
 	projectile["vol"] = vol

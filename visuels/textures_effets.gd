@@ -18,23 +18,28 @@ func habiller(noeud: Sprite2D, forme: String) -> void:
 	noeud.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 	match forme:
 		"fleche":
-			noeud.texture = feuille(Effets.FEUILLE_FLECHE)
+			var fleche: Dictionary = PlanchesEffets.pack("fleche")
+			noeud.texture = feuille(PlanchesEffets.chemin_pack("fleche"))
 			noeud.region_enabled = true
-			noeud.region_rect = Effets.REGION_FLECHE
+			noeud.region_rect = fleche["region"]
 		"dynamite", "mine":
-			noeud.texture = feuille(Effets.FEUILLE_DYNAMITE)
+			var dynamite: Dictionary = PlanchesEffets.pack("dynamite")
+			noeud.texture = feuille(PlanchesEffets.chemin_pack("dynamite"))
 			noeud.region_enabled = true
-			noeud.region_rect = Effets.REGION_DYNAMITE
+			noeud.region_rect = dynamite["region"]
 		"explosion":
-			noeud.texture = feuille(Effets.FEUILLE_EXPLOSION)
+			var explosion: Dictionary = PlanchesEffets.pack("explosion")
+			noeud.texture = feuille(PlanchesEffets.chemin_pack("explosion"))
 			noeud.region_enabled = true
-			noeud.region_rect = Rect2(0.0, 0.0, Effets.CASE_EXPLOSION, Effets.CASE_EXPLOSION)
+			noeud.region_rect = Rect2(Vector2.ZERO, Vector2(explosion["case"] as Vector2i))
 			noeud.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 		"feu":
-			noeud.texture = feuille(Effets.FEUILLE_FEU)
+			var feu: Dictionary = PlanchesEffets.pack("feu")
+			var case_px: Vector2i = feu["case"]
+			noeud.texture = feuille(PlanchesEffets.chemin_pack("feu"))
 			noeud.region_enabled = true
-			noeud.region_rect = Rect2(0.0, 0.0, Effets.CASE_FEU, Effets.CASE_FEU)
-			noeud.offset = Vector2(0.0, Effets.CASE_FEU * 0.5 - Effets.PIED_FEU)
+			noeud.region_rect = Rect2(Vector2.ZERO, Vector2(case_px))
+			noeud.offset = Vector2(0.0, case_px.y * 0.5 - float(feu["pieds"]))
 			noeud.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 		_:
 			noeud.texture = forme_dessinee(forme)
@@ -42,7 +47,7 @@ func habiller(noeud: Sprite2D, forme: String) -> void:
 
 func feuille(chemin: String) -> Texture2D:
 	if not _feuilles.has(chemin):
-		_feuilles[chemin] = load(Apparence.RACINE + chemin) as Texture2D
+		_feuilles[chemin] = load(chemin) as Texture2D
 	return _feuilles[chemin]
 
 

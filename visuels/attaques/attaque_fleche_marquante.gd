@@ -9,7 +9,6 @@ const CONF: Dictionary = {
 	"couleur": COULEUR_MARQUE,
 	"projectile": "fleche_marquante",
 	"cloche": 0.0,
-	"fps": 0.0,
 	"echelle": 0.9,
 }
 const DIAMETRE_GERBE: float = 44.0
@@ -24,14 +23,6 @@ func id() -> String:
 
 func conf() -> Dictionary:
 	return CONF
-
-
-func planches() -> Dictionary:
-	return PLANCHES_PERCANTES.merged({"fleche_marquante": Vector2i(20, 8)})
-
-
-func visibles() -> Dictionary:
-	return VISIBLES_PERCANTES
 
 
 func suivre_vol(

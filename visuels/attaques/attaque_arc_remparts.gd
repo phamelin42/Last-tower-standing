@@ -11,7 +11,6 @@ const CONF: Dictionary = {
 	"couleur": COULEUR_BRAISE,
 	"projectile": "carreau",
 	"cloche": 0.0,
-	"fps": 0.0,
 	"saut": true,
 	"echelle": 1.15,
 	"teinte": TEINTE,
@@ -26,14 +25,6 @@ func id() -> String:
 
 func conf() -> Dictionary:
 	return CONF
-
-
-func planches() -> Dictionary:
-	return PLANCHES_PERCANTES.merged({"carreau": Vector2i(16, 8)})
-
-
-func visibles() -> Dictionary:
-	return VISIBLES_PERCANTES
 
 
 func suivre_vol(

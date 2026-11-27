@@ -48,8 +48,6 @@ const EPAISSEUR_TRAIT: float = 8.0
 ## au dézoom maximal.
 const ECHELLE_TRAINEE: float = 3.0
 const ARC_DYNAMITE: float = 70.0
-const ECHELLE_FLECHE: float = 2.0
-const ECHELLE_DYNAMITE: float = 1.3
 ## Écart (px) en deçà duquel un impact « est » l'endroit d'une mine ou d'un piège.
 const TOLERANCE_SOL: float = 2.0
 ## Rayon d'une explosion de mort, en unités de jeu.
@@ -57,7 +55,6 @@ const RAYON_MORT: float = 110.0
 ## Gel d'impact : un impact de zone ou une explosion naît sur son image de pic et la tient
 ## `GelImpact.DUREE_GEL`. Le pic d'une explosion est sa 3e image (la boule de feu à sa taille).
 const IMAGE_PIC_EXPLOSION: int = 2
-const AGE_PIC_EXPLOSION: float = DUREE_EXPLOSION * (IMAGE_PIC_EXPLOSION + 0.5) / IMAGES_EXPLOSION
 
 ## Un saut de rebond démarre 3 images après le précédent ; son trait est blanc la première image.
 const DECALAGE_SAUT: float = 3.0 * IMAGE
@@ -66,24 +63,6 @@ const DECALAGE_SAUT: float = 3.0 * IMAGE
 const TOLERANCE_LIEN: float = 4.0
 ## Au-delà de ce reste de temps (s), un événement différé n'est pas encore échu.
 const EPSILON_TEMPS: float = 0.000001
-
-const FEUILLE_FEU := "Effects/Fire/Fire.png"
-const FEUILLE_EXPLOSION := "Effects/Explosion/Explosions.png"
-const FEUILLE_FLECHE := "Factions/Knights/Troops/Archer/Arrow/Arrow.png"
-const FEUILLE_DYNAMITE := "Factions/Goblins/Troops/TNT/Dynamite/Dynamite.png"
-
-const CASE_FEU: int = 128
-const IMAGES_FEU: int = 7
-## Où les flammes touchent le sol dans leur case : le pied du boss.
-const PIED_FEU: float = 106.0
-const CASE_EXPLOSION: int = 192
-const IMAGES_EXPLOSION: int = 9
-## Diamètre visible de l'explosion à son plus grand, en pixels de feuille.
-const DIAMETRE_EXPLOSION: float = 105.0
-const CASE_DYNAMITE: int = 64
-const IMAGES_DYNAMITE: int = 6
-const REGION_FLECHE := Rect2(1.0, 28.0, 63.0, 14.0)
-const REGION_DYNAMITE := Rect2(20.0, 2.0, 27.0, 51.0)
 
 ## Formes de projectile, d'impact et de trait par type de dégâts (`Types.TypeDegats`).
 const PROJECTILES: Array[String] = ["trait", "fleche", "disque", "dynamite", "losange"]
@@ -196,6 +175,12 @@ var _rang_barrage: int = 0
 var _groupe_barrage: Dictionary = {}
 
 
+## L'âge (s) auquel une explosion atteint son image de pic.
+static func age_pic_explosion() -> float:
+	var images: int = int(PlanchesEffets.pack("explosion")["images"])
+	return DUREE_EXPLOSION * (IMAGE_PIC_EXPLOSION + 0.5) / images
+
+
 ## Une flamme en boucle, posée derrière l'unité qui la porte (le boss).
 static func creer_flamme() -> Sprite2D:
 	return FlammeBoss.creer()
@@ -204,8 +189,8 @@ static func creer_flamme() -> Sprite2D:
 ## Chemins des images du pack citées par les effets.
 static func textures_citees() -> PackedStringArray:
 	var chemins := PackedStringArray()
-	for nom: String in [FEUILLE_FEU, FEUILLE_EXPLOSION, FEUILLE_FLECHE, FEUILLE_DYNAMITE]:
-		chemins.append(Apparence.RACINE + nom)
+	for nom: String in ["feu", "explosion", "fleche", "dynamite"]:
+		chemins.append(PlanchesEffets.chemin_pack(nom))
 	return chemins
 
 

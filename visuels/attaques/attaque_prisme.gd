@@ -9,7 +9,6 @@ const CONF: Dictionary = {
 	"couleur": COULEUR,
 	"projectile": "prisme",
 	"cloche": 0.0,
-	"fps": 0.0,
 	"vrille": 2.0,
 }
 ## La plus grande image de l'étoile est la deuxième.
@@ -25,14 +24,6 @@ func id() -> String:
 
 func conf() -> Dictionary:
 	return CONF
-
-
-func planches() -> Dictionary:
-	return {"prisme": Vector2i(12, 14), "eclat_prisme": Vector2i(24, 24)}
-
-
-func visibles() -> Dictionary:
-	return {"eclat_prisme": 22.0}
 
 
 func suivre_vol(

@@ -8,7 +8,6 @@ const CONF: Dictionary = {
 	"couleur": Color(1.0, 0.82, 0.29),
 	"projectile": "sablier",
 	"cloche": 0.3,
-	"fps": 4.0,
 	"tour": TAU,
 }
 const ECHELLE_SABLIER: float = 2.0
@@ -24,17 +23,16 @@ func conf() -> Dictionary:
 	return CONF
 
 
-func planches() -> Dictionary:
-	return {"sablier": Vector2i(10, 16), "tourbillon_sable": Vector2i(32, 32)}
-
-
-func visibles() -> Dictionary:
-	return {"tourbillon_sable": 30.0}
-
-
 func piege(m: AttaquesElementaires, depart: Vector2, arrivee: Vector2) -> bool:
 	return lancer_et_poser(
-		m, "sablier", depart, arrivee, CONF["cloche"], ECHELLE_SABLIER, CONF["fps"], CONF["tour"]
+		m,
+		"sablier",
+		depart,
+		arrivee,
+		CONF["cloche"],
+		ECHELLE_SABLIER,
+		PlanchesEffets.cadence_de("sablier"),
+		CONF["tour"]
 	)
 
 

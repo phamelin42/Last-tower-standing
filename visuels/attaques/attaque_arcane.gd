@@ -8,7 +8,6 @@ const CONF: Dictionary = {
 	"couleur": Color(0.5, 0.75, 1.0),
 	"projectile": "rune",
 	"cloche": 0.0,
-	"fps": 12.0,
 	"echelle": 1.5,
 }
 ## Deux points tournent autour de la rune.
@@ -24,14 +23,6 @@ func id() -> String:
 
 func conf() -> Dictionary:
 	return CONF
-
-
-func planches() -> Dictionary:
-	return {"rune": Vector2i(12, 12), "eclat_rune": Vector2i(24, 24)}
-
-
-func visibles() -> Dictionary:
-	return {"eclat_rune": 24.0}
 
 
 func suivre_vol(m: AttaquesElementaires, vol: Dictionary, attente: float, duree_vol: float) -> void:

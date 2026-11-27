@@ -8,7 +8,6 @@ const CONF: Dictionary = {
 	"couleur": VIOLET,
 	"projectile": "cendre",
 	"cloche": 0.35,
-	"fps": 6.0,
 	"tour": TAU,
 	"fige_reduit": true,
 }
@@ -30,11 +29,11 @@ func conf() -> Dictionary:
 
 
 func planches() -> Dictionary:
-	return cases(["nuage_cendre"]).merged({"cendre": Vector2i(12, 12)})
+	return cases(["nuage_cendre"]).merged(super.planches())
 
 
 func visibles() -> Dictionary:
-	return mesures(["nuage_cendre"])
+	return mesures(["nuage_cendre"]).merged(super.visibles())
 
 
 func impacter(

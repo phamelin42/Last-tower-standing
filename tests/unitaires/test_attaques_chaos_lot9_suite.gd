@@ -171,7 +171,7 @@ func test_chaque_planche_du_chaos_est_dessinee_et_declaree_par_son_element() -> 
 		var el: AttaqueElement = AttaquesElementaires.registre()[_element(id)]
 		for planche: String in el.planches():
 			verifier(
-				ResourceLoader.exists("%s%s.png" % [AttaquesElementaires.DOSSIER, planche]),
+				ResourceLoader.exists("%s%s.png" % [PlanchesEffets.dossier(), planche]),
 				"%s : planche %s" % [id, planche]
 			)
 		verifier(el.visibles().has(_impact(id)), "%s : diamètre visible de l'impact" % id)

@@ -9,7 +9,6 @@ const CONF: Dictionary = {
 	"couleur": VERRE,
 	"projectile": "fleche_spectre",
 	"cloche": 0.0,
-	"fps": 0.0,
 }
 const DIAMETRE_APPARITION: float = 60.0
 const DIAMETRE_COUP: float = 44.0
@@ -24,13 +23,11 @@ func conf() -> Dictionary:
 
 
 func planches() -> Dictionary:
-	return cases(["apparition_spectre", "eclat_spectre"]).merged(
-		{"fleche_spectre": Vector2i(20, 8)}
-	)
+	return cases(["apparition_spectre", "eclat_spectre"]).merged(super.planches())
 
 
 func visibles() -> Dictionary:
-	return mesures(["apparition_spectre", "eclat_spectre"])
+	return mesures(["apparition_spectre", "eclat_spectre"]).merged(super.visibles())
 
 
 func suivre_vol(m: AttaquesElementaires, vol: Dictionary, attente: float, duree_vol: float) -> void:

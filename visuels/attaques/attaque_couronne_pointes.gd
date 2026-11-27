@@ -9,7 +9,6 @@ const CONF: Dictionary = {
 	"couleur": COULEUR_ACIER,
 	"projectile": "",
 	"cloche": 0.0,
-	"fps": 0.0,
 }
 const POINTES: int = 8
 const DIAMETRE_POINTES: float = 36.0
@@ -28,19 +27,11 @@ func conf() -> Dictionary:
 	return CONF
 
 
-func planches() -> Dictionary:
-	return {"chausse_trape": Vector2i(12, 12), "pointes_sol": Vector2i(32, 32)}
-
-
-func visibles() -> Dictionary:
-	return {"pointes_sol": 28.0}
-
-
 func aura(m: AttaquesElementaires, centre: Vector2, rayon_px: float, age: float) -> bool:
 	# La pointe est tangente à la couronne : sa demi-hauteur dépasse du cercle sur lequel elle
 	# tourne, donc le cercle des centres est reculé d'autant (lue sur la planche, pas en dur).
 	var demi: float = float(AttaquesElementaires.planches()["chausse_trape"].y) * 0.5
-	var recul: float = demi * AttaquesElementaires.ECHELLE
+	var recul: float = demi * PlanchesEffets.echelle()
 	var cree: bool = m.couronne(
 		"chausse_trape", centre, maxf(rayon_px - recul, 0.0), POINTES, age, Color.WHITE
 	)

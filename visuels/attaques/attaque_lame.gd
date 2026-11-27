@@ -7,7 +7,6 @@ const CONF: Dictionary = {
 	"couleur": Color(0.81, 0.85, 0.92),
 	"projectile": "lame_croissant",
 	"cloche": 0.0,
-	"fps": 30.0,
 	"fige_reduit": true,
 }
 const SEQ_ENTAILLE: Array[int] = [0, 0, 1, 1, 2, 2, 3, 3]
@@ -20,14 +19,6 @@ func id() -> String:
 
 func conf() -> Dictionary:
 	return CONF
-
-
-func planches() -> Dictionary:
-	return {"lame_croissant": Vector2i(16, 16), "entaille": Vector2i(24, 24)}
-
-
-func visibles() -> Dictionary:
-	return {"entaille": 22.0}
 
 
 func impacter(

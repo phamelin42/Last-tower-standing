@@ -114,7 +114,9 @@ func test_la_bombe_garde_l_explosion_du_pack_au_rayon_exact() -> void:
 	_jouer("bombarde_de_poche", 15)
 	verifier_contient(_effets.formes_vivantes(), "explosion")
 	var rayon_px: float = 130.0 * Apparence.PX_PAR_UNITE
-	var diametre: float = _effets.echelle_de("explosion") * Effets.DIAMETRE_EXPLOSION
+	var diametre: float = (
+		_effets.echelle_de("explosion") * float(PlanchesEffets.pack("explosion")["visible"])
+	)
 	verifier_proche(diametre, rayon_px * 2.0, rayon_px * 0.2, "diamètre = 2 × rayon")
 
 

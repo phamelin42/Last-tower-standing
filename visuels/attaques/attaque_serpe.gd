@@ -9,7 +9,6 @@ const CONF: Dictionary = {
 	"couleur": Color(0.81, 0.85, 0.92),
 	"projectile": "serpe",
 	"cloche": 0.12,
-	"fps": 0.0,
 	"tour": 4.0 * PI,
 }
 ## Deux images à 60 i/s par image de planche : les 300° sont faits au bout de 6 images.
@@ -25,14 +24,6 @@ func id() -> String:
 
 func conf() -> Dictionary:
 	return CONF
-
-
-func planches() -> Dictionary:
-	return {"serpe": Vector2i(16, 16), "balayage": Vector2i(32, 32)}
-
-
-func visibles() -> Dictionary:
-	return {"balayage": 30.0}
 
 
 func impacter(

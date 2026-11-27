@@ -5,7 +5,6 @@ extends RefCounted
 ## nœud : `Decor` la dessine, les tests la lisent. Même graine, même plan ; deux graines, deux
 ## plans. Tout est en pixels du monde (la tour est en `(0, 0)`, une case de terre mesure `case`).
 
-const ECHELLE: float = 2.0
 ## Le cercle d'apparition, en pixels du monde (1 300 unités à 0,5 px par unité).
 const RAYON_CERCLE: float = CameraArene.RAYON_APPARITION * Apparence.PX_PAR_UNITE
 ## Zone de marche des ennemis, cercle compris et un peu au-delà : aucun objet haut n'y touche.
@@ -55,8 +54,14 @@ const NB_PLATS_ZONE: int = 80
 const NB_PLATS_DEHORS: int = 110
 const NB_ROCHERS_EAU: int = 14
 
-## Une tuile du pack fait 64 px ; affichée à ×2 comme les unités et la tour, elle en fait 128.
+## Une tuile du pack fait `tuile` px (64) ; affichée à ×2 comme les unités et la tour, elle en fait
+## `case` (128).
 static var case: int = int(_decor().get("case", 128))
+## Pixels du monde pour un pixel de l'image du terrain : la case affichée sur la tuile du pack.
+static var echelle: float = float(case) / float(_decor().get("tuile", 64))
+## La tuile de l'herbe de chaque combinaison de voisines de terre (nord, est, sud, ouest ; 1 = de la
+## terre) : sa colonne et sa ligne dans la feuille du terrain.
+static var tuiles_herbe: Dictionary = _decor().get("tuiles_herbe", {})
 ## Feuilles, cases et images du pack : `data/assets.json` (`decor`), pour qu'un autre pack ne
 ## demande que de remplacer les fichiers.
 static var feuille_terrain: String = str(_decor().get("feuille_terrain", ""))
@@ -99,39 +104,8 @@ static func graine_arene(graine_partie: int, numero: int) -> int:
 ## Quelle tuile de l'herbe du pack va sur une case, selon ses quatre voisines (vrai = de la
 ## terre). Les bords et les coins arrondis du pack ; la grande herbe au milieu.
 static func tuile_pour(nord: bool, est: bool, sud: bool, ouest: bool) -> Vector2i:
-	if nord and est and sud and ouest:
-		return Vector2i(1, 1)
-	if not nord and est and sud and ouest:
-		return Vector2i(1, 0)
-	if nord and est and not sud and ouest:
-		return Vector2i(1, 2)
-	if nord and not est and sud and ouest:
-		return Vector2i(2, 1)
-	if nord and est and sud and not ouest:
-		return Vector2i(0, 1)
-	if not nord and est and sud and not ouest:
-		return Vector2i(0, 0)
-	if not nord and not est and sud and ouest:
-		return Vector2i(2, 0)
-	if nord and est and not sud and not ouest:
-		return Vector2i(0, 2)
-	if nord and not est and not sud and ouest:
-		return Vector2i(2, 2)
-	# Bande horizontale (est et ouest seulement) puis verticale (nord et sud seulement).
-	if not nord and est and not sud and ouest:
-		return Vector2i(1, 3)
-	if nord and not est and sud and not ouest:
-		return Vector2i(3, 1)
-	# Bouts de bande : une seule voisine.
-	if not nord and not est and sud and not ouest:
-		return Vector2i(3, 0)
-	if nord and not est and not sud and not ouest:
-		return Vector2i(3, 2)
-	if not nord and est and not sud and not ouest:
-		return Vector2i(0, 3)
-	if not nord and not est and not sud and ouest:
-		return Vector2i(2, 3)
-	return Vector2i(3, 3)
+	var cle: String = "%d%d%d%d" % [int(nord), int(est), int(sud), int(ouest)]
+	return Vector2i(tuiles_herbe[cle] as Vector2)
 
 
 ## Un type animé (sapin, mouton, rocher d'eau) est un sprite à part ; les autres sont composés
@@ -240,7 +214,7 @@ func _tuiler(rng: RandomNumberGenerator) -> void:
 		var ouest: bool = terre.has(c + Vector2i(-1, 0))
 		var atlas := tuile_pour(nord, est, sud, ouest)
 		var retournement: int = 0
-		if atlas == Vector2i(1, 1):
+		if atlas == tuile_pour(true, true, true, true):
 			retournement = RETOURNEMENTS[rng.randi_range(0, RETOURNEMENTS.size() - 1)]
 		else:
 			ecume.append(c)

@@ -9,7 +9,6 @@ const CONF: Dictionary = {
 	"couleur": COULEUR,
 	"projectile": "goutte_sang",
 	"cloche": 0.25,
-	"fps": 0.0,
 	"tour": 0.0,
 }
 const DIAMETRE_COUP: float = 44.0
@@ -24,11 +23,11 @@ func conf() -> Dictionary:
 
 
 func planches() -> Dictionary:
-	return cases(["eclat_sang"]).merged({"goutte_sang": Vector2i(10, 12)})
+	return cases(["eclat_sang"]).merged(super.planches())
 
 
 func visibles() -> Dictionary:
-	return mesures(["eclat_sang"])
+	return mesures(["eclat_sang"]).merged(super.visibles())
 
 
 func impacter(

@@ -7,7 +7,6 @@ const CONF: Dictionary = {
 	"couleur": Color(1.0, 0.62, 0.2),
 	"projectile": "boule_feu",
 	"cloche": 0.0,
-	"fps": 15.0,
 }
 
 
@@ -17,18 +16,6 @@ func id() -> String:
 
 func conf() -> Dictionary:
 	return CONF
-
-
-func planches() -> Dictionary:
-	return {
-		"boule_feu": Vector2i(16, 16),
-		"braise": Vector2i(4, 4),
-		"explosion_feu": Vector2i(32, 32),
-	}
-
-
-func visibles() -> Dictionary:
-	return {"explosion_feu": 28.0}
 
 
 func suivre_vol(

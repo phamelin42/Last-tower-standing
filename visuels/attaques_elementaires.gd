@@ -11,8 +11,6 @@ extends Node2D
 ## d'effets vivants (le plafond d'`Effets` vaut pour la somme des deux pools).
 
 const IMAGE: float = 1.0 / 60.0
-const DOSSIER: String = "res://assets/maison/effets_attaques/"
-const ECHELLE: float = 3.0
 const ALPHA_MAX: float = 0.85
 
 ## Anticipation puis vol : 3 + 7 = 10 images en direct, 3 + 11 = 14 en cloche.
@@ -47,15 +45,6 @@ const DIAMETRE_PETIT: float = 40.0
 const DUREE_PIEGE: float = 3600.0
 ## Écart (px) en deçà duquel un déclenchement « est » l'endroit d'un piège.
 const TOLERANCE_PIEGE: float = 2.0
-
-## Les planches partagées par plusieurs éléments ; celles d'un élément sont dans son fichier.
-const PLANCHES_COMMUNES: Dictionary = {
-	"depart": Vector2i(12, 12),
-	"ombre": Vector2i(12, 6),
-	"etincelle": Vector2i(8, 8),
-	"bombe_meche": Vector2i(18, 18),
-}
-const VISIBLES_COMMUNES: Dictionary = {"etincelle": 8.0, "bombe_meche": 16.0}
 
 ## Image de planche à chaque image à 60 i/s : le pic est dans le premier quart de l'impact.
 const SEQ_EXPLOSION: Array[int] = [0, 1, 2, 2, 3, 3, 4, 4, 4, 5, 5, 5]
@@ -95,6 +84,7 @@ static var _textures_vue: Dictionary = {}
 static var _registre: Dictionary = {}
 static var _planches: Dictionary = {}
 static var _visibles: Dictionary = {}
+static var _version_planches: int = -1
 
 ## Chaque nœud est un `Sprite2D` du pool ; `vivants` : `{n, kind, age, duree, ...}`.
 var mouvement_reduit: bool = false
@@ -123,20 +113,29 @@ static func retard_barrage(element: String) -> float:
 ## Les éléments, par identifiant (créés une fois).
 static func registre() -> Dictionary:
 	if _registre.is_empty():
-		_planches = PLANCHES_COMMUNES.duplicate()
-		_visibles = VISIBLES_COMMUNES.duplicate()
 		for script: GDScript in RegistreAttaques.scripts():
 			var element: AttaqueElement = script.new()
 			_registre[element.id()] = element
-			_planches.merge(element.planches())
-			_visibles.merge(element.visibles())
 	return _registre
 
 
 ## Taille d'une image de chaque planche, en pixels (communes et de chaque élément).
 static func planches() -> Dictionary:
-	registre()
+	_actualiser_planches()
 	return _planches
+
+
+## Refait les tables de planches quand `data/assets.json` a changé (tests : un autre pack).
+static func _actualiser_planches() -> void:
+	registre()
+	if _version_planches == Assets.version:
+		return
+	_version_planches = Assets.version
+	_planches = PlanchesEffets.cases_communes()
+	_visibles = PlanchesEffets.visibles_communes()
+	for element: AttaqueElement in _registre.values():
+		_planches.merge(element.planches())
+		_visibles.merge(element.visibles())
 
 
 ## Vrai si `element` a des attaques dessinées ici.
@@ -165,13 +164,18 @@ static func disque_de(element: String) -> String:
 ## La texture de `planche`, pour ce que la vue dessine elle-même (bombe, disque au sol).
 static func texture_de(planche: String) -> Texture2D:
 	if not _textures_vue.has(planche):
-		_textures_vue[planche] = load(DOSSIER + planche + ".png") as Texture2D
+		_textures_vue[planche] = load(PlanchesEffets.chemin_planche(planche)) as Texture2D
 	return _textures_vue[planche]
+
+
+## Nombre d'images de `planche`, compté sur sa texture (largeur divisée par la case).
+static func images_de(planche: String) -> int:
+	return int(texture_de(planche).get_width() / float((planches()[planche] as Vector2i).x))
 
 
 ## Diamètre visible (pixels de planche) de la plus grande image de `planche`, 0 si inconnue.
 static func visible_de(planche: String) -> float:
-	registre()
+	_actualiser_planches()
 	return float(_visibles.get(planche, 0.0))
 
 
@@ -283,8 +287,8 @@ func tirer(element: String, depart: Vector2, arrivee: Vector2, retard: float = 0
 			projectile["depart"] = depart
 			projectile["arrivee"] = arrivee
 			projectile["couleur"] = conf.get("teinte", Color.WHITE)
-			projectile["echelle"] = ECHELLE * float(conf.get("echelle", 1.0))
-			projectile["fps"] = float(conf["fps"])
+			projectile["echelle"] = PlanchesEffets.echelle() * float(conf.get("echelle", 1.0))
+			projectile["fps"] = PlanchesEffets.cadence_de(planche)
 			projectile["cloche"] = float(conf["cloche"])
 			projectile["tour"] = float(conf.get("tour", 0.0))
 			projectile["bosse"] = float(conf.get("bosse", 0.0))
@@ -495,7 +499,7 @@ func _fiche(n: Node2D, kind: String, planche: String, duree: float) -> Dictionar
 		"couleur": Color.WHITE,
 		"seq": [] as Array[int],
 		"image": -1,
-		"echelle": ECHELLE,
+		"echelle": PlanchesEffets.echelle(),
 		"fps": 0.0,
 		"cloche": 0.0,
 		"vol": duree,
@@ -599,7 +603,7 @@ func poser(effet: Dictionary) -> void:
 	match String(effet["kind"]):
 		"anticipation":
 			n.position = effet["depart"]
-			echelle = lerpf(ECHELLE_DEPART_ANTICIPATION, 1.0, t) * ECHELLE
+			echelle = lerpf(ECHELLE_DEPART_ANTICIPATION, 1.0, t) * PlanchesEffets.echelle()
 			_image(effet, int((effet["seq"] as Array[int])[mini(int(age / IMAGE), 2)]))
 		"vol":
 			_poser_vol(effet, n, t, age)
@@ -610,7 +614,7 @@ func poser(effet: Dictionary) -> void:
 			var base: Vector2 = (effet["depart"] as Vector2).lerp(effet["arrivee"], t)
 			n.position = base + Vector2.from_angle(phase) * RAYON_ORBITE
 			_image(effet, IMAGE_POINT_RUNE)
-			echelle = ECHELLE
+			echelle = PlanchesEffets.echelle()
 		"eclair":
 			var retrace: int = 0 if mouvement_reduit else int(age / (IMAGES_RETRACE * IMAGE))
 			if retrace != int(effet["image"]):
@@ -626,7 +630,7 @@ func poser(effet: Dictionary) -> void:
 			alpha = MecaniquesGenres.poser_front(effet, n, age, t)
 		"ombre":
 			n.position = (effet["depart"] as Vector2).lerp(effet["arrivee"], t)
-			echelle = ECHELLE * lerpf(1.0, ECHELLE_OMBRE_SOMMET, sin(t * PI))
+			echelle = PlanchesEffets.echelle() * lerpf(1.0, ECHELLE_OMBRE_SOMMET, sin(t * PI))
 			alpha = ALPHA_OMBRE
 		"nuage":
 			var base: Vector2 = effet["depart"]
@@ -871,7 +875,7 @@ func _texture(planche: String) -> Texture2D:
 	if planche == "":
 		return _texture_anneau()
 	if not _textures.has(planche):
-		_textures[planche] = load(DOSSIER + planche + ".png") as Texture2D
+		_textures[planche] = load(PlanchesEffets.chemin_planche(planche)) as Texture2D
 	return _textures[planche]
 
 

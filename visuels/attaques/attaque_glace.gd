@@ -7,7 +7,6 @@ const CONF: Dictionary = {
 	"couleur": Color(0.75, 0.95, 1.0),
 	"projectile": "eclat_glace",
 	"cloche": 0.0,
-	"fps": 0.0,
 }
 ## Des éclats qui suivent le premier, décalés de 2 images chacun, plus petits.
 const SUITES: int = 2
@@ -24,18 +23,6 @@ func conf() -> Dictionary:
 	return CONF
 
 
-func planches() -> Dictionary:
-	return {
-		"eclat_glace": Vector2i(20, 8),
-		"brisure_glace": Vector2i(32, 32),
-		"givre_sol": Vector2i(32, 16),
-	}
-
-
-func visibles() -> Dictionary:
-	return {"brisure_glace": 30.0, "givre_sol": 31.0}
-
-
 func suivre_vol(m: AttaquesElementaires, vol: Dictionary, attente: float, duree_vol: float) -> void:
 	m.trainee(vol, 3, 10.0 * AttaquesElementaires.IMAGE, Color.WHITE, Vector2.ZERO)
 	for k: int in range(1, SUITES + 1):
@@ -48,7 +35,7 @@ func suivre_vol(m: AttaquesElementaires, vol: Dictionary, attente: float, duree_
 		eclat["arrivee"] = vol["arrivee"]
 		eclat["vol"] = duree_vol
 		eclat["suite"] = suite
-		eclat["echelle"] = AttaquesElementaires.ECHELLE * ECHELLE_SUITE
+		eclat["echelle"] = PlanchesEffets.echelle() * ECHELLE_SUITE
 		m.poser(eclat)
 
 

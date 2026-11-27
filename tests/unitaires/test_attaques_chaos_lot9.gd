@@ -47,7 +47,7 @@ func test_chaque_projectile_a_sa_planche_et_aucune_arme_n_en_partage() -> void:
 		if planche == "":
 			continue
 		verifier(
-			ResourceLoader.exists("%s%s.png" % [AttaquesElementaires.DOSSIER, planche]),
+			ResourceLoader.exists("%s%s.png" % [PlanchesEffets.dossier(), planche]),
 			"%s : planche %s" % [id, planche]
 		)
 		verifier_egal((autres[planche] as Array).size(), 1, "%s : projectile partagé" % id)
@@ -57,7 +57,7 @@ func test_la_geometrie_des_planches_d_impact_se_lit_sur_les_fichiers() -> void:
 	for id: String in ARMES:
 		var planche: String = _impact(id)
 		var img: Image = (
-			(load(AttaquesElementaires.DOSSIER + planche + ".png") as Texture2D).get_image()
+			(load(PlanchesEffets.dossier() + planche + ".png") as Texture2D).get_image()
 		)
 		var el: AttaqueElement = AttaquesElementaires.registre()[_element(id)]
 		verifier_egal(
