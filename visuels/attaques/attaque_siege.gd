@@ -7,8 +7,9 @@ extends AttaqueElement
 ## qui l'étend.
 
 const IMAGES_ANNEAU: int = 14
-## Un coup sur une cible seule, et une impulsion de zone posée : petits, la zone est dans l'anneau.
-const DIAMETRE_CIBLE_UNIQUE: float = 48.0
+## Une impulsion de zone posée : petite, la zone est dans l'anneau. Un coup de siège sur une cible
+## seule a la taille de `data/assets.json` (`effets.impact_siege_cible_unique`), plus grande que les
+## 60 px des autres armes à cible unique.
 const DIAMETRE_IMPULSION: float = 64.0
 ## L'image de planche à chaque image à 60 i/s ; le pic est atteint dans le premier quart.
 const SEQ_FEU: Array[int] = [0, 1, 2, 2, 3, 3, 4, 4, 4, 5, 5, 5]
@@ -23,7 +24,7 @@ const TEINTE_BRUN := Color(0.5, 0.35, 0.25)
 const TEINTE_PIERRE := Color(0.45, 0.47, 0.52)
 
 
-## Le coup de siège : `planche` jouée en `seq` au rayon réel (`DIAMETRE_CIBLE_UNIQUE` sans rayon),
+## Le coup de siège : `planche` jouée en `seq` au rayon réel (la taille d'un coup seul sans rayon),
 ## l'anneau fin de `couleur` au rayon exact, et le gel d'impact si le coup est fort.
 func frapper(
 	m: AttaquesElementaires,
@@ -35,7 +36,9 @@ func frapper(
 	age: float,
 	couleur: Color
 ) -> bool:
-	var diametre: float = rayon_px * 2.0 if rayon_px > 0.0 else DIAMETRE_CIBLE_UNIQUE
+	var diametre: float = (
+		rayon_px * 2.0 if rayon_px > 0.0 else PlanchesEffets.diametre_impact_siege_seul()
+	)
 	var image: Dictionary = m.image_impact(planche, ou, diametre, seq, age)
 	var cree: bool = not image.is_empty()
 	if cree and fort:
@@ -45,7 +48,7 @@ func frapper(
 	return cree
 
 
-## Le coup sur une cible seule (au plus `DIAMETRE_CIBLE_UNIQUE`) : `planche` jouée en `seq`, teintée
+## Le coup sur une cible seule (de la taille des données) : `planche` jouée en `seq`, teintée
 ## de `sombre` pour se lire sur l'herbe, un premier éclat clair au pic de la planche, et le gel.
 func coup_seul(
 	m: AttaquesElementaires,
@@ -56,7 +59,8 @@ func coup_seul(
 	age: float,
 	sombre: Color
 ) -> bool:
-	var corps: Dictionary = m.image_impact(planche, ou, DIAMETRE_CIBLE_UNIQUE, seq, age)
+	var diametre: float = PlanchesEffets.diametre_impact_siege_seul()
+	var corps: Dictionary = m.image_impact(planche, ou, diametre, seq, age)
 	if corps.is_empty():
 		return false
 	corps["couleur"] = sombre
@@ -66,7 +70,7 @@ func coup_seul(
 	var pic: Array[int] = []
 	pic.resize(IMAGES_ECLAT)
 	pic.fill(seq[IMAGES_ECLAT])
-	var eclat: Dictionary = m.image_impact(planche, ou, DIAMETRE_CIBLE_UNIQUE, pic, age)
+	var eclat: Dictionary = m.image_impact(planche, ou, diametre, pic, age)
 	if not eclat.is_empty():
 		eclat["couleur"] = TEINTE_ECLAT
 		m.poser(eclat)

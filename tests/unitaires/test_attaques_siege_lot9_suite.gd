@@ -26,10 +26,10 @@ func test_le_creneau_est_lance_en_cloche_et_arrive_en_quatorze_images() -> void:
 	verifier_egal(_a.etats("creneau").size(), 0, "arrivé, il disparaît")
 
 
-func test_l_onde_de_l_ecrasement_reste_petite_sur_une_cible_seule_et_gele() -> void:
+func test_l_onde_de_l_ecrasement_est_de_la_taille_des_donnees_sur_une_cible_seule_et_gele() -> void:
 	verifier(_a.impacter("ecrasement", CIBLE, 0.0, true))
 	var onde: Dictionary = _a.etats("onde_choc")[0]
-	verifier(onde["diametre"] <= DIAMETRE_MAX_CIBLE_UNIQUE, "au plus 60 px sur une cible seule")
+	verifier_egal(onde["diametre"], _diametre_siege_seul(), "la taille des données")
 	verifier_egal(_a.etats("").size(), 0, "pas d'anneau : la zone est la cible")
 	verifier(_a.gel_restant() > 0.0, "coup de siège : le gel visuel")
 	verifier(_a.particules_actives() >= 1, "des gravats")
@@ -75,11 +75,11 @@ func test_le_bloc_du_colosse_est_le_plus_gros_projectile_et_arrive_en_quatorze_i
 	)
 
 
-func test_l_impact_du_colosse_est_un_cratere_et_une_onde_petits_avec_le_gel_de_siege() -> void:
+func test_l_impact_du_colosse_a_la_taille_des_donnees_avec_le_gel_de_siege() -> void:
 	verifier(_a.impacter("colosse", CIBLE, 0.0, true))
 	verifier_egal(_a.etats("cratere").size(), 2, "un cratère et son éclat clair")
 	verifier_egal(_a.etats("onde_choc").size(), 2, "et une onde de choc et son éclat")
-	verifier(_a.diametre_max() <= DIAMETRE_MAX_CIBLE_UNIQUE, "au plus 60 px sur une cible seule")
+	verifier_egal(_a.diametre_max(), _diametre_siege_seul(), "la taille des données")
 	verifier(_a.gel_restant() > 0.0, "coup de siège : le gel visuel")
 	verifier(_a.particules_actives() >= 1, "des éclats de pierre")
 	var total: int = 12
@@ -350,7 +350,8 @@ func _luminance_max(planches: Array) -> float:
 	return maxi_lum
 
 
-func test_le_coup_d_une_cible_seule_est_sombre_avec_un_premier_eclat_clair_et_reste_petit() -> void:
+func test_le_coup_d_une_cible_seule_est_sombre_avec_un_premier_eclat_clair_et_n_est_pas_une_zone(
+) -> void:
 	for element: String in SEULES:
 		_a.vider()
 		_a.impacter(element, CIBLE, 0.0, true)
@@ -362,7 +363,10 @@ func test_le_coup_d_une_cible_seule_est_sombre_avec_un_premier_eclat_clair_et_re
 		verifier(_visibles(String(SEULES[element])) > 0, "%s : encore lisible" % element)
 		_a.vider()
 		_a.impacter(element, CIBLE, 0.0, true)
-		verifier(_a.diametre_max() <= DIAMETRE_MAX_CIBLE_UNIQUE, "%s : pas une zone" % element)
+		verifier_egal(
+			_a.diametre_max(), _diametre_siege_seul(), "%s : la taille des données" % element
+		)
+		verifier(_a.diametre_max() < _plus_petite_zone_de_siege_px(), "%s : pas une zone" % element)
 		verifier(_a.gel_restant() > 0.0, "%s : le gel reste" % element)
 		verifier(
 			_a.opacite_max() <= AttaquesElementaires.ALPHA_MAX + 0.0001, "%s : opacité" % element

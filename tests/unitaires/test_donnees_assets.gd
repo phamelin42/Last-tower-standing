@@ -135,3 +135,28 @@ func test_une_combinaison_de_voisines_du_terrain_sans_tuile_est_refusee() -> voi
 	var a := _donnees()
 	((a["decor"] as Dictionary)["tuiles_herbe"] as Dictionary).erase("1010")
 	verifier(_a_une_erreur(_erreurs(a), "1010"))
+
+
+func test_un_contour_de_tirs_sur_une_planche_non_decrite_ou_mal_forme_est_refuse() -> void:
+	var a := _donnees()
+	var contour: Dictionary = (a["effets"] as Dictionary)["contour_tirs"]
+	(contour["planches"] as Array).append("planche_fantome")
+	verifier(_a_une_erreur(_erreurs(a), "planche_fantome"), "planche non décrite")
+	var b := _donnees()
+	((b["effets"] as Dictionary)["contour_tirs"] as Dictionary)["epaisseur"] = 0
+	verifier(_a_une_erreur(_erreurs(b), "contour_tirs.epaisseur"), "épaisseur nulle")
+	var c := _donnees()
+	((c["effets"] as Dictionary)["contour_tirs"] as Dictionary)["contour"] = [1.0, 1.0]
+	verifier(_a_une_erreur(_erreurs(c), "contour_tirs.contour"), "couleur incomplète")
+
+
+func test_les_images_fixes_du_mouvement_reduit_doivent_etre_des_entiers_positifs() -> void:
+	var a := _donnees()
+	((a["effets"] as Dictionary)["mouvement_reduit"] as Dictionary)["crane"] = -1
+	verifier(_a_une_erreur(_erreurs(a), "mouvement_reduit.crane"))
+
+
+func test_la_taille_du_coup_de_siege_seul_doit_etre_positive() -> void:
+	var a := _donnees()
+	((a["effets"] as Dictionary)["impact_siege_cible_unique"] as Dictionary)["diametre"] = 0.0
+	verifier(_a_une_erreur(_erreurs(a), "impact_siege_cible_unique.diametre"))
