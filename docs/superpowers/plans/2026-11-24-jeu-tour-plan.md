@@ -2182,9 +2182,9 @@ Conception : §6.14 (décision D19 de Phil du 26/11/2026). Ces trois tâches se
 
 **Parallélisme :** quatre sessions, chacune sur ses fichiers.
 
-- **Progression** (`progression/`, `app/progression_locale.gd`, `data/defis.json`, `docs/defis.md`) : T11.1 (**attend Phil**) et T11.3 tout de suite ; T11.3bis après T11.3 et la liste validée de T11.1 ; T11.4 après la liste validée, T11.2 et T11.3bis.
+- **Progression** (`progression/`, `app/progression_locale.gd`, `data/defis.json`, `docs/defis.md`) : T11.1 (validée par Phil) et T11.3 tout de suite ; T11.3bis après T11.3 et la liste validée de T11.1 ; T11.4 après la liste validée, T11.2 et T11.3bis.
 - **Simulation** (`sim/`, `reseau/`, `app/source_vue.gd`, `app/source_locale.gd`) : T11.2 après la liste validée de T11.1 et T9.9, puis T11.5. Les deux montent `Protocole.VERSION` : **dans cet ordre, relire celle de `main` avant de l'incrémenter**.
-- **Rendu** (`visuels/`, `assets/tours/`, `tools/planche_skins_tour.gd`) : T11.6 (**attend Phil**) quand T11.1 est validée et T9.24 fusionnée ; T11.7 après la validation de T11.6, T9.25 et T11.5.
+- **Rendu** (`visuels/`, `assets/tours/`, `tools/planche_skins_tour.gd`) : T11.6 (validée par Phil) quand T11.1 est validée et T9.24 fusionnée ; T11.7 après la validation de T11.6, T9.25 et T11.5.
 - **Interface** (`ui/`, `i18n/`) : T11.8 quand T11.3, T11.3bis, T11.4 et T11.5 sont fusionnées.
 - **Passe finale** : T11.9, quand tout est fusionné.
 
@@ -2294,7 +2294,7 @@ Conception : §6.14 (décision D19 de Phil du 26/11/2026). Ces trois tâches se
 
 ### Task 11.5 : Skin choisi, transmis au serveur et aux autres joueurs — `sonnet`
 
-- [ ] **Objectif :** le client envoie son skin au serveur (à la connexion, puis au salon : nouvelle intention, nom à choisir par la tâche) ; `Partie.definir_skin(id, index)` le range **avec le joueur** comme un **entier opaque** (`sim/` ne sait pas ce qu'est un skin) ; `VueGlobale.joueurs[i]["skin"]` le diffuse et l'état d'arène regardée le porte (les autres joueurs le voient, B2). Le serveur **borne l'index** : hors catalogue (négatif, trop grand, non reçu), il vaut le skin par défaut (index 0). Le skin ne change qu'au salon (choix du plan 3). **Montée de `Protocole.VERSION`** : relire celle de `main` avant de l'incrémenter, formats précédents refusés par un test en boucle.
+- [x] **Objectif :** le client envoie son skin au serveur (à la connexion, puis au salon : nouvelle intention, nom à choisir par la tâche) ; `Partie.definir_skin(id, index)` le range **avec le joueur** comme un **entier opaque** (`sim/` ne sait pas ce qu'est un skin) ; `VueGlobale.joueurs[i]["skin"]` le diffuse et l'état d'arène regardée le porte (les autres joueurs le voient, B2). Le serveur **borne l'index** : hors catalogue (négatif, trop grand, non reçu), il vaut le skin par défaut (index 0). Le skin ne change qu'au salon (choix du plan 3). **Montée de `Protocole.VERSION`** : relire celle de `main` avant de l'incrémenter, formats précédents refusés par un test en boucle.
 - **Conception :** §6.15 (B2, B8) ; choix du plan 3 et 4.
 - **Fichiers :** `sim/partie.gd`, `sim/joueur_partie.gd`, `sim/vue_globale.gd`, `reseau/protocole.gd`, `reseau/serveur.gd`, `reseau/client.gd`, `reseau/canal.gd`, `app/source_vue.gd`, `app/source_locale.gd`, `tests/outils/source_factice.gd` ; tests `test_partie.gd`, `test_vues.gd`, `test_protocole_skin.gd` (nouveau), `test_serveur.gd`, `test_client.gd`, `test_source_locale.gd`.
 - **Lire :** `reseau/serveur.gd` (demande de jointure, intentions du salon) ; `sim/vue_globale.gd` (`SCHEMA_JOUEUR`) ; `data/skins_tour.json` (T9.24 : l'ordre des skins fait l'index).
@@ -2308,11 +2308,11 @@ Conception : §6.14 (décision D19 de Phil du 26/11/2026). Ces trois tâches se
   - `test_deux_clients_voient_le_skin_l_un_de_l_autre` (intégration ENet, port tiré à l'exécution).
 - **Vérif :** `T --filtre test_protocole_skin`, `test_serveur`, `test_client`, puis `tools/verifier.sh`.
 
-### Task 11.6 : Sprites de tour et planche des skins — `sonnet` — **attend Phil**
+### Task 11.6 : Sprites de tour et planche des skins — `sonnet` — **validée par Phil le 27/11/2026** (piste A, réaliste, 50 skins)
 
 > **Décision de Phil (27/11/2026) :** piste A, réaliste, sans brique ; décor réaliste possible plus tard, donc les assets restent remplaçables. Les sprites sont des rendus 2D réalistes d'OpenGameArt (filtre `lineaire`), non du pixel art ; voir `docs/skins/SOURCES.md`.
 
-- [ ] **Objectif :** un **sprite de tour par défi** (B5, B6), pixel art proche de Tiny Swords, sous licence **CC0**, ou **CC-BY** avec crédit dans `CREDITS.md` et la **licence vérifiée à sa source** (page de l'auteur et fichier de licence de l'archive, citée dans `assets/tours/SOURCES.md` avec auteur, URL, licence et date de vérification) ; une licence douteuse ou non vérifiable écarte l'image. Les **sprites existants ne sont pas retouchés** pour en faire des skins ; les **tours Gobelin** de Tiny Swords, déjà dans le dépôt (`Factions/Goblins/Buildings/Wood_Tower/`), sont candidates **telles quelles**. Outils de dessin éventuels : libres seulement (licence OSI), ni Aseprite ni IA. Chaque skin entre dans `data/skins_tour.json` avec : son sprite, ses **ancrages** pour chacune des 21 superpositions de D19 (B7), sa **zone de marque** de la couleur du joueur (drapeau ou liseré, B8) et le défi qui le débloque. Une **planche des skins**, `docs/planche_skins_tour.png`, composée sans écran par `tools/planche_skins_tour.gd` : chaque skin avec ses huit couleurs de joueur, puis avec les superpositions du palier 3 posées. **Aucune intégration avant la validation de Phil** (les entrées de données sont inertes tant que T11.7 et T11.8 ne les lisent pas).
+- [x] **Objectif :** un **sprite de tour par défi** (B5, B6), pixel art proche de Tiny Swords, sous licence **CC0**, ou **CC-BY** avec crédit dans `CREDITS.md` et la **licence vérifiée à sa source** (page de l'auteur et fichier de licence de l'archive, citée dans `assets/tours/SOURCES.md` avec auteur, URL, licence et date de vérification) ; une licence douteuse ou non vérifiable écarte l'image. Les **sprites existants ne sont pas retouchés** pour en faire des skins ; les **tours Gobelin** de Tiny Swords, déjà dans le dépôt (`Factions/Goblins/Buildings/Wood_Tower/`), sont candidates **telles quelles**. Outils de dessin éventuels : libres seulement (licence OSI), ni Aseprite ni IA. Chaque skin entre dans `data/skins_tour.json` avec : son sprite, ses **ancrages** pour chacune des 21 superpositions de D19 (B7), sa **zone de marque** de la couleur du joueur (drapeau ou liseré, B8) et le défi qui le débloque. Une **planche des skins**, `docs/planche_skins_tour.png`, composée sans écran par `tools/planche_skins_tour.gd` : chaque skin avec ses huit couleurs de joueur, puis avec les superpositions du palier 3 posées. **Aucune intégration avant la validation de Phil** (les entrées de données sont inertes tant que T11.7 et T11.8 ne les lisent pas).
 - **Conception :** §6.15 (B5 à B8), §6.14 (A5).
 - **Fichiers :** `assets/tours/*.png` avec leurs `.import`, `assets/tours/SOURCES.md` (nouveau), `data/skins_tour.json`, `sim/donnees_apparence.gd` (validation), `tools/planche_skins_tour.gd` (nouveau), `docs/planche_skins_tour.png` ; tests `test_skins_tour.gd` (nouveau), `test_garde_ressources.gd`.
 - **Lire :** `docs/tiny_swords.md` §3.1 ; `docs/defis.md` validé (le nombre de skins) ; `assets/sons/SOURCES.md` (modèle de source citée) ; `data/skins_tour.json` (T9.24).
@@ -2328,7 +2328,7 @@ Conception : §6.14 (décision D19 de Phil du 26/11/2026). Ces trois tâches se
 
 ### Task 11.7 : Skins et marque de couleur en jeu — `sonnet`
 
-- [ ] **Objectif :** après la validation de la planche : `Arene2D` dessine la tour de chaque joueur avec **son skin** (le sien et celui de l'arène regardée, lu dans la vue globale), pose les **superpositions de D19 à ses ancrages**, et pose la **marque de la couleur du joueur** (B8) dans sa zone, par la teinte de `teinte_tour.gdshader` ; un index de skin inconnu retombe sur `defaut` sans erreur. L'agrandissement de la tour (T9.25) s'applique au skin entier, toujours à +25 % au plus et sans rien changer dans `sim/`.
+- [x] **Objectif :** après la validation de la planche : `Arene2D` dessine la tour de chaque joueur avec **son skin** (le sien et celui de l'arène regardée, lu dans la vue globale), pose les **superpositions de D19 à ses ancrages**, et pose la **marque de la couleur du joueur** (B8) dans sa zone, par la teinte de `teinte_tour.gdshader` ; un index de skin inconnu retombe sur `defaut` sans erreur. L'agrandissement de la tour (T9.25) s'applique au skin entier, toujours à +25 % au plus et sans rien changer dans `sim/`.
 - **Conception :** §6.15 (B7, B8), §6.14.
 - **Fichiers :** `visuels/arene_2d.gd`, `visuels/apparence_tour.gd`, `visuels/teinte_tour.gdshader` ; tests `test_arene_2d.gd`, `test_apparence_tour.gd`, `test_skins_tour_rendu.gd` (nouveau).
 - **Lire :** `visuels/arene_2d.gd` (dessin de la tour, teinte des joueurs 5 à 8) ; `data/skins_tour.json` ; `docs/planche_skins_tour.png`.
@@ -2343,7 +2343,7 @@ Conception : §6.14 (décision D19 de Phil du 26/11/2026). Ces trois tâches se
 
 ### Task 11.8 : Interface : défis, skins et choix du skin — `sonnet`
 
-- [ ] **Objectif :** (a) un écran **« Progression »** depuis le menu principal : la liste des défis (réussi ou non, texte, skin qu'il débloque) et les statistiques (parties jouées, meilleure manche) ; (b) le **choix du skin** au salon, avec l'aperçu de la tour et, pour un skin verrouillé, le défi qui le débloque ; le choix est enregistré dans le profil et envoyé au serveur (T11.5) ; (c) l'**écran de fin** liste les défis réussis pendant la partie et les skins débloqués. Navigation **au clavier et à la manette**, focus visible, taille de l'interface de 75 à 125 % (T8.17), aucune information portée par la couleur seule. Tous les textes dans `i18n/textes_progression.csv` (nouveau, colonne `fr`, espaces insécables).
+- [x] **Objectif :** (a) un écran **« Progression »** depuis le menu principal : la liste des défis (réussi ou non, texte, skin qu'il débloque) et les statistiques (parties jouées, meilleure manche) ; (b) le **choix du skin** au salon, avec l'aperçu de la tour et, pour un skin verrouillé, le défi qui le débloque ; le choix est enregistré dans le profil et envoyé au serveur (T11.5) ; (c) l'**écran de fin** liste les défis réussis pendant la partie et les skins débloqués. Navigation **au clavier et à la manette**, focus visible, taille de l'interface de 75 à 125 % (T8.17), aucune information portée par la couleur seule. Tous les textes dans `i18n/textes_progression.csv` (nouveau, colonne `fr`, espaces insécables).
 - **Conception :** §6.15 (B2, B5), règles de dépendance du lot (`ui/` et `i18n/`).
 - **Fichiers :** `ui/progression_ui.gd` (nouveau), `ui/salon_ui.gd`, `ui/fin_ui.gd`, `app/menu_principal.gd` (une entrée), `i18n/textes_progression.csv` (nouveau), `i18n/textes_salon.csv`, `i18n/textes_fin.csv` ; tests `test_progression_ui.gd` (nouveau), `test_salon_ui.gd`, `test_fin_ui.gd`.
 - **Lire :** `ui/reglages_ui.gd` (écran du menu, modèle) ; `ui/salon_ui.gd` ; `ui/fin_ui.gd` ; `ui/mise_en_page.gd` ; `progression/defis.gd` et `progression/sauvegarde.gd`.
@@ -2358,7 +2358,13 @@ Conception : §6.14 (décision D19 de Phil du 26/11/2026). Ces trois tâches se
 
 ### Task 11.9 : Clôture du lot 11 — `sonnet`
 
-- [ ] **Objectif :** `CREDITS.md` (chaque source CC-BY de T11.6 avec son auteur et sa licence ; les CC0 citées), `docs/jouer.md` (défis, skins, où se trouve le fichier de progression), `CLAUDE.md` (la structure : le dossier `progression/` et sa règle de dépendance ; **un piège par difficulté réelle rencontrée** dans le lot), ce plan (cases cochées, suivis), et un **test d'intégration** à deux clients : chacun choisit un skin, les deux se voient, la partie finie chaque poste reçoit son bilan et valide son défi. Les autres tâches du lot y ont écrit leurs lignes dans leur rapport.
+- [x] **Objectif :** `CREDITS.md` (chaque source CC-BY de T11.6 avec son auteur et sa licence ; les CC0 citées), `docs/jouer.md` (défis, skins, où se trouve le fichier de progression), `CLAUDE.md` (la structure : le dossier `progression/` et sa règle de dépendance ; **un piège par difficulté réelle rencontrée** dans le lot), ce plan (cases cochées, suivis), et un **test d'intégration** à deux clients : chacun choisit un skin, les deux se voient, la partie finie chaque poste reçoit son bilan et valide son défi. Les autres tâches du lot y ont écrit leurs lignes dans leur rapport.
+      **Faite (27/11/2026).** `CREDITS.md` cite les sources CC-BY des skins (Varkalandar, rubberduck, Bleed, MedicineStorm, tir2, mold,
+      Snabisch), les CC0 des skins, les icônes de game-icons.net et les cinq packs de sons de T12.7 ; `docs/jouer.md` a sa section sur
+      la progression, les 50 défis et les skins ; `CLAUDE.md` décrit `progression/` et ses pièges ; cinq tests de `test_credits.gd`
+      gardent les crédits et les noms d'origine, deux tests d'intégration (`test_reseau_complet.gd`) couvrent la fin de partie à deux et
+      l'échec d'écriture. Plus rien n'attend Phil dans le lot 11 : liste des défis validée le 26/11 (50 skins après les deux défis
+      ajoutés), planche des skins validée le 27/11, sources CC-BY créditées.
 - **Conception :** §6.15.
 - **Fichiers :** `CREDITS.md`, `docs/jouer.md`, `CLAUDE.md`, ce plan, `tests/integration/test_multijoueur.gd`, `tests/unitaires/test_credits.gd`.
 - **Lire :** les rapports et rétros de T11.1 à T11.8 ; `assets/tours/SOURCES.md`.
