@@ -358,3 +358,59 @@ func test_mouvement_reduit_le_fleau_ne_tourne_pas_et_sans_particule() -> void:
 	verifier_egal(_a.etats("rasoir")[0]["image"], avant, "image fixe")
 	_a.impacter("fleau", CIBLE, 0.0)
 	verifier_egal(_a.particules_actives(), 0)
+
+
+# --- Hache de garde : aura, malédiction --------------------------------------------------------
+
+
+func test_la_hache_est_une_aura() -> void:
+	_verifier_arme("hache_de_garde", "hache", "aura")
+
+
+func test_la_hache_n_a_pas_de_projectile() -> void:
+	verifier_egal(AttaquesElementaires.planche_projectile("hache"), "", "rien ne part de la tour")
+
+
+func test_quatre_haches_atteignent_le_rayon_reel_de_l_aura() -> void:
+	var rayon: float = _rayon_px("hache_de_garde")
+	verifier(_a.aura("hache", TOUR, rayon))
+	verifier_egal(_a.etats("hache").size(), 4, "quatre haches")
+	_avancer(AttaquesElementaires.IMAGES_COURONNE_OUVERTURE)
+	var portee_max: float = 0.0
+	for fer: Dictionary in _a.etats("hache"):
+		var d: float = (fer["position"] as Vector2).distance_to(TOUR)
+		portee_max = maxf(portee_max, d + fer["taille"].y * 0.5)
+		verifier(d < rayon, "le centre de la hache est dans la zone")
+	verifier_proche(portee_max, rayon, rayon * 0.1, "le bord extérieur est au rayon")
+	verifier(_a.diametre_max() <= rayon * 2.0 * 1.1, "rien au-delà de la zone")
+	verifier_egal(_a.etats("").size(), 1, "un anneau fin au rayon exact")
+
+
+func test_la_hache_s_efface_et_rend_le_pool() -> void:
+	_a.aura("hache", TOUR, 140.0)
+	_avancer(AttaquesElementaires.IMAGES_COURONNE + 1)
+	verifier_egal(_a.nombre_vivants(), 0)
+	verifier_egal(_a.particules_actives(), 0)
+
+
+func test_la_hache_dans_effets_se_dessine_a_chaque_coup_de_l_aura() -> void:
+	var effets: Effets = _effets_de("hache_de_garde")
+	verifier_egal(effets.elementaires().etats("hache").size(), 4, "quatre haches")
+	verifier_egal(effets.formes_vivantes().has("anneau"), false, "plus d'anneau générique")
+	effets.free()
+
+
+func test_mouvement_reduit_la_hache_garde_ses_fers_sans_tourner() -> void:
+	_a.mouvement_reduit = true
+	_a.aura("hache", TOUR, 140.0)
+	_avancer(3)
+	var avant: Array[Dictionary] = _a.etats("hache")
+	_avancer(3)
+	var apres: Array[Dictionary] = _a.etats("hache")
+	verifier_egal(apres.size(), 4, "les haches restent")
+	verifier_proche(
+		((avant[0]["position"] as Vector2) - TOUR).angle(),
+		((apres[0]["position"] as Vector2) - TOUR).angle(),
+		0.0001,
+		"elles ne tournent pas"
+	)

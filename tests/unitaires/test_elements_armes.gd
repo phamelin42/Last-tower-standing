@@ -39,6 +39,7 @@ const ATTENDU: Dictionary = {
 	"lame_de_brume": "brume",
 	"faucheuse_double": "faucheuse",
 	"fleau_de_rasoirs": "fleau",
+	"hache_de_garde": "hache",
 }
 
 
