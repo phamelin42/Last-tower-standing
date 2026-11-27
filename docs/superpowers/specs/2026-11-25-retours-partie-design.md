@@ -3,7 +3,7 @@
 > Date : 25/11/2026. Source : 13 retours de Phil après une partie jouée sous Godot, et ses
 > réponses aux questions de cadrage le même soir. Cette conception complète la spec du jeu
 > (`2026-11-24-jeu-tour-design.md`) et l'emporte sur elle là où elles diffèrent. Elle donnera le
-> lot 8 du plan. **Validée par Phil le 25/11/2026** ; D19, D20 et D21 ajoutées le 26/11/2026.
+> lot 8 du plan. **Validée par Phil le 25/11/2026** ; D19, D20 et D21 ajoutées le 26/11/2026, D23 le 27/11/2026.
 
 ## 1. Intention
 
@@ -46,6 +46,7 @@ Ces décisions ne se remettent pas en cause ; une objection se dit dans la PR.
 | D19 | Tour                | **L'apparence de la tour suit ses améliorations** (demandé le 26/11/2026, « défaut oui pour tout ») : épines, PV, mana, armure, esquive, régénération et vol de vie se voient sur la tour, aussi sur celles des autres joueurs. Détail au §6.14.                              |
 | D20 | Progression         | **Sauvegarde de la progression, défis et skins de tour** (26/11/2026) : défis réussis, skins débloqués et choisis, statistiques, enregistrés en local ; un skin par défi, purement cosmétique. Détail au §6.15.                                                               |
 | D21 | Mouvement           | **Mouvement réduit** (26/11/2026) : aucune secousse de caméra dans le jeu, quel que soit le réglage ; une case « mouvement réduit » dans les réglages, décochée par défaut, coupe le gel d'impact et ne laisse qu'un éclat bref à l'impact. Détail au §6.16.                  |
+| D23 | Fin de partie       | « Oui très bien pour les armes plus puissantes » (27/11/2026) : deux **raretés de fin de partie** à la mesure du revenu ; **une arme achetée en double monte l’arme de niveau** (elle ne s’empile plus). Détail au §6.17.                                                     |
 
 Les propositions de la session de pilotage acceptées par Phil le même soir :
 
@@ -491,6 +492,160 @@ T8.23 (la case des réglages) du plan.
   `Arene2D.mouvement_reduit`. Cochée, elle **coupe le gel d'impact, le recul et le rebond d'échelle**
   de l'ennemi touché (des mouvements) ; il ne reste à l'impact **qu'un éclat bref** (l'éclaircissement
   de l'ennemi touché, déjà borné à trois par seconde par ennemi, WCAG 2.3.1).
+
+### 6.17 Armes de fin de partie et niveaux d'arme (D23, brouillon à valider par Phil)
+
+> **Statut : proposition.** Rien de ce paragraphe n'est codé ni validé. Les valeurs sont des
+> propositions chiffrées, chacune avec son défaut aux §6.17.7 ; Phil tranche, puis le lot 12 du plan
+> s'exécute. D23 remplace D2 sur un seul point : un doublon ne fait plus une arme de plus, il monte
+> l'arme existante (« aucun plafond » reste vrai : le niveau n'a pas de plafond par défaut).
+
+**Décision de Phil (27/11/2026)** : « Oui très bien pour les armes plus puissantes, par contre je
+vois pas bien l'intérêt de juste monter le prix des armes en double sans monter leurs stats. Autre
+point, plutôt que d'acheter la même arme x10, les armes achetées en double doivent compter comme
+une amélioration de la première et juste monter les dégâts. » Le boss de la manche 31 doit être
+battu par ces armes plus puissantes, **sans plafonner ses PV**.
+
+#### 6.17.1 Constat chiffré (mesuré sur `main`, robot « bonne », graines 1 à 8)
+
+| Mesure                        | Valeur                                                                                                                                                                         |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Prix du catalogue             | commune 100 à 130, peu commune 100 à 300, rare 500 à 560, épique 950 à 1 150 ; **rien au-dessus de 1 150 or**                                                                  |
+| Or en fin de partie           | graine 1 : 727 or (manche 26), **11 578 (27), 76 509 (28)**, 42 969 au boss ; graines 2 à 8 : 160 à 1 040 or au boss (le robot dépense tout en améliorations)                  |
+| Arsenal du robot              | 8 armes dont 6 à 8 distinctes : il achète des doublons faute d'autre achat utile                                                                                               |
+| PV du boss au début du combat | 35 000 × 1,754 (manche 20) × 2,8 par manche de 21 à 31 × 2,197 (trois accélérations de 300, 600 et 900 s) ≈ **1,1 × 10¹⁰**                                                     |
+| Combat contre le boss         | victoire en 2 200 et 2 691 s (graines 2 et 8) ; **aucune victoire en 3 070 s** pour les six autres ; l'arène est tenue (le robot ne meurt pas) mais le boss ne tombe pas       |
+| Doublons                      | `Inventaire.armes` garde un id par exemplaire (jusqu'à 255) ; chaque exemplaire tire seul ; seules 2 armes (`degats_par_exemplaire` 0,4 et 0,5) lisent le nombre d'exemplaires |
+
+Lecture : les victoires actuelles sont des **combats d'usure de 37 à 45 minutes**, à environ
+5 × 10⁶ dégâts par seconde. Pour tuer le boss en **5 minutes**, il faut environ 3,7 × 10⁷ dégâts par
+seconde, soit **×7 à ×8** sur les meilleures constructions d'aujourd'hui, avec un or qui, dans la
+plupart des parties, est déjà dépensé : le gain doit venir de **plus de puissance par pièce d'or**
+dans les achats de fin de partie, et d'**or qui s'accumule** (primes) quand la partie va bien.
+
+#### 6.17.2 Raretés de fin de partie
+
+- **Deux raretés au-dessus de l'épique**, aux noms originaux : **ancestrale** (`ancestrale`) et
+  **souveraine** (`souveraine`). `Types.Rarete` et `NOMS_RARETES` passent à six ; la couleur et le
+  symbole de chaque rareté (`Apparence.couleur_rarete`, `symbole_rarete`) et leurs textes
+  (`i18n/`) suivent, avec un symbole distinct de la couleur seule.
+- **Prix qui suivent le revenu** : ancestrale **3 000 à 5 000 or**, souveraine **8 000 à 10 000 or**
+  (l'épique d'aujourd'hui reste à 950 à 1 150 : les raretés actuelles ne bougent pas, la partie
+  jusqu'à la manche 20 non plus). Ordre de grandeur de la map d'origine : 500 / 2 000 / 5 000 /
+  10 000 ; nos chiffres restent les nôtres et vivent dans `data/armes.json`.
+- **Apparition** (`data/boutique.json`, `poids`) : ancestrale **dès la manche 14** (poids 4 en
+  manche 14, 10 en manche 28), souveraine **dès la manche 22** (poids 2, puis 6) ; la boutique
+  n'en propose pas avant, le marché noir non plus (`raretes_max` reste « rare »).
+- **Catalogue** : **15 armes**, soit 3 par type de dégâts (2 ancestrales, 1 souveraine), noms
+  originaux. Pas de nouvelle amélioration (question Q6).
+- **Puissance** : le rendement (`Equilibrage.rendement`, dégâts par seconde par pièce d'or) d'une
+  arme ancestrale vaut **1,2 ×** celui de la meilleure épique du même type, celui d'une souveraine
+  **1,5 ×**. Dépenser de l'or tardif est donc toujours plus rentable que de le garder, et la
+  concentration (les niveaux, §6.17.3) récompense un build.
+- **Effet attendu sur l'or** : avec des offres à 3 000 à 10 000 or, la prime de 64 000 or par
+  manche des manches 26 à 28 (graine 1) se convertit en 6 à 20 achats par manche au lieu de rester
+  inutilisée.
+
+#### 6.17.3 Un doublon monte l'arme de niveau
+
+- **Inventaire** : une arme est portée **une seule fois** ; `Inventaire.armes` garde les ids
+  distincts dans l'ordre d'achat et un `niveaux: Dictionary` (id → niveau, 1 au premier achat).
+  Acheter une arme déjà portée **monte son niveau de 1** ; rien n'est ajouté à la liste.
+  `ArmeEquipee` (recharge, mines, ondes, phase) est créée une fois par arme, pas par exemplaire :
+  l'état de tir ne se multiplie plus.
+- **Gain par niveau** (proposition) : **+30 % des dégâts de base** de l'arme, **additif** :
+  dégâts du niveau n = base × (1 + 0,30 × (n − 1)). Le facteur vit dans `data/partie.json`
+  (`niveaux.gain_degats`). Seuls les **dégâts** montent (cadence, portée, nombre de projectiles,
+  durée des statuts ne bougent pas), comme le demande Phil ; les bonus de type, globaux et
+  d'améliorations s'appliquent ensuite comme aujourd'hui.
+- **Prix d'un niveau** : le **prix de l'arme** (sans surcoût, puisque le niveau fait monter les
+  dégâts). Chaque niveau vaut donc 30 % de la base pour le prix plein : une arme nouvelle (100 %
+  de la base) est **3,3 fois plus rentable qu'un niveau**, ce qui pousse à diversifier, et le
+  niveau reste le moyen de convertir de l'or quand la boutique ne propose rien de neuf.
+- **Plafond** : aucun niveau maximal par défaut (D2) ; le réseau borne le niveau à 255 (un octet).
+- **Vente** : vendre une arme baisse son niveau de 1 et rend `vente_ratio` du prix, jusqu'à ce
+  qu'elle disparaisse au niveau 1.
+- **`copie_prochaine_offre`** : le second exemplaire gratuit devient un niveau gratuit.
+- **M5 `degats_par_exemplaire`** (2 armes) : renommé `degats_par_niveau`, même sens (ratio de la
+  base par niveau au-dessus du premier, borné par `bonus_selon_stat_max`), **en plus** du gain
+  générique. `Tir.degats_de_base` reçoit le niveau à la place du nombre d'exemplaires ;
+  `Equilibrage.rendement` et la description de l'arme (`ui/description_offre.gd`) suivent.
+- **Effets dessinés par exemplaire** : une arme = un effet visuel. Le niveau se lit sur
+  l'icône de l'arme (insigne « niv. N ») et, pour l'effet, par un léger grossissement (≤ 25 %,
+  même règle que l'apparence de la tour) laissé à la session de rendu ; aucun projectile de plus.
+- **Performance** : au plus 75 armes actives (une par arme du catalogue) au lieu de 255
+  exemplaires : le test de performance des tirs ne peut que s'améliorer.
+
+#### 6.17.4 Boutique, ATH, réseau, sauvegarde, défis
+
+- **Boutique** : l'offre d'une arme déjà portée affiche **« niv. N → N + 1 »** et les dégâts
+  gagnés (« + X dégâts »), au lieu d'un doublon muet ; `Resultat.ARMES_AU_MAXIMUM` n'est plus
+  renvoyé (le test qui le garde est inversé, pas supprimé).
+- **ATH** : la grille des armes montre une icône par arme distincte avec son niveau ; le détail en
+  infobulle donne les dégâts du niveau courant.
+- **Réseau** : `VueArene.armes` garde `id` et `recharge_ratio` et gagne **`niveau`** (un octet par
+  arme : 4 octets par arme au lieu de 3). **`Protocole.VERSION` monte** : relire celle de `main`
+  avant de l'incrémenter (10 aujourd'hui), garder les formats précédents refusés par un test en
+  boucle. La liste est plus courte (ids distincts) : le budget de 50 000 octets par client ne peut
+  que baisser. `Protocole.MAX_ARMES` (255) reste la borne des ids distincts.
+- **Sauvegarde** : le profil enregistre des compteurs de bilan, pas l'inventaire : **aucun
+  changement de format**, vérifié par un test. `Bilan.achat_arme` compte toujours un achat par
+  niveau (`armes_achetees`), `armes_distinctes` ne change pas.
+- **Défis** : « n'acheter que des armes de tel type ou tel genre » reste exact (`armes_achetees`
+  compte les niveaux). Les deux défis « les exemplaires d'une seule arme » (`arme_unique`,
+  `arme_unique_endurante`) deviennent « les niveaux d'une seule arme » : même condition
+  (`armes_distinctes ≤ 1`), texte et traduction corrigés, un test les garde.
+
+#### 6.17.5 Le boss : de la puissance, pas un plafond de PV
+
+- Les PV du boss et la rampe après la manche 20 **ne changent pas** (aucun plafond). Le critère
+  de réussite est mesuré, pas supposé : voir le plan, T12.9.
+- **Cibles de mesure** (`SimulationEquilibrage`, graines 1 à 10, robot « bonne » qui a le droit
+  d'acheter les raretés de fin de partie et de monter les niveaux) : (1) l'or restant à l'arrivée
+  du boss est au plus **10 % de l'or gagné** dans la partie sur au moins 8 graines ; (2) le boss
+  tombe en **moins de 10 minutes** (cible souhaitée : 5) sur au moins 5 graines sur 10 ; (3) les
+  cibles du robot de `docs/equilibrage.md` (D16, D17, médiane du raisonnable, victoire de la bonne
+  stratégie sur 10 à 30 %) restent tenues, ou sont déplacées et justifiées dans la PR de la passe.
+- Si le boss ne tombe pas assez vite malgré des armes à ×8 : le levier est la **puissance
+  des raretés tardives** (rendement 1,5 → 2, ou plus d'armes), jamais le plafond de PV ;
+  si cela ne suffit pas, question à Phil (Q8).
+
+#### 6.17.6 Risques
+
+1. **Le premier tiers de la partie s'affaiblit** : aujourd'hui, 2 exemplaires d'une arme à 100 or
+   valent +100 % de dégâts ; avec +30 % par niveau, la même dépense vaut trois fois moins. La
+   rampe D16/D17 (la tour passive tombe en manche 3, le robot « bonne » tient la manche 20)
+   se rejoue ; le gain par niveau est le premier levier (Q1).
+2. **Les robots achètent des doublons** (6 à 8 armes distinctes sur 8) : `StrategiesJoueur` est
+   à réécrire pour monter des niveaux et acheter les raretés tardives, sinon les mesures
+   comparent deux robots différents.
+3. **Un contenu tardif que personne ne verra** : les raretés n'apparaissent qu'à partir de la
+   manche 14 et 22 ; si la plupart des parties se terminent avant, les 15 armes sont mortes.
+   Les poids d'apparition se mesurent (nombre de parties qui voient une souveraine).
+4. **Protocole** : version partagée par tous les lots (deux PR parallèles l'ont déjà portée au
+   même numéro) ; le lot 12 la relit avant de l'incrémenter.
+5. **Signatures et sons des 15 armes** (D5, D15) : un travail de rendu par arme ; défaut :
+   réutiliser les familles de signatures existantes avec une teinte de fin de partie, planche à
+   valider (Q5).
+6. **Tests qui figeaient « N exemplaires »** : une douzaine de fichiers lisent `armes` comme une
+   liste d'exemplaires (grep `exemplaires(`, `armes.size()`) ; ils sont inversés, pas supprimés.
+7. **Or que le robot ne dépense pas** (graine 1 : 76 509 or en manche 28) : à vérifier que ce
+   n'est pas un défaut du robot (arsenal plafonné à 8, `ARMES_VISEES`) avant de conclure sur
+   l'économie.
+
+#### 6.17.7 Questions pour Phil, avec leur défaut
+
+| #   | Question                                                  | Défaut proposé                                                                        |
+| --- | --------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| Q1  | Gain d'un niveau, additif ou multiplicatif, et de combien | **+30 % de la base, additif**                                                         |
+| Q2  | Un niveau maximal                                         | **Aucun** (D2), 255 pour le réseau                                                    |
+| Q3  | Prix d'un niveau                                          | **Le prix de l'arme**, sans surcoût                                                   |
+| Q4  | Vendre une arme                                           | **Baisse d'un niveau**, rend `vente_ratio` du prix                                    |
+| Q5  | Effets et sons des 15 nouvelles armes                     | **Familles existantes teintées**, planche à valider avant l'intégration               |
+| Q6  | Améliorations de fin de partie (mêmes raretés)            | **Aucune** : seules les armes montent en rareté                                       |
+| Q7  | Noms des deux raretés                                     | **ancestrale**, **souveraine**                                                        |
+| Q8  | Si le boss ne tombe pas assez vite malgré les armes à ×8  | **Renforcer les raretés tardives**, jamais plafonner les PV ; sinon redemander à Phil |
+| Q9  | Les doublons déjà achetés d'une partie en cours           | Sans objet : une partie n'est pas sauvegardée ; **aucune migration**                  |
 
 ## 7. Découpage proposé pour le plan (lot 8)
 
