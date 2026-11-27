@@ -36,8 +36,8 @@ func visibles() -> Dictionary:
 
 
 func impacter(
-	m: AttaquesElementaires, ou: Vector2, rayon_px: float, fort: bool, _de: Vector2, age: float
+	m: AttaquesElementaires, ou: Vector2, _rayon_px: float, fort: bool, _de: Vector2, age: float
 ) -> bool:
-	var cree: bool = frapper(m, "onde_choc", SEQ_ONDE, ou, rayon_px, fort, age, COULEUR)
+	var cree: bool = coup_seul(m, "onde_choc", SEQ_ONDE, ou, fort, age, TEINTE_PIERRE)
 	m.salve(ou, GRAVATS, COULEUR_GRAVATS, 0.4, 70.0, 190.0, Vector2(0.0, 300.0), 2.0)
 	return cree

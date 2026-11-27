@@ -3,6 +3,8 @@ extends CasAttaquesSiegeLot9
 ## rempart, colosse de pierre, puis les neuf ensemble. Mêmes phases et mêmes bornes que les armes de
 ## siège du lot 8. Durées en images à 60 i/s.
 
+const SEULES: Dictionary = {"catapulte": "cratere", "ecrasement": "onde_choc", "colosse": "cratere"}
+
 var _impacts_visibles: int = 0
 
 # --- Écrasement de tour : cible unique, étourdissement --------------------------------------------
@@ -75,8 +77,8 @@ func test_le_bloc_du_colosse_est_le_plus_gros_projectile_et_arrive_en_quatorze_i
 
 func test_l_impact_du_colosse_est_un_cratere_et_une_onde_petits_avec_le_gel_de_siege() -> void:
 	verifier(_a.impacter("colosse", CIBLE, 0.0, true))
-	verifier_egal(_a.etats("cratere").size(), 1, "un cratère")
-	verifier_egal(_a.etats("onde_choc").size(), 1, "et une onde de choc")
+	verifier_egal(_a.etats("cratere").size(), 2, "un cratère et son éclat clair")
+	verifier_egal(_a.etats("onde_choc").size(), 2, "et une onde de choc et son éclat")
 	verifier(_a.diametre_max() <= DIAMETRE_MAX_CIBLE_UNIQUE, "au plus 60 px sur une cible seule")
 	verifier(_a.gel_restant() > 0.0, "coup de siège : le gel visuel")
 	verifier(_a.particules_actives() >= 1, "des éclats de pierre")
@@ -334,3 +336,39 @@ func test_le_projectile_d_une_bombe_retombe_ou_la_vue_pose_la_bombe() -> void:
 		verifier_egal(effets.elementaires().etats("explosion_feu").size(), 0, "pas d'explosion")
 		poses.free()
 		effets.free()
+
+
+# --- Le coup d'une cible seule se lit : sombre sur l'herbe, premier éclat clair -------------------
+
+
+func _luminance_max(planches: Array) -> float:
+	var maxi_lum: float = 0.0
+	for planche: String in planches:
+		for etat: Dictionary in _a.etats(planche):
+			if etat["visible"]:
+				maxi_lum = maxf(maxi_lum, (etat["teinte"] as Color).get_luminance())
+	return maxi_lum
+
+
+func test_le_coup_d_une_cible_seule_est_sombre_avec_un_premier_eclat_clair_et_reste_petit() -> void:
+	for element: String in SEULES:
+		_a.vider()
+		_a.impacter(element, CIBLE, 0.0, true)
+		verifier(_luminance_max(["cratere", "onde_choc"]) > 0.85, "%s : éclat clair" % element)
+		_avancer(4)
+		verifier(
+			_luminance_max(["cratere", "onde_choc"]) < 0.65, "%s : brun ou gris foncé" % element
+		)
+		verifier(_visibles(String(SEULES[element])) > 0, "%s : encore lisible" % element)
+		_a.vider()
+		_a.impacter(element, CIBLE, 0.0, true)
+		verifier(_a.diametre_max() <= DIAMETRE_MAX_CIBLE_UNIQUE, "%s : pas une zone" % element)
+		verifier(_a.gel_restant() > 0.0, "%s : le gel reste" % element)
+		verifier(
+			_a.opacite_max() <= AttaquesElementaires.ALPHA_MAX + 0.0001, "%s : opacité" % element
+		)
+
+
+func test_le_colosse_projette_plus_de_debris_que_la_catapulte() -> void:
+	verifier(AttaqueColosse.ECLATS >= 20, "au moins vingt éclats")
+	verifier(AttaqueColosse.ECLATS > 2 * AttaqueCatapulte.ECLATS, "bien plus que la catapulte")

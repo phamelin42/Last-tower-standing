@@ -16,7 +16,7 @@ const CONF: Dictionary = {
 	"bosse": 0.12,
 	"echelle": 1.7,
 }
-const ECLATS: int = 12
+const ECLATS: int = 22
 const ETINCELLES: int = 4
 const COULEUR_ECLATS := Color(0.5, 0.45, 0.4)
 const COULEUR_FORGE := Color(1.0, 0.55, 0.2)
@@ -43,10 +43,10 @@ func visibles() -> Dictionary:
 
 
 func impacter(
-	m: AttaquesElementaires, ou: Vector2, rayon_px: float, fort: bool, _de: Vector2, age: float
+	m: AttaquesElementaires, ou: Vector2, _rayon_px: float, fort: bool, _de: Vector2, age: float
 ) -> bool:
-	var cree: bool = frapper(m, "cratere", SEQ_CRATERE, ou, rayon_px, fort, age, COULEUR)
-	cree = frapper(m, "onde_choc", SEQ_ONDE, ou, rayon_px, false, age, COULEUR) or cree
+	var cree: bool = coup_seul(m, "cratere", SEQ_CRATERE, ou, fort, age, TEINTE_BRUN)
+	cree = coup_seul(m, "onde_choc", SEQ_ONDE, ou, false, age, TEINTE_PIERRE) or cree
 	m.salve(ou, ECLATS, COULEUR_ECLATS, 0.45, 80.0, 210.0, Vector2(0.0, 300.0), 2.0)
 	m.salve(
 		ou,
