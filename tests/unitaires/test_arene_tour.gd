@@ -53,7 +53,11 @@ func test_l_armure_de_la_tour_reduit_chaque_attaque() -> void:
 		var a := Arene.new(d, GRAINE)
 		_ennemi(a, Vector2(100, 0), 100.0, 40.0, 0.01)
 		a.avancer(DT)
-		var attendu := float(d.partie["tour"]["pv"]) - Combat.degats_subis(100.0, armure)
+		# L'armure réduit chaque attaque, sans jamais la ramener sous le plancher de la tour
+		# (`reduction_degats_max` : 15 % des dégâts bruts passent toujours).
+		var plancher := 100.0 * (1.0 - float(d.partie["reduction_degats_max"]))
+		var subi := maxf(Combat.degats_subis(100.0, armure), plancher)
+		var attendu := float(d.partie["tour"]["pv"]) - subi
 		verifier_proche(_vue(a).tour_pv, attendu, 0.01, "armure %s" % armure)
 		verifier_proche(_vue(a).tour_armure, armure, 0.0001, "la vue affiche l'armure")
 	verifier_proche(Combat.degats_subis(100.0, 20.0), 50.0, 0.01, "contrôle : 20 d'armure = −50 %")
@@ -114,7 +118,12 @@ func test_une_esquive_tres_haute_evite_presque_tout() -> void:
 	_ennemi(a, Vector2(100, 0), 1.0, 40.0, CADENCE_TEST)
 	_avancer(a, 400)
 	var subi := 1000.0 - _vue(a).tour_pv
-	verifier(subi < 20.0, "moins de 10 %% des 200 attaques passent (reçu %s)" % subi)
+	# Le plancher de la tour (15 % des dégâts bruts) l'emporte : l'esquive ne la rend pas
+	# invulnérable. Les 200 attaques valent 200 points bruts, quelques-unes passent en entier.
+	var brut := 200.0
+	var plancher := brut * (1.0 - float(d.partie["reduction_degats_max"]))
+	verifier(subi >= plancher - 0.01, "au moins le plancher passe (reçu %s)" % subi)
+	verifier(subi < plancher + 0.1 * brut, "peu au-delà du plancher (reçu %s)" % subi)
 
 
 func test_esquive_moyenne_evite_une_part_des_attaques() -> void:
