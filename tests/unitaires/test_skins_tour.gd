@@ -70,10 +70,19 @@ func test_chaque_skin_a_son_sprite_dans_les_bornes_de_taille() -> void:
 		verifier(
 			Rect2i(Vector2i.ZERO, img.get_size()).encloses(cadre), "%s : cadre dans l'image" % id
 		)
+		var visible := Vector2(cadre.size) * float(skin["echelle"])
 		verifier(
-			cadre.size.x <= BORNES.x and cadre.size.y <= BORNES.y,
-			"%s : %s tient dans %s" % [id, cadre.size, BORNES]
+			visible.x <= BORNES.x and visible.y <= BORNES.y,
+			"%s : %s à l'échelle tient dans %s" % [id, visible, BORNES]
 		)
+
+
+func test_les_skins_realistes_ont_une_image_lissee() -> void:
+	for id: String in d.skins_tour:
+		if id == "defaut":
+			continue
+		var skin: Dictionary = d.skins_tour[id]
+		verifier_egal(String(skin.get("filtre", "")), "lineaire", "%s : filtre linéaire" % id)
 
 
 func test_un_skin_par_defi_et_un_defi_par_skin() -> void:

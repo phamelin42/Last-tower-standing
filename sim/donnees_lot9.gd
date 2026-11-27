@@ -18,6 +18,9 @@ static func valider_partie_lot9(p: Dictionary, err: Array[String]) -> void:
 		var r: Dictionary = p["repoussement"]
 		Donnees._nombre(r, Donnees._pos("distance_max"), f, "repoussement", err)
 		Donnees._nombre(r, Donnees._ratio("facteur_boss"), f, "repoussement", err)
+	if Donnees._objet(p, "controle_boss", f, "", err):
+		var c: Dictionary = p["controle_boss"]
+		Donnees._nombre(c, Donnees._spec("immunite_s", 0.0, true, 60.0), f, "controle_boss", err)
 	if Donnees._objet(p, "limites", f, "", err):
 		var l: Dictionary = p["limites"]
 		for nom: String in ["allies", "zones", "bombes"]:
