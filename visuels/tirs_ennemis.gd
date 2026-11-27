@@ -47,10 +47,10 @@ func configurer(donnees: Donnees) -> void:
 	for f: int in donnees.familles.size():
 		var famille: Dictionary = donnees.familles[f]
 		var portee: float = float(famille["portee_attaque"])
-		var tire: bool = portee > Apparence.PORTEE_CORPS_A_CORPS
+		var tire: bool = not Apparence.attaque_au_contact(donnees, f)
 		var cadence: float = float(famille["cadence_attaque"])
 		_periodes.append(1.0 / cadence if tire and cadence > 0.0 else 0.0)
-		_arrets.append(Apparence.distance_arret(portee, rayon_tour))
+		_arrets.append(Apparence.distance_arret(portee, rayon_tour, int(not tire)))
 		_en_arc.append(1 if int(famille["classe_portee"]) == Types.ClassePortee.MOYENNE else 0)
 
 
