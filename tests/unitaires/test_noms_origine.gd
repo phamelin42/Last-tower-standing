@@ -60,7 +60,9 @@ static func violations(
 	chemin: String, contenu: String, noms: PackedStringArray
 ) -> PackedStringArray:
 	var trouvees := PackedStringArray()
-	var source := NomsOrigine.sans_chemins_d_images(contenu) if chemin.ends_with(".gd") else contenu
+	# Les chemins d'images du pack (code, et `data/assets.json` depuis T10.4) ne sont pas des noms.
+	var avec_chemins := chemin.ends_with(".gd") or chemin.ends_with("data/assets.json")
+	var source := NomsOrigine.sans_chemins_d_images(contenu) if avec_chemins else contenu
 	var lignes := source.split("\n")
 	var courants := PackedStringArray()
 	for nom: String in noms:
