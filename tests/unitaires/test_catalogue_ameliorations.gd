@@ -40,7 +40,10 @@ const CIBLES: Dictionary = {
 	"aura_mixte": 1,
 	"critique": 2,
 }
-const TOTAL_FINAL := 87
+const TOTAL_LOT_9 := 87
+## Améliorations de fin de partie (D23, T12.7b) : une ancestrale et une souveraine par épique.
+const TARDIVES := 20
+const TOTAL_FINAL := TOTAL_LOT_9 + TARDIVES
 
 ## Les 18 améliorations de T9.10 : id → [famille, stat, clé du paramètre (type, classe ou état)].
 const NOUVELLES: Dictionary = {
@@ -92,7 +95,7 @@ func test_les_cibles_couvrent_les_quinze_familles_et_totalisent_87() -> void:
 	for famille: String in Types.FAMILLES_AMELIORATION:
 		verifier(CIBLES.has(famille), "cible de %s" % famille)
 		somme += int(CIBLES.get(famille, 0))
-	verifier_egal(somme, TOTAL_FINAL)
+	verifier_egal(somme, TOTAL_LOT_9)
 	for famille: String in FAMILLES_TERMINEES:
 		verifier(CIBLES.has(famille), "%s est une famille connue" % famille)
 
@@ -108,7 +111,7 @@ func test_les_familles_terminees_atteignent_leur_cible() -> void:
 
 
 func test_aucune_famille_ne_depasse_le_total_final() -> void:
-	verifier(_donnees.ameliorations.size() <= TOTAL_FINAL, "au plus 87 améliorations")
+	verifier(_donnees.ameliorations.size() <= TOTAL_FINAL, "au plus 107 améliorations")
 
 
 func test_les_quinze_familles_sont_terminees_et_le_lot_ne_derive_pas() -> void:
@@ -130,7 +133,7 @@ func test_chaque_famille_atteint_sa_cible_et_le_total_est_87() -> void:
 		)
 	for famille: Variant in effectifs:
 		verifier(CIBLES.has(famille), "famille inconnue : %s" % famille)
-	verifier_egal(_donnees.ameliorations.size(), TOTAL_FINAL, "exactement 87 améliorations")
+	verifier_egal(_donnees.ameliorations.size(), TOTAL_FINAL, "87 du lot 9 et 20 de fin de partie")
 
 
 func test_les_87_ameliorations_ont_un_id_un_nom_une_image_et_une_description_uniques() -> void:
@@ -235,11 +238,14 @@ func test_chaque_nouvelle_amelioration_a_un_nom_et_une_description_uniques() -> 
 		verifier_faux(texte.contains("'"), "%s : apostrophe typographique" % id)
 
 
+## Hors raretés de fin de partie : celles-ci (D23) ajoutent de la puissance et c'est le plafond
+## `facteur_degats_max` de `Tir.facteur_degats` qui les borne, pas cette garde du lot 9.
 func test_le_produit_des_facteurs_reste_sous_le_plafond_avec_toutes_les_ameliorations() -> void:
 	var plafond := float((_donnees.partie["ameliorations"] as Dictionary)["facteur_degats_max"])
 	var inventaire := Inventaire.new(_donnees)
 	for id: String in _donnees.ameliorations:
-		inventaire.ajouter(id)
+		if int((_donnees.ameliorations[id] as Dictionary)["rarete"]) < Types.Rarete.ANCESTRALE:
+			inventaire.ajouter(id)
 	var stats := inventaire.stats()
 	var tous_les_bits := Types.STATUT_ETOURDI | Types.STATUT_EMPOISONNE | Types.STATUT_RALENTI
 	var pire := 0.0
