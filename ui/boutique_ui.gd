@@ -17,6 +17,7 @@ const ACTIONS_OFFRES: Array[String] = [
 	"boutique_offre_1", "boutique_offre_2", "boutique_offre_3", "boutique_offre_4"
 ]
 const ACTION_RELANCER := "boutique_relancer"
+const ACTION_TOUT_ACHETER := "boutique_tout_acheter"
 const ACTION_REPLIER := "boutique_replier"
 const NB_OFFRES := 4
 const HAUTEUR_CONTROLE := 48.0
@@ -85,6 +86,8 @@ var _prix: Array[Label] = []
 var _notes: Array[Label] = []
 var _achats: Array[Button] = []
 var _relance: Button
+var _tout_acheter: Button
+var _vue: VueArene = null
 var _note_relance: Label
 var _message: Label
 var _noir: VBoxContainer
@@ -149,6 +152,9 @@ func _construire_bandeau() -> void:
 	# ligne mordait sur son cadre. Les glyphes font 12 px : deux lignes serrées y tiennent.
 	_relance.add_theme_constant_override("line_spacing", INTERLIGNE_RELANCE)
 	actions.add_child(_relance)
+	_tout_acheter = _bouton(Callable(self, "tout_acheter"))
+	_tout_acheter.name = "ToutAcheter"
+	actions.add_child(_tout_acheter)
 	_note_relance = _etiquette("NoteRelance")
 	_message = _etiquette("Message")
 	for libelle: Label in [_note_relance, _message]:
@@ -334,11 +340,13 @@ func _regler_images() -> void:
 
 
 func afficher(vue: VueArene) -> void:
+	_vue = vue
 	_offres = vue.offres
 	for i: int in NB_OFFRES:
 		var offre: Dictionary = vue.offres[i] if i < vue.offres.size() else {}
 		_afficher_carte(i, offre, vue)
 	_afficher_relance(vue)
+	_afficher_tout_acheter(vue)
 	_noir.visible = vue.marche_noir_ouvert
 	_afficher_armes(vue)
 	_afficher_ameliorations(vue)
@@ -359,6 +367,14 @@ func relancer() -> void:
 		_source.relancer()
 
 
+## Achète tout ce que l'or permet sur les offres affichées, de la moins chère à la plus chère.
+func tout_acheter() -> void:
+	if _source == null or _vue == null:
+		return
+	for index: int in AchatsGroupes.ordre_tout_acheter(_vue):
+		_source.acheter(index)
+
+
 ## Les raccourcis n'agissent que si la boutique est visible et qu'aucun champ de saisie ne
 ## porte le focus : taper un nom dans le salon ne doit rien acheter.
 func _unhandled_input(event: InputEvent) -> void:
@@ -374,6 +390,10 @@ func _unhandled_input(event: InputEvent) -> void:
 			return
 	if InputMap.has_action(ACTION_RELANCER) and event.is_action_pressed(ACTION_RELANCER):
 		relancer()
+		_consommer()
+		return
+	if InputMap.has_action(ACTION_TOUT_ACHETER) and event.is_action_pressed(ACTION_TOUT_ACHETER):
+		tout_acheter()
 		_consommer()
 		return
 	if InputMap.has_action(ACTION_REPLIER) and event.is_action_pressed(ACTION_REPLIER):
@@ -481,7 +501,7 @@ func _construire_carte(i: int) -> PanelContainer:
 	colonne.add_child(note)
 	# Carte compacte (D13) : l'effet entier et l'ambiance se lisent dans l'infobulle de la carte.
 	var achat := _bouton(Callable(self, "acheter_offre").bind(i))
-	achat.text = tr("BOUTIQUE_ACHETER")
+	achat.text = _libelle_achat(i)
 	achat.theme_type_variation = ThemeJeu.TYPE_ACHAT
 	colonne.add_child(achat)
 	_cartes.append(carte)
@@ -558,6 +578,7 @@ func _choisir_noir(id: String) -> void:
 
 
 func _afficher_carte(i: int, offre: Dictionary, vue: VueArene) -> void:
+	_achats[i].text = _libelle_achat(i)
 	_achats[i].disabled = offre.is_empty() or bool(offre["vendu"])
 	_cartes[i].modulate.a = 1.0
 	if offre.is_empty():
@@ -640,6 +661,21 @@ func _poser_reperes(i: int, entree: Dictionary, genre: int) -> void:
 
 ## « Relancer » sur une ligne, le prix sur la suivante : le retour à la ligne est voulu, pour que
 ## le prix ne se coupe jamais au milieu (« 50 » / « or »).
+func _libelle_achat(i: int) -> String:
+	var touche := AchatsGroupes.touche_de(ACTIONS_OFFRES[i])
+	return tr("BOUTIQUE_ACHETER_TOUCHE") % touche if touche != "" else tr("BOUTIQUE_ACHETER")
+
+
+## « Tout acheter » : actif quand au moins une offre se paie, la touche liée en suffixe.
+func _afficher_tout_acheter(vue: VueArene) -> void:
+	var touche := AchatsGroupes.touche_de(ACTION_TOUT_ACHETER)
+	_tout_acheter.text = (
+		tr("BOUTIQUE_TOUT_ACHETER_TOUCHE") % touche if touche != "" else tr("BOUTIQUE_TOUT_ACHETER")
+	)
+	_tout_acheter.disabled = AchatsGroupes.ordre_tout_acheter(vue).is_empty()
+	_tout_acheter.tooltip_text = tr("BOUTIQUE_TOUT_ACHETER_AIDE")
+
+
 func _libelle_relance(detail: String) -> String:
 	return tr("BOUTIQUE_RELANCER") + "\n" + detail
 
