@@ -1388,14 +1388,24 @@
           1.0,
           0.82,
           0.45
-        ]
+        ],
+        "marque": {
+          "vol": "marque_traine",
+          "impact": "marque_braises",
+          "impact_image_fixe": 1
+        }
       },
       "souveraine": {
         "teinte": [
           1.0,
           0.55,
           0.62
-        ]
+        ],
+        "marque": {
+          "vol": "marque_etoile",
+          "impact": "marque_eclat",
+          "impact_image_fixe": 2
+        }
       }
     },
     "familles_tardives": {
@@ -1457,7 +1467,8 @@
       },
       "couronne_du_vide": {
         "famille": "ruines",
-        "rarete": "souveraine"
+        "rarete": "souveraine",
+        "disque": "disque_vide"
       }
     }
   },
@@ -1815,7 +1826,11 @@
         "bombe_meche",
         "depart",
         "etincelle",
-        "ombre"
+        "ombre",
+        "marque_traine",
+        "marque_braises",
+        "marque_etoile",
+        "marque_eclat"
       ],
       "planches": {
         "bombe_meche": {
@@ -2316,6 +2331,41 @@
           "visible": 30.0,
           "images_par_seconde": 6.0
         },
+        "marque_traine": {
+          "case": {
+            "largeur": 24,
+            "hauteur": 12
+          }
+        },
+        "marque_braises": {
+          "case": {
+            "largeur": 20,
+            "hauteur": 20
+          },
+          "visible": 20.0
+        },
+        "marque_etoile": {
+          "case": {
+            "largeur": 24,
+            "hauteur": 12
+          },
+          "images_par_seconde": 10.0
+        },
+        "marque_eclat": {
+          "case": {
+            "largeur": 20,
+            "hauteur": 20
+          },
+          "visible": 20.0
+        },
+        "disque_vide": {
+          "case": {
+            "largeur": 32,
+            "hauteur": 16
+          },
+          "visible": 30.0,
+          "images_par_seconde": 6.0
+        },
         "gravats": {
           "case": {
             "largeur": 12,
@@ -2465,6 +2515,9 @@
         "couperet": [
           "couperet",
           "entaille"
+        ],
+        "couronne_du_vide": [
+          "disque_vide"
         ],
         "couronne_etoiles": [
           "eclat_astral",

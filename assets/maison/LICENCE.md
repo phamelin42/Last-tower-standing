@@ -19,7 +19,8 @@ créneau, gravats, bloc du colosse, disques au sol des braises et des ruines, on
 urne, goutte de sang, engrenages jumeaux, sceau brisé, flèche spectrale, éclat de discorde, coupe, cendre,
 maléfice et allié invoqué ; puis, pour les attaques du chaos (T9.19), gerbes de sang, d'engrenages, de
 sceau et d'éclaboussure spectrale, pointes de discorde, volutes d'oubli, nuage de cendre, éclat de maléfice,
-apparitions de la sentinelle et de l'archère, coup de la sentinelle), dessinés par
+apparitions de la sentinelle et de l'archère, coup de la sentinelle ; puis les marques de rareté des armes de
+fin de partie : traînée, braises, étoile et éclat ; et le tapis de la couronne du vide), dessinés par
 `tools/dessiner_effets_attaques.gd` dans le style et la palette de Tiny Swords : aplats, gros
 pixels, contour sombre. Aucun fichier de Tiny Swords n'est copié : seules quelques teintes de
 `Effects/Fire/Fire.png` et `Effects/Explosion/Explosions.png` ont été relevées. Le script fait foi :

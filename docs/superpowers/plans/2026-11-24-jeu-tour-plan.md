@@ -2458,8 +2458,11 @@ les cinq qui suivent touchent le rendu des attaques et des unités, dans `visuel
       l'impact, zoom 2,0, de 55 à 154 px, 51 à 92 px et 86 à 218 px, sous les 100 px des plus petites zones de siège.
       Exception à la règle D22 « cible unique : 60 px au plus », qui reste vraie pour les autres armes ; écrite dans
       `CLAUDE.md` et dans les tests.
-- [ ] **(12) Marque de rareté des armes de fin de partie : en cours (autre session).** `visuels/attaques/attaque_tardive.gd`,
-      `raretes_tardives` de `data/assets.json`, planches de `couronne_du_vide` et `champ_de_ruines`.
+- [x] **(12) Marque de rareté des armes de fin de partie : fait (PR #163).** Une forme, pas une couleur, dans
+      l'effet lui-même, sans plaque : ancestrale, une courte traînée de tirets et trois braises à l'impact ; souveraine,
+      une petite étoile qui scintille et un éclat d'étoile à l'impact (planches neutres teintées par la rareté,
+      `signatures.raretes_tardives.<rareté>.marque`). `couronne_du_vide` a son propre tapis (`disque_vide`). La marque
+      reste discrète en foule, comme Phil l'a voulu (27/11/2026). Tests : `test_marques_rarete`.
 
 # Lot 12 — Armes de fin de partie et niveaux d'arme (décision de Phil du 27/11/2026, D23)
 
