@@ -73,4 +73,13 @@ static func scripts() -> Array[GDScript]:
 		AttaqueColosse,
 		AttaqueRuines,
 		AttaqueSalve,
+		AttaqueUrne,
+		AttaquePacte,
+		AttaqueJumeau,
+		AttaqueSerment,
+		AttaqueArchere,
+		AttaqueDiscorde,
+		AttaqueCoupe,
+		AttaqueLegion,
+		AttaqueMalefices,
 	]
