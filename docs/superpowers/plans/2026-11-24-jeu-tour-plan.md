@@ -2624,6 +2624,10 @@ validation de Phil sur la planche ; T12.9 après T12.1 à T12.7b ; T12.11 apr�
 - **Leviers :** gain de dégâts par niveau (`niveaux.gain_degats`) et **gain de cadence par niveau
   (`niveaux.gain_cadence`, 0,20 : retenue par T12.1, à reconfirmer par cette mesure)**, rendement, prix et poids des raretés
   tardives, valeur des améliorations tardives ; **jamais** un plafond de PV du boss ni de la rampe.
+- **Rampe de dégâts ennemis (Phil, 27/11/2026 : « à laisser au lot 12 »)** : `apres_table.degats` de
+  `data/difficulte.json` passe de 1,06 à 1,14 par manche d'après la mesure du 27/11 (chiffres dans
+  `docs/equilibrage.md`, § « Rampe de dégâts ennemis »), **non appliquée** : à rejouer ici avec les armes tardives
+  sur 10 graines, puis à relire à la lumière de la définition de « partie gagnable » de Phil.
 - **Fichiers :** `tests/outils/strategies_joueur.gd`, `tests/outils/simulation_equilibrage.gd`, `data/`,
   `docs/equilibrage.md`, `tools/equilibrage.gd` ; tests `test_equilibrage_partie.gd`.
 - **Tests :** `test_le_boss_n_est_pas_plafonne` (lit `data/ennemis.json` et `data/difficulte.json`) ;

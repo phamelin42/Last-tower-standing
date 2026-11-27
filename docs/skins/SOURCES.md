@@ -27,8 +27,8 @@ vivent dans `data/skins_tour.json` ; changer un skin demande de remplacer le PNG
 - Les deux tours de garde (pierre, bois) portent un losange de sol dans l'image de l'auteur.
 - Les sprites sont réduits (Lanczos), jamais retouchés dans leur contenu.
 - Les superpositions (D19) suivent l'échelle du skin : elles apparaissent vers 0,66 de leur taille de conception.
-- Les CC-BY 3.0 (Varkalandar, rubberduck, Bleed, MedicineStorm, tir2, mold, Snabisch) sont à créditer dans
-  `CREDITS.md` (T9.22).
+- Les CC-BY 3.0 (Varkalandar, rubberduck, Bleed, MedicineStorm, tir2, mold, Snabisch) sont créditées dans
+  `CREDITS.md`.
 
 ## Historique
 
