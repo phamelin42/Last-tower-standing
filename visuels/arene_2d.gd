@@ -568,7 +568,20 @@ func _plus_proche(positions: Array[Vector2], ou: Vector2) -> int:
 ## Un impact devient visible : les ennemis affichés à cet endroit réagissent (flash et recul).
 func _sur_impact_visible(ou: Vector2, rayon: float, fort: bool) -> void:
 	var echantillon: Dictionary = _echantillon_courant()
-	_reactions.toucher(ou, rayon, echantillon["ids"], echantillon["pos"], Vector2.ZERO, fort)
+	var ids: PackedInt32Array = echantillon["ids"]
+	var positions: PackedVector2Array = echantillon["pos"]
+	if not _mourants.is_empty():
+		# Les ennemis retenus en attendant ce coup passent les premiers : c'est lui qui les tue.
+		var avec_morts: PackedInt32Array = PackedInt32Array()
+		var positions_avec: PackedVector2Array = PackedVector2Array()
+		for mourant: Dictionary in _mourants:
+			avec_morts.append(int(mourant["id"]))
+			positions_avec.append(mourant["p"])
+		avec_morts.append_array(ids)
+		positions_avec.append_array(positions)
+		ids = avec_morts
+		positions = positions_avec
+	_reactions.toucher(ou, rayon, ids, positions, Vector2.ZERO, fort)
 
 
 func _sur_impact_de_type(type_degats: int) -> void:
@@ -776,20 +789,38 @@ func _creer_mourant(avant: VueArene, rang: int, ou: Vector2) -> Dictionary:
 	var statut: int = avant.ennemis_statuts[rang] if rang < avant.ennemis_statuts.size() else 0
 	var teinte: Color = teinte_statut(statut)
 	var base: Color = _entrees[f]["couleur"]
-	sprite.modulate = Color(base.r * teinte.r, base.g * teinte.g, base.b * teinte.b, 1.0)
-	return {"sprite": sprite, "ou": ou, "id": id, "debut": _horloge}
+	var couleur := Color(base.r * teinte.r, base.g * teinte.g, base.b * teinte.b, 1.0)
+	sprite.modulate = couleur
+	return {
+		"sprite": sprite,
+		"ou": ou,
+		"id": id,
+		"debut": _horloge,
+		"p": p,
+		"couleur": couleur,
+		"pixels": Apparence.vers_pixels(p),
+	}
 
 
-## Le crâne remplace l'ennemi retenu dès que plus aucun impact ne le vise, ou au bout de
-## `DELAI_MORT_MAX`.
+## Le crâne remplace l'ennemi retenu une fois son flash fini, qui suit l'impact qui le tue (il
+## s'éclaircit et recule comme un ennemi touché), ou dès qu'aucun impact ne le vise ; en tout cas
+## au bout de `DELAI_MORT_MAX` : le flash est alors coupé, il ne rallonge jamais la mort.
 func _avancer_mourants() -> void:
 	for i: int in range(_mourants.size() - 1, -1, -1):
 		var mourant: Dictionary = _mourants[i]
 		var ou: Vector2 = mourant["ou"]
+		var id: int = int(mourant["id"])
 		var attente: float = _horloge - float(mourant["debut"])
-		if attente >= DELAI_MORT_MAX - MARGE_DELAI or _effets.delai_avant_impact(ou) < 0.0:
+		var impact_vu: bool = _effets.delai_avant_impact(ou) < 0.0
+		if attente >= DELAI_MORT_MAX - MARGE_DELAI or (impact_vu and _reactions.eclat(id) <= 1.0):
 			_liberer_mourant(i)
 			_montrer_crane(ou)
+			continue
+		var sprite: Sprite2D = mourant["sprite"]
+		sprite.position = _reactions.position_affichee(id, mourant["pixels"])
+		var couleur: Color = mourant["couleur"]
+		var eclat: float = _reactions.eclat(id)
+		sprite.modulate = Color(couleur.r * eclat, couleur.g * eclat, couleur.b * eclat, couleur.a)
 
 
 ## Le crâne en `ou`, et le son de mort avec lui s'il est montré.
