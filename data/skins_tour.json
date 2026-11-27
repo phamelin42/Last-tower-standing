@@ -2,6 +2,7 @@
   "defaut": {
     "sprite": "res://assets/tiny_swords/Factions/Knights/Buildings/Tower/Tower_Blue.png",
     "defi": "",
+    "echelle": 1.0,
     "marque": {
       "genre": "origine",
       "x": 10,
@@ -47,6 +48,7 @@
       "hauteur": 192
     },
     "defi": "premier_rempart",
+    "echelle": 1.14,
     "marque": {
       "genre": "origine",
       "x": 65,
@@ -86,6 +88,7 @@
   "tour_embuscade": {
     "sprite": "res://assets/tiny_swords/Factions/Goblins/Buildings/Wood_House/Goblin_House.png",
     "defi": "seul_piege",
+    "echelle": 0.99,
     "marque": {
       "genre": "fanion",
       "x": 100,
@@ -125,6 +128,7 @@
   "tour_comptoir": {
     "sprite": "res://assets/tiny_swords/Factions/Goblins/Buildings/Wood_House/Goblin_House.png",
     "defi": "banquier",
+    "echelle": 0.99,
     "marque": {
       "genre": "fanion",
       "x": 100,
@@ -164,6 +168,7 @@
   "tour_du_puits": {
     "sprite": "res://assets/tiny_swords/Factions/Knights/Buildings/Tower/Tower_Construction.png",
     "defi": "source_unique",
+    "echelle": 0.75,
     "marque": {
       "genre": "fanion",
       "x": 87,
@@ -203,6 +208,7 @@
   "tour_de_la_table_ronde": {
     "sprite": "res://assets/tiny_swords/Factions/Knights/Buildings/Tower/Tower_Construction.png",
     "defi": "compagnon_de_table",
+    "echelle": 0.75,
     "marque": {
       "genre": "fanion",
       "x": 87,
@@ -242,6 +248,7 @@
   "tour_rafistolee": {
     "sprite": "res://assets/tiny_swords/Factions/Goblins/Buildings/Wood_Tower/Wood_Tower_InConstruction.png",
     "defi": "a_un_cheveu",
+    "echelle": 0.92,
     "marque": {
       "genre": "fanion",
       "x": 151,
@@ -281,6 +288,7 @@
   "tour_survivante": {
     "sprite": "res://assets/tiny_swords/Factions/Knights/Buildings/Tower/Tower_Destroyed.png",
     "defi": "dernier_debout",
+    "echelle": 1.1,
     "marque": {
       "genre": "fanion",
       "x": 106,
@@ -320,6 +328,7 @@
   "tour_familiere": {
     "sprite": "res://assets/tiny_swords/Factions/Knights/Buildings/House/House_Blue.png",
     "defi": "habitue",
+    "echelle": 0.95,
     "marque": {
       "genre": "origine",
       "x": 30,
@@ -359,6 +368,7 @@
   "tour_du_dragon_avare": {
     "sprite": "res://assets/tours/mine_d_or.png",
     "defi": "thesauriseur",
+    "echelle": 1.39,
     "marque": {
       "genre": "origine",
       "x": 23,
@@ -398,6 +408,7 @@
   "tour_du_banquier": {
     "sprite": "res://assets/tours/mine_d_or.png",
     "defi": "grande_fortune",
+    "echelle": 1.39,
     "marque": {
       "genre": "origine",
       "x": 23,
@@ -431,6 +442,1846 @@
       "vol_de_vie": {
         "x": 96,
         "y": 62
+      }
+    }
+  },
+  "tour_de_pierre": {
+    "sprite": "res://assets/tours/spire_tour_06.png",
+    "cadre": {
+      "x": 0,
+      "y": 0,
+      "largeur": 64,
+      "hauteur": 128
+    },
+    "defi": "mi_parcours",
+    "echelle": 0.56,
+    "marque": {
+      "genre": "fanion",
+      "x": 44,
+      "y": 24,
+      "largeur": 16,
+      "hauteur": 24
+    },
+    "licence": "CC0 1.0",
+    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "ancrages": {
+      "epines": {
+        "x": 32,
+        "y": 83
+      },
+      "mana": {
+        "x": 32,
+        "y": 77
+      },
+      "armure": {
+        "x": 32,
+        "y": 95
+      },
+      "esquive": {
+        "x": 32,
+        "y": 70
+      },
+      "regen": {
+        "x": 32,
+        "y": 83
+      },
+      "vol_de_vie": {
+        "x": 32,
+        "y": 83
+      }
+    }
+  },
+  "tour_du_vainqueur": {
+    "sprite": "res://assets/tours/spire_tour_01.png",
+    "cadre": {
+      "x": 128,
+      "y": 0,
+      "largeur": 64,
+      "hauteur": 128
+    },
+    "defi": "siege_leve",
+    "echelle": 0.56,
+    "marque": {
+      "genre": "fanion",
+      "x": 44,
+      "y": 12,
+      "largeur": 16,
+      "hauteur": 24
+    },
+    "licence": "CC0 1.0",
+    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "ancrages": {
+      "epines": {
+        "x": 32,
+        "y": 78
+      },
+      "mana": {
+        "x": 32,
+        "y": 71
+      },
+      "armure": {
+        "x": 32,
+        "y": 92
+      },
+      "esquive": {
+        "x": 32,
+        "y": 63
+      },
+      "regen": {
+        "x": 32,
+        "y": 78
+      },
+      "vol_de_vie": {
+        "x": 32,
+        "y": 78
+      }
+    }
+  },
+  "tour_sans_horizon": {
+    "sprite": "res://assets/tours/spire_tour_07.png",
+    "cadre": {
+      "x": 128,
+      "y": 0,
+      "largeur": 64,
+      "hauteur": 128
+    },
+    "defi": "au_dela_du_boss",
+    "echelle": 0.56,
+    "marque": {
+      "genre": "fanion",
+      "x": 44,
+      "y": 7,
+      "largeur": 16,
+      "hauteur": 24
+    },
+    "licence": "CC0 1.0",
+    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "ancrages": {
+      "epines": {
+        "x": 32,
+        "y": 76
+      },
+      "mana": {
+        "x": 32,
+        "y": 69
+      },
+      "armure": {
+        "x": 32,
+        "y": 90
+      },
+      "esquive": {
+        "x": 32,
+        "y": 60
+      },
+      "regen": {
+        "x": 32,
+        "y": 76
+      },
+      "vol_de_vie": {
+        "x": 32,
+        "y": 76
+      }
+    }
+  },
+  "tour_lame": {
+    "sprite": "res://assets/tours/spire_tour_04.png",
+    "cadre": {
+      "x": 64,
+      "y": 0,
+      "largeur": 64,
+      "hauteur": 128
+    },
+    "defi": "seul_tranchant",
+    "echelle": 0.56,
+    "marque": {
+      "genre": "fanion",
+      "x": 44,
+      "y": 12,
+      "largeur": 16,
+      "hauteur": 24
+    },
+    "licence": "CC0 1.0",
+    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "ancrages": {
+      "epines": {
+        "x": 32,
+        "y": 78
+      },
+      "mana": {
+        "x": 32,
+        "y": 71
+      },
+      "armure": {
+        "x": 32,
+        "y": 92
+      },
+      "esquive": {
+        "x": 32,
+        "y": 63
+      },
+      "regen": {
+        "x": 32,
+        "y": 78
+      },
+      "vol_de_vie": {
+        "x": 32,
+        "y": 78
+      }
+    }
+  },
+  "tour_pointe": {
+    "sprite": "res://assets/tours/spire_tour_06.png",
+    "cadre": {
+      "x": 128,
+      "y": 0,
+      "largeur": 64,
+      "hauteur": 128
+    },
+    "defi": "seul_percant",
+    "echelle": 0.56,
+    "marque": {
+      "genre": "fanion",
+      "x": 44,
+      "y": 7,
+      "largeur": 16,
+      "hauteur": 24
+    },
+    "licence": "CC0 1.0",
+    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "ancrages": {
+      "epines": {
+        "x": 32,
+        "y": 76
+      },
+      "mana": {
+        "x": 32,
+        "y": 69
+      },
+      "armure": {
+        "x": 32,
+        "y": 90
+      },
+      "esquive": {
+        "x": 32,
+        "y": 60
+      },
+      "regen": {
+        "x": 32,
+        "y": 76
+      },
+      "vol_de_vie": {
+        "x": 32,
+        "y": 76
+      }
+    }
+  },
+  "tour_arcane": {
+    "sprite": "res://assets/tours/spire_tour_05.png",
+    "cadre": {
+      "x": 0,
+      "y": 0,
+      "largeur": 64,
+      "hauteur": 128
+    },
+    "defi": "seul_magique",
+    "echelle": 0.56,
+    "marque": {
+      "genre": "fanion",
+      "x": 44,
+      "y": 22,
+      "largeur": 16,
+      "hauteur": 24
+    },
+    "licence": "CC0 1.0",
+    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "ancrages": {
+      "epines": {
+        "x": 32,
+        "y": 82
+      },
+      "mana": {
+        "x": 32,
+        "y": 76
+      },
+      "armure": {
+        "x": 32,
+        "y": 95
+      },
+      "esquive": {
+        "x": 32,
+        "y": 69
+      },
+      "regen": {
+        "x": 32,
+        "y": 82
+      },
+      "vol_de_vie": {
+        "x": 32,
+        "y": 82
+      }
+    }
+  },
+  "tour_bastion": {
+    "sprite": "res://assets/tours/spire_tour_04.png",
+    "cadre": {
+      "x": 128,
+      "y": 0,
+      "largeur": 64,
+      "hauteur": 128
+    },
+    "defi": "seul_siege",
+    "echelle": 0.56,
+    "marque": {
+      "genre": "fanion",
+      "x": 44,
+      "y": 3,
+      "largeur": 16,
+      "hauteur": 24
+    },
+    "licence": "CC0 1.0",
+    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "ancrages": {
+      "epines": {
+        "x": 32,
+        "y": 74
+      },
+      "mana": {
+        "x": 32,
+        "y": 67
+      },
+      "armure": {
+        "x": 32,
+        "y": 89
+      },
+      "esquive": {
+        "x": 32,
+        "y": 58
+      },
+      "regen": {
+        "x": 32,
+        "y": 74
+      },
+      "vol_de_vie": {
+        "x": 32,
+        "y": 74
+      }
+    }
+  },
+  "tour_fissure": {
+    "sprite": "res://assets/tours/spire_tour_05.png",
+    "cadre": {
+      "x": 128,
+      "y": 0,
+      "largeur": 64,
+      "hauteur": 128
+    },
+    "defi": "seul_chaos",
+    "echelle": 0.56,
+    "marque": {
+      "genre": "fanion",
+      "x": 44,
+      "y": 7,
+      "largeur": 16,
+      "hauteur": 24
+    },
+    "licence": "CC0 1.0",
+    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "ancrages": {
+      "epines": {
+        "x": 32,
+        "y": 76
+      },
+      "mana": {
+        "x": 32,
+        "y": 69
+      },
+      "armure": {
+        "x": 32,
+        "y": 90
+      },
+      "esquive": {
+        "x": 32,
+        "y": 60
+      },
+      "regen": {
+        "x": 32,
+        "y": 76
+      },
+      "vol_de_vie": {
+        "x": 32,
+        "y": 76
+      }
+    }
+  },
+  "tour_oeil": {
+    "sprite": "res://assets/tours/spire_tour_05.png",
+    "cadre": {
+      "x": 64,
+      "y": 0,
+      "largeur": 64,
+      "hauteur": 128
+    },
+    "defi": "seul_cible_unique",
+    "echelle": 0.56,
+    "marque": {
+      "genre": "fanion",
+      "x": 44,
+      "y": 14,
+      "largeur": 16,
+      "hauteur": 24
+    },
+    "licence": "CC0 1.0",
+    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "ancrages": {
+      "epines": {
+        "x": 32,
+        "y": 79
+      },
+      "mana": {
+        "x": 32,
+        "y": 72
+      },
+      "armure": {
+        "x": 32,
+        "y": 92
+      },
+      "esquive": {
+        "x": 32,
+        "y": 64
+      },
+      "regen": {
+        "x": 32,
+        "y": 79
+      },
+      "vol_de_vie": {
+        "x": 32,
+        "y": 79
+      }
+    }
+  },
+  "tour_nuee": {
+    "sprite": "res://assets/tours/spire_tour_07.png",
+    "cadre": {
+      "x": 64,
+      "y": 0,
+      "largeur": 64,
+      "hauteur": 128
+    },
+    "defi": "seul_zone",
+    "echelle": 0.56,
+    "marque": {
+      "genre": "fanion",
+      "x": 44,
+      "y": 16,
+      "largeur": 16,
+      "hauteur": 24
+    },
+    "licence": "CC0 1.0",
+    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "ancrages": {
+      "epines": {
+        "x": 32,
+        "y": 80
+      },
+      "mana": {
+        "x": 32,
+        "y": 73
+      },
+      "armure": {
+        "x": 32,
+        "y": 93
+      },
+      "esquive": {
+        "x": 32,
+        "y": 65
+      },
+      "regen": {
+        "x": 32,
+        "y": 80
+      },
+      "vol_de_vie": {
+        "x": 32,
+        "y": 80
+      }
+    }
+  },
+  "tour_ricochet": {
+    "sprite": "res://assets/tours/spire_tour_07.png",
+    "cadre": {
+      "x": 0,
+      "y": 0,
+      "largeur": 64,
+      "hauteur": 128
+    },
+    "defi": "seul_rebond",
+    "echelle": 0.56,
+    "marque": {
+      "genre": "fanion",
+      "x": 44,
+      "y": 25,
+      "largeur": 16,
+      "hauteur": 24
+    },
+    "licence": "CC0 1.0",
+    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "ancrages": {
+      "epines": {
+        "x": 32,
+        "y": 84
+      },
+      "mana": {
+        "x": 32,
+        "y": 78
+      },
+      "armure": {
+        "x": 32,
+        "y": 96
+      },
+      "esquive": {
+        "x": 32,
+        "y": 71
+      },
+      "regen": {
+        "x": 32,
+        "y": 84
+      },
+      "vol_de_vie": {
+        "x": 32,
+        "y": 84
+      }
+    }
+  },
+  "tour_sonore": {
+    "sprite": "res://assets/tours/spire_tour_03.png",
+    "cadre": {
+      "x": 0,
+      "y": 0,
+      "largeur": 64,
+      "hauteur": 128
+    },
+    "defi": "seul_onde",
+    "echelle": 0.56,
+    "marque": {
+      "genre": "fanion",
+      "x": 44,
+      "y": 31,
+      "largeur": 16,
+      "hauteur": 24
+    },
+    "licence": "CC0 1.0",
+    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "ancrages": {
+      "epines": {
+        "x": 32,
+        "y": 86
+      },
+      "mana": {
+        "x": 32,
+        "y": 81
+      },
+      "armure": {
+        "x": 32,
+        "y": 98
+      },
+      "esquive": {
+        "x": 32,
+        "y": 74
+      },
+      "regen": {
+        "x": 32,
+        "y": 86
+      },
+      "vol_de_vie": {
+        "x": 32,
+        "y": 86
+      }
+    }
+  },
+  "tour_salve": {
+    "sprite": "res://assets/tours/spire_tour_01.png",
+    "cadre": {
+      "x": 64,
+      "y": 0,
+      "largeur": 64,
+      "hauteur": 128
+    },
+    "defi": "seul_barrage",
+    "echelle": 0.56,
+    "marque": {
+      "genre": "fanion",
+      "x": 44,
+      "y": 21,
+      "largeur": 16,
+      "hauteur": 24
+    },
+    "licence": "CC0 1.0",
+    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "ancrages": {
+      "epines": {
+        "x": 32,
+        "y": 82
+      },
+      "mana": {
+        "x": 32,
+        "y": 76
+      },
+      "armure": {
+        "x": 32,
+        "y": 94
+      },
+      "esquive": {
+        "x": 32,
+        "y": 68
+      },
+      "regen": {
+        "x": 32,
+        "y": 82
+      },
+      "vol_de_vie": {
+        "x": 32,
+        "y": 82
+      }
+    }
+  },
+  "tour_sapeur": {
+    "sprite": "res://assets/tours/spire_tour_03.png",
+    "cadre": {
+      "x": 128,
+      "y": 0,
+      "largeur": 64,
+      "hauteur": 128
+    },
+    "defi": "seul_mine",
+    "echelle": 0.56,
+    "marque": {
+      "genre": "fanion",
+      "x": 44,
+      "y": 1,
+      "largeur": 16,
+      "hauteur": 24
+    },
+    "licence": "CC0 1.0",
+    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "ancrages": {
+      "epines": {
+        "x": 32,
+        "y": 73
+      },
+      "mana": {
+        "x": 32,
+        "y": 66
+      },
+      "armure": {
+        "x": 32,
+        "y": 88
+      },
+      "esquive": {
+        "x": 32,
+        "y": 57
+      },
+      "regen": {
+        "x": 32,
+        "y": 73
+      },
+      "vol_de_vie": {
+        "x": 32,
+        "y": 73
+      }
+    }
+  },
+  "tour_halo": {
+    "sprite": "res://assets/tours/spire_tour_08.png",
+    "cadre": {
+      "x": 0,
+      "y": 0,
+      "largeur": 64,
+      "hauteur": 192
+    },
+    "defi": "seul_aura",
+    "echelle": 0.56,
+    "marque": {
+      "genre": "fanion",
+      "x": 44,
+      "y": 94,
+      "largeur": 16,
+      "hauteur": 24
+    },
+    "licence": "CC0 1.0",
+    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "ancrages": {
+      "epines": {
+        "x": 32,
+        "y": 150
+      },
+      "mana": {
+        "x": 32,
+        "y": 144
+      },
+      "armure": {
+        "x": 32,
+        "y": 161
+      },
+      "esquive": {
+        "x": 32,
+        "y": 137
+      },
+      "regen": {
+        "x": 32,
+        "y": 150
+      },
+      "vol_de_vie": {
+        "x": 32,
+        "y": 150
+      }
+    }
+  },
+  "tour_manege": {
+    "sprite": "res://assets/tours/spire_tour_04.png",
+    "cadre": {
+      "x": 0,
+      "y": 0,
+      "largeur": 64,
+      "hauteur": 128
+    },
+    "defi": "seul_tournant",
+    "echelle": 0.56,
+    "marque": {
+      "genre": "fanion",
+      "x": 44,
+      "y": 21,
+      "largeur": 16,
+      "hauteur": 24
+    },
+    "licence": "CC0 1.0",
+    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "ancrages": {
+      "epines": {
+        "x": 32,
+        "y": 82
+      },
+      "mana": {
+        "x": 32,
+        "y": 76
+      },
+      "armure": {
+        "x": 32,
+        "y": 94
+      },
+      "esquive": {
+        "x": 32,
+        "y": 68
+      },
+      "regen": {
+        "x": 32,
+        "y": 82
+      },
+      "vol_de_vie": {
+        "x": 32,
+        "y": 82
+      }
+    }
+  },
+  "tour_venimeuse": {
+    "sprite": "res://assets/tours/spire_tour_02.png",
+    "cadre": {
+      "x": 128,
+      "y": 0,
+      "largeur": 64,
+      "hauteur": 192
+    },
+    "defi": "seul_poison",
+    "echelle": 0.56,
+    "marque": {
+      "genre": "fanion",
+      "x": 44,
+      "y": 64,
+      "largeur": 16,
+      "hauteur": 24
+    },
+    "licence": "CC0 1.0",
+    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "ancrages": {
+      "epines": {
+        "x": 32,
+        "y": 137
+      },
+      "mana": {
+        "x": 32,
+        "y": 129
+      },
+      "armure": {
+        "x": 32,
+        "y": 152
+      },
+      "esquive": {
+        "x": 32,
+        "y": 121
+      },
+      "regen": {
+        "x": 32,
+        "y": 137
+      },
+      "vol_de_vie": {
+        "x": 32,
+        "y": 137
+      }
+    }
+  },
+  "tour_braise": {
+    "sprite": "res://assets/tours/spire_tour_02.png",
+    "cadre": {
+      "x": 64,
+      "y": 0,
+      "largeur": 64,
+      "hauteur": 192
+    },
+    "defi": "seul_brulure",
+    "echelle": 0.56,
+    "marque": {
+      "genre": "fanion",
+      "x": 44,
+      "y": 73,
+      "largeur": 16,
+      "hauteur": 24
+    },
+    "licence": "CC0 1.0",
+    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "ancrages": {
+      "epines": {
+        "x": 32,
+        "y": 141
+      },
+      "mana": {
+        "x": 32,
+        "y": 134
+      },
+      "armure": {
+        "x": 32,
+        "y": 155
+      },
+      "esquive": {
+        "x": 32,
+        "y": 126
+      },
+      "regen": {
+        "x": 32,
+        "y": 141
+      },
+      "vol_de_vie": {
+        "x": 32,
+        "y": 141
+      }
+    }
+  },
+  "tour_gelee": {
+    "sprite": "res://assets/tours/spire_tour_02.png",
+    "cadre": {
+      "x": 0,
+      "y": 0,
+      "largeur": 64,
+      "hauteur": 192
+    },
+    "defi": "seul_givre",
+    "echelle": 0.56,
+    "marque": {
+      "genre": "fanion",
+      "x": 44,
+      "y": 82,
+      "largeur": 16,
+      "hauteur": 24
+    },
+    "licence": "CC0 1.0",
+    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "ancrages": {
+      "epines": {
+        "x": 32,
+        "y": 145
+      },
+      "mana": {
+        "x": 32,
+        "y": 138
+      },
+      "armure": {
+        "x": 32,
+        "y": 157
+      },
+      "esquive": {
+        "x": 32,
+        "y": 131
+      },
+      "regen": {
+        "x": 32,
+        "y": 145
+      },
+      "vol_de_vie": {
+        "x": 32,
+        "y": 145
+      }
+    }
+  },
+  "tour_tonnerre": {
+    "sprite": "res://assets/tours/spire_tour_08.png",
+    "cadre": {
+      "x": 64,
+      "y": 0,
+      "largeur": 64,
+      "hauteur": 192
+    },
+    "defi": "seul_etourdissement",
+    "echelle": 0.56,
+    "marque": {
+      "genre": "fanion",
+      "x": 44,
+      "y": 85,
+      "largeur": 16,
+      "hauteur": 24
+    },
+    "licence": "CC0 1.0",
+    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "ancrages": {
+      "epines": {
+        "x": 32,
+        "y": 146
+      },
+      "mana": {
+        "x": 32,
+        "y": 140
+      },
+      "armure": {
+        "x": 32,
+        "y": 158
+      },
+      "esquive": {
+        "x": 32,
+        "y": 132
+      },
+      "regen": {
+        "x": 32,
+        "y": 146
+      },
+      "vol_de_vie": {
+        "x": 32,
+        "y": 146
+      }
+    }
+  },
+  "tour_sanguine": {
+    "sprite": "res://assets/tours/spire_tour_05.png",
+    "cadre": {
+      "x": 64,
+      "y": 0,
+      "largeur": 64,
+      "hauteur": 128
+    },
+    "defi": "seul_vol_de_vie",
+    "echelle": 0.56,
+    "marque": {
+      "genre": "fanion",
+      "x": 44,
+      "y": 14,
+      "largeur": 16,
+      "hauteur": 24
+    },
+    "licence": "CC0 1.0",
+    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "ancrages": {
+      "epines": {
+        "x": 32,
+        "y": 79
+      },
+      "mana": {
+        "x": 32,
+        "y": 72
+      },
+      "armure": {
+        "x": 32,
+        "y": 92
+      },
+      "esquive": {
+        "x": 32,
+        "y": 64
+      },
+      "regen": {
+        "x": 32,
+        "y": 79
+      },
+      "vol_de_vie": {
+        "x": 32,
+        "y": 79
+      }
+    }
+  },
+  "tour_monolame": {
+    "sprite": "res://assets/tours/spire_tour_04.png",
+    "cadre": {
+      "x": 0,
+      "y": 0,
+      "largeur": 64,
+      "hauteur": 128
+    },
+    "defi": "arme_unique",
+    "echelle": 0.56,
+    "marque": {
+      "genre": "fanion",
+      "x": 44,
+      "y": 21,
+      "largeur": 16,
+      "hauteur": 24
+    },
+    "licence": "CC0 1.0",
+    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "ancrages": {
+      "epines": {
+        "x": 32,
+        "y": 82
+      },
+      "mana": {
+        "x": 32,
+        "y": 76
+      },
+      "armure": {
+        "x": 32,
+        "y": 94
+      },
+      "esquive": {
+        "x": 32,
+        "y": 68
+      },
+      "regen": {
+        "x": 32,
+        "y": 82
+      },
+      "vol_de_vie": {
+        "x": 32,
+        "y": 82
+      }
+    }
+  },
+  "tour_du_duelliste": {
+    "sprite": "res://assets/tours/spire_tour_01.png",
+    "cadre": {
+      "x": 0,
+      "y": 0,
+      "largeur": 64,
+      "hauteur": 128
+    },
+    "defi": "arme_unique_endurante",
+    "echelle": 0.56,
+    "marque": {
+      "genre": "fanion",
+      "x": 44,
+      "y": 30,
+      "largeur": 16,
+      "hauteur": 24
+    },
+    "licence": "CC0 1.0",
+    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "ancrages": {
+      "epines": {
+        "x": 32,
+        "y": 86
+      },
+      "mana": {
+        "x": 32,
+        "y": 80
+      },
+      "armure": {
+        "x": 32,
+        "y": 97
+      },
+      "esquive": {
+        "x": 32,
+        "y": 73
+      },
+      "regen": {
+        "x": 32,
+        "y": 86
+      },
+      "vol_de_vie": {
+        "x": 32,
+        "y": 86
+      }
+    }
+  },
+  "tour_du_tresor": {
+    "sprite": "res://assets/tours/spire_tour_08.png",
+    "cadre": {
+      "x": 128,
+      "y": 0,
+      "largeur": 64,
+      "hauteur": 192
+    },
+    "defi": "bourse_pleine",
+    "echelle": 0.56,
+    "marque": {
+      "genre": "fanion",
+      "x": 44,
+      "y": 76,
+      "largeur": 16,
+      "hauteur": 24
+    },
+    "licence": "CC0 1.0",
+    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "ancrages": {
+      "epines": {
+        "x": 32,
+        "y": 142
+      },
+      "mana": {
+        "x": 32,
+        "y": 135
+      },
+      "armure": {
+        "x": 32,
+        "y": 156
+      },
+      "esquive": {
+        "x": 32,
+        "y": 127
+      },
+      "regen": {
+        "x": 32,
+        "y": 142
+      },
+      "vol_de_vie": {
+        "x": 32,
+        "y": 142
+      }
+    }
+  },
+  "tour_ascete": {
+    "sprite": "res://assets/tours/spire_tour_06.png",
+    "cadre": {
+      "x": 0,
+      "y": 0,
+      "largeur": 64,
+      "hauteur": 128
+    },
+    "defi": "sans_rente",
+    "echelle": 0.56,
+    "marque": {
+      "genre": "fanion",
+      "x": 44,
+      "y": 24,
+      "largeur": 16,
+      "hauteur": 24
+    },
+    "licence": "CC0 1.0",
+    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "ancrages": {
+      "epines": {
+        "x": 32,
+        "y": 83
+      },
+      "mana": {
+        "x": 32,
+        "y": 77
+      },
+      "armure": {
+        "x": 32,
+        "y": 95
+      },
+      "esquive": {
+        "x": 32,
+        "y": 70
+      },
+      "regen": {
+        "x": 32,
+        "y": 83
+      },
+      "vol_de_vie": {
+        "x": 32,
+        "y": 83
+      }
+    }
+  },
+  "tour_du_chariot": {
+    "sprite": "res://assets/tours/spire_tour_03.png",
+    "cadre": {
+      "x": 64,
+      "y": 0,
+      "largeur": 64,
+      "hauteur": 128
+    },
+    "defi": "primes_en_cascade",
+    "echelle": 0.56,
+    "marque": {
+      "genre": "fanion",
+      "x": 44,
+      "y": 10,
+      "largeur": 16,
+      "hauteur": 24
+    },
+    "licence": "CC0 1.0",
+    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "ancrages": {
+      "epines": {
+        "x": 32,
+        "y": 77
+      },
+      "mana": {
+        "x": 32,
+        "y": 70
+      },
+      "armure": {
+        "x": 32,
+        "y": 91
+      },
+      "esquive": {
+        "x": 32,
+        "y": 62
+      },
+      "regen": {
+        "x": 32,
+        "y": 77
+      },
+      "vol_de_vie": {
+        "x": 32,
+        "y": 77
+      }
+    }
+  },
+  "tour_de_granit": {
+    "sprite": "res://assets/tours/spire_tour_06.png",
+    "cadre": {
+      "x": 64,
+      "y": 0,
+      "largeur": 64,
+      "hauteur": 128
+    },
+    "defi": "pierre_sans_fissure",
+    "echelle": 0.56,
+    "marque": {
+      "genre": "fanion",
+      "x": 44,
+      "y": 15,
+      "largeur": 16,
+      "hauteur": 24
+    },
+    "licence": "CC0 1.0",
+    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "ancrages": {
+      "epines": {
+        "x": 32,
+        "y": 79
+      },
+      "mana": {
+        "x": 32,
+        "y": 73
+      },
+      "armure": {
+        "x": 32,
+        "y": 93
+      },
+      "esquive": {
+        "x": 32,
+        "y": 65
+      },
+      "regen": {
+        "x": 32,
+        "y": 79
+      },
+      "vol_de_vie": {
+        "x": 32,
+        "y": 79
+      }
+    }
+  },
+  "tour_du_bouclier": {
+    "sprite": "res://assets/tours/spire_tour_06.png",
+    "cadre": {
+      "x": 64,
+      "y": 0,
+      "largeur": 64,
+      "hauteur": 128
+    },
+    "defi": "bouclier_intact",
+    "echelle": 0.56,
+    "marque": {
+      "genre": "fanion",
+      "x": 44,
+      "y": 15,
+      "largeur": 16,
+      "hauteur": 24
+    },
+    "licence": "CC0 1.0",
+    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "ancrages": {
+      "epines": {
+        "x": 32,
+        "y": 79
+      },
+      "mana": {
+        "x": 32,
+        "y": 73
+      },
+      "armure": {
+        "x": 32,
+        "y": 93
+      },
+      "esquive": {
+        "x": 32,
+        "y": 65
+      },
+      "regen": {
+        "x": 32,
+        "y": 79
+      },
+      "vol_de_vie": {
+        "x": 32,
+        "y": 79
+      }
+    }
+  },
+  "tour_cicatrisee": {
+    "sprite": "res://assets/tours/spire_tour_04.png",
+    "cadre": {
+      "x": 128,
+      "y": 0,
+      "largeur": 64,
+      "hauteur": 128
+    },
+    "defi": "sans_soin",
+    "echelle": 0.56,
+    "marque": {
+      "genre": "fanion",
+      "x": 44,
+      "y": 3,
+      "largeur": 16,
+      "hauteur": 24
+    },
+    "licence": "CC0 1.0",
+    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "ancrages": {
+      "epines": {
+        "x": 32,
+        "y": 74
+      },
+      "mana": {
+        "x": 32,
+        "y": 67
+      },
+      "armure": {
+        "x": 32,
+        "y": 89
+      },
+      "esquive": {
+        "x": 32,
+        "y": 58
+      },
+      "regen": {
+        "x": 32,
+        "y": 74
+      },
+      "vol_de_vie": {
+        "x": 32,
+        "y": 74
+      }
+    }
+  },
+  "tour_nue": {
+    "sprite": "res://assets/tours/spire_tour_06.png",
+    "cadre": {
+      "x": 0,
+      "y": 0,
+      "largeur": 64,
+      "hauteur": 128
+    },
+    "defi": "mains_nues",
+    "echelle": 0.56,
+    "marque": {
+      "genre": "fanion",
+      "x": 44,
+      "y": 24,
+      "largeur": 16,
+      "hauteur": 24
+    },
+    "licence": "CC0 1.0",
+    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "ancrages": {
+      "epines": {
+        "x": 32,
+        "y": 83
+      },
+      "mana": {
+        "x": 32,
+        "y": 77
+      },
+      "armure": {
+        "x": 32,
+        "y": 95
+      },
+      "esquive": {
+        "x": 32,
+        "y": 70
+      },
+      "regen": {
+        "x": 32,
+        "y": 83
+      },
+      "vol_de_vie": {
+        "x": 32,
+        "y": 83
+      }
+    }
+  },
+  "tour_a_faux": {
+    "sprite": "res://assets/tours/spire_tour_06.png",
+    "cadre": {
+      "x": 128,
+      "y": 0,
+      "largeur": 64,
+      "hauteur": 128
+    },
+    "defi": "fauchage",
+    "echelle": 0.56,
+    "marque": {
+      "genre": "fanion",
+      "x": 44,
+      "y": 7,
+      "largeur": 16,
+      "hauteur": 24
+    },
+    "licence": "CC0 1.0",
+    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "ancrages": {
+      "epines": {
+        "x": 32,
+        "y": 76
+      },
+      "mana": {
+        "x": 32,
+        "y": 69
+      },
+      "armure": {
+        "x": 32,
+        "y": 90
+      },
+      "esquive": {
+        "x": 32,
+        "y": 60
+      },
+      "regen": {
+        "x": 32,
+        "y": 76
+      },
+      "vol_de_vie": {
+        "x": 32,
+        "y": 76
+      }
+    }
+  },
+  "tour_arsenal": {
+    "sprite": "res://assets/tours/spire_tour_01.png",
+    "cadre": {
+      "x": 64,
+      "y": 0,
+      "largeur": 64,
+      "hauteur": 128
+    },
+    "defi": "arsenal_complet",
+    "echelle": 0.56,
+    "marque": {
+      "genre": "fanion",
+      "x": 44,
+      "y": 21,
+      "largeur": 16,
+      "hauteur": 24
+    },
+    "licence": "CC0 1.0",
+    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "ancrages": {
+      "epines": {
+        "x": 32,
+        "y": 82
+      },
+      "mana": {
+        "x": 32,
+        "y": 76
+      },
+      "armure": {
+        "x": 32,
+        "y": 94
+      },
+      "esquive": {
+        "x": 32,
+        "y": 68
+      },
+      "regen": {
+        "x": 32,
+        "y": 82
+      },
+      "vol_de_vie": {
+        "x": 32,
+        "y": 82
+      }
+    }
+  },
+  "tour_de_ronces": {
+    "sprite": "res://assets/tours/spire_tour_02.png",
+    "cadre": {
+      "x": 128,
+      "y": 0,
+      "largeur": 64,
+      "hauteur": 192
+    },
+    "defi": "haie_d_epines",
+    "echelle": 0.56,
+    "marque": {
+      "genre": "fanion",
+      "x": 44,
+      "y": 64,
+      "largeur": 16,
+      "hauteur": 24
+    },
+    "licence": "CC0 1.0",
+    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "ancrages": {
+      "epines": {
+        "x": 32,
+        "y": 137
+      },
+      "mana": {
+        "x": 32,
+        "y": 129
+      },
+      "armure": {
+        "x": 32,
+        "y": 152
+      },
+      "esquive": {
+        "x": 32,
+        "y": 121
+      },
+      "regen": {
+        "x": 32,
+        "y": 137
+      },
+      "vol_de_vie": {
+        "x": 32,
+        "y": 137
+      }
+    }
+  },
+  "tour_veterane": {
+    "sprite": "res://assets/tours/spire_tour_01.png",
+    "cadre": {
+      "x": 128,
+      "y": 0,
+      "largeur": 64,
+      "hauteur": 128
+    },
+    "defi": "veteran",
+    "echelle": 0.56,
+    "marque": {
+      "genre": "fanion",
+      "x": 44,
+      "y": 12,
+      "largeur": 16,
+      "hauteur": 24
+    },
+    "licence": "CC0 1.0",
+    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "ancrages": {
+      "epines": {
+        "x": 32,
+        "y": 78
+      },
+      "mana": {
+        "x": 32,
+        "y": 71
+      },
+      "armure": {
+        "x": 32,
+        "y": 92
+      },
+      "esquive": {
+        "x": 32,
+        "y": 63
+      },
+      "regen": {
+        "x": 32,
+        "y": 78
+      },
+      "vol_de_vie": {
+        "x": 32,
+        "y": 78
+      }
+    }
+  },
+  "tour_conquerante": {
+    "sprite": "res://assets/tours/spire_tour_08.png",
+    "cadre": {
+      "x": 64,
+      "y": 0,
+      "largeur": 64,
+      "hauteur": 192
+    },
+    "defi": "conquerant",
+    "echelle": 0.56,
+    "marque": {
+      "genre": "fanion",
+      "x": 44,
+      "y": 85,
+      "largeur": 16,
+      "hauteur": 24
+    },
+    "licence": "CC0 1.0",
+    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "ancrages": {
+      "epines": {
+        "x": 32,
+        "y": 146
+      },
+      "mana": {
+        "x": 32,
+        "y": 140
+      },
+      "armure": {
+        "x": 32,
+        "y": 158
+      },
+      "esquive": {
+        "x": 32,
+        "y": 132
+      },
+      "regen": {
+        "x": 32,
+        "y": 146
+      },
+      "vol_de_vie": {
+        "x": 32,
+        "y": 146
+      }
+    }
+  },
+  "tour_ossuaire": {
+    "sprite": "res://assets/tours/spire_tour_05.png",
+    "cadre": {
+      "x": 64,
+      "y": 0,
+      "largeur": 64,
+      "hauteur": 128
+    },
+    "defi": "faucheur_de_masse",
+    "echelle": 0.56,
+    "marque": {
+      "genre": "fanion",
+      "x": 44,
+      "y": 14,
+      "largeur": 16,
+      "hauteur": 24
+    },
+    "licence": "CC0 1.0",
+    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "ancrages": {
+      "epines": {
+        "x": 32,
+        "y": 79
+      },
+      "mana": {
+        "x": 32,
+        "y": 72
+      },
+      "armure": {
+        "x": 32,
+        "y": 92
+      },
+      "esquive": {
+        "x": 32,
+        "y": 64
+      },
+      "regen": {
+        "x": 32,
+        "y": 79
+      },
+      "vol_de_vie": {
+        "x": 32,
+        "y": 79
+      }
+    }
+  },
+  "tour_eternelle": {
+    "sprite": "res://assets/tours/spire_tour_04.png",
+    "cadre": {
+      "x": 64,
+      "y": 0,
+      "largeur": 64,
+      "hauteur": 128
+    },
+    "defi": "endurant",
+    "echelle": 0.56,
+    "marque": {
+      "genre": "fanion",
+      "x": 44,
+      "y": 12,
+      "largeur": 16,
+      "hauteur": 24
+    },
+    "licence": "CC0 1.0",
+    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "ancrages": {
+      "epines": {
+        "x": 32,
+        "y": 78
+      },
+      "mana": {
+        "x": 32,
+        "y": 71
+      },
+      "armure": {
+        "x": 32,
+        "y": 92
+      },
+      "esquive": {
+        "x": 32,
+        "y": 63
+      },
+      "regen": {
+        "x": 32,
+        "y": 78
+      },
+      "vol_de_vie": {
+        "x": 32,
+        "y": 78
+      }
+    }
+  },
+  "tour_du_dernier_rempart": {
+    "sprite": "res://assets/tours/spire_tour_08.png",
+    "cadre": {
+      "x": 128,
+      "y": 0,
+      "largeur": 64,
+      "hauteur": 192
+    },
+    "defi": "maitre_des_remparts",
+    "echelle": 0.56,
+    "marque": {
+      "genre": "fanion",
+      "x": 44,
+      "y": 76,
+      "largeur": 16,
+      "hauteur": 24
+    },
+    "licence": "CC0 1.0",
+    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "ancrages": {
+      "epines": {
+        "x": 32,
+        "y": 142
+      },
+      "mana": {
+        "x": 32,
+        "y": 135
+      },
+      "armure": {
+        "x": 32,
+        "y": 156
+      },
+      "esquive": {
+        "x": 32,
+        "y": 127
+      },
+      "regen": {
+        "x": 32,
+        "y": 142
+      },
+      "vol_de_vie": {
+        "x": 32,
+        "y": 142
+      }
+    }
+  },
+  "tour_cratere": {
+    "sprite": "res://assets/tours/spire_tour_07.png",
+    "cadre": {
+      "x": 64,
+      "y": 0,
+      "largeur": 64,
+      "hauteur": 128
+    },
+    "defi": "seul_zone_posee",
+    "echelle": 0.56,
+    "marque": {
+      "genre": "fanion",
+      "x": 44,
+      "y": 16,
+      "largeur": 16,
+      "hauteur": 24
+    },
+    "licence": "CC0 1.0",
+    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "ancrages": {
+      "epines": {
+        "x": 32,
+        "y": 80
+      },
+      "mana": {
+        "x": 32,
+        "y": 73
+      },
+      "armure": {
+        "x": 32,
+        "y": 93
+      },
+      "esquive": {
+        "x": 32,
+        "y": 65
+      },
+      "regen": {
+        "x": 32,
+        "y": 80
+      },
+      "vol_de_vie": {
+        "x": 32,
+        "y": 80
+      }
+    }
+  },
+  "tour_artificier": {
+    "sprite": "res://assets/tours/spire_tour_03.png",
+    "cadre": {
+      "x": 128,
+      "y": 0,
+      "largeur": 64,
+      "hauteur": 128
+    },
+    "defi": "seul_bombe",
+    "echelle": 0.56,
+    "marque": {
+      "genre": "fanion",
+      "x": 44,
+      "y": 1,
+      "largeur": 16,
+      "hauteur": 24
+    },
+    "licence": "CC0 1.0",
+    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "ancrages": {
+      "epines": {
+        "x": 32,
+        "y": 73
+      },
+      "mana": {
+        "x": 32,
+        "y": 66
+      },
+      "armure": {
+        "x": 32,
+        "y": 88
+      },
+      "esquive": {
+        "x": 32,
+        "y": 57
+      },
+      "regen": {
+        "x": 32,
+        "y": 73
+      },
+      "vol_de_vie": {
+        "x": 32,
+        "y": 73
       }
     }
   }

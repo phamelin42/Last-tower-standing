@@ -96,6 +96,8 @@ func test_un_skin_par_defi_et_un_defi_par_skin() -> void:
 			not pris.has(defi), "%s : défi %s déjà pris par %s" % [id, defi, pris.get(defi, "")]
 		)
 		pris[defi] = id
+	for id_defi: String in d.defis:
+		verifier(pris.has(id_defi), "le défi %s a son skin dans skins_tour.json" % id_defi)
 
 
 func test_chaque_skin_a_un_ancrage_pour_chacune_des_superpositions_dans_son_cadre() -> void:
@@ -177,6 +179,9 @@ func test_un_skin_mal_forme_est_refuse() -> void:
 		func(s: Dictionary) -> void: (s["marque"] as Dictionary)["x"] = -1,
 		"cadre non entier":
 		func(s: Dictionary) -> void: s["cadre"] = {"x": 0.5, "y": 0, "largeur": 8, "hauteur": 8},
+		"échelle nulle": func(s: Dictionary) -> void: s["echelle"] = 0.0,
+		"échelle démesurée": func(s: Dictionary) -> void: s["echelle"] = 9.0,
+		"sans échelle": func(s: Dictionary) -> void: s.erase("echelle"),
 		"sans licence": func(s: Dictionary) -> void: s.erase("licence"),
 		"sans source": func(s: Dictionary) -> void: s["source"] = "",
 	}
