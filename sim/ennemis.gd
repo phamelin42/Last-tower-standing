@@ -81,6 +81,10 @@ var _vuln_plafond: float
 var _vuln_duree_max: float
 var _maudit_plafond: float
 var _repousse_max: float
+## Secondes d'immunité du boss à l'étourdissement et au gel après chacun (`controle_boss`). Elle se
+## range dans `etourdi` en valeur négative qui remonte vers 0 : un boss libre n'a pas de tableau
+## de plus, et un ennemi ordinaire n'a jamais d'immunité.
+var _immunite_boss: float
 var _rayon_spawn: float
 ## Ce que les siphons ont versé pendant le pas en cours (remis à zéro par `avancer`).
 var _siphon_mana_pas: float = 0.0
@@ -112,6 +116,7 @@ func _init(donnees: Donnees) -> void:
 	_maudit_plafond = float(maudit["plafond"])
 	var repousse: Dictionary = donnees.partie["repoussement"]
 	_repousse_max = float(repousse["distance_max"])
+	_immunite_boss = float((donnees.partie["controle_boss"] as Dictionary)["immunite_s"])
 	_rayon_spawn = float(donnees.partie["rayon_spawn"])
 
 
@@ -325,7 +330,10 @@ func givrer(i: int, resistance: float) -> void:
 		return
 	givre_cumuls[i] += 1
 	givre_t[i] = 0.0
-	if givre_cumuls[i] >= _cumuls_max:
+	if givre_cumuls[i] >= _cumuls_max and _immunise(i):
+		# Le ralentissement reste, le gel non : le boss garde un cumul de moins que le seuil.
+		givre_cumuls[i] = _cumuls_max - 1
+	elif givre_cumuls[i] >= _cumuls_max:
 		givre_cumuls[i] = 0
 		gel[i] = Combat.duree_gel(_gel_max, _resistance_saine(resistance), _gel_max)
 		if gel[i] <= 0.0:
@@ -335,12 +343,28 @@ func givrer(i: int, resistance: float) -> void:
 
 ## Durée × résistance ; prolonge un étourdissement en cours sans l'additionner.
 func etourdir(i: int, duree: float, resistance: float) -> void:
-	if not _vivant(i) or not duree > 0.0 or not is_finite(duree):
+	if not _vivant(i) or not duree > 0.0 or not is_finite(duree) or _immunise(i):
+		return
+	# Un boss déjà étourdi ne l'est pas plus longtemps : renouveler le coup avant la fin le
+	# garderait étourdi à jamais, et l'immunité qui suit la fin n'arriverait jamais.
+	if etourdi[i] > 0.0 and armure[i] == Types.Armure.BOSS and _immunite_boss > 0.0:
 		return
 	var effective := Combat.duree_etourdissement(duree, _resistance_saine(resistance))
 	if effective > etourdi[i]:
 		etourdi[i] = effective
 		_recalculer_bits(i)
+
+
+## Vrai pour un boss dans la fenêtre d'immunité qui suit un étourdissement ou un gel.
+func _immunise(i: int) -> bool:
+	return etourdi[i] < 0.0
+
+
+## Ouvre la fenêtre d'immunité d'un boss que ni le gel ni l'étourdissement ne tiennent plus. Sans
+## elle, des armes qui renouvellent le contrôle le gardent immobile, sans qu'il attaque.
+func _proteger_boss(i: int) -> void:
+	if armure[i] == Types.Armure.BOSS and _immunite_boss > 0.0 and etourdi[i] == 0.0:
+		etourdi[i] = -_immunite_boss
 
 
 func _resistance_saine(resistance: float) -> float:
@@ -397,8 +421,14 @@ func _avancer_statuts(i: int, dt: float) -> void:
 		brule_duree[i] = b.z
 	if gel[i] > 0.0:
 		gel[i] = gel[i] - dt if gel[i] - dt > EPSILON_TEMPS else 0.0
+		if gel[i] == 0.0:
+			_proteger_boss(i)
 	if etourdi[i] > 0.0:
 		etourdi[i] = etourdi[i] - dt if etourdi[i] - dt > EPSILON_TEMPS else 0.0
+		if etourdi[i] == 0.0:
+			_proteger_boss(i)
+	elif etourdi[i] < 0.0:
+		etourdi[i] = etourdi[i] + dt if etourdi[i] + dt < -EPSILON_TEMPS else 0.0
 	if givre_cumuls[i] > 0:
 		givre_t[i] += dt
 		while givre_t[i] >= 1.0 and givre_cumuls[i] > 0:
@@ -473,7 +503,8 @@ func avancer(
 		if mort[i] != 0:
 			continue
 		var bits: int = statuts[i]
-		if bits != 0:
+		# L'immunité du boss n'a pas de bit : son minuteur avance seul.
+		if bits != 0 or etourdi[i] < 0.0:
 			_avancer_statuts(i, dt)
 			if mort[i] != 0:
 				tues.append(i)

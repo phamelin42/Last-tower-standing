@@ -28,6 +28,7 @@
 	"vulnerabilite": {"plafond": 0.5, "duree_max": 10.0},
 	"malediction": {"plafond": 0.75},
 	"repoussement": {"distance_max": 400.0, "facteur_boss": 0.0},
+  "controle_boss": {"immunite_s": 2.0},
 	"limites": {"allies": 64, "zones": 32, "bombes": 32},
 	"armes": {"bonus_selon_stat_max": 4.0},
 	"ameliorations": {"facteur_degats_max": 20.0, "croissance_pas_s": 30.0}
