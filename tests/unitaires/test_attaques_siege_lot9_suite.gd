@@ -225,3 +225,112 @@ func test_mouvement_reduit_la_salve_sans_particule_ni_gel() -> void:
 	verifier(_a.etats("pop_petard").size() > 0, "les pops restent")
 	_avancer(120)
 	verifier_egal(_a.nombre_vivants(), 0)
+
+
+# --- Les neuf armes : en jeu, plafond, impacts, bombes et vue -------------------------------------
+
+
+func test_les_neuf_armes_de_siege_ont_chacune_leur_element_et_leurs_planches() -> void:
+	var vus: Dictionary = {}
+	for id: String in ARMES:
+		var element: String = String(ARMES[id])
+		verifier_egal(ElementsArmes.de(id), element, "table de %s" % id)
+		verifier_faux(vus.has(element), "%s : élément partagé" % id)
+		vus[element] = true
+		verifier(SignaturesArmes.en_jeu(id), "%s : en jeu" % id)
+		var el: AttaqueElement = AttaquesElementaires.registre()[element]
+		for planche: String in el.planches():
+			verifier(
+				ResourceLoader.exists("%s%s.png" % [AttaquesElementaires.DOSSIER, planche]),
+				"%s : planche %s" % [id, planche]
+			)
+	verifier_egal(vus.size(), 9, "neuf armes")
+
+
+func test_deux_armes_de_siege_ne_produisent_jamais_le_meme_rendu() -> void:
+	var ids: Array = ARMES.keys()
+	for i: int in ids.size():
+		for j: int in range(i + 1, ids.size()):
+			var a: Dictionary = _fiche(String(ARMES[ids[i]]))
+			var b: Dictionary = _fiche(String(ARMES[ids[j]]))
+			var meme: bool = (
+				a["projectile"] == b["projectile"]
+				and a.get("teinte", Color.WHITE) == b.get("teinte", Color.WHITE)
+				and a["cloche"] == b["cloche"]
+			)
+			verifier_faux(meme, "%s et %s : même projectile" % [ids[i], ids[j]])
+
+
+func _fiche(element: String) -> Dictionary:
+	var el: AttaqueElement = AttaquesElementaires.registre()[element]
+	return el.conf()
+
+
+func _noter_impact(_ou: Vector2, _rayon: float, _fort: bool) -> void:
+	_impacts_visibles += 1
+
+
+## Un impact visible n'est émis que pour un coup que la simulation émet : un tir de bombe ou de zone
+## posée (la pose) n'en émet aucun, l'explosion ou l'impulsion en émet un.
+func test_une_arme_de_siege_n_emet_un_impact_visible_que_par_evenement_d_impact() -> void:
+	for id: String in ARMES:
+		_impacts_visibles = 0
+		var effets: Effets = _effets_neuf()
+		effets.impact_visible.connect(_noter_impact)
+		var vitrine: VitrineArmes = VitrineArmes.new()
+		vitrine.armes = [id] as Array[String]
+		var attendus: int = 0
+		for evenement: Dictionary in vitrine.evenements_du_cycle(id):
+			attendus += 1 if String(evenement["k"]) == "impact" else 0
+			effets.ajouter(evenement)
+		vitrine.free()
+		for _i: int in 60:
+			effets.avancer(IMAGE)
+		verifier_egal(_impacts_visibles, attendus, "%s : un impact par événement d'impact" % id)
+		effets.free()
+
+
+func test_aucun_effet_de_siege_ne_depasse_le_plafond_ni_l_opacite_maximale() -> void:
+	for id: String in ARMES:
+		var element: String = String(ARMES[id])
+		var rayon: float = _rayon_px(id) if _effet(id).has("rayon") else 0.0
+		for _tour: int in 30:
+			_a.tirer(element, TOUR, CIBLE)
+			_a.impacter(element, CIBLE, rayon, true)
+			_a.impacter_en_groupe(element, CIBLE, rayon, true)
+			_a.zone(element, CIBLE, rayon)
+		_avancer(4)
+		verifier(_a.nombre_vivants() <= _a.place, "%s : plafond" % id)
+		verifier(_a.opacite_max() <= AttaquesElementaires.ALPHA_MAX + 0.0001, "%s : opacité" % id)
+		_a.vider()
+
+
+## La bombe se pose là où le projectile retombe : la vue la dessine à la position de l'événement.
+func test_le_projectile_d_une_bombe_retombe_ou_la_vue_pose_la_bombe() -> void:
+	for id: String in ["baril_a_retardement", "obusier_de_breche", "salve_du_rempart"]:
+		var effets: Effets = _effets_neuf()
+		var tir: Dictionary = _evenement(id, "tir")
+		effets.ajouter(tir)
+		var planche: String = AttaquesElementaires.planche_projectile(String(ARMES[id]))
+		var duree: float = float(AttaquesElementaires.IMAGES_ANTICIPATION + 11) * IMAGE
+		var depart: float = AttaquesElementaires.IMAGES_ANTICIPATION * IMAGE
+		var avance: float = 0.0
+		var dernier: Vector2 = Vector2.ZERO
+		while avance < duree - IMAGE:
+			effets.avancer(IMAGE)
+			avance += IMAGE
+			var etats: Array[Dictionary] = effets.elementaires().etats(planche)
+			if avance > depart and not etats.is_empty():
+				dernier = etats[0]["position"]
+		var vue: VueArene = VueArene.new()
+		vue.bombes = [{"pos": tir["vers"], "rayon": float(_effet(id)["rayon"]), "reste": 2.0}]
+		var poses: ZonesBombes2D = ZonesBombes2D.new()
+		arbre.root.add_child(poses)
+		poses.afficher(vue)
+		verifier(
+			dernier.distance_to(poses.position_bombe(0)) < 40.0,
+			"%s : le projectile retombe sur la bombe de la vue" % id
+		)
+		verifier_egal(effets.elementaires().etats("explosion_feu").size(), 0, "pas d'explosion")
+		poses.free()
+		effets.free()
