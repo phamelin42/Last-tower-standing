@@ -442,6 +442,34 @@ func _mutations_partie() -> Array[Array]:
 		["partie : mana_max négatif", f, ["tour", "mana_max"], -1, "mana_max"],
 		["partie : mana_regen manquant", f, ["tour", "mana_regen"], SUP, "mana_regen"],
 		["partie : mana_regen négatif", f, ["tour", "mana_regen"], -0.5, "mana_regen"],
+		[
+			"partie : plafond du siphon manquant",
+			f,
+			["tour", "siphon_mana_max_par_s"],
+			SUP,
+			"siphon_mana_max_par_s"
+		],
+		[
+			"partie : plafond du siphon nul",
+			f,
+			["tour", "siphon_mana_max_par_s"],
+			0,
+			"siphon_mana_max_par_s"
+		],
+		[
+			"partie : coût de la mana manquant",
+			f,
+			["tour", "mana_cout_par_pv"],
+			SUP,
+			"mana_cout_par_pv"
+		],
+		[
+			"partie : coût de la mana sous 1",
+			f,
+			["tour", "mana_cout_par_pv"],
+			0.5,
+			"mana_cout_par_pv"
+		],
 		["partie : vagues manquant", f, ["vagues"], SUP, "vagues"],
 		[
 			"partie : part_majoritaire nulle",

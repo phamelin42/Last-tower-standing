@@ -356,7 +356,9 @@ func _pas_tour_et_ennemis(dt: float) -> void:
 	_soin_periodique(dt)
 	mana = minf(mana + _mana_regen() * dt, mana_max())
 	var resultat := ennemis.avancer(dt, Vector2.ZERO, _rayon_tour, 1.0, 1.0)
-	mana_gagnee(float(resultat["siphon_mana"]))
+	# Le siphon croît avec la foule (un débit par ennemi) : sans plafond, 1 200 ennemis rendaient des
+	# milliers de mana par seconde et la tour restait à 100 % (Phil, 27/11/2026).
+	mana_gagnee(minf(float(resultat["siphon_mana"]), _siphon_mana_max_par_s() * dt))
 	_soigner(float(resultat["siphon_vie"]))
 	var total: float = resultat["degats_tour"]
 	if not total > 0.0:
@@ -389,14 +391,15 @@ func _pas_tour_et_ennemis(dt: float) -> void:
 	# des dégâts bruts du pas atteint la tour (`reduction_degats_max`). Sans lui, esquive, épines,
 	# armure et mana se multiplient jusqu'à l'invulnérabilité.
 	apres_armure = maxf(apres_armure, total * _part_minimale_subie)
-	# Ordre : esquive, réduction des épines, armure, mana, PV. Un point de mana absorbe un point de
-	# dégât.
-	var absorbe := minf(mana, apres_armure)
+	# Ordre : esquive, réduction des épines, armure, mana, PV. `mana_cout_par_pv` points de mana
+	# absorbent un point de dégât.
+	var cout := _mana_cout_par_pv()
+	var absorbe := minf(mana / cout, apres_armure)
 	if absorbe > 0.0:
-		if mana - absorbe <= 0.0:
+		if mana - absorbe * cout <= 0.0:
 			bilan_partie.chute_bouclier()
 			_etourdir_a_la_chute_du_bouclier()
-		mana -= absorbe
+		mana -= absorbe * cout
 		_ajouter_evenement(
 			{
 				"k": "absorption",
@@ -792,6 +795,16 @@ func mana_gagnee(montant: float) -> void:
 
 func mana_max() -> float:
 	return _stats.mana_max_totale(float(_donnees.partie["tour"]["mana_max"]))
+
+
+## Plafond du siphon de mana de toute la tour, par seconde (somme de tous les ennemis siphonnés).
+func _siphon_mana_max_par_s() -> float:
+	return float(_donnees.partie["tour"]["siphon_mana_max_par_s"])
+
+
+## Points de mana qu'il faut pour absorber un point de dégât.
+func _mana_cout_par_pv() -> float:
+	return float(_donnees.partie["tour"]["mana_cout_par_pv"])
 
 
 ## Points de mana par seconde : la valeur de départ des données plus les améliorations.

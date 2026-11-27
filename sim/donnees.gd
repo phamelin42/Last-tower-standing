@@ -359,7 +359,9 @@ static func _valider_partie(p: Dictionary, err: Array[String]) -> void:
 			_nn("regen"),
 			_pos("rayon"),
 			_nn("mana_max"),
-			_nn("mana_regen")
+			_nn("mana_regen"),
+			_pos("siphon_mana_max_par_s"),
+			_spec("mana_cout_par_pv", 1.0, false, 100.0)
 		]:
 			_nombre(tour, spec, f, "tour", err)
 	# Niveaux d'arme (D23) : gain de dégâts et de cadence par niveau au-dessus du premier, et plafond
