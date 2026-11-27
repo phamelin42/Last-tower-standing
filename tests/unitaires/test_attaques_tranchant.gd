@@ -176,3 +176,44 @@ func test_mouvement_reduit_le_rasoir_ne_tourne_pas_et_sans_particule() -> void:
 	verifier_proche(_a.etats("rasoir")[0]["rotation"], 0.0, 0.0001, "pas de rotation")
 	_a.impacter("rasoir", CIBLE, 0.0)
 	verifier_egal(_a.particules_actives(), 0)
+
+
+# --- Couperet à épines : cible unique ----------------------------------------------------------
+
+
+func test_le_couperet_est_une_cible_unique() -> void:
+	_verifier_arme("couperet_a_epines", "couperet", "cible_unique")
+
+
+func test_le_couperet_dure_dix_images_et_culbute() -> void:
+	verifier_proche(_a.tirer("couperet", TOUR, CIBLE) / IMAGE, 10.0, 0.01)
+	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 1)
+	var couperet: Dictionary = _a.etats("couperet")[0]
+	verifier(couperet["visible"], "le couperet vole")
+	var avant: float = couperet["rotation"]
+	var image: int = couperet["image"]
+	_avancer(3)
+	verifier(absf(_a.etats("couperet")[0]["rotation"] - avant) > 0.1, "il tourne en volant")
+	verifier(_a.etats("couperet")[0]["image"] != image, "l'image culbute aussi")
+
+
+func test_l_entaille_du_couperet_reste_petite_et_jette_des_epines() -> void:
+	_a.impacter("couperet", CIBLE, 0.0)
+	verifier_egal(_a.etats("entaille").size(), 1, "une entaille")
+	verifier(_a.diametre_max() <= 60.0, "cible unique : au plus 60 px")
+	verifier_egal(_a.particules_actives(), 1, "une salve d'épines")
+	_avancer(40)
+	verifier_egal(_a.nombre_vivants(), 0, "tout se dissipe")
+	verifier_egal(_a.particules_actives(), 0)
+
+
+func test_mouvement_reduit_le_couperet_ne_culbute_pas_et_sans_epine() -> void:
+	_a.mouvement_reduit = true
+	_a.tirer("couperet", TOUR, CIBLE)
+	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 1)
+	var avant: int = _a.etats("couperet")[0]["image"]
+	_avancer(3)
+	verifier_proche(_a.etats("couperet")[0]["rotation"], 0.0, 0.0001, "pas de rotation")
+	verifier_egal(_a.etats("couperet")[0]["image"], avant, "pas de culbute")
+	_a.impacter("couperet", CIBLE, 0.0)
+	verifier_egal(_a.particules_actives(), 0)

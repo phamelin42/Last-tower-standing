@@ -47,6 +47,7 @@ const HORLOGE: String = "horloge"
 ## Les armes tranchantes du lot 9 : un élément par arme, comme la famille acier.
 const SERPE: String = "serpe"
 const RASOIR: String = "rasoir"
+const COUPERET: String = "couperet"
 
 const ELEMENTS: Array[String] = [
 	FEU,
@@ -81,6 +82,7 @@ const ELEMENTS: Array[String] = [
 	HORLOGE,
 	SERPE,
 	RASOIR,
+	COUPERET,
 ]
 
 ## id d'arme → élément.
@@ -117,6 +119,7 @@ const TABLE: Dictionary = {
 	"horloge_folle": HORLOGE,
 	"serpe_de_vigne": SERPE,
 	"rasoir_tournoyant": RASOIR,
+	"couperet_a_epines": COUPERET,
 }
 
 
