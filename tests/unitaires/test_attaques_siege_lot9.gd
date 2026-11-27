@@ -117,3 +117,55 @@ func test_mouvement_reduit_le_maillet_sans_particule_ni_gel_ni_rotation() -> voi
 	verifier(_a.etats("onde_choc").size() > 0, "l'onde reste")
 	_avancer(120)
 	verifier_egal(_a.nombre_vivants(), 0)
+
+
+# --- Catapulte à contrepoids : cible unique -------------------------------------------------------
+
+
+func test_la_catapulte_est_une_cible_unique_de_siege_sans_statut() -> void:
+	_verifier_arme("catapulte_a_contrepoids", "catapulte", "cible_unique")
+	verifier_egal(_statut("catapulte_a_contrepoids"), "", "aucun statut")
+
+
+func test_la_pierre_lestee_est_lancee_en_cloche_et_arrive_en_quatorze_images() -> void:
+	verifier_proche(_a.tirer("catapulte", TOUR, CIBLE) / IMAGE, 14.0, 0.01, "3 + 11 images")
+	verifier_egal(_a.etats("ombre").size(), 1, "l'ombre suit la cloche")
+	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 6)
+	var pierre: Dictionary = _a.etats("pierre_lestee")[0]
+	verifier(pierre["visible"], "elle vole")
+	verifier(pierre["position"].y < CIBLE.y - 10.0, "elle passe au-dessus de la ligne de tir")
+	_avancer(10)
+	verifier_egal(_a.etats("pierre_lestee").size(), 0, "arrivée, elle disparaît")
+
+
+func test_le_cratere_de_la_catapulte_reste_petit_sur_une_cible_seule_et_gele() -> void:
+	verifier(_a.impacter("catapulte", CIBLE, 0.0, true))
+	var cratere: Dictionary = _a.etats("cratere")[0]
+	verifier(cratere["diametre"] <= DIAMETRE_MAX_CIBLE_UNIQUE, "au plus 60 px sur une cible seule")
+	verifier_egal(_a.etats("").size(), 0, "pas d'anneau : la zone est la cible")
+	verifier(_a.gel_restant() > 0.0, "coup de siège : le gel visuel")
+	verifier(_a.particules_actives() >= 1, "des éclats de pierre")
+	var total: int = 12
+	var rang: int = _rang_du_pic("cratere", int(PIC["cratere"]), total)
+	verifier(rang >= 0 and rang <= total / 4, "pic à l'image %d sur %d" % [rang, total])
+
+
+func test_la_catapulte_dans_effets_attend_la_pierre_puis_frappe_sans_explosion_du_pack() -> void:
+	var effets: Effets = _effets_neuf()
+	effets.ajouter(_evenement("catapulte_a_contrepoids", "tir"))
+	effets.ajouter(_evenement("catapulte_a_contrepoids", "impact"))
+	verifier_egal(effets.elementaires().etats("cratere").size(), 0, "le cratère attend la pierre")
+	verifier(_pic_de(effets, "cratere", 30) > 0, "le cratère à l'arrivée")
+	verifier_faux(effets.formes_vivantes().has("explosion"), "pas d'explosion du pack")
+	effets.free()
+
+
+func test_mouvement_reduit_la_catapulte_sans_particule_ni_gel() -> void:
+	_a.mouvement_reduit = true
+	_a.tirer("catapulte", TOUR, CIBLE)
+	_a.impacter("catapulte", CIBLE, 0.0, true)
+	verifier_egal(_a.particules_actives(), 0)
+	verifier_egal(_a.gel_restant(), 0.0)
+	verifier(_a.etats("cratere").size() > 0, "le cratère reste")
+	_avancer(120)
+	verifier_egal(_a.nombre_vivants(), 0)

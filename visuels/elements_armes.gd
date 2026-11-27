@@ -80,6 +80,7 @@ const NOVA_CELESTE: String = "nova_celeste"
 ## Les armes de siège du lot 9 : un élément par arme, comme la grande bombarde.
 const BARIL: String = "baril"
 const MAILLET: String = "maillet"
+const CATAPULTE: String = "catapulte"
 
 const ELEMENTS: Array[String] = [
 	FEU,
@@ -141,6 +142,7 @@ const ELEMENTS: Array[String] = [
 	NOVA_CELESTE,
 	BARIL,
 	MAILLET,
+	CATAPULTE,
 ]
 
 ## id d'arme → élément.
@@ -204,6 +206,7 @@ const TABLE: Dictionary = {
 	"nova_celeste": NOVA_CELESTE,
 	"baril_a_retardement": BARIL,
 	"maillet_de_rempart": MAILLET,
+	"catapulte_a_contrepoids": CATAPULTE,
 }
 
 
