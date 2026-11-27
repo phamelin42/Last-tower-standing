@@ -16,6 +16,9 @@ const COULEURS: Array[String] = ["teinte", "exterieur", "interieur", "contour"]
 
 static var _tout: Dictionary = {}
 static var _lu: bool = false
+## Change à chaque `remplacer` ou `reinitialiser` : ceux qui gardent une copie typée des données
+## la refont quand ce numéro bouge.
+static var version: int = 0
 
 
 ## Tout le fichier, lu une fois. Vide (et une erreur) si le fichier manque ou est abîmé.
@@ -41,11 +44,13 @@ static func typee(nom: String) -> Dictionary:
 static func remplacer(donnees: Dictionary) -> void:
 	_tout = donnees
 	_lu = true
+	version += 1
 
 
 static func reinitialiser() -> void:
 	_tout = {}
 	_lu = false
+	version += 1
 
 
 static func _lire(chemin: String) -> Dictionary:

@@ -8,7 +8,8 @@ extends RefCounted
 ## est accepté.
 ##
 ## `FORME` décrit chaque section : une chaîne nomme un type de feuille, un objet décrit ses clés
-## (`"*"` : toutes les clés ont la même forme), un tableau à un élément décrit une liste.
+## (`"*"` : toutes les clés ont la même forme), un tableau à un élément décrit une liste. Une clé
+## précédée de `?` est facultative.
 
 const MODELE: Dictionary = {
 	"chemin": "texte",
@@ -62,6 +63,29 @@ const TIR_BOMBE: Dictionary = {
 	"echelle": "positif",
 	"arc": "nombre",
 }
+const PACK_FEU: Dictionary = {
+	"chemin": "texte",
+	"case": "taille",
+	"images": "entier",
+	"pieds": "nombre",
+	"visible": "positif",
+	"images_par_seconde": "positif",
+	"echelle_boss": "positif",
+}
+const PACK_EXPLOSION: Dictionary = {
+	"chemin": "texte", "case": "taille", "images": "entier", "visible": "positif"
+}
+const PACK_FLECHE: Dictionary = {"chemin": "texte", "region": "rect", "echelle": "positif"}
+const PACK_DYNAMITE: Dictionary = {
+	"chemin": "texte",
+	"case": "taille",
+	"images": "entier",
+	"region": "rect",
+	"echelle": "positif",
+}
+const PLANCHE_MAISON: Dictionary = {
+	"case": "taille", "?visible": "positif", "?images_par_seconde": "positif"
+}
 const FORME: Dictionary = {
 	"unites":
 	{
@@ -92,6 +116,7 @@ const FORME: Dictionary = {
 		"feuille_eau": "texte",
 		"ecume": {"feuille": "texte", "case": "entier", "images": "entier", "boite": "rect"},
 		"types": {"*": TYPE_DECOR},
+		"tuiles_herbe": {"*": "point"},
 	},
 	"signatures": {"taille": "entier", "bandeau": "taille"},
 	"tirs_ennemis":
@@ -109,6 +134,25 @@ const FORME: Dictionary = {
 		"zone_icone": "rect",
 		"pointeur_pointe": "point",
 		"tranches": {"bouton": TRANCHES, "panneau": TRANCHES, "ruban": TRANCHES},
+	},
+	"effets":
+	{
+		"pack":
+		{
+			"feu": PACK_FEU,
+			"explosion": PACK_EXPLOSION,
+			"fleche": PACK_FLECHE,
+			"dynamite": PACK_DYNAMITE,
+		},
+		"maison":
+		{
+			"dossier": "texte",
+			"extension": "texte",
+			"echelle": "positif",
+			"communes": ["texte"],
+			"planches": {"*": PLANCHE_MAISON},
+			"elements": {"*": ["texte"]},
+		},
 	},
 	"sons":
 	{
@@ -131,6 +175,8 @@ static func valider(a: Dictionary, err: Array[String]) -> void:
 ## Les références entre sections : un modèle cité existe, une ligne et un nombre d'images tiennent
 ## dans la feuille décrite.
 static func _liens(a: Dictionary, err: Array[String]) -> void:
+	_liens_effets(a, err)
+	_liens_decor(a, err)
 	var unites: Variant = a.get("unites")
 	if not unites is Dictionary:
 		return
@@ -173,6 +219,52 @@ static func _liens(a: Dictionary, err: Array[String]) -> void:
 				)
 
 
+## Les planches nommées par les éléments d'attaque et les planches communes sont décrites ; une
+## planche décrite sert à quelqu'un.
+static func _liens_effets(a: Dictionary, err: Array[String]) -> void:
+	var effets: Variant = a.get("effets")
+	if not effets is Dictionary:
+		return
+	var maison: Variant = (effets as Dictionary).get("maison")
+	if not maison is Dictionary:
+		return
+	var planches: Variant = (maison as Dictionary).get("planches")
+	if not planches is Dictionary:
+		return
+	var citees: Dictionary = {}
+	var communes: Variant = (maison as Dictionary).get("communes")
+	if communes is Array:
+		for nom: Variant in communes:
+			citees[nom] = true
+	var elements: Variant = (maison as Dictionary).get("elements")
+	if elements is Dictionary:
+		for id: Variant in elements:
+			if not elements[id] is Array:
+				continue
+			for nom: Variant in elements[id]:
+				citees[nom] = true
+	for nom: Variant in citees:
+		if not (planches as Dictionary).has(nom):
+			_err(err, "effets.maison", "planche citée mais non décrite : %s" % nom)
+	for nom: Variant in planches:
+		if not citees.has(nom):
+			_err(err, "effets.maison.planches.%s" % nom, "planche décrite mais citée par personne")
+
+
+## Les seize combinaisons de voisines du terrain ont chacune leur tuile.
+static func _liens_decor(a: Dictionary, err: Array[String]) -> void:
+	var decor: Variant = a.get("decor")
+	if not decor is Dictionary:
+		return
+	var tuiles: Variant = (decor as Dictionary).get("tuiles_herbe")
+	if not tuiles is Dictionary:
+		return
+	for i: int in 16:
+		var cle := "%d%d%d%d" % [(i >> 3) & 1, (i >> 2) & 1, (i >> 1) & 1, i & 1]
+		if not (tuiles as Dictionary).has(cle):
+			_err(err, "decor.tuiles_herbe.%s" % cle, "combinaison de voisines sans tuile")
+
+
 static func _objet(v: Variant, forme: Dictionary, chemin: String, err: Array[String]) -> void:
 	if not v is Dictionary:
 		_err(err, chemin if chemin != "" else "racine", "objet attendu")
@@ -183,10 +275,13 @@ static func _objet(v: Variant, forme: Dictionary, chemin: String, err: Array[Str
 			_noeud(d[cle], forme["*"], _sous(chemin, str(cle)), err)
 		return
 	for cle: String in forme:
-		if not d.has(cle):
-			_err(err, _sous(chemin, cle), "clé manquante")
+		var facultative: bool = cle.begins_with("?")
+		var nom: String = cle.trim_prefix("?")
+		if not d.has(nom):
+			if not facultative:
+				_err(err, _sous(chemin, nom), "clé manquante")
 			continue
-		_noeud(d[cle], forme[cle], _sous(chemin, cle), err)
+		_noeud(d[nom], forme[cle], _sous(chemin, nom), err)
 
 
 static func _noeud(v: Variant, forme: Variant, chemin: String, err: Array[String]) -> void:

@@ -30,7 +30,7 @@ func test_un_fichier_absent_ou_vide_est_accepte() -> void:
 
 
 func test_une_section_manquante_est_refusee() -> void:
-	for section: String in ["unites", "tour", "decor", "signatures", "ui", "sons"]:
+	for section: String in ["unites", "tour", "decor", "signatures", "ui", "sons", "effets"]:
 		var a := _donnees()
 		a.erase(section)
 		verifier(_a_une_erreur(_erreurs(a), "assets.json"), "sans " + section)
@@ -76,3 +76,62 @@ func test_une_case_negative_est_refusee() -> void:
 	var torch: Dictionary = ((a["unites"] as Dictionary)["modeles"] as Dictionary)["torch"]
 	(torch["case"] as Dictionary)["largeur"] = -192
 	verifier(_a_une_erreur(_erreurs(a), "case"))
+
+
+func _maison(a: Dictionary) -> Dictionary:
+	return (a["effets"] as Dictionary)["maison"]
+
+
+func test_une_planche_citee_par_un_element_mais_non_decrite_est_refusee() -> void:
+	var a := _donnees()
+	var elements: Dictionary = _maison(a)["elements"]
+	var id: String = elements.keys()[0]
+	(elements[id] as Array).append("planche_fantome")
+	verifier(_a_une_erreur(_erreurs(a), "planche_fantome"))
+
+
+func test_une_planche_decrite_que_personne_ne_cite_est_refusee() -> void:
+	var a := _donnees()
+	(_maison(a)["planches"] as Dictionary)["orpheline"] = {"case": {"largeur": 8, "hauteur": 8}}
+	verifier(_a_une_erreur(_erreurs(a), "orpheline"))
+
+
+func test_une_planche_sans_case_ou_a_la_case_nulle_est_refusee() -> void:
+	var a := _donnees()
+	var planches: Dictionary = _maison(a)["planches"]
+	var nom: String = planches.keys()[0]
+	(planches[nom] as Dictionary).erase("case")
+	verifier(_a_une_erreur(_erreurs(a), nom + ".case"), "sans case")
+	a = _donnees()
+	planches = _maison(a)["planches"]
+	((planches[nom] as Dictionary)["case"] as Dictionary)["largeur"] = 0
+	verifier(_a_une_erreur(_erreurs(a), nom + ".case"), "case nulle")
+
+
+func test_le_diametre_visible_et_la_cadence_sont_facultatifs_mais_valides() -> void:
+	var a := _donnees()
+	var planches: Dictionary = _maison(a)["planches"]
+	var nom: String = planches.keys()[0]
+	(planches[nom] as Dictionary).erase("visible")
+	(planches[nom] as Dictionary).erase("images_par_seconde")
+	verifier_egal(_erreurs(a), [] as Array[String], "absents")
+	(planches[nom] as Dictionary)["visible"] = -3.0
+	verifier(_a_une_erreur(_erreurs(a), nom + ".visible"), "négatif")
+
+
+func test_une_image_du_pack_sans_chemin_ou_sans_region_est_refusee() -> void:
+	for cle: String in ["feu", "explosion", "fleche", "dynamite"]:
+		var a := _donnees()
+		var pack: Dictionary = ((a["effets"] as Dictionary)["pack"] as Dictionary)[cle]
+		pack.erase("chemin")
+		verifier(_a_une_erreur(_erreurs(a), cle + ".chemin"), cle)
+	var a := _donnees()
+	var fleche: Dictionary = ((a["effets"] as Dictionary)["pack"] as Dictionary)["fleche"]
+	(fleche["region"] as Dictionary)["largeur"] = 0
+	verifier(_a_une_erreur(_erreurs(a), "fleche.region"))
+
+
+func test_une_combinaison_de_voisines_du_terrain_sans_tuile_est_refusee() -> void:
+	var a := _donnees()
+	((a["decor"] as Dictionary)["tuiles_herbe"] as Dictionary).erase("1010")
+	verifier(_a_une_erreur(_erreurs(a), "1010"))
