@@ -50,4 +50,6 @@ func _lancer(args: PackedStringArray) -> int:
 			% [bilan["tests"], bilan["echecs"], bilan["assertions"]]
 		)
 	)
+	if int(bilan["tests"]) == 0:
+		printerr("Aucun test exécuté (filtre « %s », dossier %s)." % [filtre, dossier])
 	return moteur.code_de_sortie(bilan, controle)

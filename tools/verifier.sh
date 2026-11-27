@@ -99,7 +99,7 @@ executer_etape() {
 		;;
 	format)
 		local dossiers=() dossier
-		for dossier in sim app visuels ui reseau tests tools; do
+		for dossier in sim app visuels ui reseau progression sons tests tools; do
 			[[ -d "$dossier" ]] && dossiers+=("$dossier")
 		done
 		if [[ "${#dossiers[@]}" -eq 0 ]]; then

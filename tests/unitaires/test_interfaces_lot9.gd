@@ -611,9 +611,9 @@ func test_les_genres_et_les_statuts_d_evenement_tiennent_sur_quatre_bits() -> vo
 
 
 func test_chaque_kind_des_donnees_a_son_genre_et_son_statut_d_evenement() -> void:
-	for kind: String in Donnees._kinds_effets():
+	for kind: String in DonneesArmes.kinds_effets():
 		verifier(kind in VueArene.GENRES_ARME, "genre %s" % kind)
-	for kind: String in Donnees._kinds_statuts():
+	for kind: String in DonneesArmes.kinds_statuts():
 		verifier(kind in VueArene.STATUTS_ARME, "statut %s" % kind)
 
 

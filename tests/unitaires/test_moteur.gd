@@ -332,6 +332,9 @@ func test_code_de_sortie_normal() -> void:
 	verifier_egal(moteur.code_de_sortie({"tests": 3, "echecs": 0}, false), 0)
 	verifier_egal(moteur.code_de_sortie({"tests": 3, "echecs": 1}, false), 1)
 	verifier_egal(moteur.code_de_sortie({"tests": 3, "echecs": 3}, false), 1)
+	verifier_egal(
+		moteur.code_de_sortie({"tests": 0, "echecs": 0}, false), 1, "aucun test exécuté : pas vert"
+	)
 
 
 func test_code_de_sortie_controle_exige_que_tout_echoue() -> void:

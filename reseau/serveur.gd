@@ -69,6 +69,9 @@ class _Pair:
 	extends RefCounted
 	var enregistre: bool = false
 	var age: float = 0.0
+	## Pair de la partie précédente, resté connecté sur l'écran de fin : pas de délai de bonjour, tant
+	## qu'il ne dit rien. Un bonjour, valide ou non, le traite comme un pair neuf.
+	var ancien: bool = false
 	var bonjours_invalides: int = 0
 	var cible: int = 0
 	## Numéro du dernier événement de l'arène regardée déjà reçu par ce pair.
@@ -185,15 +188,15 @@ func rouvrir_salon() -> void:
 	_tampons = {}
 	_acc_global = 0.0
 	_taille_globale = 0
-	# Les pairs de la partie précédente reçoivent le salon neuf, où ils ne figurent pas : leur client
-	# y répond par un bonjour (`Client._a_la_reception_salon`). Le délai de bonjour repart de zéro,
-	# sans quoi ils seraient coupés quelques secondes après la fin de la partie.
-	var octets := salon.vers_octets()
+	# Les pairs de la partie précédente restent connectés, hors du salon neuf : ils sont sur l'écran
+	# de fin, sans interface de salon, et « Retour au salon » les reconnecte à neuf. Les inscrire les
+	# y laisserait bloquer le lancement (non prêts) ou prendre le rôle d'hôte. Ils sont exemptés du
+	# délai de bonjour tant qu'ils n'ont pas parlé (`_Pair.ancien`).
 	for pair: int in _pairs:
 		var p := _pairs[pair] as _Pair
 		p.enregistre = false
+		p.ancien = true
 		p.age = 0.0
-		_envoyer(pair, "rpc_salon", octets)
 
 
 func arreter() -> void:
@@ -325,6 +328,7 @@ func traiter_bonjour(pair: int, octets: PackedByteArray) -> bool:
 		_pairs[pair] = p
 	if p.enregistre:
 		return false
+	p.ancien = false
 	var b := Protocole.decoder_bonjour(octets)
 	var motif := _motif_refus_bonjour(octets, b)
 	if not motif.is_empty():
@@ -555,7 +559,7 @@ func _horloge_pairs(dt: float) -> void:
 		if p.fenetre >= 1.0:
 			p.fenetre = 0.0
 			p.n_fenetre = 0
-		if not p.enregistre:
+		if not p.enregistre and not p.ancien:
 			p.age += dt
 			if p.age > DELAI_BONJOUR_S:
 				muets.append(pair)

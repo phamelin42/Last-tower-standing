@@ -191,7 +191,7 @@ static func depuis_brut(brut: Dictionary) -> Donnees:
 	d.efficacite = _matrice(brut["efficacite.json"])
 	var liste_armes: Array = brut["armes.json"]
 	for entree: Variant in liste_armes:
-		var arme := _normaliser_arme(entree)
+		var arme := DonneesArmes.normaliser(entree)
 		d.armes[arme["id"]] = arme
 	var liste_amelios: Array = brut["ameliorations.json"]
 	for entree: Variant in liste_amelios:
@@ -315,7 +315,7 @@ static func valider(brut: Dictionary) -> PackedStringArray:
 	if presents.has("unites.json"):
 		DonneesLot9.valider_unites(presents["unites.json"], ids_unites_valides, err)
 	if presents.has("armes.json"):
-		_valider_armes(presents["armes.json"], ids, err, ids_unites_valides)
+		DonneesArmes.valider(presents["armes.json"], ids, err, ids_unites_valides)
 	if presents.has("ameliorations.json"):
 		_valider_ameliorations(presents["ameliorations.json"], ids, err)
 	if presents.has("defis.json"):
@@ -471,130 +471,6 @@ static func _valider_boutique(b: Dictionary, err: Array[String]) -> void:
 	if noir_ok:
 		var noir: Dictionary = b["marche_noir"]
 		_nom_enum(noir, "raretes_max", Types.NOMS_RARETES, f, "marche_noir", err)
-
-
-static func _valider_armes(
-	liste: Array, ids: Dictionary, err: Array[String], unites: Dictionary = {}
-) -> void:
-	var f := "armes.json"
-	for i in liste.size():
-		var ch := "[%d]" % i
-		var entree: Variant = liste[i]
-		if not entree is Dictionary:
-			_err(err, f, ch, "attendu un objet, reçu %s" % _decrire(entree))
-			continue
-		var a: Dictionary = entree
-		_identifiant(a, f, ch, err, ids)
-		_texte(a, "nom", f, ch, err)
-		_texte(a, "description", f, ch, err)
-		_nom_enum(a, "rarete", Types.NOMS_RARETES, f, ch, err)
-		_nombre(a, _ent("prix", 0.0), f, ch, err)
-		_nom_enum(a, "type_degats", Types.NOMS_TYPES, f, ch, err)
-		_nombre(a, _pos("degats"), f, ch, err)
-		_nombre(a, _pos("recharge"), f, ch, err)
-		_nom_enum(a, "ciblage", Types.NOMS_CIBLAGES, f, ch, err)
-		for nom: String in ["degats_par_mana_max", "degats_par_pv_max", "degats_par_niveau"]:
-			if a.has(nom):
-				_nombre(a, _nn(nom), f, ch, err)
-		if a.has("degats_par_amelioration"):
-			DonneesLot9.valider_degats_par_amelioration(a["degats_par_amelioration"], f, ch, err)
-		if a.has("type_secondaire") and a["type_secondaire"] != "epines":
-			var brut_second := _decrire(a["type_secondaire"])
-			_err(err, f, _sous(ch, "type_secondaire"), "« epines » attendu, reçu %s" % brut_second)
-		if _nombre(a, _ent("portee", 0.0), f, ch, err):
-			var portee: int = int(a["portee"])
-			if not portee in PORTEES:
-				_err(err, f, _sous(ch, "portee"), "doit valoir 500, 750, 1000 ou 1250")
-		var effets_ok := _tableau(a, "effets", f, ch, err)
-		if effets_ok:
-			var effets: Array = a["effets"]
-			if effets.is_empty():
-				_err(err, f, _sous(ch, "effets"), "au moins un effet attendu")
-			for j in effets.size():
-				_valider_sous_effet(
-					effets[j], f, "%s[%d]" % [_sous(ch, "effets"), j], err, _kinds_effets(), unites
-				)
-		if a.has("statuts"):
-			var statuts_ok := _tableau(a, "statuts", f, ch, err)
-			if statuts_ok:
-				var statuts: Array = a["statuts"]
-				for j in statuts.size():
-					var chemin := "%s[%d]" % [_sous(ch, "statuts"), j]
-					_valider_sous_effet(statuts[j], f, chemin, err, _kinds_statuts())
-
-
-## Un effet d'arme ou un statut : `kind` connu, puis les paramètres de ce `kind`.
-static func _valider_sous_effet(
-	entree: Variant,
-	f: String,
-	ch: String,
-	err: Array[String],
-	kinds: Dictionary,
-	unites: Dictionary = {}
-) -> void:
-	if not entree is Dictionary:
-		_err(err, f, ch, "attendu un objet, reçu %s" % _decrire(entree))
-		return
-	var e: Dictionary = entree
-	if not e.has("kind") or not e["kind"] is String:
-		_err(err, f, _sous(ch, "kind"), "texte attendu, reçu %s" % _decrire(e.get("kind")))
-		return
-	var kind: String = e["kind"]
-	if not kinds.has(kind):
-		var connus := ", ".join(PackedStringArray(kinds.keys()))
-		_err(err, f, _sous(ch, "kind"), "inconnu « %s » (attendu : %s)" % [kind, connus])
-		return
-	var specs: Array = kinds[kind]
-	for spec: Dictionary in specs:
-		_nombre(e, spec, f, ch, err)
-	if kind == "vol_de_vie" and e.has("a_la_mort") and not e["a_la_mort"] is bool:
-		_err(err, f, _sous(ch, "a_la_mort"), "booléen attendu, reçu %s" % _decrire(e["a_la_mort"]))
-	DonneesLot9.valider_champs_texte(kind, e, f, ch, err, unites)
-
-
-static func _kinds_effets() -> Dictionary:
-	return {
-		"cible_unique": [],
-		"zone": [_pos("rayon")],
-		"rebond":
-		[
-			_spec("cibles", 4.0, false, 8.0, true),
-			_pos("portee_saut"),
-			_spec("decroissance", 0.0, true, 1.0)
-		],
-		"onde": [_pos("rayon_max"), _pos("vitesse")],
-		"barrage": [_ent("projectiles", 1.0), _nn("dispersion_deg"), _pos("rayon")],
-		"mine": [_pos("rayon"), _ent("max_actives", 1.0)],
-		"piege": [_pos("rayon"), _ent("max_actives", 1.0)],
-		"aura": [_pos("rayon"), _pos("periode")],
-		"tournant":
-		[
-			_spec("branches", 1.0, false, 8.0, true),
-			_spec("pas_deg", 0.0, true, 180.0),
-			_pos("largeur")
-		],
-		"zone_posee":
-		[_pos("rayon"), _pos("duree"), _pos("periode"), _pos("ratio"), _ent("max_actives", 1.0)],
-		"bombe":
-		[_spec("delai", 0.0, true, 5.0), _pos("rayon"), _pos("ratio"), _ent("max_actives", 1.0)],
-		"invocation": [_pos("duree"), _pos("ratio_degats"), _ent("max_actives", 1.0)],
-	}
-
-
-static func _kinds_statuts() -> Dictionary:
-	return {
-		"poison": [_pos("total_ratio"), _pos("duree")],
-		"brulure": [_pos("ratio"), _pos("duree")],
-		"givre": [],
-		"etourdissement": [_pos("duree")],
-		"vol_de_vie": [_pos("ratio")],
-		"vulnerabilite": [_pos("ratio"), _pos("duree")],
-		"malediction_degats": [_spec("ratio", 0.0, true, 1.0), _pos("duree")],
-		"malediction_toucher": [_spec("ratio", 0.0, true, 1.0), _pos("duree")],
-		"repoussement": [_pos("distance")],
-		"siphon": [_pos("par_seconde"), _pos("duree")],
-		"mana_au_coup": [_pos("valeur")],
-	}
 
 
 static func _valider_ameliorations(liste: Array, ids: Dictionary, err: Array[String]) -> void:
@@ -888,63 +764,6 @@ static func _matrice(v: Variant) -> Array:
 
 static func _entier_ou_flottant(valeur: Variant, entier: bool) -> Variant:
 	return int(valeur) if entier else float(valeur)
-
-
-static func _normaliser_sous_effet(v: Variant, kinds: Dictionary) -> Dictionary:
-	var source: Dictionary = v
-	var kind: String = source["kind"]
-	var sortie: Dictionary = {"kind": kind}
-	var specs: Array = kinds[kind]
-	for spec: Dictionary in specs:
-		var nom: String = spec["nom"]
-		sortie[nom] = _entier_ou_flottant(source[nom], spec["entier"])
-	if kind == "vol_de_vie":
-		sortie["a_la_mort"] = source.get("a_la_mort", false)
-	match kind:
-		"tournant":
-			sortie["sens"] = source["sens"]
-		"siphon":
-			sortie["ressource"] = source["ressource"]
-		"invocation":
-			sortie["unite"] = source["unite"]
-		"vulnerabilite":
-			# -1 : le type de l'arme qui pose le statut.
-			sortie["type_degats"] = (
-				Types.type_depuis_nom(source["type_degats"]) if source.has("type_degats") else -1
-			)
-	return sortie
-
-
-static func _normaliser_arme(v: Variant) -> Dictionary:
-	var a: Dictionary = v
-	var sortie: Dictionary = {
-		"id": a["id"],
-		"nom": a["nom"],
-		"description": a["description"],
-		"rarete": Types.rarete_depuis_nom(a["rarete"]),
-		"prix": int(a["prix"]),
-		"type_degats": Types.type_depuis_nom(a["type_degats"]),
-		"degats": float(a["degats"]),
-		"recharge": float(a["recharge"]),
-		"portee": int(a["portee"]),
-		"ciblage": Types.ciblage_depuis_nom(a["ciblage"]),
-		"degats_par_mana_max": float(a.get("degats_par_mana_max", 0.0)),
-		"degats_par_pv_max": float(a.get("degats_par_pv_max", 0.0)),
-		"degats_par_niveau": float(a.get("degats_par_niveau", 0.0)),
-		"degats_par_amelioration": DonneesLot9.normaliser_par_amelioration(a),
-		"type_secondaire": String(a.get("type_secondaire", "")),
-	}
-	var effets: Array = []
-	var effets_bruts: Array = a["effets"]
-	for e: Variant in effets_bruts:
-		effets.append(_normaliser_sous_effet(e, _kinds_effets()))
-	sortie["effets"] = effets
-	var statuts: Array = []
-	var statuts_bruts: Array = a.get("statuts", [])
-	for s: Variant in statuts_bruts:
-		statuts.append(_normaliser_sous_effet(s, _kinds_statuts()))
-	sortie["statuts"] = statuts
-	return sortie
 
 
 static func _contenu_vide(nom: String) -> Variant:

@@ -456,16 +456,17 @@ func test_un_salon_plein_est_refuse() -> void:
 	verifier_egal(e.pertes.size(), 1)
 
 
-## Serveur dédié après une partie : il rouvre son salon sans fermer les connexions. Un client qui
-## attend sur l'écran de fin n'est pas coupé cinq secondes plus tard : il redit bonjour au salon
-## neuf.
-func test_un_salon_rouvert_re_enregistre_les_clients_au_lieu_de_les_couper() -> void:
+## Serveur dédié après une partie : il rouvre son salon sans fermer les connexions. Le client qui
+## attend sur l'écran de fin (sans interface de salon) n'est ni coupé cinq secondes plus tard, ni
+## inscrit dans le salon neuf, où il bloquerait le lancement : un autre joueur peut lancer.
+func test_un_salon_rouvert_laisse_l_ancien_connecte_hors_du_salon_et_le_suivant_peut_lancer(
+) -> void:
 	verifier(_monter_serveur(), "un port libre")
 	var a := _nouveau_client("A")
 	var ea := _espionner(a)
 	verifier_egal(a.connecter("127.0.0.1", port, "Aki"), OK)
 	verifier(await _jusqua(func() -> bool: return a.salon != null), "A reçoit le salon")
-	var id := a.id_local()
+	var id_a := a.id_local()
 	serveur.rouvrir_salon()
 	# Quatorze secondes de serveur, par pas de 0,5 s, avec des images entre deux pour le réseau.
 	for _i: int in 28:
@@ -473,8 +474,43 @@ func test_un_salon_rouvert_re_enregistre_les_clients_au_lieu_de_les_couper() -> 
 		for _k: int in 3:
 			await arbre.process_frame
 	verifier(ea.pertes.is_empty(), "aucune perte signalée : %s" % [ea.pertes])
-	verifier_egal(serveur.nb_pairs(), 1, "le pair est toujours là")
-	verifier(serveur.salon.joueurs.has(id), "et réenregistré dans le salon neuf")
+	verifier_egal(serveur.nb_pairs(), 1, "A est toujours connecté")
+	verifier_faux(serveur.salon.joueurs.has(id_a), "mais pas inscrit dans le salon neuf")
+	var b := _nouveau_client("B")
+	var eb := _espionner(b)
+	verifier_egal(b.connecter("127.0.0.1", port, "Bo"), OK)
+	verifier(await _jusqua(func() -> bool: return b.salon != null), "B reçoit le salon")
+	verifier(b.est_hote(), "B, premier inscrit, est l'hôte")
+	b.pret(true)
+	verifier(
+		await _jusqua(func() -> bool: return serveur.salon.peut_demarrer()),
+		"B prêt : on peut lancer"
+	)
+	b.lancer()
+	verifier(await _jusqua(func() -> bool: return eb.parties == 1), "la partie démarre pour B")
+	verifier(ea.pertes.is_empty(), "A reste connecté pendant la nouvelle partie")
+
+
+## « Retour au salon » ferme la session de l'ancien client et en ouvre une neuve : il entre dans le
+## salon rouvert comme un nouveau joueur.
+func test_apres_retour_au_salon_l_ancien_client_rejoint_le_salon_rouvert() -> void:
+	verifier(_monter_serveur(), "un port libre")
+	var a := _nouveau_client("A")
+	verifier_egal(a.connecter("127.0.0.1", port, "Aki"), OK)
+	verifier(await _jusqua(func() -> bool: return a.salon != null), "A reçoit le salon")
+	serveur.rouvrir_salon()
+	for _i: int in 4:
+		serveur.tick(0.5)
+		await arbre.process_frame
+	a.deconnecter()
+	verifier(await _jusqua(func() -> bool: return serveur.nb_pairs() == 0), "A part")
+	var neuf := _nouveau_client("A2")
+	verifier_egal(neuf.connecter("127.0.0.1", port, "Aki"), OK)
+	verifier(
+		await _jusqua(func() -> bool: return neuf.salon != null), "le client neuf reçoit le salon"
+	)
+	verifier(neuf.salon.joueurs.has(neuf.id_local()), "il y figure")
+	verifier(neuf.est_hote(), "et il est l'hôte du salon rouvert")
 
 
 func test_le_serveur_arrete_en_pleine_partie_donne_une_seule_perte() -> void:
