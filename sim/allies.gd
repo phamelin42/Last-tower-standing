@@ -11,6 +11,10 @@ extends RefCounted
 ## identifiant sur `CRENEAUX` pas de temps pour que le coût d'un pas reste uniforme.
 const INTERVALLE_RECHERCHE := 0.25
 const CRENEAUX := 5
+## Côté d'une case de la grille de recherche, en pixels : de l'ordre de la portée d'un allié.
+const COTE_CASE := 80.0
+## Marge sur la distance minimale d'une case, pour les arrondis de flottants.
+const MARGE_CASE := 1.0
 ## Distance à la tour à laquelle un allié sans cible attend, et rayon où il apparaît.
 const RAYON_RETOUR := 90.0
 const RAYON_APPARITION := 80.0
@@ -53,7 +57,17 @@ var _suivant: int = 0
 ## recherche : leurs indices et leur distance² à la tour.
 var _candidats: PackedInt32Array = PackedInt32Array()
 var _candidats_d2: PackedFloat32Array = PackedFloat32Array()
+## Position de chaque candidat, rangée à côté de son indice : la recherche la lit de suite.
+var _candidats_pos: PackedVector2Array = PackedVector2Array()
 var _candidats_prets: bool = false
+## Grille des candidats : `COTE_CASE` pixels de côté, `_cases` cases par ligne, l'origine en
+## `_origine` ; `_debuts[c]` à `_debuts[c + 1]` délimite dans `_rangees` les rangs (dans
+## `_candidats`) des candidats de la case `c`.
+var _cases: int = 0
+var _origine: Vector2 = Vector2.ZERO
+var _debuts: PackedInt32Array = PackedInt32Array()
+var _rangees: PackedInt32Array = PackedInt32Array()
+var _numeros: PackedInt32Array = PackedInt32Array()
 var _garde_max2: float = 0.0
 
 
@@ -213,19 +227,75 @@ func _agir(
 func _chercher(k: int, ennemis: Ennemis, centre_tour: Vector2) -> int:
 	if not _candidats_prets:
 		_dresser_candidats(ennemis, centre_tour)
+	var depart := pos[k]
+	var relatif := (depart - _origine) / COTE_CASE
+	var case_x := int(floorf(relatif.x))
+	var case_y := int(floorf(relatif.y))
+	# Hors de la grille (un allié qui a poursuivi un ennemi loin de la tour) : parcours complet.
+	if case_x < 0 or case_y < 0 or case_x >= _cases or case_y >= _cases:
+		return _chercher_directe(k, ennemis)
+	var g2 := garde[k] * garde[k]
+	var carres := _candidats_d2
+	var positions := _candidats_pos
+	var identifiants := ennemis.ids
+	var candidats := _candidats
+	var meilleur := -1
+	var meilleure := 0.0
+	var anneau_max := maxi(maxi(case_x, _cases - 1 - case_x), maxi(case_y, _cases - 1 - case_y))
+	for r: int in anneau_max + 1:
+		if meilleur != -1 and r >= 2:
+			var proche := float(r - 1) * COTE_CASE - MARGE_CASE
+			if proche > 0.0 and proche * proche > meilleure:
+				break
+		var y_min := maxi(case_y - r, 0)
+		var y_max := mini(case_y + r, _cases - 1)
+		for y: int in range(y_min, y_max + 1):
+			# Les lignes du haut et du bas de l'anneau en entier, les autres par leurs deux bouts.
+			var bord := y == case_y - r or y == case_y + r
+			var pas_x := 1 if bord or r == 0 else 2 * r
+			var x := maxi(case_x - r, 0) if bord or r == 0 else case_x - r
+			var x_fin := mini(case_x + r, _cases - 1)
+			while x <= x_fin:
+				if x >= 0:
+					var c_case := y * _cases + x
+					for j: int in range(_debuts[c_case], _debuts[c_case + 1]):
+						var c := _rangees[j]
+						if carres[c] > g2:
+							continue
+						var d2 := positions[c].distance_squared_to(depart)
+						var i := candidats[c]
+						if (
+							meilleur == -1
+							or d2 < meilleure
+							or (d2 == meilleure and identifiants[i] < identifiants[meilleur])
+						):
+							meilleur = i
+							meilleure = d2
+				x += pas_x
+	return meilleur
+
+
+## Le même résultat sans la grille : tous les candidats, un à un (référence des tests).
+func _chercher_directe(k: int, ennemis: Ennemis) -> int:
 	var g2 := garde[k] * garde[k]
 	var meilleur := -1
 	var meilleure := 0.0
 	var depart := pos[k]
-	for c: int in _candidats.size():
-		if _candidats_d2[c] > g2:
+	# Les tableaux sont lus une fois : une lecture de propriété par candidat coûtait la moitié de la
+	# recherche (64 alliés cherchent chacun cinq fois par seconde parmi 1 000 ennemis).
+	var candidats := _candidats
+	var carres := _candidats_d2
+	var positions := _candidats_pos
+	var identifiants := ennemis.ids
+	for c: int in candidats.size():
+		if carres[c] > g2:
 			continue
-		var i := _candidats[c]
-		var d2 := ennemis.pos[i].distance_squared_to(depart)
+		var i := candidats[c]
+		var d2 := positions[c].distance_squared_to(depart)
 		if (
 			meilleur == -1
 			or d2 < meilleure
-			or (d2 == meilleure and ennemis.ids[i] < ennemis.ids[meilleur])
+			or (d2 == meilleure and identifiants[i] < identifiants[meilleur])
 		):
 			meilleur = i
 			meilleure = d2
@@ -236,13 +306,43 @@ func _dresser_candidats(ennemis: Ennemis, centre_tour: Vector2) -> void:
 	_candidats_prets = true
 	_candidats.clear()
 	_candidats_d2.clear()
+	_candidats_pos.clear()
+	# La case de chaque candidat se calcule dans la même passe ; la grille couvre le carré de côté
+	# 2 × le plus grand rayon de garde autour de la tour, comptes puis rangs par tri par comptage.
+	var rayon := sqrt(_garde_max2)
+	_cases = int(ceilf(2.0 * rayon / COTE_CASE)) + 1
+	_origine = centre_tour - Vector2(rayon, rayon)
+	var total := _cases * _cases
+	var dernier := _cases - 1
+	_debuts.resize(total + 1)
+	_debuts.fill(0)
+	_numeros.clear()
+	var mort := ennemis.mort
+	var positions := ennemis.pos
+	var origine := _origine
 	for i: int in ennemis.ids.size():
-		if ennemis.mort[i] != 0:
+		if mort[i] != 0:
 			continue
-		var d2 := ennemis.pos[i].distance_squared_to(centre_tour)
+		var p := positions[i]
+		var d2 := p.distance_squared_to(centre_tour)
 		if d2 <= _garde_max2:
 			_candidats.append(i)
 			_candidats_d2.append(d2)
+			_candidats_pos.append(p)
+			var cx := clampi(int((p.x - origine.x) / COTE_CASE), 0, dernier)
+			var cy := clampi(int((p.y - origine.y) / COTE_CASE), 0, dernier)
+			var numero := cy * _cases + cx
+			_numeros.append(numero)
+			_debuts[numero + 1] += 1
+	for numero: int in total:
+		_debuts[numero + 1] += _debuts[numero]
+	var n := _candidats.size()
+	_rangees.resize(n)
+	var suivants := _debuts.duplicate()
+	for c: int in n:
+		var numero := _numeros[c]
+		_rangees[suivants[numero]] = c
+		suivants[numero] += 1
 
 
 ## Marche vers `but` jusqu'à `arret` de lui, d'au plus `pas` ; ne dépasse jamais l'arrêt.
