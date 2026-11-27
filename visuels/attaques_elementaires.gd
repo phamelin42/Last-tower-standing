@@ -118,75 +118,12 @@ static func retard_barrage(element: String) -> float:
 	return RETARD_BARRAGE if e == null else float(e.conf().get("retard", 2.0)) * IMAGE
 
 
-## Un élément par fichier sous `visuels/attaques/` : une ligne ici suffit à en ajouter un.
-static func _scripts() -> Array[GDScript]:
-	return [
-		AttaqueFeu,
-		AttaqueGlace,
-		AttaqueBombe,
-		AttaquePoison,
-		AttaqueFoudre,
-		AttaqueArcane,
-		AttaqueLame,
-		AttaqueFaucille,
-		AttaqueDisque,
-		AttaqueMoulinet,
-		AttaqueGuillotine,
-		AttaqueTourbillon,
-		AttaqueArbalete,
-		AttaqueChausseTrape,
-		AttaqueRicochet,
-		AttaqueHerse,
-		AttaqueBaliste,
-		AttaquePluie,
-		AttaqueCercleGivre,
-		AttaqueNova,
-		AttaqueTempete,
-		AttaquePetard,
-		AttaqueMineForge,
-		AttaqueTrebuchet,
-		AttaqueGrandeBombe,
-		AttaqueDePipe,
-		AttaqueSablier,
-		AttaqueMiroir,
-		AttaqueVortex,
-		AttaqueHorloge,
-		AttaqueSerpe,
-		AttaqueRasoir,
-		AttaqueCouperet,
-		AttaqueBrume,
-		AttaqueFaucheuse,
-		AttaqueFleau,
-		AttaqueHache,
-		AttaqueScie,
-		AttaqueMoissonneuse,
-		AttaqueJaveline,
-		AttaqueTraitGerbe,
-		AttaqueFlecheMarquante,
-		AttaqueArcRemparts,
-		AttaqueHersePieux,
-		AttaqueLanceEpineuse,
-		AttaqueCarquois,
-		AttaqueMurPointes,
-		AttaqueCouronnePointes,
-		AttaqueRuneVeille,
-		AttaqueSiphonneur,
-		AttaqueLueur,
-		AttaquePrisme,
-		AttaqueOrage,
-		AttaqueCouronneEtoiles,
-		AttaqueVasque,
-		AttaqueNuee,
-		AttaqueNovaCeleste,
-	]
-
-
 ## Les éléments, par identifiant (créés une fois).
 static func registre() -> Dictionary:
 	if _registre.is_empty():
 		_planches = PLANCHES_COMMUNES.duplicate()
 		_visibles = VISIBLES_COMMUNES.duplicate()
-		for script: GDScript in _scripts():
+		for script: GDScript in RegistreAttaques.scripts():
 			var element: AttaqueElement = script.new()
 			_registre[element.id()] = element
 			_planches.merge(element.planches())
