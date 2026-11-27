@@ -221,7 +221,7 @@ const OFFRES: Dictionary = {
 	"oeil_du_firmament": ["map", "violet"],
 	"catapulte_des_anciens": ["axeDouble2", "brun"],
 	"lance_braise_du_conquerant": ["backpack", "brun"],
-	"canon_du_dernier_rempart": ["shield", "brun"],
+	"canon_du_dernier_rempart": ["swordWood", "brun"],
 	"urne_des_mille_ombres": ["ludicarts/cristal_violet", "pourpre"],
 	"pendule_du_desordre": ["ludicarts/lame_feu", "pourpre"],
 	"couronne_du_vide": ["scroll", "pourpre"],
