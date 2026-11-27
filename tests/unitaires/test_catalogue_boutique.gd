@@ -10,6 +10,9 @@ const REPARTITION: Array[int] = [1, 6, 6, 2]
 const ARMES_PAR_TYPE := 15
 const ARMES_TOTAL := 75
 const AMELIORATIONS_TOTAL := 87
+## Fin de partie (D23) : 15 armes (T12.7) et 20 améliorations (T12.7b), au-dessus de l'épique.
+const ARMES_TARDIVES := 15
+const AMELIORATIONS_TARDIVES := 20
 const MANCHE_MAX := 40
 const GRAINES: Array[int] = [1, 7, 42]
 const TIRAGES_PAR_MANCHE := 200
@@ -22,15 +25,26 @@ func avant_chaque() -> void:
 	verifier_non_nul(_d, "les données réelles doivent se charger")
 
 
-## Cinq types, quinze armes par type en 1 / 6 / 6 / 2, 75 armes et 87 améliorations en tout : la
-## cible de D18, qu'aucune passe d'équilibrage ne peut changer sans Phil.
+## Cinq types, quinze armes par type en 1 / 6 / 6 / 2, 75 armes et 87 améliorations de rareté
+## jusqu'à l'épique : la cible de D18, qu'aucune passe d'équilibrage ne peut changer sans Phil. Les raretés
+## de fin de partie (ancestrale, souveraine) s'y ajoutent sans la toucher.
 func test_la_cible_d18_est_toujours_tenue() -> void:
 	verifier_egal(Types.NOMS_TYPES.size(), 5, "cinq types de dégâts")
-	verifier_egal(_d.armes.size(), ARMES_TOTAL, "75 armes")
-	verifier_egal(_d.ameliorations.size(), AMELIORATIONS_TOTAL, "87 améliorations")
+	verifier_egal(_d.armes.size() - _tardives(_d.armes), ARMES_TOTAL, "75 armes jusqu'à l'épique")
+	verifier_egal(
+		_d.ameliorations.size() - _tardives(_d.ameliorations),
+		AMELIORATIONS_TOTAL,
+		"87 améliorations jusqu'à l'épique"
+	)
+	verifier_egal(_tardives(_d.armes), ARMES_TARDIVES, "15 armes de fin de partie")
+	verifier_egal(
+		_tardives(_d.ameliorations), AMELIORATIONS_TARDIVES, "20 améliorations de fin de partie"
+	)
 	var comptes: Dictionary = {}
 	for id: String in _d.armes:
 		var arme: Dictionary = _d.armes[id]
+		if int(arme["rarete"]) >= Types.Rarete.ANCESTRALE:
+			continue
 		var cle := (
 			"%s/%s"
 			% [Types.NOMS_TYPES[int(arme["type_degats"])], Types.NOMS_RARETES[int(arme["rarete"])]]
@@ -43,6 +57,15 @@ func test_la_cible_d18_est_toujours_tenue() -> void:
 			dans_le_type += n
 			verifier_egal(n, REPARTITION[k], "%s : armes %s" % [type_degats, RARETES[k]])
 		verifier_egal(dans_le_type, ARMES_PAR_TYPE, "%s : quinze armes" % type_degats)
+
+
+## Le nombre d'objets d'un catalogue de rareté ancestrale ou souveraine.
+func _tardives(catalogue: Dictionary) -> int:
+	var n := 0
+	for id: String in catalogue:
+		if int((catalogue[id] as Dictionary)["rarete"]) >= Types.Rarete.ANCESTRALE:
+			n += 1
+	return n
 
 
 ## Une offre qui ne sortirait jamais est du contenu mort : à chaque graine, on tire à chaque manche
@@ -61,7 +84,11 @@ func test_chaque_arme_et_chaque_amelioration_reste_proposable_a_une_manche() -> 
 					var id := String(offre["id"])
 					vus[id] = true
 				b.tirer(manche)
-	verifier_egal(_d.ids_catalogue.size(), ARMES_TOTAL + AMELIORATIONS_TOTAL, "162 offres")
+	verifier_egal(
+		_d.ids_catalogue.size(),
+		ARMES_TOTAL + AMELIORATIONS_TOTAL + ARMES_TARDIVES + AMELIORATIONS_TARDIVES,
+		"197 offres"
+	)
 	for id: String in _d.ids_catalogue:
 		verifier(vus.has(id), "« %s » n'est jamais proposé de la manche 1 à 40" % id)
 
