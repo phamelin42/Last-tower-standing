@@ -1,6 +1,6 @@
 extends CasDeTest
-## Les armes du lot 8 et celles du lot 9 déjà levées (T9.19) ont un élément visuel (D22) ; les
-## autres gardent le rendu d'aujourd'hui.
+## Chacune des armes de `data/armes.json` a un élément visuel (D22, T9.19 achevée) : le rendu par
+## signature ne sert plus que de repli.
 
 const ATTENDU: Dictionary = {
 	"canon_de_cloche": "feu",
@@ -69,6 +69,15 @@ const ATTENDU: Dictionary = {
 	"colosse_de_pierre": "colosse",
 	"champ_de_ruines": "ruines",
 	"salve_du_rempart": "salve",
+	"urne_des_ombres": "urne",
+	"pacte_de_sang": "pacte",
+	"engrenage_jumeau": "jumeau",
+	"serment_brise": "serment",
+	"archere_fantome": "archere",
+	"miroir_de_discorde": "discorde",
+	"coupe_d_oubli": "coupe",
+	"legion_de_cendre": "legion",
+	"tempete_de_malefices": "malefices",
 }
 
 
@@ -107,10 +116,12 @@ func test_toute_arme_en_jeu_a_un_element_et_toute_arme_a_element_est_en_jeu() ->
 	verifier(en_jeu > 0, "aucune arme en jeu")
 
 
-func test_toute_autre_arme_garde_son_rendu() -> void:
+func test_chacune_des_armes_du_catalogue_a_exactement_son_element() -> void:
 	var donnees: Donnees = Donnees.charger()
+	verifier_egal(ATTENDU.size(), donnees.armes.size(), "autant d'éléments que d'armes")
 	for id: Variant in donnees.armes:
-		if not ATTENDU.has(String(id)):
-			verifier_egal(ElementsArmes.de(String(id)), "", "%s doit rester inchangée" % id)
+		verifier(ATTENDU.has(String(id)), "%s : pas d'élément attendu" % id)
+		verifier_egal(ElementsArmes.de(String(id)), String(ATTENDU[String(id)]), "%s" % id)
+		verifier(ElementsArmes.de(String(id)) != "", "%s : sans élément" % id)
 	verifier_egal(ElementsArmes.de("arme_qui_n_existe_pas"), "")
 	verifier_egal(ElementsArmes.de(""), "")

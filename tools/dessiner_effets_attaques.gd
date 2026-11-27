@@ -30,6 +30,7 @@ const DESSINS: Array[GDScript] = [
 	preload("res://tools/dessin/dessins_lot9_marques.gd"),
 	preload("res://tools/dessin/dessins_lot9_siege.gd"),
 	preload("res://tools/dessin/dessins_lot9_chaos.gd"),
+	preload("res://tools/dessin/dessins_lot9_chaos_impacts.gd"),
 	preload("res://tools/dessin/dessins_partages.gd"),
 ]
 const ECHELLE_CONTACT: int = 4

@@ -1,9 +1,7 @@
 class_name ElementsArmes
 extends RefCounted
-## L'élément visuel des armes dont Phil juge les attaques (D22) : feu, glace, bombe, poison, foudre,
-## arcane, puis la famille acier (une arme par élément). Une arme absente de la table garde le
-## rendu par signature d'aujourd'hui (`de()` rend `""`) : les autres armes ne changent pas tant que
-## Phil n'a pas validé la proposition.
+## L'élément visuel de chaque arme (D22) : une attaque dessinée par arme, du feu et de la glace
+## jusqu'au chaos. Une arme absente de la table garde le rendu par signature (`de()` rend `""`).
 
 const FEU: String = "feu"
 const GLACE: String = "glace"
@@ -88,6 +86,17 @@ const COLOSSE: String = "colosse"
 const RUINES: String = "ruines"
 const SALVE: String = "salve"
 
+## Les armes de chaos du lot 9 : un élément par arme, comme les armes de siège.
+const URNE: String = "urne"
+const PACTE: String = "pacte"
+const JUMEAU: String = "jumeau"
+const SERMENT: String = "serment"
+const ARCHERE: String = "archere"
+const DISCORDE: String = "discorde"
+const COUPE: String = "coupe"
+const LEGION: String = "legion"
+const MALEFICES: String = "malefices"
+
 const ELEMENTS: Array[String] = [
 	FEU,
 	GLACE,
@@ -155,6 +164,15 @@ const ELEMENTS: Array[String] = [
 	COLOSSE,
 	RUINES,
 	SALVE,
+	URNE,
+	PACTE,
+	JUMEAU,
+	SERMENT,
+	ARCHERE,
+	DISCORDE,
+	COUPE,
+	LEGION,
+	MALEFICES,
 ]
 
 ## id d'arme → élément.
@@ -225,6 +243,15 @@ const TABLE: Dictionary = {
 	"colosse_de_pierre": COLOSSE,
 	"champ_de_ruines": RUINES,
 	"salve_du_rempart": SALVE,
+	"urne_des_ombres": URNE,
+	"pacte_de_sang": PACTE,
+	"engrenage_jumeau": JUMEAU,
+	"serment_brise": SERMENT,
+	"archere_fantome": ARCHERE,
+	"miroir_de_discorde": DISCORDE,
+	"coupe_d_oubli": COUPE,
+	"legion_de_cendre": LEGION,
+	"tempete_de_malefices": MALEFICES,
 }
 
 

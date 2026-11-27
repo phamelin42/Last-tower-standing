@@ -17,7 +17,9 @@ et du prisme, rayons d'un tir tournant, disques au sol de la rune et de la cage 
 vulnérabilité ; puis, pour les armes de siège et de chaos, baril, maillet, pierre lestée, obus, brasero,
 créneau, gravats, bloc du colosse, disques au sol des braises et des ruines, onde de choc, bombe à mèche,
 urne, goutte de sang, engrenages jumeaux, sceau brisé, flèche spectrale, éclat de discorde, coupe, cendre,
-maléfice et allié invoqué), dessinés par
+maléfice et allié invoqué ; puis, pour les attaques du chaos (T9.19), gerbes de sang, d'engrenages, de
+sceau et d'éclaboussure spectrale, pointes de discorde, volutes d'oubli, nuage de cendre, éclat de maléfice,
+apparitions de la sentinelle et de l'archère, coup de la sentinelle), dessinés par
 `tools/dessiner_effets_attaques.gd` dans le style et la palette de Tiny Swords : aplats, gros
 pixels, contour sombre. Aucun fichier de Tiny Swords n'est copié : seules quelques teintes de
 `Effects/Fire/Fire.png` et `Effects/Explosion/Explosions.png` ont été relevées. Le script fait foi :
