@@ -47,9 +47,17 @@ var _bombes: Array[Dictionary] = []
 var _ecoule: float = 0.0
 var _horloge: float = 0.0
 
+var _contours: ContoursPoses = ContoursPoses.new()
+
 
 func _init() -> void:
 	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	add_child(_contours)
+
+
+## Le contour tracé au-dessus des ennemis (lecture seule, pour les tests).
+func contours() -> ContoursPoses:
+	return _contours
 
 
 func nombre_zones() -> int:
@@ -76,6 +84,16 @@ func opacite_zone(i: int) -> float:
 		return 0.0
 	var reste: float = float(_zones[i]["reste"]) - _ecoule
 	return OPACITE_ZONE * clampf(reste / FONDU_ZONE, 0.0, 1.0)
+
+
+## La couleur de la zone `i` (celle du type de dégâts de son arme).
+func couleur_zone(i: int) -> Color:
+	return _zones[i]["couleur"] if i >= 0 and i < _zones.size() else Color.WHITE
+
+
+## Vrai tant que le projectile de la bombe `i` n'est pas arrivé : elle n'est pas encore posée.
+func bombe_en_vol(i: int) -> bool:
+	return i < 0 or i >= _bombes.size() or float(_bombes[i]["attente"]) > 0.0
 
 
 ## La planche de la bombe à mèche.
@@ -210,6 +228,7 @@ func afficher(vue: VueArene, effets: Effets = null) -> void:
 		_bombes.append(neuve)
 	_ecoule = 0.0
 	queue_redraw()
+	_contours.queue_redraw()
 
 
 func avancer(delta: float) -> void:
@@ -223,6 +242,7 @@ func avancer(delta: float) -> void:
 		var battement: float = lerpf(BATTEMENT_MIN, BATTEMENT_MAX, avancement_bombe(i))
 		_bombes[i]["phase"] = float(_bombes[i]["phase"]) + TAU * battement * delta
 	queue_redraw()
+	_contours.queue_redraw()
 
 
 func vider() -> void:
@@ -230,6 +250,7 @@ func vider() -> void:
 	_bombes.clear()
 	_ecoule = 0.0
 	queue_redraw()
+	_contours.queue_redraw()
 
 
 func _couleur_arme(arme: int) -> Color:

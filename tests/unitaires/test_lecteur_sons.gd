@@ -75,3 +75,35 @@ func test_la_meme_graine_donne_les_memes_hauteurs() -> void:
 			lecteur.traiter(v)
 			sortie.append_array(lecteur.derniere_hauteur)
 	verifier_egal(a, b)
+
+
+func test_un_impact_visible_joue_le_son_de_son_type_de_degats() -> void:
+	for type: int in 5:
+		var lecteur := _lecteur()
+		lecteur.jouer_impact(type, 10.0)
+		verifier_egal(lecteur.derniers_sons, [CatalogueSons.id_impact(type)] as Array[String])
+
+
+func test_un_meme_impact_ne_se_rejoue_pas_avant_l_intervalle() -> void:
+	var lecteur := _lecteur()
+	lecteur.jouer_impact(1, 10.0)
+	lecteur.jouer_impact(1, 10.0 + LecteurSons.INTERVALLE_IMPACT * 0.5)
+	verifier_egal(lecteur.derniers_sons.count(CatalogueSons.id_impact(1)), 1, "trop tôt")
+	lecteur.jouer_impact(1, 10.0 + LecteurSons.INTERVALLE_IMPACT)
+	verifier_egal(lecteur.derniers_sons.count(CatalogueSons.id_impact(1)), 2, "l'intervalle passé")
+
+
+func test_deux_types_d_impact_dans_la_meme_image_jouent_chacun_leur_son() -> void:
+	var lecteur := _lecteur()
+	lecteur.jouer_impact(0, 10.0)
+	lecteur.jouer_impact(1, 10.0)
+	verifier_egal(lecteur.derniers_sons.size(), 2, "un son par type")
+
+
+func test_une_mort_montree_joue_le_son_de_mort_au_plus_une_fois_par_intervalle() -> void:
+	var lecteur := _lecteur()
+	lecteur.jouer_mort(10.0)
+	lecteur.jouer_mort(10.0 + LecteurSons.INTERVALLE_IMPACT * 0.5)
+	verifier_egal(lecteur.derniers_sons, [CatalogueSons.MORT] as Array[String], "une seule fois")
+	lecteur.jouer_mort(10.0 + LecteurSons.INTERVALLE_IMPACT)
+	verifier_egal(lecteur.derniers_sons.size(), 2, "l'intervalle passé")

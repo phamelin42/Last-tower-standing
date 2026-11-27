@@ -140,9 +140,11 @@ func test_les_ennemis_avancent_vers_la_tour() -> void:
 	var banc := _banc_avec(50, BancIps.DUREE_S, true)
 	await attendre_images(3)
 	var avant := _distance_moyenne(banc)
+	# Les 40 vues arrivent dans la même image : l'affichage glisse vers la dernière en un retard
+	# (au plus `Interpolation.RETARD_MAX_S`) au lieu d'y sauter, il faut donc lui laisser ce temps.
 	for i: int in 40:
 		banc.avancer(0.05, 60.0)
-	await attendre_images(3)
+	await arbre.create_timer(Interpolation.RETARD_MAX_S + 0.05).timeout
 	verifier(_distance_moyenne(banc) < avant - 5.0, "les ennemis se rapprochent de la tour")
 
 

@@ -34,8 +34,9 @@ func _init(parent: Node2D) -> void:
 		_decalages.append(p["offset"])
 
 
-## Pose un crâne en `ou` (unités de jeu) à l'instant `horloge`, sauf si `PLAFOND` sont visibles.
-func ajouter(ou: Vector2, horloge: float) -> void:
+## Pose un crâne en `ou` (unités de jeu) à l'instant `horloge`, sauf si `PLAFOND` sont visibles ;
+## rend vrai s'il est posé (une mort qu'on ne montre pas ne fait pas de bruit).
+func ajouter(ou: Vector2, horloge: float) -> bool:
 	var index: int = -1
 	for i: int in _sprites.size():
 		if not _sprites[i].visible:
@@ -43,7 +44,7 @@ func ajouter(ou: Vector2, horloge: float) -> void:
 			break
 	if index < 0:
 		if _sprites.size() >= PLAFOND:
-			return
+			return false
 		_sprites.append(_creer())
 		_debuts.append(0.0)
 		_images.append(-1)
@@ -53,6 +54,7 @@ func ajouter(ou: Vector2, horloge: float) -> void:
 	_images[index] = -1
 	sprite.position = Apparence.vers_pixels(ou)
 	sprite.visible = true
+	return true
 
 
 ## Avance l'animation de chaque crâne visible ; il disparaît après sa dernière image.
