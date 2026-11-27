@@ -15,7 +15,7 @@ const COUPES: int = 5
 const VOLUTES: int = 4
 ## Les volutes se posent aux trois cinquièmes du rayon.
 const PART_VOLUTES: float = 0.6
-const DIAMETRE_VOLUTE: float = 40.0
+const DIAMETRE_VOLUTE: float = 56.0
 
 
 func id() -> String:

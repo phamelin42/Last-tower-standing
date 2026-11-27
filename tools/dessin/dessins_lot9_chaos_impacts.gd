@@ -11,6 +11,7 @@ const Outils := preload("res://tools/dessin/dessin_outils_lot9.gd")
 const BLANC := Commun.BLANC
 const JAUNE := Commun.JAUNE
 const ORANGE := Commun.ORANGE
+const CENDRE := Commun.BOMBE_REFLET
 const FUMEE := Commun.FUMEE
 const GRIS_CLAIR := Commun.GRIS_CLAIR
 const ENCRE := Commun.ACIER_CONTOUR
@@ -244,10 +245,10 @@ static func _nuage() -> Image:
 	var img: Image = Commun.vierge("nuage_cendre")
 	var rng: RandomNumberGenerator = Commun.hasard()
 	var mottes: Array[Vector3] = []
-	for k: int in 10:
+	for k: int in 18:
 		var angle: float = rng.randf() * TAU
-		var dist: float = sqrt(rng.randf()) * 9.5
-		mottes.append(Vector3(angle, dist, 3.0 + rng.randf() * 1.8))
+		var dist: float = sqrt(rng.randf()) * 11.5
+		mottes.append(Vector3(angle, dist, 2.0 + rng.randf() * 1.4))
 	for i: int in 4:
 		var t: Commun.Toile = Commun.toile(img, "nuage_cendre", i)
 		var k_c: float = CROISSANCE[i]
@@ -255,14 +256,16 @@ static func _nuage() -> Image:
 			if i == 3 and m % 2 == 1:
 				continue
 			var motte: Vector3 = mottes[m]
-			var p: Vector2 = CENTRE_32 + Vector2.from_angle(motte.x) * motte.y * 1.45 * k_c
+			var p: Vector2 = CENTRE_32 + Vector2.from_angle(motte.x) * motte.y * 1.2 * k_c
 			var rayon: float = motte.z * k_c * (0.8 if i == 3 else 1.0)
-			t.disque(p.x, p.y, rayon, FUMEE)
+			t.disque(p.x, p.y, rayon, CENDRE)
 			for y: int in t.h:
 				for x: int in t.w:
 					var d: Vector2 = Vector2(x + 0.5, y + 0.5) - p + Vector2(0.9, 0.9)
 					if d.length() <= rayon * 0.7 and (x + y) % 2 == 0 and t.opaque(x, y):
 						t.p(x, y, GRIS_CLAIR)
+					elif d.length() > rayon * 0.9 and (x + y) % 3 == 0 and t.opaque(x, y):
+						t.p(x, y, FUMEE)
 		var braises: int = [3, 6, 6, 2][i]
 		for b: int in braises:
 			var p: Vector2 = (
