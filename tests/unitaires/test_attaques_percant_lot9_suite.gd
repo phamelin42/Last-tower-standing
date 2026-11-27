@@ -162,3 +162,70 @@ func test_mouvement_reduit_le_mur_sans_particule() -> void:
 	_a.impacter("mur_pointes", CIBLE, 75.0)
 	verifier_egal(_a.particules_actives(), 0)
 	verifier(_a.etats("pique").size() > 0, "la haie reste")
+
+
+# --- Couronne de pointes : aura, repoussement et vulnérabilité ---------------------------------
+
+
+func test_la_couronne_de_pointes_est_une_aura() -> void:
+	_verifier_arme("couronne_de_pointes", "couronne_pointes", "aura")
+	verifier_egal(_statut("couronne_de_pointes"), "repoussement")
+	verifier_egal(AttaquesElementaires.planche_projectile("couronne_pointes"), "", "rien ne part")
+
+
+func test_les_pointes_de_la_couronne_atteignent_le_rayon_reel_de_l_aura() -> void:
+	var rayon: float = _rayon_px("couronne_de_pointes")
+	verifier(_a.aura("couronne_pointes", TOUR, rayon))
+	verifier_egal(_a.etats("chausse_trape").size(), AttaqueCouronnePointes.POINTES, "la couronne")
+	_avancer(AttaquesElementaires.IMAGES_COURONNE_OUVERTURE)
+	var portee_max: float = 0.0
+	for pointe: Dictionary in _a.etats("chausse_trape"):
+		var d: float = (pointe["position"] as Vector2).distance_to(TOUR)
+		portee_max = maxf(portee_max, d + pointe["taille"].y * 0.5)
+		verifier(d < rayon, "le centre de la pointe est dans la zone")
+	verifier_proche(portee_max, rayon, rayon * 0.1, "le bord extérieur est au rayon")
+	verifier(_a.diametre_max() <= rayon * 2.0 * 1.1, "rien au-delà de la zone")
+	verifier_egal(_a.etats("").size(), 1, "un anneau fin au rayon exact")
+
+
+func test_des_pointes_jaillissent_du_sol_au_rayon_de_l_aura() -> void:
+	var rayon: float = _rayon_px("couronne_de_pointes")
+	_a.aura("couronne_pointes", TOUR, rayon)
+	_avancer(AttaqueCouronnePointes.IMAGES_RETARD_POINTES + 1)
+	var sol: Array[Dictionary] = _a.etats("pointes_sol")
+	verifier_egal(sol.size(), AttaqueCouronnePointes.POINTES, "une touffe par pointe")
+	for touffe: Dictionary in sol:
+		var d: float = (touffe["position"] as Vector2).distance_to(TOUR)
+		verifier(d + touffe["diametre"] * 0.5 <= rayon + 1.0, "dans la zone")
+
+
+func test_la_couronne_s_efface_et_rend_le_pool() -> void:
+	_a.aura("couronne_pointes", TOUR, 175.0)
+	_avancer(AttaquesElementaires.IMAGES_COURONNE + 20)
+	verifier_egal(_a.nombre_vivants(), 0)
+	verifier_egal(_a.particules_actives(), 0)
+
+
+func test_la_couronne_dans_effets_se_dessine_a_chaque_coup_de_l_aura() -> void:
+	var effets: Effets = _effets_de("couronne_de_pointes")
+	verifier_egal(
+		effets.elementaires().etats("chausse_trape").size(), AttaqueCouronnePointes.POINTES
+	)
+	verifier_egal(effets.formes_vivantes().has("anneau"), false, "plus d'anneau générique")
+	effets.free()
+
+
+func test_mouvement_reduit_la_couronne_garde_ses_pointes_sans_tourner() -> void:
+	_a.mouvement_reduit = true
+	_a.aura("couronne_pointes", TOUR, 175.0)
+	_avancer(3)
+	var avant: Array[Dictionary] = _a.etats("chausse_trape")
+	_avancer(3)
+	var apres: Array[Dictionary] = _a.etats("chausse_trape")
+	verifier_egal(apres.size(), AttaqueCouronnePointes.POINTES, "les pointes restent")
+	verifier_proche(
+		((avant[0]["position"] as Vector2) - TOUR).angle(),
+		((apres[0]["position"] as Vector2) - TOUR).angle(),
+		0.0001,
+		"elles ne tournent pas"
+	)

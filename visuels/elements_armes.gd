@@ -64,6 +64,7 @@ const HERSE_PIEUX: String = "herse_pieux"
 const LANCE_EPINEUSE: String = "lance_epineuse"
 const CARQUOIS: String = "carquois"
 const MUR_POINTES: String = "mur_pointes"
+const COURONNE_POINTES: String = "couronne_pointes"
 
 const ELEMENTS: Array[String] = [
 	FEU,
@@ -113,6 +114,7 @@ const ELEMENTS: Array[String] = [
 	LANCE_EPINEUSE,
 	CARQUOIS,
 	MUR_POINTES,
+	COURONNE_POINTES,
 ]
 
 ## id d'arme → élément.
@@ -164,6 +166,7 @@ const TABLE: Dictionary = {
 	"lance_epineuse": LANCE_EPINEUSE,
 	"carquois_en_rafale": CARQUOIS,
 	"mur_de_pointes": MUR_POINTES,
+	"couronne_de_pointes": COURONNE_POINTES,
 }
 
 
