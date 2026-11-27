@@ -121,7 +121,7 @@ const TYPE_ACHAT_INSUFFISANT := "BoutonAchatInsuffisant"
 ## marges, que la hauteur minimale des contrôles porte à 48 px.
 const MARGE_HAUT_ACHAT := 8.0
 const MARGE_BAS_ACHAT := 16.0
-const MARGE_VERTICALE_CARTE := 4.0
+const MARGE_VERTICALE_CARTE := 2.0
 const TYPE_CELLULE := "CelluleIcone"
 const TYPE_CELLULE_FIXE := "CelluleFixe"
 const TYPE_RUBAN := "TitreRuban"
@@ -449,6 +449,28 @@ static func _style_bouton(chemin: String, teinte: Color = Color.WHITE) -> StyleB
 	return b
 
 
+## Le pack dessine le bouton enfoncé et l'inactif plus bas (l'ombre disparaît) et le premier un peu
+## plus large : sans correction le corps « saute » à l'appui et quand un achat rend une offre
+## trop chère. On cale l'encre de `chemin` sur celle de `reference` : le haut de la texture est
+## rogné de l'écart (la hauteur reste étirée sur tout le bouton) et les côtés rentrent de leur
+## écart. Les écarts se lisent sur les textures, aucune mesure n'est écrite ici.
+static func _style_bouton_cale(
+	chemin: String, reference: String, teinte: Color = Color.WHITE
+) -> StyleBoxTexture:
+	var b := _style_bouton(chemin, teinte)
+	var image := (load(chemin) as Texture2D).get_image()
+	var encre := image.get_used_rect()
+	var attendu := (load(reference) as Texture2D).get_image().get_used_rect()
+	var bas := maxi(encre.position.y - attendu.position.y, 0)
+	if bas > 0:
+		b.region_rect = Rect2(
+			0.0, float(bas), float(image.get_width()), float(image.get_height() - bas)
+		)
+	b.expand_margin_left = float(encre.position.x - attendu.position.x)
+	b.expand_margin_right = float(attendu.end.x - encre.end.x)
+	return b
+
+
 ## Boutons du pack : bleu pour l'ordinaire, rouge pour ce qui détruit ou quitte. Le texte est
 ## d'encre foncée (les textures sont claires) ; l'état se lit aussi à la forme du bouton.
 ## Cases des grilles d'icônes : aplat d'encre et filet de laiton, filet clair au survol et à la
@@ -490,8 +512,8 @@ static func _boutons(t: Theme) -> void:
 		var l: Array = jeux[type]
 		t.set_stylebox("normal", type, _style_bouton(str(l[0])))
 		t.set_stylebox("hover", type, _style_bouton(str(l[1])))
-		t.set_stylebox("pressed", type, _style_bouton(str(l[2]), l[4] as Color))
-		t.set_stylebox("disabled", type, _style_bouton(str(l[3])))
+		t.set_stylebox("pressed", type, _style_bouton_cale(str(l[2]), str(l[0]), l[4] as Color))
+		t.set_stylebox("disabled", type, _style_bouton_cale(str(l[3]), str(l[0])))
 		t.set_stylebox("focus", type, focus)
 		if type == "Button":
 			t.set_type_variation(TYPE_ACHAT, "Button")
