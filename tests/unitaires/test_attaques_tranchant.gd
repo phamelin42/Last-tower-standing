@@ -262,3 +262,45 @@ func test_mouvement_reduit_la_lame_de_brume_ne_tourne_pas_et_sans_particule() ->
 	verifier_egal(_a.etats("lame_croissant")[0]["image"], avant, "ne tourne pas")
 	_a.impacter("brume", CIBLE, 0.0)
 	verifier_egal(_a.particules_actives(), 0)
+
+
+# --- Faucheuse double : tir tournant à quatre branches, poison ---------------------------------
+
+
+func test_la_faucheuse_est_un_tir_tournant_a_quatre_branches() -> void:
+	_verifier_arme("faucheuse_double", "faucheuse", "tournant")
+	verifier_egal(int(_effet("faucheuse_double")["branches"]), 4, "quatre branches")
+
+
+func test_la_faucheuse_dure_dix_images_et_tourne_en_vert_pale() -> void:
+	verifier_proche(_a.tirer("faucheuse", TOUR, CIBLE) / IMAGE, 10.0, 0.01)
+	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 1)
+	var lame: Dictionary = _a.etats("lame_tournante")[0]
+	var teinte: Color = lame["teinte"]
+	verifier(teinte.g > teinte.r + 0.1 and teinte.g > teinte.b, "teintée de vert")
+	var avant: float = lame["rotation"]
+	_avancer(2)
+	verifier(absf(_a.etats("lame_tournante")[0]["rotation"] - avant) > 0.1, "elle tourne")
+
+
+func test_l_impact_de_la_faucheuse_a_des_etincelles_et_des_gouttes_de_poison() -> void:
+	_a.impacter("faucheuse", CIBLE, 0.0)
+	verifier_egal(_a.etats("eclat_acier").size(), 1, "un éclat d'acier")
+	verifier(_a.diametre_max() <= 60.0, "au plus 60 px")
+	verifier_egal(_a.particules_actives(), 2, "étincelles et gouttes vertes")
+	_avancer(60)
+	verifier_egal(_a.nombre_vivants(), 0, "tout se dissipe")
+	verifier_egal(_a.particules_actives(), 0)
+
+
+func test_la_faucheuse_dans_effets_file_sur_ses_quatre_rayons() -> void:
+	_verifier_tournant_dans_effets("faucheuse_double", "lame_tournante", "eclat_acier")
+
+
+func test_mouvement_reduit_la_faucheuse_ne_tourne_pas_et_sans_particule() -> void:
+	_a.mouvement_reduit = true
+	_a.tirer("faucheuse", TOUR, CIBLE)
+	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 2)
+	verifier_proche(_a.etats("lame_tournante")[0]["rotation"], 0.0, 0.0001, "pas de rotation")
+	_a.impacter("faucheuse", CIBLE, 0.0)
+	verifier_egal(_a.particules_actives(), 0)
