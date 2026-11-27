@@ -161,6 +161,37 @@ const ENTITES: Dictionary = {
 	"aieul_de_fer": {"modele": "warrior", "couleur_pack": "Blue", "echelle": 3.0},
 }
 
+## Les alliés invoqués (`data/unites.json` `modele`) : la feuille du pack d'un modèle d'ennemi, mais
+## une teinte (`teinte`, posée sur le sprite) qu'aucune famille ni aucun statut n'a, et un anneau
+## au sol (`anneau`) que les ennemis n'ont pas. Un modèle inconnu n'a pas d'entrée.
+const ALLIES: Dictionary = {
+	"guerrier":
+	{
+		"modele": "warrior",
+		"couleur_pack": "Blue",
+		"echelle": 1.0,
+		"teinte": Color(1.0, 0.65, 0.92),
+	},
+	"archer":
+	{
+		"modele": "archer",
+		"couleur_pack": "Blue",
+		"echelle": 1.0,
+		"teinte": Color(1.0, 0.65, 0.92),
+	},
+	"paysan":
+	{
+		"modele": "pawn",
+		"couleur_pack": "Blue",
+		"echelle": 1.0,
+		"teinte": Color(1.0, 0.65, 0.92),
+	},
+}
+## L'anneau double au sol des alliés : couleur du trait extérieur et de l'intérieur.
+const ANNEAU_ALLIE_EXTERIEUR := Color(1.0, 0.95, 0.75)
+const ANNEAU_ALLIE_INTERIEUR := Color(0.62, 0.3, 0.85)
+const CONTOUR_ANNEAU_ALLIE := Color(0.1, 0.07, 0.15, 0.9)
+
 ## La mort de toutes les familles : le crâne de `Dead.png`, 14 images lues ligne après ligne.
 const MORT: Dictionary = {
 	"feuille": "res://assets/tiny_swords/Factions/Knights/Troops/Dead/Dead.png",
@@ -219,7 +250,23 @@ static func entree(id: String) -> Dictionary:
 		return _entrees[id]
 	if not ENTITES.has(id):
 		return {}
-	var source: Dictionary = ENTITES[id]
+	return _construire_entree(id, ENTITES[id])
+
+
+## Comme `entree`, pour un allié du modèle `modele` (`ALLIES`) ; `couleur` est sa teinte. Vide si
+## le modèle est inconnu.
+static func entree_allie(modele: String) -> Dictionary:
+	if not ALLIES.has(modele):
+		return {}
+	var cle: String = "allie_" + modele
+	if _entrees.has(cle):
+		return _entrees[cle]
+	var entree_pack: Dictionary = _construire_entree(cle, ALLIES[modele])
+	entree_pack["couleur"] = (ALLIES[modele] as Dictionary)["teinte"]
+	return entree_pack
+
+
+static func _construire_entree(id: String, source: Dictionary) -> Dictionary:
 	var modele: Dictionary = (MODELES[source["modele"]] as Dictionary).duplicate()
 	var couleur_pack: String = source["couleur_pack"]
 	modele["feuille"] = chemin_feuille(String(source["modele"]), couleur_pack)

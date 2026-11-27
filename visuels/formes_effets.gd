@@ -34,6 +34,10 @@ static func _couverture(nom: String, p: Vector2, centre: Vector2, taille: Vector
 			return rayon - (absf(d.x) + absf(d.y))
 		"trait":
 			return minf(centre.y - absf(d.y) + 0.5, minf(p.x, taille.x - p.x))
+		"trait_rayon":
+			# Plein à la tour (à gauche), effilé jusqu'à la pointe : on lit le sens du rayon.
+			var demi: float = centre.y * (1.0 - 0.75 * p.x / taille.x)
+			return minf(demi - absf(d.y) + 0.5, minf(p.x, taille.x - p.x))
 		"trait_ondule":
 			var y: float = sin(p.x / taille.x * TAU * 2.0) * 2.5
 			return 1.6 - absf(d.y - y)
