@@ -147,10 +147,6 @@ func page_reglages_visible() -> bool:
 	return _cadre_reglages.visible
 
 
-func ouvrir_reglages() -> void:
-	_sur_reglages()
-
-
 func _sur_solo() -> void:
 	solo_demande.emit(nom_joueur())
 
@@ -171,10 +167,6 @@ func _sur_reglages() -> void:
 
 func page_progression_visible() -> bool:
 	return _cadre_progression.visible
-
-
-func ouvrir_progression() -> void:
-	_sur_progression()
 
 
 func _sur_progression() -> void:

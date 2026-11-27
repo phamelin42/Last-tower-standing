@@ -47,14 +47,15 @@ static func nettoyer_dossiers_temporaires() -> void:
 	DirAccess.remove_absolute("user://tests_tmp")
 
 
-## 0 si tout est bon ; en mode contrôle, 0 seulement si CHAQUE test a échoué
-## (et qu'il y en avait au moins un) : c'est la preuve que les échecs sont détectés.
+## 0 si tout est bon et qu'au moins un test a tourné : un filtre ou un dossier mal tapé n'en
+## exécute aucun et ne doit pas passer pour vert. En mode contrôle, 0 seulement si CHAQUE test a
+## échoué (et qu'il y en avait au moins un) : c'est la preuve que les échecs sont détectés.
 func code_de_sortie(bilan: Dictionary, controle: bool) -> int:
 	var tests: int = bilan["tests"]
 	var echecs: int = bilan["echecs"]
 	if controle:
 		return 0 if tests > 0 and echecs == tests else 1
-	return 0 if echecs == 0 else 1
+	return 0 if tests > 0 and echecs == 0 else 1
 
 
 func _collecter(dossier: String, sortie: PackedStringArray) -> void:

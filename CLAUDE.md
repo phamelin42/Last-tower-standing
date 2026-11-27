@@ -35,6 +35,9 @@ Spécification : `docs/superpowers/specs/2026-11-24-jeu-tour-design.md`. Plan :
 - `visuels/` : rendu 2D pixel art (Tiny Swords), caméra, décor, effets. La correspondance entité → sprites est dans `visuels/apparence.gd`. Tout ce qui est propre à un fichier d'image (chemin, case, régions, échelle, cadence) est dans `data/assets.json` (lu par `Assets`, `PlanchesEffets` pour les effets d'attaque), jamais dans le code (T10.4).
   Attaques d'élément (D22) : `attaques_elementaires.gd` aiguille, un fichier par élément sous `visuels/attaques/` (`AttaqueElement`) ; leurs sprites sont dessinés par `tools/dessiner_effets_attaques.gd` et un fichier de dessins par famille sous `tools/dessin/` ; les mécaniques de genre (aura, onde, saut) sont dans `visuels/mecaniques_genres.gd`. Ajouter un élément : un fichier sous `visuels/attaques/`, ses dessins, une ligne de table ; un genre posé au sol (piège, mine) s'aiguille aussi dans `Effets._tir`.
 - `ui/` : menus, salon, HUD, boutique, tableau des scores, écran de fin.
+- `app/` : racine de composition. Il instancie la partie locale (`source_locale.gd`), ouvre la session réseau (`session_reseau.gd`), relie `progression/` à la fin de partie (`progression_locale.gd`) et porte les écrans principaux (`principal.gd`, `jeu.gd`, `menu_principal.gd`). `ui/` et `visuels/` en lisent `SourceVue` et `Reglages`.
+- `sons/` : lecteur et catalogue des sons (`catalogue_sons.gd` lit `data/assets.json`) ; les fichiers sont sous `assets/sons/`.
+- `scenes/` : les scènes `.tscn` (jeu, HUD, boutique, fin, observation, arène 2D, annuaire, bancs de mesure).
 - `progression/` : le profil local du joueur (`Profil`, `Sauvegarde` : `user://progression.json` versionné, avec copie de secours, jamais écrasé s'il vient d'une version plus récente) et l'évaluation des défis (`Defis`). Il ne lit que `data/` et le bilan de `sim/` (`Donnees`, `BilanPartie`) ; `app/progression_locale.gd` le relie à la fin de partie, chaque poste évaluant son propre bilan (un serveur dédié n'écrit rien) ; `ui/` le lit.
 - `i18n/*.csv` : tous les textes visibles (colonne `fr`).
 - `tests/` : `lanceur.gd`, `tests/unitaires/test_*.gd`, `tests/integration/`.
@@ -65,8 +68,10 @@ Spécification : `docs/superpowers/specs/2026-11-24-jeu-tour-design.md`. Plan :
 - Assets remplaçables (Phil, 26/11/2026) : changer un pack d'images ou de sons ne doit demander que de remplacer
   les fichiers. Chemin, taille de case, nombre d'images, régions, ancrages, échelle et durée vivent dans
   les données (`data/*.json`) ou se lisent sur la texture, jamais dans des constantes de `visuels/` ou de
-  `ui/` ; chaque chemin d'asset passe par un seul point d'accès (`visuels/apparence.gd`, `ui/theme.gd`,
-  `sons/catalogue_sons.gd`). Une valeur géométrique trouvée en dur se signale (audit T10.4).
+  `ui/` ; les chemins d'asset passent par quelques points d'accès, tous gardés par la liste fermée de
+  `test_garde_ressources` : `visuels/apparence.gd` (Tiny Swords ; `visuels/decor.gd` en lit `RACINE`),
+  `visuels/images_offres.gd` (icônes des offres), `ui/theme.gd` et `sons/catalogue_sons.gd`. Une valeur
+  géométrique trouvée en dur se signale (audit T10.4).
 
 ## Skills de jeu tiers
 

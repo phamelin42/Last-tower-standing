@@ -358,7 +358,3 @@ static func chemin_icone(icone: String) -> String:
 
 static func chemin_case(id: String) -> String:
 	return DOSSIER_CASES + id + ".png"
-
-
-static func est_rapprochement_faible(id: String) -> bool:
-	return RAPPROCHEMENTS_FAIBLES.has(id)

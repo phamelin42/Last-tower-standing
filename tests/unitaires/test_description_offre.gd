@@ -550,11 +550,11 @@ func _fiche_amelio(effet: Dictionary) -> Dictionary:
 ## Toutes les lignes que les mécaniques du lot 9 peuvent produire, avec leur fiche.
 func _lignes_lot9() -> Array[String]:
 	var lignes: Array[String] = []
-	var kinds: Dictionary = Donnees._kinds_effets()
+	var kinds: Dictionary = DonneesArmes.kinds_effets()
 	for kind: String in kinds:
 		var fiche := _arme_factice([_sous_effet_factice(kind, kinds[kind])])
 		lignes.append(DescriptionOffre.ligne_effet(fiche, Types.Genre.ARME, _donnees))
-	var kinds_statuts: Dictionary = Donnees._kinds_statuts()
+	var kinds_statuts: Dictionary = DonneesArmes.kinds_statuts()
 	for kind: String in kinds_statuts:
 		var statut := _sous_effet_factice(kind, kinds_statuts[kind])
 		var fiche := _arme_factice(_arme_factice([])["effets"] as Array, [statut])
@@ -569,8 +569,8 @@ func _lignes_lot9() -> Array[String]:
 
 
 func test_chaque_nouveau_genre_statut_champ_et_stat_a_son_modele() -> void:
-	var kinds_effets: Array = Donnees._kinds_effets().keys()
-	var kinds_statuts: Array = Donnees._kinds_statuts().keys()
+	var kinds_effets: Array = DonneesArmes.kinds_effets().keys()
+	var kinds_statuts: Array = DonneesArmes.kinds_statuts().keys()
 	kinds_effets.sort()
 	kinds_statuts.sort()
 	var effets_modeles: Array = DescriptionOffre.EFFETS.duplicate()
@@ -589,14 +589,14 @@ func test_chaque_nouveau_genre_statut_champ_et_stat_a_son_modele() -> void:
 		stats_modeles, stats_schema, "un modèle par statistique du schéma, pas un de plus"
 	)
 	for kind: String in kinds_effets:
-		var specs: Array = Donnees._kinds_effets()[kind]
+		var specs: Array = DonneesArmes.kinds_effets()[kind]
 		var effet := _sous_effet_factice(kind, specs)
 		var ligne := DescriptionOffre.ligne_effet(
 			_arme_factice([effet]), Types.Genre.ARME, _donnees
 		)
 		_verifier_ligne_pleine(ligne, "effet « %s »" % kind, effet)
 	for kind: String in kinds_statuts:
-		var statut := _sous_effet_factice(kind, Donnees._kinds_statuts()[kind])
+		var statut := _sous_effet_factice(kind, DonneesArmes.kinds_statuts()[kind])
 		var fiche := _arme_factice([{"kind": "cible_unique"}], [statut])
 		var ligne := DescriptionOffre.ligne_effet(fiche, Types.Genre.ARME, _donnees)
 		_verifier_ligne_pleine(ligne, "statut « %s »" % kind, statut)
