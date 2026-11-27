@@ -160,10 +160,22 @@ func _lancer(graine: int) -> bool:
 	var config := Partie.Config.new()
 	config.graine = graine
 	config.facteur_duree = _facteur
+	locale.definir_skin(_skin_du_profil())
 	if not locale.demarrer(_donnees, config, nom_joueur):
 		return false
 	_monter()
 	return true
+
+
+## L'index du skin choisi au profil (0, le skin par défaut, s'il est inconnu ou pas débloqué) : en
+## solo il n'y a pas de salon, la partie le reçoit ici.
+func _skin_du_profil() -> int:
+	var profil := Sauvegarde.charger(chemin_progression)
+	var ids := _donnees.ids_skins()
+	var index := ids.find(profil.skin_choisi) if profil.skin_choisi != "" else 0
+	if index < 0 or (index > 0 and not profil.skins_debloques.has(ids[index])):
+		return 0
+	return index
 
 
 ## Monte l'écran de la partie sur la source courante (solo ou réseau).
@@ -264,6 +276,7 @@ func _nommer_tour(vue: VueGlobale) -> void:
 		var joueur: Dictionary = vue.joueurs[i]
 		if int(joueur["id"]) == cible:
 			arene.definir_joueur(i + 1, String(joueur["nom"]))
+			arene.definir_skin(int(joueur.get("skin", 0)))
 			return
 
 
@@ -484,7 +497,7 @@ func _regarder(id_joueur: int) -> void:
 		var joueur: Dictionary = _globale.joueurs[i]
 		if int(joueur["id"]) != id_joueur:
 			continue
-		arene.montrer_arene(id_joueur, str(joueur["nom"]), i + 1)
+		arene.montrer_arene(id_joueur, str(joueur["nom"]), i + 1, int(joueur.get("skin", 0)))
 		_vue_regardee = null
 		camera.recentrer()
 		source.regarder(id_joueur)

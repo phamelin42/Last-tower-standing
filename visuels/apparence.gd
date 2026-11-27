@@ -359,6 +359,22 @@ static func tour(numero: int) -> Dictionary:
 	}
 
 
+## Rotation de teinte (fraction de tour) qui donne au bleu du pack la couleur du joueur `numero` :
+## celle de la marque d'un skin, pour les huit couleurs (0 pour le bleu).
+static func decalage_marque(numero: int) -> float:
+	return fposmod(teinte_tour(numero) - TOUR_TEINTE_BASE, 360.0) / 360.0
+
+
+## Nuanceur de teinte réglé sur `decalage` ; `null` pour 0 (la couleur d'origine).
+static func materiau_decalage(decalage: float) -> ShaderMaterial:
+	if decalage == 0.0:
+		return null
+	var materiau := ShaderMaterial.new()
+	materiau.shader = load(SHADER_TOUR) as Shader
+	materiau.set_shader_parameter("decalage_teinte", decalage)
+	return materiau
+
+
 ## Teinte dominante de la tour du joueur `numero`, en degrés : sert à vérifier que deux joueurs ne
 ## se confondent pas.
 static func teinte_tour(numero: int) -> float:

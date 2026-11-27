@@ -168,7 +168,7 @@
   "tour_du_puits": {
     "sprite": "res://assets/tiny_swords/Factions/Knights/Buildings/Tower/Tower_Construction.png",
     "defi": "source_unique",
-    "echelle": 0.75,
+    "echelle": 1.45,
     "marque": {
       "genre": "fanion",
       "x": 87,
@@ -208,7 +208,7 @@
   "tour_de_la_table_ronde": {
     "sprite": "res://assets/tiny_swords/Factions/Knights/Buildings/Tower/Tower_Construction.png",
     "defi": "compagnon_de_table",
-    "echelle": 0.75,
+    "echelle": 1.45,
     "marque": {
       "genre": "fanion",
       "x": 87,
@@ -454,7 +454,7 @@
       "hauteur": 128
     },
     "defi": "mi_parcours",
-    "echelle": 0.56,
+    "echelle": 1.57,
     "marque": {
       "genre": "fanion",
       "x": 44,
@@ -500,7 +500,7 @@
       "hauteur": 128
     },
     "defi": "siege_leve",
-    "echelle": 0.56,
+    "echelle": 1.41,
     "marque": {
       "genre": "fanion",
       "x": 44,
@@ -546,7 +546,7 @@
       "hauteur": 128
     },
     "defi": "au_dela_du_boss",
-    "echelle": 0.56,
+    "echelle": 1.35,
     "marque": {
       "genre": "fanion",
       "x": 44,
@@ -592,7 +592,7 @@
       "hauteur": 128
     },
     "defi": "seul_tranchant",
-    "echelle": 0.56,
+    "echelle": 1.41,
     "marque": {
       "genre": "fanion",
       "x": 44,
@@ -638,7 +638,7 @@
       "hauteur": 128
     },
     "defi": "seul_percant",
-    "echelle": 0.56,
+    "echelle": 1.35,
     "marque": {
       "genre": "fanion",
       "x": 44,
@@ -684,7 +684,7 @@
       "hauteur": 128
     },
     "defi": "seul_magique",
-    "echelle": 0.56,
+    "echelle": 1.54,
     "marque": {
       "genre": "fanion",
       "x": 44,
@@ -730,7 +730,7 @@
       "hauteur": 128
     },
     "defi": "seul_siege",
-    "echelle": 0.56,
+    "echelle": 1.31,
     "marque": {
       "genre": "fanion",
       "x": 44,
@@ -776,7 +776,7 @@
       "hauteur": 128
     },
     "defi": "seul_chaos",
-    "echelle": 0.56,
+    "echelle": 1.35,
     "marque": {
       "genre": "fanion",
       "x": 44,
@@ -822,7 +822,7 @@
       "hauteur": 128
     },
     "defi": "seul_cible_unique",
-    "echelle": 0.56,
+    "echelle": 1.43,
     "marque": {
       "genre": "fanion",
       "x": 44,
@@ -868,7 +868,7 @@
       "hauteur": 128
     },
     "defi": "seul_zone",
-    "echelle": 0.56,
+    "echelle": 1.46,
     "marque": {
       "genre": "fanion",
       "x": 44,
@@ -914,7 +914,7 @@
       "hauteur": 128
     },
     "defi": "seul_rebond",
-    "echelle": 0.56,
+    "echelle": 1.59,
     "marque": {
       "genre": "fanion",
       "x": 44,
@@ -960,7 +960,7 @@
       "hauteur": 128
     },
     "defi": "seul_onde",
-    "echelle": 0.56,
+    "echelle": 1.68,
     "marque": {
       "genre": "fanion",
       "x": 44,
@@ -1006,7 +1006,7 @@
       "hauteur": 128
     },
     "defi": "seul_barrage",
-    "echelle": 0.56,
+    "echelle": 1.53,
     "marque": {
       "genre": "fanion",
       "x": 44,
@@ -1052,7 +1052,7 @@
       "hauteur": 128
     },
     "defi": "seul_mine",
-    "echelle": 0.56,
+    "echelle": 1.29,
     "marque": {
       "genre": "fanion",
       "x": 44,
@@ -1098,7 +1098,7 @@
       "hauteur": 192
     },
     "defi": "seul_aura",
-    "echelle": 0.56,
+    "echelle": 1.67,
     "marque": {
       "genre": "fanion",
       "x": 44,
@@ -1144,7 +1144,7 @@
       "hauteur": 128
     },
     "defi": "seul_tournant",
-    "echelle": 0.56,
+    "echelle": 1.53,
     "marque": {
       "genre": "fanion",
       "x": 44,
@@ -1190,7 +1190,7 @@
       "hauteur": 192
     },
     "defi": "seul_poison",
-    "echelle": 0.56,
+    "echelle": 1.28,
     "marque": {
       "genre": "fanion",
       "x": 44,
@@ -1236,7 +1236,7 @@
       "hauteur": 192
     },
     "defi": "seul_brulure",
-    "echelle": 0.56,
+    "echelle": 1.37,
     "marque": {
       "genre": "fanion",
       "x": 44,
@@ -1282,7 +1282,7 @@
       "hauteur": 192
     },
     "defi": "seul_givre",
-    "echelle": 0.56,
+    "echelle": 1.49,
     "marque": {
       "genre": "fanion",
       "x": 44,
@@ -1328,7 +1328,7 @@
       "hauteur": 192
     },
     "defi": "seul_etourdissement",
-    "echelle": 0.56,
+    "echelle": 1.53,
     "marque": {
       "genre": "fanion",
       "x": 44,
@@ -1374,7 +1374,7 @@
       "hauteur": 128
     },
     "defi": "seul_vol_de_vie",
-    "echelle": 0.56,
+    "echelle": 1.43,
     "marque": {
       "genre": "fanion",
       "x": 44,
@@ -1420,7 +1420,7 @@
       "hauteur": 128
     },
     "defi": "arme_unique",
-    "echelle": 0.56,
+    "echelle": 1.53,
     "marque": {
       "genre": "fanion",
       "x": 44,
@@ -1466,7 +1466,7 @@
       "hauteur": 128
     },
     "defi": "arme_unique_endurante",
-    "echelle": 0.56,
+    "echelle": 1.67,
     "marque": {
       "genre": "fanion",
       "x": 44,
@@ -1512,7 +1512,7 @@
       "hauteur": 192
     },
     "defi": "bourse_pleine",
-    "echelle": 0.56,
+    "echelle": 1.41,
     "marque": {
       "genre": "fanion",
       "x": 44,
@@ -1558,7 +1558,7 @@
       "hauteur": 128
     },
     "defi": "sans_rente",
-    "echelle": 0.56,
+    "echelle": 1.57,
     "marque": {
       "genre": "fanion",
       "x": 44,
@@ -1604,7 +1604,7 @@
       "hauteur": 128
     },
     "defi": "primes_en_cascade",
-    "echelle": 0.56,
+    "echelle": 1.38,
     "marque": {
       "genre": "fanion",
       "x": 44,
@@ -1650,7 +1650,7 @@
       "hauteur": 128
     },
     "defi": "pierre_sans_fissure",
-    "echelle": 0.56,
+    "echelle": 1.45,
     "marque": {
       "genre": "fanion",
       "x": 44,
@@ -1696,7 +1696,7 @@
       "hauteur": 128
     },
     "defi": "bouclier_intact",
-    "echelle": 0.56,
+    "echelle": 1.45,
     "marque": {
       "genre": "fanion",
       "x": 44,
@@ -1742,7 +1742,7 @@
       "hauteur": 128
     },
     "defi": "sans_soin",
-    "echelle": 0.56,
+    "echelle": 1.31,
     "marque": {
       "genre": "fanion",
       "x": 44,
@@ -1788,7 +1788,7 @@
       "hauteur": 128
     },
     "defi": "mains_nues",
-    "echelle": 0.56,
+    "echelle": 1.57,
     "marque": {
       "genre": "fanion",
       "x": 44,
@@ -1834,7 +1834,7 @@
       "hauteur": 128
     },
     "defi": "fauchage",
-    "echelle": 0.56,
+    "echelle": 1.35,
     "marque": {
       "genre": "fanion",
       "x": 44,
@@ -1880,7 +1880,7 @@
       "hauteur": 128
     },
     "defi": "arsenal_complet",
-    "echelle": 0.56,
+    "echelle": 1.53,
     "marque": {
       "genre": "fanion",
       "x": 44,
@@ -1926,7 +1926,7 @@
       "hauteur": 192
     },
     "defi": "haie_d_epines",
-    "echelle": 0.56,
+    "echelle": 1.28,
     "marque": {
       "genre": "fanion",
       "x": 44,
@@ -1972,7 +1972,7 @@
       "hauteur": 128
     },
     "defi": "veteran",
-    "echelle": 0.56,
+    "echelle": 1.41,
     "marque": {
       "genre": "fanion",
       "x": 44,
@@ -2018,7 +2018,7 @@
       "hauteur": 192
     },
     "defi": "conquerant",
-    "echelle": 0.56,
+    "echelle": 1.53,
     "marque": {
       "genre": "fanion",
       "x": 44,
@@ -2064,7 +2064,7 @@
       "hauteur": 128
     },
     "defi": "faucheur_de_masse",
-    "echelle": 0.56,
+    "echelle": 1.43,
     "marque": {
       "genre": "fanion",
       "x": 44,
@@ -2110,7 +2110,7 @@
       "hauteur": 128
     },
     "defi": "endurant",
-    "echelle": 0.56,
+    "echelle": 1.41,
     "marque": {
       "genre": "fanion",
       "x": 44,
@@ -2156,7 +2156,7 @@
       "hauteur": 192
     },
     "defi": "maitre_des_remparts",
-    "echelle": 0.56,
+    "echelle": 1.41,
     "marque": {
       "genre": "fanion",
       "x": 44,
@@ -2202,7 +2202,7 @@
       "hauteur": 128
     },
     "defi": "seul_zone_posee",
-    "echelle": 0.56,
+    "echelle": 1.46,
     "marque": {
       "genre": "fanion",
       "x": 44,
@@ -2248,7 +2248,7 @@
       "hauteur": 128
     },
     "defi": "seul_bombe",
-    "echelle": 0.56,
+    "echelle": 1.29,
     "marque": {
       "genre": "fanion",
       "x": 44,

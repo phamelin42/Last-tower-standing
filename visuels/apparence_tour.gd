@@ -13,6 +13,10 @@ const PALIERS_MAX := 3
 const OPACITE_MIN := 0.3
 ## Agrandissement maximal, même si les données en demandaient plus (A3).
 const ECHELLE_MAX := 1.25
+## Les bornes de teinte que le nuanceur `teinte_tour.gdshader` fait tourner : la pierre bleu-vert.
+const TEINTE_MIN := 0.375
+const TEINTE_MAX := 0.75
+const SATURATION_MIN := 0.2
 ## Part de l'agrandissement qu'on parcourt en une durée de fondu (la borne `ECHELLE_MAX` moins 1).
 const ECHELLE_MAX_PART := ECHELLE_MAX - 1.0
 ## Champ de la vue qui porte chaque statistique.
@@ -76,3 +80,11 @@ static func opacite_cumul(paliers_tour: Dictionary) -> float:
 		return 1.0
 	var pas := (1.0 - OPACITE_MIN) / float(SUPERPOSITIONS.size() - 1)
 	return maxf(1.0 - pas * float(actives - 1), OPACITE_MIN)
+
+
+## `couleur` une fois la teinte du joueur posée, comme le fait `teinte_tour.gdshader` : seuls les
+## pixels colorés de la famille bleu-vert tournent de `decalage` (en fraction de tour).
+static func teinter(couleur: Color, decalage: float) -> Color:
+	if couleur.s > SATURATION_MIN and couleur.h >= TEINTE_MIN and couleur.h <= TEINTE_MAX:
+		return Color.from_hsv(fposmod(couleur.h + decalage, 1.0), couleur.s, couleur.v, couleur.a)
+	return couleur

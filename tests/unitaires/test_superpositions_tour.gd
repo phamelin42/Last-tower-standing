@@ -112,8 +112,8 @@ func test_une_tour_sans_amelioration_se_dessine_comme_avant() -> void:
 	verifier_egal(_tour.scale, _base)
 	verifier_egal(
 		_tour.get_child_count(),
-		ApparenceTour.SUPERPOSITIONS.size() * 4,
-		"4 sprites par statistique"
+		ApparenceTour.SUPERPOSITIONS.size() * 4 + 1,
+		"4 sprites par statistique, plus le fanion de la marque"
 	)
 
 
