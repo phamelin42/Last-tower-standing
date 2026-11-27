@@ -763,8 +763,8 @@ func _impact_maintenant(
 	var nombre: int = Etincelles.NOMBRE_ZONE if zone else Etincelles.NOMBRE_COUP
 	if not mouvement_reduit and element == "":
 		_etincelles.lancer(arrivee, nombre, couleur, _age_initial)
-	# L'impact décoratif d'un rayon de tir tournant n'est pas un coup : personne n'y réagit.
-	if genre != TirTournant.GENRE:
+	# L'impact décoratif d'un rayon de tir tournant à élément n'est pas un coup : personne n'y réagit.
+	if element == "" or genre != TirTournant.GENRE:
 		impact_visible.emit(vers, rayon, _coup_fort)
 	return cree
 
