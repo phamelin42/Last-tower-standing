@@ -68,6 +68,7 @@ var _dernier_tick: int = -1
 var _source: SourceVue = null
 var _construite: bool = false
 var _ennemis: Node2D = null
+var _tirs_ennemis: TirsEnnemis = null
 var _sol: Decor = null
 ## Graine de la partie, mêlée au numéro du joueur : le décor de chaque arène est le sien et ne
 ## bouge pas pendant la partie.
@@ -167,6 +168,8 @@ func _assurer_construite() -> void:
 	_ennemis.name = "Ennemis"
 	_ennemis.y_sort_enabled = true
 	add_child(_ennemis)
+	_tirs_ennemis = TirsEnnemis.new()
+	add_child(_tirs_ennemis)
 	_allies.parent = _ennemis
 	_allies.donnees = donnees
 	_effets = Effets.new()
@@ -187,6 +190,7 @@ func _assurer_construite() -> void:
 	_construire_nom()
 	if donnees != null:
 		_preparer_entites()
+		_tirs_ennemis.configurer(donnees)
 		_barres.indice_boss = _pools.size() - 1
 	_texture_mort = load(String(Apparence.mort["feuille"])) as Texture2D
 	var mort: Dictionary = Apparence.mort
@@ -402,6 +406,10 @@ func sprite_instance(famille: int, i: int) -> Sprite2D:
 		return null
 	var pool: Array[Sprite2D] = _pools[famille]
 	return pool[i]
+
+
+func tirs_ennemis() -> TirsEnnemis:
+	return _tirs_ennemis
 
 
 func nombre_morts_visibles() -> int:
@@ -641,6 +649,7 @@ func _afficher_echantillon() -> void:
 		teintes[rang] = teinte
 		_teintes[f] = teintes
 	_marques.fin()
+	_tirs_ennemis.mettre_a_jour(_horloge, ids, positions, familles)
 	_allies.afficher(_interpolation.echantillon_allies(_horloge), image_courante)
 	_animer_morts()
 
