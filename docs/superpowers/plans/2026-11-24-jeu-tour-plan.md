@@ -2150,7 +2150,7 @@ Conception : §6.14 (décision D19 de Phil du 26/11/2026). Ces trois tâches se
 
 ### Task 9.22 : Passe d'équilibrage du catalogue complet et clôture du lot — `sonnet`
 
-- [ ] **Objectif :** rejouer la passe d'équilibrage de T8.21 (`tools/equilibrage.gd`) avec les 75 armes, les 87 améliorations et les dix mécaniques ; consigner les chiffres dans `docs/equilibrage.md` (rendement de chacune des 75 armes, par type et par rareté ; les cibles du robot ; la part d'armes dans les offres). **Critère** (conception §6.12) : les cibles du robot consignées restent atteintes ; le robot de référence (`bonne`) n'est pas éliminé avant la manche 20 ; un robot qui n'achète rien tombe au plus tard à la fin de la manche 3 ; PV et dégâts ennemis croissent strictement de manche en manche. **Leviers autorisés sans revenir à Phil** : ceux de T8.21, plus les chiffres des 45 armes et des 44 améliorations, les plafonds de `partie.json` (`vulnerabilite`, `malediction`, `repoussement`, `limites`, `armes`, `ameliorations`), et `poids_genre` dans `data/boutique.json` (poids de tirage des armes et des améliorations, **seulement** si la part d'armes de la manche 1 tombe sous le seuil de l'objectif). **Non modifiables sans Phil** : les paliers de portée (500 / 750 / 1 000 / 1 250), la vitesse ×1,5, les portées d'ennemis 350 et 650, **et les effectifs de D18** (75 armes, 15 par type, 1 / 6 / 6 / 2, 87 améliorations). Clôture : `CREDITS.md` (sons ajoutés, nombre de sons du pack utilisés), `docs/jouer.md` (les mécaniques, pour le joueur), `CLAUDE.md` (un piège par difficulté réelle rencontrée), ce plan (suivis). Les lignes de `docs/jouer.md` (la tour qui change d’apparence) et de `CREDITS.md` (outils des superpositions) de T9.23 à T9.25 y entrent aussi.
+- [x] **Objectif :** rejouer la passe d'équilibrage de T8.21 (`tools/equilibrage.gd`) avec les 75 armes, les 87 améliorations et les dix mécaniques ; consigner les chiffres dans `docs/equilibrage.md` (rendement de chacune des 75 armes, par type et par rareté ; les cibles du robot ; la part d'armes dans les offres). **Critère** (conception §6.12) : les cibles du robot consignées restent atteintes ; le robot de référence (`bonne`) n'est pas éliminé avant la manche 20 ; un robot qui n'achète rien tombe au plus tard à la fin de la manche 3 ; PV et dégâts ennemis croissent strictement de manche en manche. **Leviers autorisés sans revenir à Phil** : ceux de T8.21, plus les chiffres des 45 armes et des 44 améliorations, les plafonds de `partie.json` (`vulnerabilite`, `malediction`, `repoussement`, `limites`, `armes`, `ameliorations`), et `poids_genre` dans `data/boutique.json` (poids de tirage des armes et des améliorations, **seulement** si la part d'armes de la manche 1 tombe sous le seuil de l'objectif). **Non modifiables sans Phil** : les paliers de portée (500 / 750 / 1 000 / 1 250), la vitesse ×1,5, les portées d'ennemis 350 et 650, **et les effectifs de D18** (75 armes, 15 par type, 1 / 6 / 6 / 2, 87 améliorations). Clôture : `CREDITS.md` (sons ajoutés, nombre de sons du pack utilisés), `docs/jouer.md` (les mécaniques, pour le joueur), `CLAUDE.md` (un piège par difficulté réelle rencontrée), ce plan (suivis). Les lignes de `docs/jouer.md` (la tour qui change d’apparence) et de `CREDITS.md` (outils des superpositions) de T9.23 à T9.25 y entrent aussi.
 - **Conception :** §6.12, §6.13.
 - **Fichiers :** `data/difficulte.json`, `data/ennemis.json`, `data/armes.json`, `data/ameliorations.json`, `data/boutique.json`, `data/partie.json`, `docs/equilibrage.md`, `docs/jouer.md`, `CREDITS.md`, `CLAUDE.md`, ce plan (suivis), `tests/unitaires/test_equilibrage_partie.gd`, `test_donnees.gd`, `test_catalogue_boutique.gd` (nouveau), `tests/integration/test_multijoueur.gd`.
 - **Lire :** `docs/equilibrage.md` en entier ; les rapports et rétros de T9.1 à T9.21 ; `sim/boutique.gd` `_tirer_un`.
@@ -2507,6 +2507,7 @@ validation de Phil sur la planche ; T12.9 après T12.1 à T12.7b ; T12.11 apr�
   raisonnable n'utilisent plus la vente (`strategies_joueur.gd`), et leurs cibles sont rejouées (T12.9).
 - **Vérif :** `T --filtre` sur chaque fichier de test touché, puis `tools/verifier.sh` (interface partagée).
 - **Dépend de :** T12.1.
+- **Reporté de T9.22 (décision de la pilote, 27/11/2026)** : la mesure à 50 graines avec le catalogue complet et la part d'armes dans les offres de la manche 1 (constante `PART_ARMES_AVANT`, levier `poids_genre`) se font en T12.9, une fois le catalogue et les prix du lot 12 arrêtés ; les mesurer avant serait à refaire.
 
 ### Task 12.2 : `degats_par_exemplaire` devient `degats_par_niveau` — `haiku`
 
@@ -2624,12 +2625,17 @@ validation de Phil sur la planche ; T12.9 après T12.1 à T12.7b ; T12.11 apr�
 - **Leviers :** gain de dégâts par niveau (`niveaux.gain_degats`) et **gain de cadence par niveau
   (`niveaux.gain_cadence`, 0,20 : retenue par T12.1, à reconfirmer par cette mesure)**, rendement, prix et poids des raretés
   tardives, valeur des améliorations tardives ; **jamais** un plafond de PV du boss ni de la rampe.
+- **Rampe de dégâts ennemis (Phil, 27/11/2026 : « à laisser au lot 12 »)** : `apres_table.degats` de
+  `data/difficulte.json` passe de 1,06 à 1,14 par manche d'après la mesure du 27/11 (chiffres dans
+  `docs/equilibrage.md`, § « Rampe de dégâts ennemis »), **non appliquée** : à rejouer ici avec les armes tardives
+  sur 10 graines, puis à relire à la lumière de la définition de « partie gagnable » de Phil.
 - **Fichiers :** `tests/outils/strategies_joueur.gd`, `tests/outils/simulation_equilibrage.gd`, `data/`,
   `docs/equilibrage.md`, `tools/equilibrage.gd` ; tests `test_equilibrage_partie.gd`.
 - **Tests :** `test_le_boss_n_est_pas_plafonne` (lit `data/ennemis.json` et `data/difficulte.json`) ;
   `test_les_cibles_du_robot_sont_tenues` (robots sans vente) ; mesure du gain de cadence : le même robot à
   `gain_cadence` 0, 0,10, 0,20 et 0,30, graines 1 à 10, et le choix consigné ; mesure de base avant le lot reprise dans `docs/equilibrage.md` (ci-dessus :
   or au boss de 160 à 1 040 sauf la graine 1, combats de 2 200 et 2 691 s, six graines sans victoire en 3 070 s).
+- **Repris de T9.22 (pilote, 27/11/2026)** : la mesure à 50 graines et la part d'armes dans les offres de la manche 1 (`PART_ARMES_AVANT` mesurée sur les données d'avant T9.13, levier `poids_genre`) se font ici, sur le catalogue final du lot 12.
 - **Dépend de :** T12.1 à T12.7b.
 
 ### Task 12.11 : Scénarios de difficulté — `sonnet`

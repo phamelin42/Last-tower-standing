@@ -496,7 +496,7 @@ func test_vers_vue_un_vivant_presque_mort_reste_visible_et_les_morts_sont_omis()
 # --- Performance -------------------------------------------------------------------------------
 
 
-func test_performance_1000_ennemis_100_pas_sous_500_ms() -> void:
+func test_performance_1000_ennemis_sous_5_ms_par_pas() -> void:
 	for k: int in 1000:
 		var angle := k * 0.6283
 		var pos := Vector2(1300.0, 0.0).rotated(angle)
@@ -508,10 +508,14 @@ func test_performance_1000_ennemis_100_pas_sous_500_ms() -> void:
 			e.bruler(e.indice_de(id), 0.3, 20.0, 20.0)
 		if k % 13 == 0:
 			e.givrer(e.indice_de(id), 1.0)
-	var debut := Time.get_ticks_usec()
+	# 10e centile de 100 pas (S16, `MesurePas`) : la moyenne ou le total suivent la charge de la
+	# machine. Coût local : 0,56 ms par pas ; budget de 5 ms, soit près de neuf fois ce coût.
+	var durees := PackedInt32Array()
 	for _k: int in 100:
+		var debut := Time.get_ticks_usec()
 		e.avancer(DT, CENTRE, RAYON_TOUR, 1.0, 1.0)
-	var ms := (Time.get_ticks_usec() - debut) / 1000.0
-	print("PERF ennemis : 1000 ennemis x 100 pas = %.1f ms (%.2f ms/pas)" % [ms, ms / 100.0])
-	verifier(ms < 500.0, "100 pas en %.1f ms (limite 500)" % ms)
+		durees.append(Time.get_ticks_usec() - debut)
+	var ms := MesurePas.centile_bas_ms(durees)
+	print("PERF ennemis : 1000 ennemis, %.2f ms par pas (10e centile)" % ms)
+	verifier(ms < 5.0, "%.2f ms par pas (limite 5)" % ms)
 	verifier_egal(e.taille, 1000)

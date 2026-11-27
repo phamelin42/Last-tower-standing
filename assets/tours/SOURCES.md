@@ -6,7 +6,7 @@ de l'auteur, **rogné à son contenu opaque** et, s'il est grand, **réduit** pa
 lues le 27/11/2026 ; téléchargement par lien direct, sans jeton. `tools/preparer_skins_realistes.py` refait ces fichiers
 à partir des archives ; `tools/composer_skins_tour.py` compose `data/skins_tour.json`.
 
-Crédits à écrire pour les CC-BY 3.0 (voir `CREDITS.md`) : Varkalandar, rubberduck, Bleed, MedicineStorm, tir2, mold et
+Crédits des CC-BY 3.0 écrits dans `CREDITS.md` : Varkalandar, rubberduck, Bleed, MedicineStorm, tir2, mold et
 Snabisch (Catapult), chacun avec la page ci-dessous.
 
 | Fichier                     | Auteur                                         | Licence   | Page                                                                               | Taille (px)             |

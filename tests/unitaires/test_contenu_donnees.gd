@@ -3,7 +3,9 @@ extends CasDeTest
 ## pouvoir être proposé par la boutique à au moins une manche. Dépend de T1.1 (`Types`,
 ## `Donnees`, `data/boutique.json`).
 
-const CLES_RARETE: Array[String] = ["commune", "peu_commune", "rare", "epique"]
+const CLES_RARETE: Array[String] = [
+	"commune", "peu_commune", "rare", "epique", "ancestrale", "souveraine"
+]
 const MANCHE_BOSS := 31
 
 var donnees: Donnees

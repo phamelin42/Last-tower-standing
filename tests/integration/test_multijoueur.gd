@@ -118,6 +118,18 @@ func _prete_et_x4(h: Ecoute, b: Ecoute, id_b: int) -> bool:
 	return bool((sh.joueurs[id_b] as Dictionary)["pret"]) and is_equal_approx(sb.vitesse, 0.25)
 
 
+func _pret(e: Ecoute, id: int) -> bool:
+	var salon := e.dernier_salon()
+	return (
+		salon != null and salon.joueurs.has(id) and bool((salon.joueurs[id] as Dictionary)["pret"])
+	)
+
+
+func _a_255_armes_et_des_allies(e: Ecoute) -> bool:
+	var v := e.derniere_arene()
+	return v != null and v.armes.size() == 255 and not v.allies.is_empty()
+
+
 func _a_achete(e: Ecoute) -> bool:
 	var v := e.derniere_arene()
 	return v != null and v.armes.size() + v.ameliorations.size() >= 1
@@ -199,6 +211,61 @@ func test_creer_rejoindre_pret_vitesse_x4_lancer_achat_depart_et_aucune_fuite() 
 	verifier_egal(
 		int(Performance.get_monitor(Performance.OBJECT_NODE_COUNT)), _noeuds_avant, "aucune fuite"
 	)
+
+
+## Le pire état que le catalogue complet puisse produire : 255 armes (les 75 du catalogue, dont les
+## invocatrices, complétées en doublons), des alliés invoqués. La joueuse doit recevoir, par ENet,
+## une vue qui se décode sans paquet ignoré ni état refusé par le serveur.
+func test_un_client_avec_255_armes_dont_des_invocatrices_recoit_un_etat_valide() -> void:
+	verifier(_port_jeu > 0 and _port_udp > 0, "des ports libres")
+	var hote := _session()
+	verifier_egal(hote.heberger(_donnees, _port_jeu, "Salon", "Mina", _port_udp, [ADRESSE]), OK)
+	var h := Ecoute.new(hote)
+	var autre := _session()
+	verifier_egal(autre.rejoindre(_donnees, ADRESSE, _port_jeu, "Bo"), OK)
+	var b := Ecoute.new(autre)
+	verifier(await _jusqua(_deux_joueurs.bind(h, b)), "les deux voient deux joueurs")
+	autre.client.pret(true)
+	verifier(await _jusqua(func() -> bool: return _pret(h, autre.client.id_local())), "B est prête")
+	hote.client.lancer()
+	verifier(await _jusqua(func() -> bool: return b.demarree), "la partie démarre")
+	verifier(await _jusqua(func() -> bool: return b.arenes.size() >= 2), "B reçoit ses vues")
+	var arene: Arene = (
+		hote.serveur.partie._joueur(hote.serveur.joueur_de(autre.client.id_local())).arene
+	)
+	var ids: Array[String] = []
+	for id: String in _donnees.armes:
+		ids.append(id)
+	ids.sort()
+	var invocatrices := 0
+	for id: String in ids:
+		for effet: Dictionary in _donnees.armes[id]["effets"]:
+			if effet["kind"] == "invocation":
+				invocatrices += 1
+	verifier(invocatrices >= 2, "le catalogue a des armes invocatrices (%d)" % invocatrices)
+	for k: int in 255:
+		var id := ids[k % ids.size()]
+		if k < ids.size():
+			arene.inventaire.niveaux[id] = 1
+		arene.inventaire.armes.append(id)
+	arene.synchroniser()
+	for k: int in 12:
+		arene.allies.invoquer(k % 2, Vector2.ZERO, 30.0, 10.0, Types.TypeDegats.CHAOS, k)
+	verifier_egal(arene.armes.size(), 255, "255 armes montées côté serveur")
+	verifier(
+		await _jusqua(_a_255_armes_et_des_allies.bind(b)), "B reçoit ses 255 armes et ses alliés"
+	)
+	var vue := b.derniere_arene()
+	verifier_egal(vue.armes.size(), 255)
+	for arme: Dictionary in vue.armes:
+		verifier(_donnees.armes.has(String(arme["id"])), "arme inconnue : %s" % arme["id"])
+		verifier(int(arme["niveau"]) >= 1, "niveau de %s" % arme["id"])
+	verifier(vue.allies.size() <= 64 and vue.allies.size() >= 1, "alliés : %d" % vue.allies.size())
+	verifier_egal(VueArene.from_dict(vue.to_dict()).to_dict(), vue.to_dict(), "aller-retour exact")
+	verifier_egal(autre.client.paquets_ignores, 0, "aucun paquet ignoré chez B")
+	verifier_egal(hote.serveur.etats_trop_gros, 0, "aucun état refusé par le serveur")
+	verifier_egal(b.perte, "", "B n'a pas perdu la connexion")
+	_fermer_tout()
 
 
 func test_regarder_l_arene_de_l_autre_par_le_reseau_puis_la_voir_partir() -> void:

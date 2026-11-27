@@ -36,6 +36,23 @@ Certains objets donnent de la **mana maximale** et de la **régénération de ma
 les coups reçus **avant** les PV de la tour ; elle se régénère d'elle-même, par seconde. Sans objet de
 mana, la réserve est nulle.
 
+## Les mécaniques des armes
+
+Une arme a un **type de dégâts** (tranchant, perçant, magique, siège, chaos) et une **mécanique** : à cible
+unique, en zone, à rebond, en aura autour de la tour, en onde, en barrage, en piège ou en mine posés au sol, en
+lames tournantes, en zone posée, en bombe à retardement, ou en invocation d'un allié. L'icône de chaque offre
+les rappelle. Une arme peut aussi poser des **statuts** sur les ennemis touchés : poison, brûlure, givre,
+étourdissement, vol de vie, vulnérabilité (ils subissent plus de dégâts), malédiction, repoussement, siphon de
+mana, mana au coup. Les effets cumulables ont un plafond : empiler une même altération ne rend pas un ennemi
+sans défense.
+
+## La tour qui change d'apparence
+
+Votre tour change selon ce que vous achetez : pour chaque statistique suivie (épines, PV max, mana,
+armure, esquive, régénération, vol de vie), des paliers ajoutent une superposition devant et derrière la tour.
+Ces images sont purement décoratives : elles ne changent pas les chiffres. Vous pouvez aussi
+choisir un **skin** de tour débloqué par un défi (écran « Progression »).
+
 ## La caméra et la mini-carte
 
 - **Déplacer la vue** : les flèches ou `W`, `A`, `S`, `D`. **Espace** recentre la tour. La molette
