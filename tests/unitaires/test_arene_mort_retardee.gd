@@ -228,7 +228,7 @@ func test_le_flash_ne_prolonge_pas_la_mort_au_dela_de_vingt_images() -> void:
 	apres_chaque()
 	avant_chaque()
 	_tuer_par_un_tir()
-	_arene._mourants[0]["debut"] = _arene._horloge - (Arene2D.DELAI_MORT_MAX - (k + 1) * PAS)
+	_arene._morts.liste[0]["debut"] = _arene._horloge - (Arene2D.DELAI_MORT_MAX - (k + 1) * PAS)
 	var crane: int = _jusqu_au_crane({})
 	verifier(crane >= k, "pas avant l'impact (%d)" % crane)
 	verifier(crane <= k + 1, "coupé à la vingtième image (%d, impact à %d)" % [crane, k])
@@ -318,7 +318,7 @@ func _rafale_de_morts() -> Dictionary:
 			source.vue_arene_recue.emit(_vue(false, [_tir_vers(RAYON_RAFALE), encore]))
 		_arene._process(PAS)
 		var maintenant: int = 0
-		for mourant: Dictionary in _arene._mourants:
+		for mourant: Dictionary in _arene._morts.liste:
 			var id: int = int(mourant["id"])
 			var flash: bool = (mourant["sprite"] as Sprite2D).modulate.r > 1.01
 			if flash:
