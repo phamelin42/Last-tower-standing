@@ -7,7 +7,7 @@ extends CasDeTest
 const DT := 0.05
 const GRAINE := 7
 const PV := 100000.0
-const CADENCE_TEST := 16.0
+const CADENCE_TEST := 20.0
 
 var d: Donnees
 var _compte: int = 0

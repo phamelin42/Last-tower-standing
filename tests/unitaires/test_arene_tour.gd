@@ -6,7 +6,7 @@ const GRAINE := 99
 ## PV des ennemis de test : assez bas pour que la précision 32 bits reste sous le centième.
 const PV := 1000.0
 ## Cadence de 1/0,0625 s : une attaque tous les deux pas de 0,05 s, sans arrondi douteux.
-const CADENCE_TEST := 16.0
+const CADENCE_TEST := 20.0
 
 var d: Donnees
 
@@ -107,9 +107,9 @@ func test_sans_epines_l_attaquant_ne_subit_rien() -> void:
 
 func test_sans_esquive_toutes_les_attaques_touchent() -> void:
 	var a := Arene.new(d, GRAINE)
-	_ennemi(a, Vector2(100, 0), 1.0, 40.0, CADENCE_TEST)  # une attaque tous les 2 pas
+	_ennemi(a, Vector2(100, 0), 1.0, 40.0, CADENCE_TEST)  # une attaque par pas
 	_avancer(a, 100)
-	verifier_proche(_vue(a).tour_pv, 1000.0 - 50.0, 0.01, "50 attaques, 50 coups")
+	verifier_proche(_vue(a).tour_pv, 1000.0 - 100.0, 0.01, "100 attaques, 100 coups")
 
 
 func test_une_esquive_tres_haute_evite_presque_tout() -> void:
@@ -119,8 +119,8 @@ func test_une_esquive_tres_haute_evite_presque_tout() -> void:
 	_avancer(a, 400)
 	var subi := 1000.0 - _vue(a).tour_pv
 	# Le plancher de la tour (15 % des dégâts bruts) l'emporte : l'esquive ne la rend pas
-	# invulnérable. Les 200 attaques valent 200 points bruts, quelques-unes passent en entier.
-	var brut := 200.0
+	# invulnérable. Les 400 attaques valent 400 points bruts, quelques-unes passent en entier.
+	var brut := 400.0
 	var plancher := brut * (1.0 - float(d.partie["reduction_degats_max"]))
 	verifier(subi >= plancher - 0.01, "au moins le plancher passe (reçu %s)" % subi)
 	verifier(subi < plancher + 0.1 * brut, "peu au-delà du plancher (reçu %s)" % subi)
@@ -132,7 +132,7 @@ func test_esquive_moyenne_evite_une_part_des_attaques() -> void:
 	_ennemi(a, Vector2(100, 0), 1.0, 40.0, CADENCE_TEST)
 	_avancer(a, 400)
 	var subi := 1000.0 - _vue(a).tour_pv
-	verifier(subi > 60.0 and subi < 140.0, "environ la moitié des 200 attaques (reçu %s)" % subi)
+	verifier(subi > 120.0 and subi < 280.0, "environ la moitié des 400 attaques (reçu %s)" % subi)
 
 
 # --- Régénération et PV max --------------------------------------------------------------------

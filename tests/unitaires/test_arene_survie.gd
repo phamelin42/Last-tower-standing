@@ -7,7 +7,7 @@ const DT := 0.05
 const GRAINE := 7
 const PV := 100000.0
 ## Une attaque tous les deux pas de 0,05 s : la première part au premier pas.
-const CADENCE_TEST := 16.0
+const CADENCE_TEST := 20.0
 
 var d: Donnees
 var _compte: int = 0
@@ -103,7 +103,7 @@ func test_epines_premier_coup_ne_joue_qu_une_fois_par_ennemi() -> void:
 	a.avancer(DT)
 	verifier_proche(_pv_de(a, premier), PV - 7.0, 0.01, "le premier renvoi : 0,2 + 0,5")
 	_avancer(a, 4)
-	verifier_proche(_pv_de(a, premier), PV - 7.0 - 2.0 * 2.0, 0.01, "ensuite 0,2 seulement")
+	verifier_proche(_pv_de(a, premier), PV - 7.0 - 4.0 * 2.0, 0.01, "ensuite 0,2 seulement")
 	var second := _ennemi(a, 10.0, 40.0, 100.0)
 	a.avancer(DT)
 	verifier_proche(
@@ -258,7 +258,7 @@ func test_la_resurrection_ne_joue_pas_quand_la_tour_survit() -> void:
 	a.avancer(DT)
 	verifier_proche(a.pv, 900.0, 0.001, "la tour survit : pas de relèvement")
 	a.ennemis.degats[a.ennemis.indice_de(ennemi)] = 5000.0
-	_avancer(a, 2)
+	_avancer(a, 1)
 	verifier_faux(a.est_detruite(), "la résurrection n'avait pas été gaspillée")
 	verifier_proche(a.pv, 500.0, 0.001)
 
@@ -320,8 +320,8 @@ func test_toute_nouvelle_stat_de_survie_est_neutre_sans_amelioration() -> void:
 	var cac := _ennemi(a, 10.0)
 	var archer := _ennemi(a, 10.0, 450.0, 400.0)
 	_avancer(a, 40)
-	# 20 attaques de chaque ennemi, sans épines, sans armure, sans mana.
-	verifier_proche(_vue(a).tour_pv, 1000.0 - 20.0 * 10.0 * 2.0, 0.01, "dégâts subis")
+	# 40 attaques de chaque ennemi, sans épines, sans armure, sans mana.
+	verifier_proche(_vue(a).tour_pv, 1000.0 - 40.0 * 10.0 * 2.0, 0.01, "dégâts subis")
 	verifier_proche(_pv_de(a, cac), PV, 0.01, "aucun renvoi")
 	verifier_proche(_pv_de(a, archer), PV, 0.01)
 	verifier_egal(int(a.ennemis.statuts[a.ennemis.indice_de(cac)]), 0, "aucun statut")
