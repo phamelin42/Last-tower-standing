@@ -67,6 +67,7 @@ const ATTENDU: Dictionary = {
 	"braise_de_siege": "braise",
 	"ecrasement_de_tour": "ecrasement",
 	"colosse_de_pierre": "colosse",
+	"champ_de_ruines": "ruines",
 }
 
 
