@@ -11,9 +11,9 @@ const CONF: Dictionary = {
 	"couleur": COULEUR,
 	"projectile": "etincelle",
 	"cloche": 0.3,
-	"fps": 12.0,
+	"fps": 0.0,
 	"echelle": 1.6,
-	"fige_reduit": true,
+	"bosse": 0.2,
 }
 ## Le pic de l'éclat étoilé (image 3 de la planche) est atteint à la troisième image sur douze.
 const IMAGE_PIC: int = 3

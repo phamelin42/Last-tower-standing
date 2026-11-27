@@ -58,6 +58,7 @@ const ATTENDU: Dictionary = {
 	"orage_en_cage": "orage",
 	"couronne_d_etoiles": "couronne_etoiles",
 	"vasque_d_arcanes": "vasque",
+	"nuee_d_etincelles": "nuee",
 }
 
 

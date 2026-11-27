@@ -118,3 +118,66 @@ func test_mouvement_reduit_la_vasque_sans_particule_et_sans_rotation() -> void:
 		0.0001,
 		"elles ne tournent pas"
 	)
+
+
+# --- Nuée d'étincelles : barrage de six, mana au coup --------------------------------------------
+
+
+func test_la_nuee_d_etincelles_est_un_barrage_de_six_qui_donne_de_la_mana() -> void:
+	_verifier_arme("nuee_d_etincelles", "nuee", "barrage")
+	verifier_egal(int(_effet("nuee_d_etincelles")["projectiles"]), 6, "six étincelles")
+	verifier_egal(_statut("nuee_d_etincelles"), "mana_au_coup")
+
+
+func test_les_etincelles_partent_a_deux_images_l_une_de_l_autre_et_filent_droit() -> void:
+	var retard: float = AttaquesElementaires.retard_barrage("nuee")
+	var fin: float = 0.0
+	for k: int in 6:
+		fin = _a.tirer("nuee", TOUR, CIBLE, k * retard)
+	verifier_proche(fin / IMAGE, 10.0 + 5.0 * 2.0, 0.01, "la sixième part à l'image 10")
+	verifier_egal(_a.etats("etincelle").size(), 6, "six étincelles")
+	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 2)
+	verifier_proche(_a.etats("etincelle")[0]["position"].y, CIBLE.y, 1.0, "droit")
+
+
+func test_un_seul_anneau_au_rayon_reel_pour_toute_la_nuee() -> void:
+	var rayon: float = _rayon_px("nuee_d_etincelles")
+	for k: int in 6:
+		_a.impacter_en_groupe("nuee", CIBLE + Vector2(0.0, k * 3.0), rayon)
+	verifier_egal(_a.etats("").size(), 0, "aucun anneau par étincelle")
+	_a.zone("nuee", CIBLE, rayon)
+	verifier_egal(_a.etats("").size(), 1, "un anneau pour le tir")
+	verifier_proche(_a.diametre_max(), rayon * 2.0, rayon * 2.0 * 0.1, "au rayon réel")
+
+
+func test_chaque_etincelle_eclate_petit_au_pic_dans_le_premier_quart_et_la_nuee_tient_le_plafond(
+) -> void:
+	_a.impacter_en_groupe("nuee", CIBLE, 25.0)
+	verifier(_a.diametre_max() <= 60.0, "petit")
+	var total: int = AttaqueNuee.SEQ_ECLAT.size()
+	var rang: int = _rang_du_pic("eclat_rune", AttaqueNuee.IMAGE_PIC, total)
+	verifier(rang >= 0 and rang <= total / 4, "pic à l'image %d sur %d" % [rang, total])
+	_avancer(total + 30)
+	verifier_egal(_a.nombre_vivants(), 0, "tout se dissipe")
+	for _tir: int in 40:
+		for k: int in 6:
+			_a.impacter_en_groupe("nuee", CIBLE, 25.0)
+	verifier(_a.nombre_vivants() <= _a.place, "plafond respecté")
+
+
+func test_la_nuee_dans_effets_lance_une_etincelle_par_impact_et_un_seul_anneau() -> void:
+	var effets: Effets = _effets_de("nuee_d_etincelles")
+	verifier(effets.elementaires().etats("etincelle").size() >= 4, "une étincelle par impact")
+	var anneaux: int = 0
+	for _i: int in 60:
+		effets.avancer(IMAGE)
+		anneaux = maxi(anneaux, effets.elementaires().etats("").size())
+	verifier_egal(anneaux, 1, "un seul anneau")
+	effets.free()
+
+
+func test_mouvement_reduit_la_nuee_sans_particule() -> void:
+	_a.mouvement_reduit = true
+	_a.impacter_en_groupe("nuee", CIBLE, 25.0)
+	verifier_egal(_a.particules_actives(), 0)
+	verifier(_a.etats("eclat_rune").size() > 0, "l'éclat reste")
