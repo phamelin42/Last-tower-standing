@@ -154,6 +154,12 @@ static func planche_projectile(element: String) -> String:
 	return "" if e == null else String(e.conf()["projectile"])
 
 
+## Diamètre visible (pixels de planche) de la plus grande image de `planche`, 0 si inconnue.
+static func visible_de(planche: String) -> float:
+	registre()
+	return float(_visibles.get(planche, 0.0))
+
+
 func nombre_vivants() -> int:
 	return _vivants.size()
 

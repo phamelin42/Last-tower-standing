@@ -226,3 +226,66 @@ func test_mouvement_reduit_l_obusier_sans_particule_ni_gel() -> void:
 	verifier(_a.etats("pop_petard").size() > 0, "le pop reste")
 	_avancer(120)
 	verifier_egal(_a.nombre_vivants(), 0)
+
+
+# --- Braise de siège : zone posée, brûlure --------------------------------------------------------
+
+
+func test_la_braise_est_une_zone_posee_de_siege_qui_brule() -> void:
+	_verifier_arme("braise_de_siege", "braise", "zone_posee")
+	verifier_egal(_statut("braise_de_siege"), "brulure")
+
+
+func test_le_brasero_est_lance_en_cloche_et_sa_flamme_change_d_image() -> void:
+	verifier_proche(_a.tirer("braise", TOUR, CIBLE) / IMAGE, 14.0, 0.01, "3 + 11 images")
+	verifier_egal(_a.etats("ombre").size(), 1, "l'ombre suit la cloche")
+	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION)
+	var images: Dictionary = {}
+	for _i: int in 8:
+		_avancer(1)
+		images[int(_a.etats("brasero")[0]["image"])] = true
+	verifier_egal(images.size(), 2, "deux images de flamme en alternance")
+	verifier(_a.particules_actives() >= 1, "des flammes dans le sillage")
+
+
+func test_chaque_impulsion_de_la_braise_est_petite_au_rayon_reel_et_ne_gele_pas() -> void:
+	var rayon: float = _rayon_px("braise_de_siege")
+	verifier(_a.impacter("braise", CIBLE, rayon, true))
+	verifier(_a.etats("explosion_feu")[0]["diametre"] <= 70.0, "le cœur reste petit")
+	verifier_egal(_a.etats("").size(), 1, "un anneau fin")
+	verifier_proche(_a.etats("")[0]["diametre"], rayon * 2.0, 0.5, "anneau au rayon exact")
+	verifier_egal(_a.gel_restant(), 0.0, "une impulsion est un tic, pas un coup")
+	verifier(_a.particules_actives() >= 1, "des braises")
+
+
+func test_le_disque_au_sol_de_la_braise_est_dans_sa_fiche() -> void:
+	var el: AttaqueElement = AttaquesElementaires.registre()["braise"]
+	verifier_egal(String(el.conf()["disque"]), "disque_braise")
+	verifier(AttaquesElementaires.planches().has("disque_braise"), "planche déclarée")
+	verifier(AttaquesElementaires.visible_de("disque_braise") > 0.0, "diamètre visible connu")
+
+
+func test_la_braise_dans_effets_pulse_sans_gel_ni_explosion_du_pack() -> void:
+	var effets: Effets = _effets_neuf()
+	var forts: Array[bool] = []
+	effets.impact_visible.connect(
+		func(_ou: Vector2, _r: float, fort: bool) -> void: forts.append(fort)
+	)
+	effets.ajouter(_evenement("braise_de_siege", "tir"))
+	effets.ajouter(_evenement("braise_de_siege", "impact"))
+	verifier(_pic_de(effets, "explosion_feu", 40) > 0, "le cœur de feu de l'impulsion")
+	verifier_egal(forts.size(), 1, "une impulsion, un impact visible")
+	verifier_faux(forts[0], "pas un coup fort : les ennemis ne reculent pas à chaque tic")
+	verifier_egal(effets.gel_restant(), 0.0, "pas de gel")
+	verifier_faux(effets.formes_vivantes().has("explosion"), "pas d'explosion du pack")
+	effets.free()
+
+
+func test_mouvement_reduit_la_braise_sans_particule() -> void:
+	_a.mouvement_reduit = true
+	_a.tirer("braise", TOUR, CIBLE)
+	_a.impacter("braise", CIBLE, 110.0, false)
+	verifier_egal(_a.particules_actives(), 0)
+	verifier(_a.etats("explosion_feu").size() > 0, "le cœur reste")
+	_avancer(120)
+	verifier_egal(_a.nombre_vivants(), 0)
