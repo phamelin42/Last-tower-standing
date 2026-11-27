@@ -192,7 +192,9 @@ func demarrer_boss(mult: Dictionary) -> void:
 		float(b["portee_attaque"]),
 		float(b["cadence_attaque"]),
 		int(b.get("prime", 0)),
-		Types.Armure.BOSS
+		Types.Armure.BOSS,
+		false,
+		int(b["classe_portee"] == Types.NOMS_CLASSES_PORTEE[Types.ClassePortee.CORPS_A_CORPS])
 	)
 
 
@@ -341,7 +343,8 @@ func _apparaitre() -> void:
 		float(f["cadence_attaque"]),
 		int(f["prime"]),
 		int(f["armure"]),
-		bool(f["explose"])
+		bool(f["explose"]),
+		int(int(f["classe_portee"]) == Types.ClassePortee.CORPS_A_CORPS)
 	)
 
 
