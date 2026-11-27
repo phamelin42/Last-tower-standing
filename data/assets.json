@@ -1443,5 +1443,127 @@
       "chaos"
     ],
     "frequence_substitution": 22050
+  },
+  "icones_offre": {
+    "taille": 16.0,
+    "statuts_max_carte": 2,
+    "types_degats": {
+      "tranchant": {
+        "chemin": "res://assets/icones/game_icons/broadsword.png",
+        "texte": "BOUTIQUE_TYPE_TRANCHANT"
+      },
+      "perçant": {
+        "chemin": "res://assets/icones/game_icons/arrowhead.png",
+        "texte": "BOUTIQUE_TYPE_PERCANT"
+      },
+      "magique": {
+        "chemin": "res://assets/icones/game_icons/magic-swirl.png",
+        "texte": "BOUTIQUE_TYPE_MAGIQUE"
+      },
+      "siège": {
+        "chemin": "res://assets/icones/game_icons/trebuchet.png",
+        "texte": "BOUTIQUE_TYPE_SIEGE"
+      },
+      "chaos": {
+        "chemin": "res://assets/icones/game_icons/vortex.png",
+        "texte": "BOUTIQUE_TYPE_CHAOS"
+      }
+    },
+    "genres": {
+      "cible_unique": {
+        "chemin": "res://assets/icones/game_icons/crosshair.png",
+        "texte": "REPERE_GENRE_CIBLE_UNIQUE"
+      },
+      "zone": {
+        "chemin": "res://assets/icones/game_icons/explosion-rays.png",
+        "texte": "REPERE_GENRE_ZONE"
+      },
+      "rebond": {
+        "chemin": "res://assets/icones/game_icons/bouncing-sword.png",
+        "texte": "REPERE_GENRE_REBOND"
+      },
+      "aura": {
+        "chemin": "res://assets/icones/game_icons/aura.png",
+        "texte": "REPERE_GENRE_AURA"
+      },
+      "onde": {
+        "chemin": "res://assets/icones/game_icons/sonic-boom.png",
+        "texte": "REPERE_GENRE_ONDE"
+      },
+      "barrage": {
+        "chemin": "res://assets/icones/game_icons/arrow-cluster.png",
+        "texte": "REPERE_GENRE_BARRAGE"
+      },
+      "piege": {
+        "chemin": "res://assets/icones/game_icons/mantrap.png",
+        "texte": "REPERE_GENRE_PIEGE"
+      },
+      "mine": {
+        "chemin": "res://assets/icones/game_icons/land-mine.png",
+        "texte": "REPERE_GENRE_MINE"
+      },
+      "tournant": {
+        "chemin": "res://assets/icones/game_icons/spinning-blades.png",
+        "texte": "REPERE_GENRE_TOURNANT"
+      },
+      "zone_posee": {
+        "chemin": "res://assets/icones/game_icons/circle-cage.png",
+        "texte": "REPERE_GENRE_ZONE_POSEE"
+      },
+      "bombe": {
+        "chemin": "res://assets/icones/game_icons/falling-bomb.png",
+        "texte": "REPERE_GENRE_BOMBE"
+      },
+      "invocation": {
+        "chemin": "res://assets/icones/game_icons/ghost-ally.png",
+        "texte": "REPERE_GENRE_INVOCATION"
+      }
+    },
+    "statuts": {
+      "poison": {
+        "chemin": "res://assets/icones/game_icons/poison-bottle.png",
+        "texte": "REPERE_STATUT_POISON"
+      },
+      "brulure": {
+        "chemin": "res://assets/icones/game_icons/small-fire.png",
+        "texte": "REPERE_STATUT_BRULURE"
+      },
+      "givre": {
+        "chemin": "res://assets/icones/game_icons/snowflake-2.png",
+        "texte": "REPERE_STATUT_GIVRE"
+      },
+      "etourdissement": {
+        "chemin": "res://assets/icones/game_icons/star-swirl.png",
+        "texte": "REPERE_STATUT_ETOURDISSEMENT"
+      },
+      "vol_de_vie": {
+        "chemin": "res://assets/icones/game_icons/vampire-dracula.png",
+        "texte": "REPERE_STATUT_VOL_DE_VIE"
+      },
+      "vulnerabilite": {
+        "chemin": "res://assets/icones/game_icons/broken-shield.png",
+        "texte": "REPERE_STATUT_VULNERABILITE"
+      },
+      "malediction_degats": {
+        "chemin": "res://assets/icones/game_icons/cursed-star.png",
+        "texte": "REPERE_STATUT_MALEDICTION_DEGATS"
+      },
+      "malediction_toucher": {
+        "chemin": "res://assets/icones/game_icons/eye-target.png",
+        "texte": "REPERE_STATUT_MALEDICTION_TOUCHER"
+      },
+      "repoussement": {
+        "chemin": "res://assets/icones/game_icons/push.png",
+        "texte": "REPERE_STATUT_REPOUSSEMENT"
+      },
+      "siphon": {
+        "chemin": "res://assets/icones/game_icons/marrow-drain.png",
+        "texte": "REPERE_STATUT_SIPHON"
+      },
+      "mana_au_coup": {
+        "chemin": "res://assets/icones/game_icons/bubbling-flask.png",
+        "texte": "REPERE_STATUT_MANA_AU_COUP"
+      }
+    }
   }
 }
