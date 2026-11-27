@@ -1,7 +1,7 @@
 class_name Allies2D
 extends RefCounted
 ## Les alliés invoqués dans l'arène 2D : la feuille d'un guerrier, d'un archer ou d'un paysan du
-## pack (`Apparence.ALLIES`), la teinte de l'allié, et un anneau double au sol qu'aucun ennemi n'a.
+## pack (`Apparence.allies`), la teinte de l'allié, et un anneau double au sol qu'aucun ennemi n'a.
 ## Ils sont posés dans le même nœud trié en profondeur que les ennemis (`parent`) et lissés entre
 ## deux vues comme eux (`Interpolation.echantillon_allies`). Ne lit que la vue.
 
@@ -47,8 +47,8 @@ class Anneau:
 				queue_redraw()
 
 	func _draw() -> void:
-		_ellipse(1.0, Apparence.ANNEAU_ALLIE_EXTERIEUR)
-		_ellipse(Allies2D.RAPPORT_INTERIEUR, Apparence.ANNEAU_ALLIE_INTERIEUR)
+		_ellipse(1.0, Apparence.anneau_allie_exterieur)
+		_ellipse(Allies2D.RAPPORT_INTERIEUR, Apparence.anneau_allie_interieur)
 
 	func _ellipse(rapport: float, couleur: Color) -> void:
 		var points := PackedVector2Array()
@@ -60,7 +60,7 @@ class Anneau:
 					sin(angle) * demi_largeur * rapport * Allies2D.APLATI_ANNEAU
 				)
 			)
-		draw_polyline(points, Apparence.CONTOUR_ANNEAU_ALLIE, Allies2D.EPAISSEUR_CONTOUR)
+		draw_polyline(points, Apparence.contour_anneau_allie, Allies2D.EPAISSEUR_CONTOUR)
 		draw_polyline(points, couleur, Allies2D.EPAISSEUR_TRAIT)
 
 
@@ -163,7 +163,7 @@ func _habiller(a: Allie, info: Dictionary) -> void:
 	a.image = -1
 	var entree: Dictionary = info["entree"]
 	a.sprite.texture = info["texture"]
-	a.sprite.scale = Vector2.ONE * float(entree["echelle"]) * Apparence.ECHELLE_UNITES
+	a.sprite.scale = Vector2.ONE * float(entree["echelle"]) * Apparence.echelle_unites
 	a.sprite.modulate = entree["couleur"]
 	a.anneau.demi_largeur = float(info["largeur_pixels"]) * COUVERTURE_ANNEAU * 0.5
 
@@ -201,7 +201,7 @@ func _preparer(modele: String, entree: Dictionary) -> Dictionary:
 		decalages.append_array([d.x, d.y])
 	var repos: Vector2i = entree["repos"]
 	var boite: Rect2i = Recadrages.boite(cle, repos.x * colonnes)
-	var echelle: float = float(entree["echelle"]) * Apparence.ECHELLE_UNITES
+	var echelle: float = float(entree["echelle"]) * Apparence.echelle_unites
 	return {
 		"modele": modele,
 		"entree": entree,

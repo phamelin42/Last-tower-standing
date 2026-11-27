@@ -74,7 +74,7 @@ func test_chaque_entree_designe_une_feuille_qui_existe_et_se_decoupe_juste() -> 
 
 
 func test_la_mort_de_toute_famille_utilise_la_meme_feuille() -> void:
-	var mort: Dictionary = Apparence.MORT
+	var mort: Dictionary = Apparence.mort
 	var feuille := _charger(String(mort["feuille"]), "mort")
 	verifier(String(mort["feuille"]).ends_with("Dead.png"))
 	var taille: Vector2i = mort["case"]
@@ -91,10 +91,10 @@ func test_les_24_entrees_se_distinguent_par_modele_et_couleur() -> void:
 	var feuilles: Dictionary = {}
 	for famille: Dictionary in _donnees.familles:
 		var id: String = famille["id"]
-		verifier(Apparence.ENTITES.has(id), "%s : une entrée" % id)
-		if not Apparence.ENTITES.has(id):
+		verifier(Apparence.entites.has(id), "%s : une entrée" % id)
+		if not Apparence.entites.has(id):
 			continue
-		var source: Dictionary = Apparence.ENTITES[id]
+		var source: Dictionary = Apparence.entites[id]
 		var signature: String = "%s/%s" % [source["modele"], source["couleur_pack"]]
 		verifier_faux(
 			vues.has(signature), "%s : %s déjà prise par %s" % [id, signature, vues.get(signature)]
@@ -110,7 +110,7 @@ func test_les_24_entrees_se_distinguent_par_modele_et_couleur() -> void:
 func test_le_modele_de_sprite_suit_le_modele_de_jeu_et_le_tonneau_est_agrandi() -> void:
 	for famille: Dictionary in _donnees.familles:
 		var id: String = famille["id"]
-		var source: Dictionary = Apparence.ENTITES[id]
+		var source: Dictionary = Apparence.entites[id]
 		var attendu: String = String(SPRITE_DU_MODELE[famille["modele"]])
 		verifier_egal(String(source["modele"]), attendu, "%s : modèle du pack" % id)
 		var echelle: float = 1.5 if attendu == "barrel" else 1.0
@@ -122,7 +122,7 @@ func test_la_couleur_de_l_entree_suit_le_palier() -> void:
 	for famille: Dictionary in _donnees.familles:
 		var id: String = famille["id"]
 		var couleur: String = String(COULEUR_DU_PALIER[famille["palier"]])
-		verifier_egal(String((Apparence.ENTITES[id] as Dictionary)["couleur_pack"]), couleur, id)
+		verifier_egal(String((Apparence.entites[id] as Dictionary)["couleur_pack"]), couleur, id)
 		verifier(String(Apparence.entree(id)["feuille"]).contains(couleur), "%s : feuille" % id)
 		vus[famille["palier"]] = true
 	verifier_egal(vus.size(), COULEUR_DU_PALIER.size(), "tous les paliers sont couverts")
@@ -141,15 +141,15 @@ func test_aucune_trace_de_la_guepe_ni_du_vol() -> void:
 				continue
 			var texte: String = FileAccess.get_file_as_string("%s/%s" % [dossier, nom]).to_lower()
 			verifier_faux(texte.contains("guepe"), "%s/%s cite la guêpe" % [dossier, nom])
-	for id: String in Apparence.ENTITES:
-		var source: Dictionary = Apparence.ENTITES[id]
+	for id: String in Apparence.entites:
+		var source: Dictionary = Apparence.entites[id]
 		verifier_faux(source.has("volant"), "%s : volant" % id)
 		verifier_faux(source.has("flottement"), "%s : flottement" % id)
 		var e: Dictionary = Apparence.entree(id)
 		verifier_faux(e.has("volant"), "%s : entrée volante" % id)
 		verifier_faux(e.has("flottement"), "%s : entrée flottante" % id)
 	verifier(Apparence.entree("guepe_de_laiton").is_empty(), "plus d'entrée pour la guêpe")
-	verifier_faux(Apparence.MODELES.has("guepe"), "plus de modèle de guêpe")
+	verifier_faux(Apparence.modeles.has("guepe"), "plus de modèle de guêpe")
 
 
 func test_le_convoi_est_un_mouton_a_deux_avec_son_sac_d_or_et_le_boss_un_guerrier_a_trois() -> void:

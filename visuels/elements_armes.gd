@@ -66,6 +66,17 @@ const CARQUOIS: String = "carquois"
 const MUR_POINTES: String = "mur_pointes"
 const COURONNE_POINTES: String = "couronne_pointes"
 
+## Les armes magiques du lot 9 : un élément par arme, comme la famille arcane.
+const RUNE_VEILLE: String = "rune_veille"
+const SIPHONNEUR: String = "siphonneur"
+const LUEUR: String = "lueur"
+const PRISME: String = "prisme"
+const ORAGE: String = "orage"
+const COURONNE_ETOILES: String = "couronne_etoiles"
+const VASQUE: String = "vasque"
+const NUEE: String = "nuee"
+const NOVA_CELESTE: String = "nova_celeste"
+
 const ELEMENTS: Array[String] = [
 	FEU,
 	GLACE,
@@ -115,6 +126,15 @@ const ELEMENTS: Array[String] = [
 	CARQUOIS,
 	MUR_POINTES,
 	COURONNE_POINTES,
+	RUNE_VEILLE,
+	SIPHONNEUR,
+	LUEUR,
+	PRISME,
+	ORAGE,
+	COURONNE_ETOILES,
+	VASQUE,
+	NUEE,
+	NOVA_CELESTE,
 ]
 
 ## id d'arme → élément.
@@ -167,6 +187,15 @@ const TABLE: Dictionary = {
 	"carquois_en_rafale": CARQUOIS,
 	"mur_de_pointes": MUR_POINTES,
 	"couronne_de_pointes": COURONNE_POINTES,
+	"rune_de_veille": RUNE_VEILLE,
+	"eclat_siphonneur": SIPHONNEUR,
+	"lueur_vagabonde": LUEUR,
+	"prisme_de_faille": PRISME,
+	"orage_en_cage": ORAGE,
+	"couronne_d_etoiles": COURONNE_ETOILES,
+	"vasque_d_arcanes": VASQUE,
+	"nuee_d_etincelles": NUEE,
+	"nova_celeste": NOVA_CELESTE,
 }
 
 

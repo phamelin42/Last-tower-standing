@@ -15,8 +15,8 @@ func avant_chaque() -> void:
 	d = Donnees.charger()
 	_tour = Sprite2D.new()
 	_tour.texture = load(String(Apparence.tour(1)["fichier"])) as Texture2D
-	_tour.scale = Vector2.ONE * Apparence.TOUR_ECHELLE
-	_tour.offset = Vector2(0.0, _tour.texture.get_height() * 0.5 - Apparence.TOUR_PIEDS)
+	_tour.scale = Vector2.ONE * Apparence.tour_echelle
+	_tour.offset = Vector2(0.0, _tour.texture.get_height() * 0.5 - Apparence.tour_pieds)
 	arbre.root.add_child(_tour)
 	_sup = SuperpositionsTour.new()
 	_sup.construire(_tour, d)
@@ -216,9 +216,9 @@ func test_un_skin_ne_change_ni_la_distance_d_arret_ni_le_rayon_de_la_tour() -> v
 		_sup.viser(maximum)
 		_sup.avancer(1.0, false)
 		var base := (
-			Apparence.TOUR_ECHELLE * float(_skin(id)["echelle"])
+			Apparence.tour_echelle * float(_skin(id)["echelle"])
 			if id != "defaut"
-			else Apparence.TOUR_ECHELLE
+			else Apparence.tour_echelle
 		)
 		verifier(
 			_tour.scale.x <= base * 1.25 + 0.0001, "%s : au plus +25 %% (%s)" % [id, _tour.scale]
@@ -335,7 +335,7 @@ func test_le_filtre_et_l_echelle_d_un_skin_se_reglent_dans_ses_donnees() -> void
 	sup.definir_skin("tour_de_guet", 1)
 	verifier_egal(_tour.texture_filter, CanvasItem.TEXTURE_FILTER_LINEAR, "image lissée")
 	verifier(
-		_tour.scale.is_equal_approx(Vector2.ONE * Apparence.TOUR_ECHELLE * 0.37), "échelle 0,37"
+		_tour.scale.is_equal_approx(Vector2.ONE * Apparence.tour_echelle * 0.37), "échelle 0,37"
 	)
 	sup.definir_skin("tour_embuscade", 1)
 	verifier_egal(_tour.texture_filter, CanvasItem.TEXTURE_FILTER_NEAREST, "sans champ : pixel net")

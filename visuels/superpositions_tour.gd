@@ -142,7 +142,7 @@ func _poser_tour_native(numero: int) -> void:
 	_parent.texture = texture
 	_parent.texture_filter = CanvasItem.TEXTURE_FILTER_PARENT_NODE
 	_parent.region_enabled = false
-	_parent.offset = Vector2(0.0, texture.get_height() * 0.5 - Apparence.TOUR_PIEDS)
+	_parent.offset = Vector2(0.0, texture.get_height() * 0.5 - Apparence.tour_pieds)
 	_parent.material = Apparence.materiau_tour(numero)
 	_base = _base_defaut
 	_parent.scale = _base

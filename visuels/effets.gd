@@ -35,7 +35,7 @@ const DUREE_MAX: float = 0.5
 ## Une mine ou un piège qui n'a jamais servi finit par s'effacer.
 const DUREE_SOL_MAX: float = 60.0
 ## Les modèles de sprite dont la mort est l'explosion du pack : une famille explose si son modèle
-## de sprite (`Apparence.ENTITES`) en fait partie.
+## de sprite (`Apparence.entites`) en fait partie.
 const MODELES_EXPLOSIFS: Array[String] = ["barrel", "tnt"]
 const COUCHE_DESSUS: int = 0
 const COUCHE_SOL: int = 1
@@ -432,7 +432,7 @@ static func _nom_champ(valeur: Variant, noms: Array[String]) -> String:
 
 ## Vrai si la mort de l'entité `id` (famille, convoi ou boss) est l'explosion du pack.
 static func famille_explosive(id: String) -> bool:
-	var entite: Dictionary = Apparence.ENTITES.get(id, {})
+	var entite: Dictionary = Apparence.entites.get(id, {})
 	return MODELES_EXPLOSIFS.has(String(entite.get("modele", "")))
 
 
@@ -733,6 +733,9 @@ func _impact_maintenant(
 		# rien ; l'aura se dessine à chaque coup.
 		if genre == "aura":
 			cree = _el().aura(element, arrivee, rayon * Apparence.PX_PAR_UNITE, _age_initial)
+	elif element != "" and genre == "zone_posee":
+		# Chaque impulsion d'une zone posée à élément se dessine par l'élément, au rayon réel.
+		cree = _impact_element(element, type_degats, arrivee, rayon, groupe)
 	elif anneau:
 		var effet: Dictionary = _creer("anneau", "anneau", DUREE_ANNEAU, couleur, COUCHE_DESSUS)
 		if not effet.is_empty():
