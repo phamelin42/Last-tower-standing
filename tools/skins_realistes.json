@@ -1,0 +1,404 @@
+{
+ "sprites": {
+  "garde_pierre": {
+   "origine": "medieval-stone-guard-tower-isometric-25d/watchtower_lvl2-exp_full_size.png",
+   "auteur": "Colorado Stark",
+   "licence": "CC0 1.0",
+   "page": "medieval-stone-guard-tower-isometric-25d"
+  },
+  "garde_bois": {
+   "origine": "medieval-wooden-guard-tower-isometric-25d/watchtower_wooden_full_size.png",
+   "auteur": "OpenGameArt (CityBuildingKit)",
+   "licence": "CC0 1.0",
+   "page": "medieval-wooden-guard-tower-isometric-25d"
+  },
+  "ancienne": {
+   "origine": "old-tower/tower.png",
+   "auteur": "manwesulimo2004",
+   "licence": "CC0 1.0",
+   "page": "old-tower"
+  },
+  "sombre": {
+   "origine": "fantasy-tower-dark/tower-textur.png",
+   "auteur": "Snabisch",
+   "licence": "CC0 1.0",
+   "page": "fantasy-tower-dark"
+  },
+  "archers_metal": {
+   "origine": "steampunk-archer-tower-medieval-series/Medieval_DefenseArcherTower_sprites and source/Medieval_DefenseArcherTower_sprites/Medieval_DefenseArcherTower.png",
+   "auteur": "Snabisch (CityBuildingKit)",
+   "licence": "CC0 1.0",
+   "page": "steampunk-archer-tower-medieval-series"
+  },
+  "viking": {
+   "origine": "viking-archer-tower-low-poly/Viking_DefenseArcherTower_sprites/Viking_DefenseArcherTower.png",
+   "auteur": "OpenGameArt (CityBuildingKit)",
+   "licence": "CC0 1.0",
+   "page": "viking-archer-tower-low-poly"
+  },
+  "chateau": {
+   "origine": "western-european-castle-isometric-25d/castle_7.png",
+   "auteur": "Andrettin",
+   "licence": "CC0 1.0",
+   "page": "western-european-castle-isometric-25d"
+  },
+  "coffre_or": {
+   "origine": "gold-storage-building-for-mobile-strategy-games/GoldVault/09 Gold Vault.png",
+   "auteur": "Snabisch (CityBuildingKit)",
+   "licence": "CC0 1.0",
+   "page": "gold-storage-building-for-mobile-strategy-games"
+  },
+  "globe": {
+   "origine": "research-building-for-mobile-strategy-games/Research-Globe/05 Research Globe.png",
+   "auteur": "Snabisch (CityBuildingKit)",
+   "licence": "CC0 1.0",
+   "page": "research-building-for-mobile-strategy-games"
+  },
+  "crane_mine": {
+   "origine": "goldmine-for-mobile-strategy-games/Gold-Forge/07 Gold Forge.png",
+   "auteur": "OpenGameArt (CityBuildingKit)",
+   "licence": "CC0 1.0",
+   "page": "goldmine-for-mobile-strategy-games"
+  },
+  "chateau_2": {
+   "origine": "medieval-castle-lvl-2/Medieval_Castle_Level02_sprites and source/Medieval_Castle_Level02_sprites/Medieval_Castle_Level02.png",
+   "auteur": "Julius (CityBuildingKit)",
+   "licence": "CC0 1.0",
+   "page": "medieval-castle-lvl-2"
+  },
+  "porte": {
+   "origine": "castle-gate-and-drawbridge/Medieval_CityBridge+Gate_sprites and source/Medieval_CityBridge+Gate_sprites/Medieval_CityGate.png",
+   "auteur": "Snabisch (CityBuildingKit)",
+   "licence": "CC0 1.0",
+   "page": "castle-gate-and-drawbridge"
+  },
+  "puits": {
+   "origine": "old-well-bleeds-game-art/Well/Well_00000.png",
+   "auteur": "Varkalandar (Bleed's Game Art)",
+   "licence": "CC-BY 3.0",
+   "page": "old-well-bleeds-game-art"
+  },
+  "chaumiere": {
+   "origine": "hut-bleeds-game-art/hut.png",
+   "auteur": "rubberduck (Bleed's Game Art)",
+   "licence": "CC-BY 3.0",
+   "page": "hut-bleeds-game-art"
+  },
+  "moulin": {
+   "origine": "watermill-bleeds-game-art/Watermill/normal.png",
+   "auteur": "rubberduck (Bleed's Game Art)",
+   "licence": "CC-BY 3.0",
+   "page": "watermill-bleeds-game-art"
+  },
+  "moulin_neige": {
+   "origine": "watermill-bleeds-game-art/Watermill/snow.png",
+   "auteur": "rubberduck (Bleed's Game Art)",
+   "licence": "CC-BY 3.0",
+   "page": "watermill-bleeds-game-art"
+  },
+  "avant_poste": {
+   "origine": "old-outpost-bleeds-game-art-hd/old_outpost_iso_120000.png",
+   "auteur": "Bleed (Bleed's Game Art HD)",
+   "licence": "CC-BY 3.0",
+   "page": "old-outpost-bleeds-game-art-hd"
+  },
+  "avant_poste_2": {
+   "origine": "old-outpost-bleeds-game-art-hd/old_outpost_iso_40000.png",
+   "auteur": "Bleed (Bleed's Game Art HD)",
+   "licence": "CC-BY 3.0",
+   "page": "old-outpost-bleeds-game-art-hd"
+  },
+  "tour_pirate": {
+   "origine": "pirate-wood-walls-isometric-game-defense-structure/Pirates!_WoodWalls_sprites and source/Pirates!_WoodWalls_sprites/Pirates!_WoodWalls_tower.png",
+   "auteur": "OpenGameArt (CityBuildingKit)",
+   "licence": "CC0 1.0",
+   "page": "pirate-wood-walls-isometric-game-defense-structure"
+  },
+  "galata": {
+   "origine": "galata-tower-bleeds-game-art/Galata-Tower_0002.png",
+   "auteur": "MedicineStorm (Bleed's Game Art)",
+   "licence": "CC-BY 3.0",
+   "page": "galata-tower-bleeds-game-art"
+  },
+  "taverne": {
+   "origine": "isometric-medieval-tavern/medieval-tavern_10000.png",
+   "auteur": "tir2",
+   "licence": "CC-BY 3.0",
+   "page": "isometric-medieval-tavern"
+  },
+  "maison_a_colombages": {
+   "origine": "timbered-house/rem_0006.png",
+   "auteur": "mold",
+   "licence": "CC-BY 3.0",
+   "page": "timbered-house"
+  },
+  "maison": {
+   "origine": "western-european-medieval-houses-isometric-25d/house1_1.png",
+   "auteur": "OpenGameArt (Western-European Medieval Houses)",
+   "licence": "CC0 1.0",
+   "page": "western-european-medieval-houses-isometric-25d"
+  },
+  "caserne": {
+   "origine": "medieval-barracks-isometric-25d/barracks_1.png",
+   "auteur": "Snabisch",
+   "licence": "CC0 1.0",
+   "page": "medieval-barracks-isometric-25d"
+  },
+  "forge": {
+   "origine": "medieval-blacksmith-isometric-25d/blacksmith.png",
+   "auteur": "rubberduck",
+   "licence": "CC0 1.0",
+   "page": "medieval-blacksmith-isometric-25d"
+  },
+  "ecurie": {
+   "origine": "medieval-stable-isometric-25d/stable.png",
+   "auteur": "Snabisch",
+   "licence": "CC0 1.0",
+   "page": "medieval-stable-isometric-25d"
+  },
+  "stand_de_tir": {
+   "origine": "medieval-archery-range-isometric-25d/archery_range.png",
+   "auteur": "looneybits",
+   "licence": "CC0 1.0",
+   "page": "medieval-archery-range-isometric-25d"
+  },
+  "catapulte": {
+   "origine": "medieval-catapult-free-version/_moving/catapult_move_30022.png",
+   "auteur": "Snabisch",
+   "licence": "CC-BY 3.0",
+   "page": "medieval-catapult-free-version"
+  },
+  "avant_poste_3": {
+   "origine": "old-outpost-bleeds-game-art-hd/old_outpost_iso_80000.png",
+   "auteur": "Bleed (Bleed's Game Art HD)",
+   "licence": "CC-BY 3.0",
+   "page": "old-outpost-bleeds-game-art-hd"
+  },
+  "taverne_2": {
+   "origine": "isometric-medieval-tavern/medieval-tavern_40000.png",
+   "auteur": "tir2",
+   "licence": "CC-BY 3.0",
+   "page": "isometric-medieval-tavern"
+  },
+  "maison_a_colombages_2": {
+   "origine": "timbered-house/rem_0013.png",
+   "auteur": "mold",
+   "licence": "CC-BY 3.0",
+   "page": "timbered-house"
+  },
+  "catapulte_2": {
+   "origine": "medieval-catapult-free-version/_moving/catapult_move_20003.png",
+   "auteur": "Snabisch",
+   "licence": "CC-BY 3.0",
+   "page": "medieval-catapult-free-version"
+  },
+  "catapulte_3": {
+   "origine": "medieval-catapult-free-version/_moving/catapult_move_50010.png",
+   "auteur": "Snabisch",
+   "licence": "CC-BY 3.0",
+   "page": "medieval-catapult-free-version"
+  }
+ },
+ "skins": {
+  "tour_de_guet": {
+   "sprite": "avant_poste",
+   "adequation": "B"
+  },
+  "tour_de_pierre": {
+   "sprite": "garde_pierre",
+   "adequation": "B"
+  },
+  "tour_du_vainqueur": {
+   "sprite": "chateau_2",
+   "adequation": "B"
+  },
+  "tour_sans_horizon": {
+   "sprite": "galata",
+   "adequation": "B"
+  },
+  "tour_lame": {
+   "sprite": "sombre",
+   "adequation": "B"
+  },
+  "tour_pointe": {
+   "sprite": "viking",
+   "adequation": "B"
+  },
+  "tour_arcane": {
+   "sprite": "globe",
+   "adequation": "B"
+  },
+  "tour_bastion": {
+   "sprite": "catapulte_3",
+   "adequation": "P"
+  },
+  "tour_fissure": {
+   "sprite": "tour_pirate",
+   "adequation": "P"
+  },
+  "tour_oeil": {
+   "sprite": "crane_mine",
+   "adequation": "P"
+  },
+  "tour_nuee": {
+   "sprite": "chateau",
+   "adequation": "R"
+  },
+  "tour_ricochet": {
+   "sprite": "archers_metal",
+   "adequation": "P"
+  },
+  "tour_sonore": {
+   "sprite": "porte",
+   "adequation": "R"
+  },
+  "tour_salve": {
+   "sprite": "stand_de_tir",
+   "adequation": "B"
+  },
+  "tour_embuscade": {
+   "sprite": "avant_poste_2",
+   "adequation": "P"
+  },
+  "tour_sapeur": {
+   "sprite": "taverne",
+   "adequation": "P"
+  },
+  "tour_halo": {
+   "sprite": "chaumiere",
+   "adequation": "R"
+  },
+  "tour_manege": {
+   "sprite": "catapulte",
+   "adequation": "P"
+  },
+  "tour_venimeuse": {
+   "sprite": "ancienne",
+   "adequation": "P"
+  },
+  "tour_braise": {
+   "sprite": "forge",
+   "adequation": "B"
+  },
+  "tour_gelee": {
+   "sprite": "moulin_neige",
+   "adequation": "B"
+  },
+  "tour_tonnerre": {
+   "sprite": "moulin",
+   "adequation": "R"
+  },
+  "tour_sanguine": {
+   "sprite": "maison_a_colombages_2",
+   "adequation": "R"
+  },
+  "tour_monolame": {
+   "sprite": "catapulte_2",
+   "adequation": "P"
+  },
+  "tour_du_duelliste": {
+   "sprite": "garde_bois",
+   "adequation": "P"
+  },
+  "tour_du_tresor": {
+   "sprite": "coffre_or",
+   "adequation": "B"
+  },
+  "tour_ascete": {
+   "sprite": "garde_pierre",
+   "adequation": "R"
+  },
+  "tour_du_puits": {
+   "sprite": "puits",
+   "adequation": "B"
+  },
+  "tour_du_dragon_avare": {
+   "sprite": "coffre_or",
+   "adequation": "P"
+  },
+  "tour_du_chariot": {
+   "sprite": "ecurie",
+   "adequation": "P"
+  },
+  "tour_du_banquier": {
+   "sprite": "maison_a_colombages",
+   "adequation": "P"
+  },
+  "tour_de_granit": {
+   "sprite": "porte",
+   "adequation": "B"
+  },
+  "tour_rafistolee": {
+   "sprite": "avant_poste_3",
+   "adequation": "P"
+  },
+  "tour_du_bouclier": {
+   "sprite": "globe",
+   "adequation": "R"
+  },
+  "tour_cicatrisee": {
+   "sprite": "tour_pirate",
+   "adequation": "R"
+  },
+  "tour_nue": {
+   "sprite": "garde_bois",
+   "adequation": "R"
+  },
+  "tour_a_faux": {
+   "sprite": "sombre",
+   "adequation": "R"
+  },
+  "tour_arsenal": {
+   "sprite": "caserne",
+   "adequation": "B"
+  },
+  "tour_de_ronces": {
+   "sprite": "ancienne",
+   "adequation": "R"
+  },
+  "tour_survivante": {
+   "sprite": "chaumiere",
+   "adequation": "R"
+  },
+  "tour_familiere": {
+   "sprite": "maison",
+   "adequation": "B"
+  },
+  "tour_veterane": {
+   "sprite": "ecurie",
+   "adequation": "R"
+  },
+  "tour_conquerante": {
+   "sprite": "chateau",
+   "adequation": "P"
+  },
+  "tour_ossuaire": {
+   "sprite": "crane_mine",
+   "adequation": "P"
+  },
+  "tour_comptoir": {
+   "sprite": "taverne_2",
+   "adequation": "P"
+  },
+  "tour_eternelle": {
+   "sprite": "ancienne",
+   "adequation": "P"
+  },
+  "tour_de_la_table_ronde": {
+   "sprite": "taverne",
+   "adequation": "P"
+  },
+  "tour_du_dernier_rempart": {
+   "sprite": "chateau",
+   "adequation": "B"
+  },
+  "tour_cratere": {
+   "sprite": "crane_mine",
+   "adequation": "R"
+  },
+  "tour_artificier": {
+   "sprite": "forge",
+   "adequation": "R"
+  }
+ }
+}

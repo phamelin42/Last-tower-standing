@@ -326,6 +326,7 @@ func test_le_filtre_et_l_echelle_d_un_skin_se_reglent_dans_ses_donnees() -> void
 	var skin: Dictionary = skins["tour_de_guet"]
 	skin["filtre"] = "lineaire"
 	skin["echelle"] = 0.37
+	(skins["tour_embuscade"] as Dictionary).erase("filtre")  # un skin sans champ : pixel net
 	var donnees := Donnees.depuis_brut(brut)
 	verifier_non_nul(donnees, "données valides avec un filtre lisse et une échelle fractionnaire")
 	if donnees == null:
