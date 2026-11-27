@@ -749,6 +749,9 @@ func _impact_maintenant(
 			cree = _el().impacter(element, arrivee, 0.0, false, depart, _age_initial)
 		elif de.length() >= 1.0:
 			cree = _impacts.trait_saut(type_degats, depart, arrivee, couleur, signature)
+		else:
+			# Le tir de la tour a déjà tracé ce premier saut : le coup est visible sans effet neuf.
+			cree = true
 	elif element != "":
 		cree = _impact_element(element, type_degats, arrivee, rayon, groupe)
 	else:
@@ -770,7 +773,8 @@ func _impact_maintenant(
 	if not mouvement_reduit and element == "":
 		_etincelles.lancer(arrivee, nombre, couleur, _age_initial)
 	# L'impact décoratif d'un rayon de tir tournant à élément n'est pas un coup : personne n'y réagit.
-	if element == "" or genre != TirTournant.GENRE:
+	# Un coup que le plafond d'effets a empêché de dessiner n'a pas de cause visible : ni gel ni recul.
+	if cree and (element == "" or genre != TirTournant.GENRE):
 		impact_visible.emit(vers, rayon, coup_fort)
 	return cree
 
