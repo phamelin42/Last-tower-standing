@@ -61,6 +61,7 @@ const TRAIT_GERBE: String = "trait_gerbe"
 const FLECHE_MARQUANTE: String = "fleche_marquante"
 const ARC_REMPARTS: String = "arc_remparts"
 const HERSE_PIEUX: String = "herse_pieux"
+const LANCE_EPINEUSE: String = "lance_epineuse"
 
 const ELEMENTS: Array[String] = [
 	FEU,
@@ -107,6 +108,7 @@ const ELEMENTS: Array[String] = [
 	FLECHE_MARQUANTE,
 	ARC_REMPARTS,
 	HERSE_PIEUX,
+	LANCE_EPINEUSE,
 ]
 
 ## id d'arme → élément.
@@ -155,6 +157,7 @@ const TABLE: Dictionary = {
 	"fleche_marquante": FLECHE_MARQUANTE,
 	"arc_de_remparts": ARC_REMPARTS,
 	"herse_de_pieux": HERSE_PIEUX,
+	"lance_epineuse": LANCE_EPINEUSE,
 }
 
 
