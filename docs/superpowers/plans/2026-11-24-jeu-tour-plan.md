@@ -2440,7 +2440,7 @@ des propositions que la mesure de T12.9 confirme ou corrige.
 ```
 
 **Dépendances :** T12.1 → T12.1b → T12.2, T12.3 ; T12.3 → T12.4, T12.5 ; T12.6 → T12.7, T12.7b → T12.9 ; T12.8 après la
-validation de Phil sur la planche ; T12.9 après T12.1 à T12.7b ; T12.10 en dernier. T12.1 et T12.6 touchent
+validation de Phil sur la planche ; T12.9 après T12.1 à T12.7b ; T12.11 après T12.9 ; T12.10 en dernier. T12.1 et T12.6 touchent
 `sim/types.gd` et `data/` : une seule session à la fois sur ces fichiers.
 
 ## Points de vigilance du lot 12 (« Review Focus »)
@@ -2632,8 +2632,36 @@ validation de Phil sur la planche ; T12.9 après T12.1 à T12.7b ; T12.10 en d
   or au boss de 160 à 1 040 sauf la graine 1, combats de 2 200 et 2 691 s, six graines sans victoire en 3 070 s).
 - **Dépend de :** T12.1 à T12.7b.
 
+### Task 12.11 : Scénarios de difficulté — `sonnet`
+
+- [ ] **Objectif :** jauger la difficulté par des **scénarios à graine fixe** plutôt que par une médiane de graines
+      (Phil, 27/11/2026 : « Une partie gagnable est une partie où on trouve un peu toutes les bonnes armes et
+      améliorations, il faut aussi trouver suffisamment d'améliorations d'income. », voir « Partie gagnable » de
+      `docs/equilibrage.md`). Chaque scénario fixe la graine et l'offre de la boutique (ou la stratégie qui la
+      fouille), et son résultat attendu :
+  - **tirage chanceux** : les bonnes armes et assez de revenu sont trouvés → le robot **bat le boss** ;
+  - **tirage moyen** : → il **atteint le boss** sans le battre (manche du boss atteinte, boss vivant) ;
+  - **tirage pauvre en revenu** : → il **perd avant le boss**, à une manche attendue ;
+  - **construction avec siphon de mana** : → elle tient tard sans que la tour soit invulnérable ;
+  - **construction sans mana** : → elle perd des PV aux manches tardives (la rampe de dégâts fait baisser les PV).
+- **Conception :** décision D23 et T12.9 (les cibles chiffrées) ; définition de la partie gagnable ci-dessus.
+- **Fichiers :** `tests/outils/scenarios_difficulte.gd` (nouveau : les scénarios, leur graine, leur résultat
+  attendu), `tests/outils/strategies_joueur.gd`, `tests/outils/simulation_equilibrage.gd`,
+  `docs/equilibrage.md` ; test `tests/unitaires/test_scenarios_difficulte.gd` (nouveau).
+- **Interfaces :** produit `ScenariosDifficulte.TOUS` (liste de `{nom, graine, strategie, attendu}`) et
+  `ScenariosDifficulte.jouer(donnees, scenario) -> Dictionary`, que T12.9 et les robots prennent comme référence.
+- **Tests :**
+  - `test_chaque_scenario_donne_son_resultat_attendu` : en boucle sur `TOUS`, victoire, boss atteint, perdu
+    avant le boss ou PV perdus tard, selon le scénario ;
+  - `test_un_scenario_rejoue_donne_le_meme_resultat` (graine fixe, deux parties de suite) ;
+  - `test_les_resultats_ne_dependent_pas_de_la_charge` : les durées se mesurent au 10e centile de plusieurs pas
+    (`MesurePas`, comme les budgets de temps), jamais sur une mesure seule : le test ne scintille pas ;
+  - `test_le_tirage_chanceux_trouve_les_bonnes_armes_et_le_revenu` : le scénario vérifie lui-même qu'il a obtenu
+    le tirage qu'il prétend (armes et améliorations de revenu dans l'inventaire) ; sinon il est invalide.
+- **Dépend de :** T12.9.
+
 ### Task 12.10 : Clôture du lot 12 — `sonnet`
 
 - [ ] **Objectif :** `docs/jouer.md` (niveaux d'arme, raretés tardives), `CREDITS.md` (sons des 15 armes), suivis
       relevés, `tools/verifier.sh` complet, rapport et rétro.
-- **Dépend de :** T12.1 à T12.9.
+- **Dépend de :** T12.1 à T12.9 et T12.11.

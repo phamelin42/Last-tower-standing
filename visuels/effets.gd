@@ -683,6 +683,20 @@ func impacter_arme(
 	return true
 
 
+## Le temps de vol qui reste au projectile d'une bombe qui retombe en `ou` (unités de jeu), 0 s'il
+## n'y en a pas : la vue n'y pose la bombe qu'à son arrivée.
+func vol_restant(ou: Vector2) -> float:
+	var point: Vector2 = Apparence.vers_pixels(ou)
+	var reste: float = 0.0
+	for tir: Dictionary in _tirs_en_vol:
+		if (
+			String(tir["genre"]) == "bombe"
+			and (tir["arrivee"] as Vector2).distance_to(point) <= TOLERANCE_LIEN
+		):
+			reste = maxf(reste, float(tir["reste"]))
+	return reste
+
+
 ## Le temps de vol qui reste au projectile que cet impact attend, -1 s'il n'y en a pas. Un tir ne
 ## retient qu'un impact.
 func _reprendre_tir(type_degats: int, genre: String, arme: int, arrivee: Vector2) -> float:
@@ -734,8 +748,9 @@ func _impact_maintenant(
 		if genre == "aura":
 			cree = _el().aura(element, arrivee, rayon * Apparence.PX_PAR_UNITE, _age_initial)
 	elif element != "" and genre == "zone_posee":
-		# Chaque impulsion d'une zone posée à élément se dessine par l'élément, au rayon réel.
-		cree = _impact_element(element, type_degats, arrivee, rayon, groupe)
+		# Chaque impulsion d'une zone posée à élément se dessine par l'élément, au rayon réel : un tic,
+		# pas un coup de siège (ni gel ni recul).
+		cree = _impact_element(element, type_degats, arrivee, rayon, groupe, true)
 	elif anneau:
 		var effet: Dictionary = _creer("anneau", "anneau", DUREE_ANNEAU, couleur, COUCHE_DESSUS)
 		if not effet.is_empty():
@@ -775,12 +790,17 @@ func _impact_maintenant(
 	return cree
 
 
-## L'impact d'une arme à élément, au rayon de sa zone. Un coup de siège gèle ; la bombe garde
-## l'explosion du pack, que ses débris accompagnent.
+## L'impact d'une arme à élément, au rayon de sa zone. Un coup de siège gèle, pas un `tic` de zone
+## posée ; un élément dont la fiche dit `explosion` garde celle du pack, avec ses débris.
 func _impact_element(
-	element: String, type_degats: int, ou: Vector2, rayon: float, groupe: Dictionary
+	element: String,
+	type_degats: int,
+	ou: Vector2,
+	rayon: float,
+	groupe: Dictionary,
+	tic: bool = false
 ) -> bool:
-	var fort: bool = type_degats == Types.TypeDegats.SIEGE
+	var fort: bool = type_degats == Types.TypeDegats.SIEGE and not tic
 	coup_fort = fort
 	var rayon_px: float = rayon * Apparence.PX_PAR_UNITE
 	var cree: bool = false
