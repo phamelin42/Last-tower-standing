@@ -187,3 +187,50 @@ func test_le_prisme_eclate_en_etoile_petit_sans_dessiner_la_marque() -> void:
 	_avancer(total + 30)
 	verifier_egal(_a.nombre_vivants(), 0, "tout se dissipe")
 	verifier_egal(_a.particules_actives(), 0)
+
+
+# --- Orage en cage : zone posée, brûlure ---------------------------------------------------------
+
+
+func test_l_orage_en_cage_est_une_zone_posee_qui_brule() -> void:
+	_verifier_arme("orage_en_cage", "orage", "zone_posee")
+	verifier_egal(_statut("orage_en_cage"), "brulure")
+
+
+func test_l_etincelle_de_l_orage_est_lancee_en_cloche_en_quatorze_images() -> void:
+	verifier_proche(_a.tirer("orage", TOUR, CIBLE) / IMAGE, 14.0, 0.01, "3 + 11 images")
+	verifier_egal(_a.etats("ombre").size(), 1, "l'ombre suit la cloche")
+	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 6)
+	verifier(_a.etats("etincelle")[0]["position"].y < CIBLE.y - 10.0, "elle passe au-dessus")
+	verifier(_a.particules_actives() >= 1, "une traînée")
+
+
+func test_l_orage_eclate_petit_et_dessine_la_cage_au_rayon_reel_de_la_zone() -> void:
+	var rayon: float = _rayon_px("orage_en_cage")
+	verifier(_a.impacter("orage", CIBLE, rayon))
+	verifier_egal(_a.etats("eclat_astral").size(), 1, "un éclat étoilé")
+	verifier(_a.etats("eclat_astral")[0]["taille"].x <= 60.0, "l'éclat reste petit")
+	verifier_egal(_a.etats("").size(), 1, "un anneau fin")
+	verifier_proche(_a.diametre_max(), rayon * 2.0, rayon * 2.0 * 0.1, "au rayon réel")
+	var total: int = AttaqueOrage.SEQ_ECLAT.size()
+	var rang: int = _rang_du_pic("eclat_astral", AttaqueOrage.IMAGE_PIC, total)
+	verifier(rang >= 0 and rang <= total / 4, "pic à l'image %d sur %d" % [rang, total])
+	_avancer(total + 40)
+	verifier_egal(_a.nombre_vivants(), 0, "tout se dissipe")
+	verifier_egal(_a.particules_actives(), 0)
+
+
+func test_l_orage_dans_effets_ne_dessine_plus_l_anneau_generique_de_la_zone() -> void:
+	var effets: Effets = _effets_de("orage_en_cage")
+	verifier_egal(effets.elementaires().etats("etincelle").size(), 1, "l'étincelle vole")
+	verifier(_pic_de(effets, "eclat_astral", 40) > 0, "l'éclat à l'arrivée")
+	verifier_faux(effets.formes_vivantes().has("anneau"), "plus d'anneau générique")
+	effets.free()
+
+
+func test_mouvement_reduit_l_orage_sans_particule() -> void:
+	_a.mouvement_reduit = true
+	_a.tirer("orage", TOUR, CIBLE)
+	_a.impacter("orage", CIBLE, 100.0)
+	verifier_egal(_a.particules_actives(), 0)
+	verifier(_a.etats("eclat_astral").size() > 0, "l'éclat reste")

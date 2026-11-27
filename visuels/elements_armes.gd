@@ -71,6 +71,7 @@ const RUNE_VEILLE: String = "rune_veille"
 const SIPHONNEUR: String = "siphonneur"
 const LUEUR: String = "lueur"
 const PRISME: String = "prisme"
+const ORAGE: String = "orage"
 
 const ELEMENTS: Array[String] = [
 	FEU,
@@ -125,6 +126,7 @@ const ELEMENTS: Array[String] = [
 	SIPHONNEUR,
 	LUEUR,
 	PRISME,
+	ORAGE,
 ]
 
 ## id d'arme → élément.
@@ -181,6 +183,7 @@ const TABLE: Dictionary = {
 	"eclat_siphonneur": SIPHONNEUR,
 	"lueur_vagabonde": LUEUR,
 	"prisme_de_faille": PRISME,
+	"orage_en_cage": ORAGE,
 }
 
 
