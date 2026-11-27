@@ -155,7 +155,7 @@ static func type_de(corps: PackedByteArray) -> int:
 static func decoder_annonce(corps: PackedByteArray) -> Dictionary:
 	if type_de(corps) != Type.ANNONCE or corps.size() > MAX_CORPS_REQUETE:
 		return {}
-	var l := Protocole.LecteurOctets.new(corps)
+	var l := LecteurOctets.new(corps)
 	l.p = TAILLE_EN_TETE
 	var version_jeu := l.u8()
 	var joueurs := l.u8()
@@ -178,7 +178,7 @@ static func decoder_annonce(corps: PackedByteArray) -> Dictionary:
 static func decoder_retrait(corps: PackedByteArray) -> Dictionary:
 	if type_de(corps) != Type.RETRAIT or corps.size() != TAILLE_EN_TETE + 2:
 		return {}
-	var l := Protocole.LecteurOctets.new(corps)
+	var l := LecteurOctets.new(corps)
 	l.p = TAILLE_EN_TETE
 	var port := l.u16()
 	if not l.ok or port < PORT_MIN or port > PORT_MAX:
@@ -309,7 +309,7 @@ static func _cadre(corps: PackedByteArray) -> PackedByteArray:
 
 ## Lecteur placé après l'en-tête d'un cadre complet de service (taille cohérente, au plus
 ## 16 384 octets, magie, version et type attendus), `null` sinon.
-static func _lecteur_de_cadre(cadre: PackedByteArray, type: int) -> Protocole.LecteurOctets:
+static func _lecteur_de_cadre(cadre: PackedByteArray, type: int) -> LecteurOctets:
 	if cadre.size() < 2 + TAILLE_EN_TETE:
 		return null
 	var taille := cadre[0] | (cadre[1] << 8)
@@ -317,6 +317,6 @@ static func _lecteur_de_cadre(cadre: PackedByteArray, type: int) -> Protocole.Le
 		return null
 	if cadre[2] != MAGIE or cadre[3] != VERSION or cadre[4] != type:
 		return null
-	var l := Protocole.LecteurOctets.new(cadre)
+	var l := LecteurOctets.new(cadre)
 	l.p = 2 + TAILLE_EN_TETE
 	return l

@@ -24,7 +24,7 @@ static func octets(v: VueArene) -> int:
 
 
 ## Écrit les trois listes, chacune précédée de son compteur.
-static func ecrire(e: Protocole._Ecrivain, v: VueArene) -> void:
+static func ecrire(e: EcrivainOctets, v: VueArene) -> void:
 	e.u8(v.allies.size())
 	for a: Dictionary in v.allies:
 		var pos_allie: Vector2 = a["pos"]
@@ -98,9 +98,7 @@ static func quarts_u8(x: float) -> int:
 
 ## Lit les alliés, zones et bombes dans `v` ; faux si un compteur dépasse son plafond ou les octets
 ## restants, ou si un index sort de sa plage.
-static func lire(
-	l: Protocole.LecteurOctets, v: VueArene, nb_catalogue: int, nb_unites: int
-) -> bool:
+static func lire(l: LecteurOctets, v: VueArene, nb_catalogue: int, nb_unites: int) -> bool:
 	var n_allies := l.u8()
 	if n_allies > Protocole.MAX_ALLIES or not l.exiger(OCTETS_ALLIE * n_allies):
 		return false

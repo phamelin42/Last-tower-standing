@@ -859,7 +859,7 @@ func test_fuzz_10000_paquets_sans_plantage_ni_erreur_journalisee() -> void:
 
 
 func test_lecteur_public_refuse_toute_lecture_hors_des_octets_disponibles() -> void:
-	var l := Protocole.LecteurOctets.new(PackedByteArray([1, 2, 3]))
+	var l := LecteurOctets.new(PackedByteArray([1, 2, 3]))
 	verifier_egal(l.u16(), 0x0201, "deux octets lus en petit-boutiste")
 	verifier(l.ok, "lecture dans les bornes")
 	verifier_egal(l.u32(), 0, "quatre octets demandés, un seul disponible")
