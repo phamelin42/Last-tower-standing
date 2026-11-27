@@ -2503,8 +2503,7 @@ validation de Phil sur la planche ; T12.9 après T12.1 à T12.7 ; T12.10 en de
 - [ ] **Objectif :** §6.17.4. L'offre d'une arme déjà portée affiche « niv. N → N + 1 » et les dégâts gagnés ;
       la grille des armes montre une icône par arme distincte avec l'insigne de niveau ; l'infobulle donne les
       dégâts du niveau courant ; la vente se présente comme « baisser d'un niveau ».
-- **Fichiers :** `ui/boutique_ui.gd`, `ui/hud.gd` ou le fichier de la grille des armes (le trouver par `grep -n
-  "armes" ui/`), `ui/description_offre.gd`, `i18n/*.csv` ; tests `test_boutique_description.gd`,
+- **Fichiers :** `ui/boutique_ui.gd`, `ui/hud.gd` ou le fichier de la grille des armes (à trouver par `grep` sur `armes` dans `ui/`), `ui/description_offre.gd`, `i18n/*.csv` ; tests `test_boutique_description.gd`,
   `test_mise_en_page.gd`, `test_textes_communs.gd`.
 - **Tests :** `test_l_offre_d_une_arme_portee_dit_son_niveau_et_le_gain` (en boucle sur toutes les armes) ;
   `test_la_grille_montre_une_icone_par_arme_distincte` ; textes avec espaces insécables ; **la boutique reste 30 %
