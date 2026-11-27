@@ -17,9 +17,19 @@ static var images_par_seconde: float = float(
 static var taille_tuile: int = int(Assets.section("decor").get("tuile", 64))
 
 var plan: PlanDecor = null
+## Mouvement réduit (D21) : le décor se fige sur l'image fixe des données (`PlanchesEffets`) et son
+## horloge s'arrête, pour reprendre au même point quand le réglage est retiré.
+var mouvement_reduit: bool = false:
+	set(valeur):
+		if valeur == mouvement_reduit:
+			return
+		mouvement_reduit = valeur
+		_afficher_image(_image_voulue())
 
 var _temps: float = 0.0
 var _image: int = 0
+## Faux tant que les sprites n'ont pas reçu leur première image (après `construire`).
+var _posee: bool = false
 ## Par catégorie animée : `Array` d'entrées `[sprite, x0, y0, largeur, hauteur, images, phase, pas]`
 ## (`x0`, `y0` : coin de la région à la première image ; `pas` : écart entre deux images).
 var _animes: Dictionary = {}
@@ -36,6 +46,7 @@ func construire(nouveau: PlanDecor) -> void:
 		remove_child(enfant)
 		enfant.free()
 	_animes.clear()
+	_posee = false
 	plan = nouveau
 	_poser_les_bords_d_eau()
 	_fond = Sprite2D.new()
@@ -63,11 +74,22 @@ func construire(nouveau: PlanDecor) -> void:
 
 ## Fait avancer l'horloge ; ne touche aux sprites que lorsque l'image change.
 func avancer(delta: float) -> void:
-	_temps += delta
-	var image: int = int(_temps * images_par_seconde)
-	if image == _image and _temps > 0.0:
+	if not mouvement_reduit:
+		_temps += delta
+	_afficher_image(_image_voulue())
+
+
+func _image_voulue() -> int:
+	return (
+		PlanchesEffets.image_fixe("decor") if mouvement_reduit else int(_temps * images_par_seconde)
+	)
+
+
+func _afficher_image(image: int) -> void:
+	if image == _image and _posee:
 		return
 	_image = image
+	_posee = true
 	for categorie: String in _animes:
 		for entree: Array in _animes[categorie]:
 			_poser_image(entree)

@@ -154,6 +154,8 @@ const FORME: Dictionary = {
 			"elements": {"*": ["texte"]},
 			"?images_vol": {"*": "entier"},
 		},
+		"?mouvement_reduit":
+		{"decor": "entier_nul", "flamme_boss": "entier_nul", "crane": "entier_nul"},
 	},
 	"sons":
 	{

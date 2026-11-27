@@ -101,6 +101,13 @@ static func images_vol(element: String) -> int:
 	return int((_maison().get("images_vol", {}) as Dictionary).get(element, 0))
 
 
+## L'image sur laquelle se fige `element` en mouvement réduit (`decor`, `flamme_boss`, `crane`) :
+## `data/assets.json`, `effets.mouvement_reduit`. La première image (0) si la donnée manque.
+static func image_fixe(element: String) -> int:
+	_lire()
+	return int((_donnees.get("mouvement_reduit", {}) as Dictionary).get(element, 0))
+
+
 static func _extraire(noms: Array, table: Dictionary) -> Dictionary:
 	var sortie: Dictionary = {}
 	for nom: Variant in noms:

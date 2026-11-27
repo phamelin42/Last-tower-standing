@@ -62,6 +62,11 @@ var mouvement_reduit: bool = false:
 			_effets.mouvement_reduit = valeur
 		if _poses != null:
 			_poses.mouvement_reduit = valeur
+		if _sol != null:
+			_sol.mouvement_reduit = valeur
+		if _cranes != null:
+			_cranes.mouvement_reduit = valeur
+		_figer_flammes()
 
 var _interpolation := Interpolation.new()
 var _horloge: float = 0.0
@@ -191,6 +196,7 @@ func _assurer_construite() -> void:
 		_tirs_ennemis.configurer(donnees)
 		_barres.indice_boss = _pools.size() - 1
 	_cranes = CranesArene.new(_ennemis)
+	_cranes.mouvement_reduit = mouvement_reduit
 
 
 ## S'abonne aux vues reçues. Un nouveau `lier` remplace le précédent.
@@ -705,7 +711,9 @@ func _creer_sprite(famille: int) -> Sprite2D:
 		accessoire.scale = Vector2.ONE * float(a["echelle"])
 		sprite.add_child(accessoire)
 	if famille == _entrees.size() - 1:
-		sprite.add_child(Effets.creer_flamme())
+		var flamme := Effets.creer_flamme() as FlammeBoss
+		flamme.mouvement_reduit = mouvement_reduit
+		sprite.add_child(flamme)
 	_ennemis.add_child(sprite)
 	return sprite
 
@@ -892,8 +900,19 @@ func _preparer_images(e: Dictionary) -> void:
 	_couvre_h.append(float(boite.size.y) * echelle / Apparence.PX_PAR_UNITE)
 
 
+## La flamme de chaque sprite du boss suit le réglage de mouvement réduit.
+func _figer_flammes() -> void:
+	if _pools.is_empty():
+		return
+	for sprite: Sprite2D in _pools[_pools.size() - 1]:
+		var flamme := sprite.get_node_or_null("Flamme") as FlammeBoss
+		if flamme != null:
+			flamme.mouvement_reduit = mouvement_reduit
+
+
 func _construire_sol() -> void:
 	_sol = Decor.new()
+	_sol.mouvement_reduit = mouvement_reduit
 	_sol.name = "Sol"
 	add_child(_sol)
 	_poser_le_decor()
