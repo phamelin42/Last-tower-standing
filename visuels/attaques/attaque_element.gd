@@ -17,9 +17,10 @@ func id() -> String:
 ## La fiche : `couleur`, `projectile` (planche, `""` sans projectile), `cloche` (hauteur du sommet
 ## en fraction de la distance, 0 en direct), `fps` (animation du projectile, 0 sans), et au besoin
 ## `anticipation` (couleur de la bouffée de départ), `tour` (rotation sur le vol, radians),
-## `bosse` (grossissement au sommet), `fige_reduit` (vrai : l'animation d'images est un tour sur
-## soi-même, figée en mouvement réduit), `vrille` (tours par seconde d'un projectile qui tourne sur
-## lui-même, 0 sans) et `saut` (vrai : un projectile par saut d'un rebond).
+## `bosse` (grossissement au sommet), `teinte` (teinte du projectile, blanc sans), `fige_reduit`
+## (vrai : l'animation d'images est un tour sur soi-même, figée en mouvement réduit), `vrille`
+## (tours par seconde d'un projectile qui tourne sur lui-même, 0 sans) et `saut` (vrai : un
+## projectile par saut d'un rebond).
 func conf() -> Dictionary:
 	return {}
 

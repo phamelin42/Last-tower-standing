@@ -48,6 +48,7 @@ const HORLOGE: String = "horloge"
 const SERPE: String = "serpe"
 const RASOIR: String = "rasoir"
 const COUPERET: String = "couperet"
+const BRUME: String = "brume"
 
 const ELEMENTS: Array[String] = [
 	FEU,
@@ -83,6 +84,7 @@ const ELEMENTS: Array[String] = [
 	SERPE,
 	RASOIR,
 	COUPERET,
+	BRUME,
 ]
 
 ## id d'arme → élément.
@@ -120,6 +122,7 @@ const TABLE: Dictionary = {
 	"serpe_de_vigne": SERPE,
 	"rasoir_tournoyant": RASOIR,
 	"couperet_a_epines": COUPERET,
+	"lame_de_brume": BRUME,
 }
 
 

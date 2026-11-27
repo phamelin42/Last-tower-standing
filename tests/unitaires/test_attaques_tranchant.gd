@@ -217,3 +217,48 @@ func test_mouvement_reduit_le_couperet_ne_culbute_pas_et_sans_epine() -> void:
 	verifier_egal(_a.etats("couperet")[0]["image"], avant, "pas de culbute")
 	_a.impacter("couperet", CIBLE, 0.0)
 	verifier_egal(_a.particules_actives(), 0)
+
+
+# --- Lame de brume : cible unique, malédiction -------------------------------------------------
+
+
+func test_la_lame_de_brume_est_une_cible_unique() -> void:
+	_verifier_arme("lame_de_brume", "brume", "cible_unique")
+
+
+func test_la_lame_de_brume_est_une_lame_bleutee_de_dix_images() -> void:
+	verifier_proche(_a.tirer("brume", TOUR, CIBLE) / IMAGE, 10.0, 0.01)
+	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 1)
+	var lame: Dictionary = _a.etats("lame_croissant")[0]
+	verifier(lame["visible"], "la lame vole")
+	var teinte: Color = lame["teinte"]
+	verifier(teinte.b > teinte.r + 0.1, "bleutée, pas l'acier nu de la lame de fil")
+	var avant: int = lame["image"]
+	_avancer(2)
+	verifier(_a.etats("lame_croissant")[0]["image"] != avant, "elle tourne sur elle-même")
+
+
+func test_la_brume_se_leve_a_l_impact_puis_se_dissipe() -> void:
+	_a.impacter("brume", CIBLE, 0.0)
+	verifier_egal(_a.etats("entaille").size(), 1, "une entaille")
+	verifier(_a.diametre_max() <= 60.0, "cible unique : au plus 60 px")
+	var teinte: Color = _a.etats("entaille")[0]["teinte"]
+	verifier(teinte.b > teinte.r + 0.1, "l'entaille est bleutée")
+	verifier_egal(_a.etats("vapeur").size(), 3, "trois bouffées de brume")
+	var avant: float = _a.etats("vapeur")[0]["position"].y
+	_avancer(10)
+	verifier(_a.etats("vapeur")[0]["position"].y < avant, "la brume monte")
+	_avancer(60)
+	verifier_egal(_a.nombre_vivants(), 0, "tout se dissipe")
+	verifier_egal(_a.particules_actives(), 0)
+
+
+func test_mouvement_reduit_la_lame_de_brume_ne_tourne_pas_et_sans_particule() -> void:
+	_a.mouvement_reduit = true
+	_a.tirer("brume", TOUR, CIBLE)
+	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 1)
+	var avant: int = _a.etats("lame_croissant")[0]["image"]
+	_avancer(2)
+	verifier_egal(_a.etats("lame_croissant")[0]["image"], avant, "ne tourne pas")
+	_a.impacter("brume", CIBLE, 0.0)
+	verifier_egal(_a.particules_actives(), 0)
