@@ -3,7 +3,7 @@ extends RefCounted
 ## Disposition du terrain et du décor d'une arène 2D, tirée d'une graine : quelles cases sont de la
 ## terre, quelle tuile du pack va sur chacune, où poser chaque objet. Purement visuelle et sans
 ## nœud : `Decor` la dessine, les tests la lisent. Même graine, même plan ; deux graines, deux
-## plans. Tout est en pixels du monde (la tour est en `(0, 0)`, une case de terre mesure `CASE`).
+## plans. Tout est en pixels du monde (la tour est en `(0, 0)`, une case de terre mesure `case`).
 
 const ECHELLE: float = 2.0
 ## Le cercle d'apparition, en pixels du monde (1 300 unités à 0,5 px par unité).
@@ -55,26 +55,24 @@ const NB_PLATS_ZONE: int = 80
 const NB_PLATS_DEHORS: int = 110
 const NB_ROCHERS_EAU: int = 14
 
-# gdlint:disable=class-variable-name
 ## Une tuile du pack fait 64 px ; affichée à ×2 comme les unités et la tour, elle en fait 128.
-static var CASE: int = int(_decor().get("case", 128))
+static var case: int = int(_decor().get("case", 128))
 ## Feuilles, cases et images du pack : `data/assets.json` (`decor`), pour qu'un autre pack ne
 ## demande que de remplacer les fichiers.
-static var FEUILLE_TERRAIN: String = str(_decor().get("feuille_terrain", ""))
-static var FEUILLE_EAU: String = str(_decor().get("feuille_eau", ""))
-static var FEUILLE_ECUME: String = str(_ecume().get("feuille", ""))
-static var CASE_ECUME: int = int(_ecume().get("case", 0))
-static var IMAGES_ECUME: int = int(_ecume().get("images", 0))
+static var feuille_terrain: String = str(_decor().get("feuille_terrain", ""))
+static var feuille_eau: String = str(_decor().get("feuille_eau", ""))
+static var feuille_ecume: String = str(_ecume().get("feuille", ""))
+static var case_ecume: int = int(_ecume().get("case", 0))
+static var images_ecume: int = int(_ecume().get("images", 0))
 ## Le contenu de l'écume dans sa case de 192 px, toutes images confondues (centré sur la case) :
 ## on ne dessine que lui, le reste est transparent et coûterait du remplissage pour rien.
-static var BOITE_ECUME: Rect2 = _ecume().get("boite", Rect2())
+static var boite_ecume: Rect2 = _ecume().get("boite", Rect2())
 ## Les images du pack. `cellule` : taille d'une image dans la feuille ; `origine` : coin de la
 ## première image ; `ligne` : rangée de l'animation ; `images` : combien de pas ; `boite` : le
 ## contenu visible dans une cellule, toutes images confondues (seul lui est dessiné) ; `pieds` :
 ## le point de la cellule posé sur la position de l'objet ; `haut` : un objet qui peut cacher
 ## quelqu'un, donc jamais dans la zone de marche.
-static var TYPES: Dictionary = _decor().get("types", {})
-# gdlint:enable=class-variable-name
+static var types: Dictionary = _decor().get("types", {})
 
 ## Cases de terre : `Vector2i` → `true`.
 var terre: Dictionary = {}
@@ -139,7 +137,7 @@ static func tuile_pour(nord: bool, est: bool, sud: bool, ouest: bool) -> Vector2
 ## Un type animé (sapin, mouton, rocher d'eau) est un sprite à part ; les autres sont composés
 ## dans l'image du sol.
 static func est_anime(type: String) -> bool:
-	return int((TYPES[type] as Dictionary)["images"]) > 1
+	return int((types[type] as Dictionary)["images"]) > 1
 
 
 ## Vrai si un rectangle (pixels du monde) touche la zone de marche.
@@ -152,7 +150,7 @@ static func touche_la_zone(rect: Rect2) -> bool:
 
 ## Où tombe, dans le monde, le contenu visible d'un objet posé par ses pieds.
 static func rect_de(type: String, pieds: Vector2, miroir: bool) -> Rect2:
-	var t: Dictionary = TYPES[type]
+	var t: Dictionary = types[type]
 	var boite: Rect2 = t["boite"]
 	var origine: Vector2 = t["pieds"]
 	var e: float = float(t["echelle"])
@@ -183,11 +181,11 @@ static func generer(graine_voulue: int) -> PlanDecor:
 
 
 func _cellule_de(p: Vector2) -> Vector2i:
-	return Vector2i(floori(p.x / float(CASE)), floori(p.y / float(CASE)))
+	return Vector2i(floori(p.x / float(case)), floori(p.y / float(case)))
 
 
 func _centre_de(c: Vector2i) -> Vector2:
-	return (Vector2(c) + Vector2(0.5, 0.5)) * float(CASE)
+	return (Vector2(c) + Vector2(0.5, 0.5)) * float(case)
 
 
 ## Un ovale de rayon irrégulier : trois harmoniques tirées de la graine donnent à chaque arène son
@@ -261,7 +259,7 @@ func _terre_autour(pieds: Vector2, rayon_cases: int) -> bool:
 
 
 func _base_de(type: String, pieds: Vector2, rect: Rect2) -> Rect2:
-	var t: Dictionary = TYPES[type]
+	var t: Dictionary = types[type]
 	if not bool(t["haut"]):
 		return rect
 	var e: float = float(t["echelle"])
@@ -300,7 +298,7 @@ func _devant_les_immobiles(type: String, pieds: Vector2, rect: Rect2) -> bool:
 func _poser(
 	type: String, pieds: Vector2, rng: RandomNumberGenerator, proteger: bool = false
 ) -> bool:
-	var t: Dictionary = TYPES[type]
+	var t: Dictionary = types[type]
 	var haut: bool = bool(t["haut"])
 	var miroir: bool = rng.randf() < 0.5
 	var rect := rect_de(type, pieds, miroir)
@@ -458,7 +456,7 @@ func _poser_les_rochers_d_eau(rng: RandomNumberGenerator) -> void:
 		var c: Vector2i = candidates[rng.randi_range(0, candidates.size() - 1)]
 		var p := (
 			(Vector2(c) + Vector2(rng.randf_range(0.2, 0.8), rng.randf_range(0.2, 0.8)))
-			* float(CASE)
+			* float(case)
 		)
 		var type: String = ROCHERS_EAU[rng.randi_range(0, ROCHERS_EAU.size() - 1)]
 		var miroir: bool = rng.randf() < 0.5
@@ -486,7 +484,7 @@ func _poser_les_rochers_d_eau(rng: RandomNumberGenerator) -> void:
 					"haut": false,
 					"eau": true,
 					"miroir": miroir,
-					"phase": rng.randi_range(0, IMAGES_ECUME - 1),
+					"phase": rng.randi_range(0, images_ecume - 1),
 				}
 			)
 		)

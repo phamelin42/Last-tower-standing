@@ -25,41 +25,39 @@ const COULEUR_CERCLE := Color(1.0, 1.0, 1.0, 0.55)
 const COULEUR_NOM := Color(1.0, 1.0, 1.0, 1.0)
 const COULEUR_CONTOUR_NOM := Color(0.1, 0.07, 0.15, 1.0)
 
-# gdlint:disable=class-variable-name
-static var IMAGES_PAR_SECONDE: float = float(_unites().get("images_par_seconde", 10.0))
+static var images_par_seconde: float = float(_unites().get("images_par_seconde", 10.0))
 ## Les tables d'assets (modèles de feuilles, entités, alliés, mort, tour) vivent dans
 ## `data/assets.json`, lues par `Assets` (T10.4) : changer de pack ne demande que les fichiers et ce
 ## JSON. `pieds` est la ligne de pixels de la case où les pieds touchent le sol (ombre comprise).
-static var MODELES: Dictionary = _unites().get("modeles", {})
+static var modeles: Dictionary = _unites().get("modeles", {})
 ## Une entrée par entité (24 familles, convoi, boss) : le modèle du pack suit le modèle de jeu et
 ## la couleur du pack suit le palier. `echelle` agrandit le sprite.
-static var ENTITES: Dictionary = _unites().get("entites", {})
+static var entites: Dictionary = _unites().get("entites", {})
 ## Les alliés invoqués (`data/unites.json` `modele`) : feuille d'un modèle d'ennemi, teinte propre
 ## et anneau au sol. Un modèle inconnu n'a pas d'entrée.
-static var ALLIES: Dictionary = _unites().get("allies", {})
+static var allies: Dictionary = _unites().get("allies", {})
 ## L'anneau double au sol des alliés : couleur du trait extérieur et de l'intérieur.
-static var ANNEAU_ALLIE_EXTERIEUR: Color = _anneau("exterieur", Color.WHITE)
-static var ANNEAU_ALLIE_INTERIEUR: Color = _anneau("interieur", Color.WHITE)
-static var CONTOUR_ANNEAU_ALLIE: Color = _anneau("contour", Color.BLACK)
+static var anneau_allie_exterieur: Color = _anneau("exterieur", Color.WHITE)
+static var anneau_allie_interieur: Color = _anneau("interieur", Color.WHITE)
+static var contour_anneau_allie: Color = _anneau("contour", Color.BLACK)
 ## La mort de toutes les familles : 14 images lues ligne après ligne.
-static var MORT: Dictionary = _unites().get("mort", {})
+static var mort: Dictionary = _unites().get("mort", {})
 ## Grossissement de tous les sprites d'unités par rapport au pack.
-static var ECHELLE_UNITES: float = float(_unites().get("echelle", 1.0))
+static var echelle_unites: float = float(_unites().get("echelle", 1.0))
 ## La tour mesure environ 18 % de la hauteur de l'écran ; `pieds` : ligne de ses pieds.
-static var TOUR_ECHELLE: float = float(Assets.section("tour").get("echelle", 1.0))
-static var TOUR_PIEDS: float = float(Assets.section("tour").get("pieds", 0.0))
+static var tour_echelle: float = float(Assets.section("tour").get("echelle", 1.0))
+static var tour_pieds: float = float(Assets.section("tour").get("pieds", 0.0))
 ## Sprite de tour dont on décale la teinte pour les joueurs 5 à 8.
-static var TOUR_BASE: String = str(Assets.section("tour").get("fichier_base", ""))
-static var TOUR_TEINTE_BASE: float = float(Assets.section("tour").get("teinte_base", 0.0))
+static var tour_base: String = str(Assets.section("tour").get("fichier_base", ""))
+static var tour_teinte_base: float = float(Assets.section("tour").get("teinte_base", 0.0))
 ## Joueurs 1 à 4 : les quatre couleurs du pack et la teinte dominante de leur pierre, en degrés.
-static var TOURS_PACK: Array[Dictionary] = _dictionnaires(
+static var tours_pack: Array[Dictionary] = _dictionnaires(
 	Assets.section("tour").get("couleurs_pack", [])
 )
 ## Joueurs 5 à 8 : teinte visée, en degrés.
-static var TEINTES_CALCULEES: Array[float] = _flottants(
+static var teintes_calculees: Array[float] = _flottants(
 	Assets.section("tour").get("teintes_calculees", [])
 )
-# gdlint:enable=class-variable-name
 
 static var _entrees: Dictionary = {}
 
@@ -104,26 +102,26 @@ static func ids_entites(donnees: Donnees) -> PackedStringArray:
 static func entree(id: String) -> Dictionary:
 	if _entrees.has(id):
 		return _entrees[id]
-	if not ENTITES.has(id):
+	if not entites.has(id):
 		return {}
-	return _construire_entree(id, ENTITES[id])
+	return _construire_entree(id, entites[id])
 
 
-## Comme `entree`, pour un allié du modèle `modele` (`ALLIES`) ; `couleur` est sa teinte. Vide si
+## Comme `entree`, pour un allié du modèle `modele` (`allies`) ; `couleur` est sa teinte. Vide si
 ## le modèle est inconnu.
 static func entree_allie(modele: String) -> Dictionary:
-	if not ALLIES.has(modele):
+	if not allies.has(modele):
 		return {}
 	var cle: String = "allie_" + modele
 	if _entrees.has(cle):
 		return _entrees[cle]
-	var entree_pack: Dictionary = _construire_entree(cle, ALLIES[modele])
-	entree_pack["couleur"] = (ALLIES[modele] as Dictionary)["teinte"]
+	var entree_pack: Dictionary = _construire_entree(cle, allies[modele])
+	entree_pack["couleur"] = (allies[modele] as Dictionary)["teinte"]
 	return entree_pack
 
 
 static func _construire_entree(id: String, source: Dictionary) -> Dictionary:
-	var modele: Dictionary = (MODELES[source["modele"]] as Dictionary).duplicate()
+	var modele: Dictionary = (modeles[source["modele"]] as Dictionary).duplicate()
 	var couleur_pack: String = source["couleur_pack"]
 	modele["feuille"] = chemin_feuille(String(source["modele"]), couleur_pack)
 	modele.erase("chemin")
@@ -142,9 +140,9 @@ static func _construire_entree(id: String, source: Dictionary) -> Dictionary:
 ## Chemin `res://` de la feuille du modèle `cle` dans la couleur du pack `couleur` (vide si le
 ## modèle est inconnu) ; une feuille sans couleur (le mouton) ignore `couleur`.
 static func chemin_feuille(cle: String, couleur: String) -> String:
-	if not MODELES.has(cle):
+	if not modeles.has(cle):
 		return ""
-	var modele: Dictionary = MODELES[cle]
+	var modele: Dictionary = modeles[cle]
 	var chemin: String = modele["chemin"]
 	if chemin.contains("%s"):
 		var irreguliers: Dictionary = modele.get("noms_irreguliers", {})
@@ -203,22 +201,22 @@ static func fichier_superposition(
 ## appliquée par le nuanceur, en fraction de tour (0 pour les couleurs du pack).
 static func tour(numero: int) -> Dictionary:
 	var n: int = numero_valide(numero)
-	if n <= TOURS_PACK.size():
-		var couleur: String = TOURS_PACK[n - 1]["couleur"]
+	if n <= tours_pack.size():
+		var couleur: String = tours_pack[n - 1]["couleur"]
 		return {
 			"fichier": RACINE + "Factions/Knights/Buildings/Tower/Tower_%s.png" % couleur,
 			"decalage": 0.0,
 		}
-	var visee: float = TEINTES_CALCULEES[n - TOURS_PACK.size() - 1]
+	var visee: float = teintes_calculees[n - tours_pack.size() - 1]
 	return {
-		"fichier": RACINE + TOUR_BASE, "decalage": fposmod(visee - TOUR_TEINTE_BASE, 360.0) / 360.0
+		"fichier": RACINE + tour_base, "decalage": fposmod(visee - tour_teinte_base, 360.0) / 360.0
 	}
 
 
 ## Rotation de teinte (fraction de tour) qui donne au bleu du pack la couleur du joueur `numero` :
 ## celle de la marque d'un skin, pour les huit couleurs (0 pour le bleu).
 static func decalage_marque(numero: int) -> float:
-	return fposmod(teinte_tour(numero) - TOUR_TEINTE_BASE, 360.0) / 360.0
+	return fposmod(teinte_tour(numero) - tour_teinte_base, 360.0) / 360.0
 
 
 ## Nuanceur de teinte réglé sur `decalage` ; `null` pour 0 (la couleur d'origine).
@@ -235,9 +233,9 @@ static func materiau_decalage(decalage: float) -> ShaderMaterial:
 ## se confondent pas.
 static func teinte_tour(numero: int) -> float:
 	var n: int = numero_valide(numero)
-	if n <= TOURS_PACK.size():
-		return TOURS_PACK[n - 1]["teinte"]
-	return TEINTES_CALCULEES[n - TOURS_PACK.size() - 1]
+	if n <= tours_pack.size():
+		return tours_pack[n - 1]["teinte"]
+	return teintes_calculees[n - tours_pack.size() - 1]
 
 
 ## Nuanceur de teinte pour les joueurs 5 à 8, `null` pour les couleurs du pack.

@@ -130,5 +130,5 @@ static func _echelle(forme: String, taille: float) -> float:
 		"mine", "dynamite":
 			return taille / Effets.REGION_DYNAMITE.size.y
 	if not Effets.FORMES_PROPRES.has(forme) and forme != "fleche" and forme != "explosion":
-		return taille / float(FormesSignatures.TAILLE)
+		return taille / float(FormesSignatures.taille)
 	return taille / 32.0
