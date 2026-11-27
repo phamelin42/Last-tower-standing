@@ -1,7 +1,7 @@
 extends CasDeTest
-## D23 (§6.17.4) : une arme achetée plusieurs fois monte de niveau. Le bilan compte toujours un achat
-## par niveau et une arme distincte ; les défis « une seule arme » se réussissent avec des niveaux ;
-## le format de la sauvegarde n'a pas changé.
+## D23 (§6.17.4) : une arme achetée plusieurs fois monte de niveau. Le bilan compte toujours un
+## achat par niveau et une arme distincte ; les défis « une seule arme » se réussissent avec des
+## niveaux ; le format de la sauvegarde n'a pas changé.
 
 var d: Donnees
 
