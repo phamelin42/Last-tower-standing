@@ -1565,5 +1565,38 @@
         "texte": "REPERE_STATUT_MANA_AU_COUP"
       }
     }
+  },
+  "tirs_ennemis": {
+    "plafond": 96,
+    "vol_s": 0.4,
+    "decalage_id_s": 0.37,
+    "marge_arret": 2.0,
+    "fleche": {
+      "chemin": "Factions/Knights/Troops/Archer/Arrow/Arrow.png",
+      "region": {
+        "x": 1,
+        "y": 28,
+        "largeur": 63,
+        "hauteur": 14
+      },
+      "echelle": 0.8
+    },
+    "bombe": {
+      "chemin": "Factions/Goblins/Troops/TNT/Dynamite/Dynamite.png",
+      "case": {
+        "largeur": 64,
+        "hauteur": 64
+      },
+      "images": 6,
+      "images_par_seconde": 12.0,
+      "region": {
+        "x": 20,
+        "y": 2,
+        "largeur": 27,
+        "hauteur": 51
+      },
+      "echelle": 0.9,
+      "arc": 36.0
+    }
   }
 }
