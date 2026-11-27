@@ -217,6 +217,27 @@ func test_un_client_de_mauvaise_version_recoit_son_motif_et_est_coupe() -> void:
 	verifier_egal(serveur.nb_pairs(), 0)
 
 
+## Un pair refusé qui renvoie son bonjour plus vite que le délai de coupure (0,5 s) ne reste pas
+## connecté : la coupure ne se réarme pas, et le serveur ne lui répond plus.
+func test_un_client_refuse_qui_renvoie_son_bonjour_sans_cesse_est_coupe_quand_meme() -> void:
+	verifier(_monter_serveur())
+	var a := _ajouter_client("A")
+	verifier(await _jusqua(func() -> bool: return a.connecte()))
+	var bonjour := Protocole.encoder_bonjour("Aki", d.empreinte)
+	bonjour[1] = Protocole.VERSION + 1
+	var debut := Time.get_ticks_msec()
+	var envoyes := 0
+	while a.connecte() and Time.get_ticks_msec() - debut < 4000:
+		a.canal.rpc_id(1, "rpc_bonjour", bonjour)
+		envoyes += 1
+		var prochain := Time.get_ticks_msec() + 100
+		while Time.get_ticks_msec() < prochain:
+			await arbre.process_frame
+	verifier_faux(a.connecte(), "coupé malgré %d bonjours renvoyés" % envoyes)
+	verifier_egal(a.refus.size(), 1, "une seule réponse, pas une par bonjour")
+	verifier_egal(serveur.nb_pairs(), 0)
+
+
 ## Le neuvième joueur n'est pas laissé sans réponse : il reçoit le motif du salon plein en moins
 ## d'une seconde, et les huit autres ne voient rien changer.
 func test_un_neuvieme_joueur_recoit_le_motif_salon_plein_et_les_huit_autres_restent() -> void:

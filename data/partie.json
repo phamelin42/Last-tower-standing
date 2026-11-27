@@ -7,7 +7,7 @@
 	"spawn_intervalle_depart": 2.0,
 	"spawn_baisse_par_manche": 0.08,
 	"spawn_plancher": 0.1,
-	"tour": {"pv": 1000, "armure": 0, "regen": 0, "rayon": 60, "mana_max": 0, "mana_regen": 1.0},
+	"tour": {"pv": 1000, "armure": 0, "regen": 0, "rayon": 60, "mana_max": 0, "mana_regen": 1.0, "siphon_mana_max_par_s": 600, "mana_cout_par_pv": 2.0},
 	"nb_offres": 4,
 	"gel_max_s": 3.0,
 	"givre": {"cumuls_max": 8, "ralentissement_par_cumul": 0.08, "plafond": 0.6},

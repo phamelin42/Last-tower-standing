@@ -38,6 +38,8 @@ verifier_uid() {
 		{
 			git ls-files -z -- '*.import' | xargs -0 grep -h '^uid=' | sed 's/^uid=//; s/"//g'
 			git ls-files -z -- '*.gd.uid' | { grep -zv '^\.claude/' || true; } | xargs -0 cat
+			# L'uid qu'une scène ou une ressource texte déclare dans son en-tête (pas ceux qu'elle cite).
+			git ls-files -z -- '*.tscn' '*.tres' | { grep -zv '^\.claude/' || true; } | xargs -0 -r grep -h '^\[gd_\(scene\|resource\)' | { grep -o 'uid="uid://[a-z0-9]*"' || true; } | sed 's/^uid=//; s/"//g'
 		} | sed '/^$/d' | LC_ALL=C sort | uniq -d
 	)
 	if [[ -n "$doublons" ]]; then
@@ -60,10 +62,34 @@ verifier_uid() {
 	return 1
 }
 
+# L'import ne doit signaler aucun « UID duplicate » : deux ressources qui se disputent un uid font
+# réattribuer l'un au hasard. Un cache d'éditeur périmé (`.godot/editor`, resté d'une branche
+# antérieure) en signale à tort sur une copie saine : on le supprime et on réimporte une fois ; si
+# l'avertissement revient, le doublon est réel et l'étape échoue.
+importer() {
+	local journal code
+	journal=$(mktemp)
+	godot --headless --path . --import 2>&1 | tee "$journal"
+	code="${PIPESTATUS[0]}"
+	if [[ "$code" -eq 0 ]] && grep -q 'UID duplicate' "$journal"; then
+		echo "étape import : « UID duplicate » signalé, cache de l'éditeur supprimé puis import refait" >&2
+		rm -rf .godot/editor
+		godot --headless --path . --import 2>&1 | tee "$journal"
+		code="${PIPESTATUS[0]}"
+		if [[ "$code" -eq 0 ]] && grep -q 'UID duplicate' "$journal"; then
+			echo "étape import : « UID duplicate » persiste : deux ressources portent le même uid" >&2
+			grep 'UID duplicate' "$journal" >&2
+			code=1
+		fi
+	fi
+	rm -f "$journal"
+	return "$code"
+}
+
 executer_etape() {
 	case "$1" in
 	import)
-		godot --headless --path . --import
+		importer
 		;;
 	uid)
 		verifier_uid
