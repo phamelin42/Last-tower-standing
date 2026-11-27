@@ -262,6 +262,10 @@ static func couleur_rarete(r: int) -> Color:
 			return Color("#72b8ff")
 		Types.Rarete.EPIQUE:
 			return Color("#d6a3ff")
+		Types.Rarete.ANCESTRALE:
+			return Color("#ffb54d")
+		Types.Rarete.SOUVERAINE:
+			return Color("#ff6f7d")
 	return COULEUR_REPLI
 
 
@@ -277,6 +281,10 @@ static func symbole_rarete(r: int) -> String:
 			return "★"
 		Types.Rarete.EPIQUE:
 			return "✦"
+		Types.Rarete.ANCESTRALE:
+			return "❖"
+		Types.Rarete.SOUVERAINE:
+			return "♛"
 	return "?"
 
 
@@ -291,6 +299,10 @@ static func cle_libelle_rarete(r: int) -> String:
 			return "rarete.rare"
 		Types.Rarete.EPIQUE:
 			return "rarete.epique"
+		Types.Rarete.ANCESTRALE:
+			return "rarete.ancestrale"
+		Types.Rarete.SOUVERAINE:
+			return "rarete.souveraine"
 	return ""
 
 

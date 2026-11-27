@@ -523,7 +523,7 @@ func test_etat_arene_aller_retour_complet() -> void:
 
 func test_etat_arene_chaque_phase_chaque_rarete_chaque_genre() -> void:
 	for phase in range(Types.Phase.PREPARATION, Types.Phase.DEFAITE + 1):
-		for rarete in range(Types.Rarete.COMMUNE, Types.Rarete.EPIQUE + 1):
+		for rarete in range(Types.Rarete.COMMUNE, Types.Rarete.SOUVERAINE + 1):
 			for genre in range(Types.Genre.ARME, Types.Genre.AMELIORATION + 1):
 				for vendu: bool in [false, true]:
 					var v := _vue(1)

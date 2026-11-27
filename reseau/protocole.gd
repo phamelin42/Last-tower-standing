@@ -50,7 +50,8 @@ enum Intention {
 ## 9 : quatre flottants d'apparence de la tour dans l'état d'arène (16 octets), aussi regardée.
 ## 10 : l'état global porte le skin de chaque joueur (1 octet) ; intention `SKIN` au salon.
 ## 11 : plus d'intention `VENDRE` (la vente disparaît du jeu, D23) ; son numéro est refusé.
-const VERSION: int = 11
+## 12 : la rareté d'une offre tient sur trois bits (six raretés, ancestrale et souveraine, T12.6).
+const VERSION: int = 12
 ## Taille du jeton d'hôte ; un bonjour sans jeton en porte 0.
 const JETON_OCTETS: int = 8
 const MAX_ENNEMIS: int = 2000
@@ -465,7 +466,7 @@ static func encoder_etat_arene(
 		var genre := int(o["genre"])
 		var rarete := int(o["rarete"])
 		var idx := catalogue.find(String(o["id"]))
-		if idx < 0 or genre < 0 or genre > 1 or rarete < 0 or rarete > 3:
+		if idx < 0 or genre < 0 or genre > 1 or rarete < 0 or rarete >= Types.NOMS_RARETES.size():
 			return PackedByteArray()
 		indices_offres.append(idx)
 		drapeaux_offres.append(genre | (rarete << 1) | ((1 if bool(o["vendu"]) else 0) << 4))
@@ -643,21 +644,16 @@ static func decoder_etat_arene(
 		var d := l.u8()
 		var idx := l.u16()
 		var prix := l.u16()
-		if idx >= nb_catalogue or d & ~0x17 != 0:
+		if idx >= nb_catalogue or d & ~0x1F != 0 or (d >> 1) & 7 >= Types.NOMS_RARETES.size():
 			return null
-		(
-			v
-			. offres
-			. append(
-				{
-					"id": catalogue[idx],
-					"genre": d & 1,
-					"rarete": (d >> 1) & 3,
-					"prix": prix,
-					"vendu": d & 0x10 != 0,
-				}
-			)
-		)
+		var offre := {
+			"id": catalogue[idx],
+			"genre": d & 1,
+			"rarete": (d >> 1) & 7,
+			"prix": prix,
+			"vendu": d & 0x10 != 0,
+		}
+		v.offres.append(offre)
 
 	var n_armes := l.u8()
 	if n_armes > MAX_ARMES or not l.exiger(3 * n_armes):
