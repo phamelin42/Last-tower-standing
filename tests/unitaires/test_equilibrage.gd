@@ -82,7 +82,7 @@ func test_l_estimation_de_rendement_lit_les_champs_avec_les_valeurs_de_reference
 		Equilibrage.dps_estime(pv), 10.0 + 0.01 * Equilibrage.REFERENCE_PV_MAX_TOUR, 0.0001
 	)
 	var copies := base.duplicate(true)
-	copies["degats_par_exemplaire"] = 0.1
+	copies["degats_par_niveau"] = 0.1
 	verifier_proche(
 		Equilibrage.dps_estime(copies),
 		10.0 + 0.1 * float(Equilibrage.REFERENCE_EXEMPLAIRES - 1) * 10.0,
@@ -108,7 +108,7 @@ func test_une_arme_sans_champ_garde_son_rendement() -> void:
 		var arme: Dictionary = donnees.armes[id]
 		if (
 			float(arme["degats_par_pv_max"]) != 0.0
-			or float(arme["degats_par_exemplaire"]) != 0.0
+			or float(arme["degats_par_niveau"]) != 0.0
 			or float((arme["degats_par_amelioration"] as Dictionary)["ratio"]) != 0.0
 		):
 			continue

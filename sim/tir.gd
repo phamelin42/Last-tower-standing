@@ -226,7 +226,7 @@ static func communes_par_type(niveaux: Dictionary, donnees: Donnees) -> PackedIn
 
 ## Dégâts de base d'une arme avant les bonus de type et global : ses dégâts, plus `ratio × mana
 ## maximale` (T8.7), plus la somme des trois bonus « selon » (`degats_par_pv_max × PV maximum de la
-## tour`, `degats_par_exemplaire × (niveau − 1) × dégâts`, `ratio × améliorations possédées
+## tour`, `degats_par_niveau × (niveau − 1) × dégâts`, `ratio × améliorations possédées
 ## portant la stat × dégâts`) bornée à `bonus_max × dégâts` ; le tout multiplié par le facteur
 ## d'épines pour une arme dont `type_secondaire` est « epines ». Fonction pure : un champ absent ou
 ## nul ne change rien, un nombre non fini est ignoré.
@@ -247,7 +247,7 @@ static func degats_de_base(
 	total += _positif(float(arme.get("degats_par_mana_max", 0.0))) * _positif(mana_max)
 	var selon := _positif(float(arme.get("degats_par_pv_max", 0.0))) * _positif(pv_max_tour)
 	selon += (
-		_positif(float(arme.get("degats_par_exemplaire", 0.0))) * float(maxi(niveau - 1, 0)) * base
+		_positif(float(arme.get("degats_par_niveau", 0.0))) * float(maxi(niveau - 1, 0)) * base
 	)
 	var par_amelioration: Dictionary = arme.get("degats_par_amelioration", {})
 	if not par_amelioration.is_empty():

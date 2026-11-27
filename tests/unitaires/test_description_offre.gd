@@ -637,7 +637,7 @@ func test_les_champs_d_arme_du_lot_9_ont_leur_ligne() -> void:
 	var base := _arme_factice([{"kind": "cible_unique"}])
 	var cas: Array[Dictionary] = [
 		{"degats_par_pv_max": 0.02},
-		{"degats_par_exemplaire": 0.25},
+		{"degats_par_niveau": 0.25},
 		{"degats_par_amelioration": {"stat": "epines", "ratio": 0.1}},
 		{"type_secondaire": "epines"},
 	]
@@ -685,7 +685,7 @@ func test_la_ligne_de_chaque_mecanique_dit_son_plafond_ou_sa_borne_quand_elle_en
 		var ligne_m := DescriptionOffre.ligne_effet(fiche, Types.Genre.ARME, _donnees)
 		verifier(ligne_m.contains(limite), "%s : plafond %s dans « %s »" % [kind, limite, ligne_m])
 	var borne := _fr(float((partie["armes"] as Dictionary)["bonus_selon_stat_max"]))
-	for champ: String in ["degats_par_pv_max", "degats_par_exemplaire"]:
+	for champ: String in ["degats_par_pv_max", "degats_par_niveau"]:
 		var fiche_m5 := _arme_factice([{"kind": "cible_unique"}])
 		fiche_m5[champ] = 0.1
 		var ligne_5 := DescriptionOffre.ligne_effet(fiche_m5, Types.Genre.ARME, _donnees)

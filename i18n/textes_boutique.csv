@@ -108,7 +108,7 @@ BOUTIQUE_EFFET_SIPHON_VIE,siphon : prend %s PV par seconde à l’ennemi pendan
 BOUTIQUE_EFFET_MANA_AU_COUP,chaque coup qui touche rend %s de mana à la tour
 BOUTIQUE_EFFET_BORNE_M5,au plus %s fois les dégâts de base
 BOUTIQUE_EFFET_ARME_PAR_PV_MAX,+%s des PV max de la tour en dégâts (%s)
-BOUTIQUE_EFFET_ARME_PAR_EXEMPLAIRE,+%s des dégâts de base par exemplaire de plus (%s)
+BOUTIQUE_EFFET_ARME_PAR_NIVEAU,+%s des dégâts de base par niveau de plus (%s)
 BOUTIQUE_EFFET_ARME_PAR_AMELIORATION,+%s des dégâts de base par amélioration possédée de type « %s » (%s)
 BOUTIQUE_EFFET_TYPE_SECONDAIRE_EPINES,inflige aussi des dégâts d’épines
 BOUTIQUE_EFFET_DEGATS_CROISSANCE,"+%s de dégâts par tranche de %s s de partie, jusqu’à +%s"

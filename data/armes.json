@@ -1670,7 +1670,7 @@
    }
   ],
   "statuts": [],
-  "degats_par_exemplaire": 0.4
+  "degats_par_niveau": 0.4
  },
  {
   "id": "serment_brise",
@@ -1790,7 +1790,7 @@
    }
   ],
   "statuts": [],
-  "degats_par_exemplaire": 0.5
+  "degats_par_niveau": 0.5
  },
  {
   "id": "tempete_de_malefices",
