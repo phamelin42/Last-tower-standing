@@ -4,10 +4,8 @@ extends RefCounted
 ## blanc sur fond transparent : l'appelant les teinte. Aucune image tierce. Les traînées sont des
 ## bandeaux de 64 × 16 px, tout le reste tient dans 48 × 48 px.
 
-# gdlint:disable=class-variable-name
-static var TAILLE: int = int(Assets.section("signatures").get("taille", 48))
-static var BANDEAU: Vector2i = Assets.typee("signatures").get("bandeau", Vector2i(64, 16))
-# gdlint:enable=class-variable-name
+static var taille: int = int(Assets.section("signatures").get("taille", 48))
+static var bandeau: Vector2i = Assets.typee("signatures").get("bandeau", Vector2i(64, 16))
 
 static var _cache: Dictionary = {}
 
@@ -19,7 +17,7 @@ static func image(nom: String) -> Image:
 
 
 static func _dessiner(nom: String) -> Image:
-	var taille := BANDEAU if SignaturesArmes.TRAINEES.has(nom) else Vector2i(TAILLE, TAILLE)
+	var taille := bandeau if SignaturesArmes.TRAINEES.has(nom) else Vector2i(taille, taille)
 	var img := Image.create(taille.x, taille.y, false, Image.FORMAT_RGBA8)
 	var centre := Vector2(taille) * 0.5
 	for y: int in taille.y:

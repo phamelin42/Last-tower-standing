@@ -30,23 +30,21 @@ const TOUS: Array[String] = [
 	AMBIANCE,
 ]
 
-# gdlint:disable=class-variable-name
 ## Dossier, extension, ids d'armes, suffixes et fréquence vivent dans `data/assets.json` (T10.4) :
 ## changer de pack de sons ne demande que les fichiers et ce JSON.
-static var DOSSIER: String = str(Assets.section("sons").get("dossier", ""))
-static var EXTENSION: String = str(Assets.section("sons").get("extension", ""))
+static var dossier: String = str(Assets.section("sons").get("dossier", ""))
+static var extension: String = str(Assets.section("sons").get("extension", ""))
 ## Les armes qui ont leur son de tir (`tir_<id>`), dans l'ordre de `data/armes.json` : un test
 ## vérifie qu'elles suivent les données. Une arme ajoutée au catalogue reçoit sa ligne ici et son
 ## fichier ; sans eux, son tir retombe sur `TIR`.
-static var IDS_ARMES: Array[String] = _textes("ids_armes")
+static var liste_ids_armes: Array[String] = _textes("ids_armes")
 ## Suffixe du son d'impact de chaque type de dégâts, dans l'ordre de `Types.TypeDegats`.
-static var SUFFIXES_IMPACT: Array[String] = _textes("suffixes_impact")
+static var liste_suffixes_impact: Array[String] = _textes("suffixes_impact")
 ## Fréquence du silence de substitution, en hertz. Il est généré en mémoire : rien de binaire
 ## n'entre dans le dépôt pour un son absent.
-static var FREQUENCE_SUBSTITUTION: int = int(
+static var frequence_substitution: int = int(
 	Assets.section("sons").get("frequence_substitution", 22050)
 )
-# gdlint:enable=class-variable-name
 
 
 static func _textes(cle: String) -> Array[String]:
@@ -59,31 +57,31 @@ static func _textes(cle: String) -> Array[String]:
 
 static func tous() -> Array[String]:
 	var liste: Array[String] = TOUS.duplicate()
-	for id: String in IDS_ARMES:
+	for id: String in liste_ids_armes:
 		liste.append("tir_" + id)
-	for suffixe: String in SUFFIXES_IMPACT:
+	for suffixe: String in liste_suffixes_impact:
 		liste.append("impact_" + suffixe)
 	return liste
 
 
 static func ids_armes() -> PackedStringArray:
-	return PackedStringArray(IDS_ARMES)
+	return PackedStringArray(liste_ids_armes)
 
 
 ## Le son de tir de l'arme `id_arme`, ou `TIR` si elle n'a pas le sien.
 static func id_tir(id_arme: String) -> String:
-	return "tir_" + id_arme if IDS_ARMES.has(id_arme) else TIR
+	return "tir_" + id_arme if liste_ids_armes.has(id_arme) else TIR
 
 
 ## Le son d'impact du type de dégâts (`Types.TypeDegats`), ou `IMPACT` si le type est inconnu.
 static func id_impact(type_degats: int) -> String:
-	if type_degats < 0 or type_degats >= SUFFIXES_IMPACT.size():
+	if type_degats < 0 or type_degats >= liste_suffixes_impact.size():
 		return IMPACT
-	return "impact_" + SUFFIXES_IMPACT[type_degats]
+	return "impact_" + liste_suffixes_impact[type_degats]
 
 
 static func chemin(identifiant: String) -> String:
-	return DOSSIER + identifiant + EXTENSION
+	return dossier + identifiant + extension
 
 
 ## Le flux du son : le fichier s'il existe, sinon un silence de substitution.
@@ -101,7 +99,7 @@ static func est_substitution(identifiant: String) -> bool:
 static func _silence() -> AudioStreamWAV:
 	var wav := AudioStreamWAV.new()
 	wav.format = AudioStreamWAV.FORMAT_16_BITS
-	wav.mix_rate = FREQUENCE_SUBSTITUTION
+	wav.mix_rate = frequence_substitution
 	wav.stereo = false
 	wav.data = PackedByteArray([0, 0])
 	return wav

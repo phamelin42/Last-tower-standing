@@ -51,6 +51,15 @@ const ATTENDU: Dictionary = {
 	"carquois_en_rafale": "carquois",
 	"mur_de_pointes": "mur_pointes",
 	"couronne_de_pointes": "couronne_pointes",
+	"rune_de_veille": "rune_veille",
+	"eclat_siphonneur": "siphonneur",
+	"lueur_vagabonde": "lueur",
+	"prisme_de_faille": "prisme",
+	"orage_en_cage": "orage",
+	"couronne_d_etoiles": "couronne_etoiles",
+	"vasque_d_arcanes": "vasque",
+	"nuee_d_etincelles": "nuee",
+	"nova_celeste": "nova_celeste",
 }
 
 

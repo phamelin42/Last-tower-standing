@@ -126,14 +126,12 @@ const TYPE_CELLULE := "CelluleIcone"
 const TYPE_CELLULE_FIXE := "CelluleFixe"
 const TYPE_RUBAN := "TitreRuban"
 
-# gdlint:disable=class-variable-name
 ## Le ruban de catégorie n'utilise que le corps du ruban du pack (sans ses queues) : une bande
 ## qui s'allonge avec le mot et tient sur une seule ligne basse.
-static var CORPS_RUBAN: Rect2 = Assets.typee("ui").get("corps_ruban", Rect2())
+static var corps_ruban: Rect2 = Assets.typee("ui").get("corps_ruban", Rect2())
 ## Zone des icônes (64 px, glyphe centré) : on rogne les marges vides.
-static var ZONE_ICONE: Rect2 = Assets.typee("ui").get("zone_icone", Rect2())
-static var POINTEUR_POINTE: Vector2 = Assets.typee("ui").get("pointeur_pointe", Vector2.ZERO)
-# gdlint:enable=class-variable-name
+static var zone_icone: Rect2 = Assets.typee("ui").get("zone_icone", Rect2())
+static var pointeur_pointe: Vector2 = Assets.typee("ui").get("pointeur_pointe", Vector2.ZERO)
 
 static var _cache: Theme = null
 static var _police: Font = null
@@ -292,7 +290,7 @@ static func appliquer(racine: Control) -> void:
 	racine.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	var pointeur := load(TEX_POINTEUR) as Texture2D
 	if pointeur != null:
-		Input.set_custom_mouse_cursor(pointeur, Input.CURSOR_ARROW, POINTEUR_POINTE)
+		Input.set_custom_mouse_cursor(pointeur, Input.CURSOR_ARROW, pointeur_pointe)
 
 
 ## Icône de la barre du haut (`ICONES_HUD`), entière.
@@ -338,7 +336,7 @@ static func apercu_skin(skin: Dictionary) -> Texture2D:
 static func icone(nom: String) -> Texture2D:
 	var atlas := AtlasTexture.new()
 	atlas.atlas = load(str(ICONES[nom])) as Texture2D
-	atlas.region = ZONE_ICONE
+	atlas.region = zone_icone
 	return atlas
 
 
@@ -423,12 +421,12 @@ static func _construire() -> Theme:
 	return t
 
 
-## Corps d'un ruban (`CORPS_RUBAN`) en bande : répété en largeur, étiré en hauteur, sans marge
+## Corps d'un ruban (`corps_ruban`) en bande : répété en largeur, étiré en hauteur, sans marge
 ## verticale pour que le ruban reste bas.
 static func _bande_ruban(chemin: String) -> StyleBoxTexture:
 	var b := StyleBoxTexture.new()
 	b.texture = load(chemin) as Texture2D
-	b.region_rect = CORPS_RUBAN
+	b.region_rect = corps_ruban
 	b.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_TILE_FIT
 	b.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
 	b.content_margin_left = 6.0
