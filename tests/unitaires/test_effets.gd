@@ -438,16 +438,22 @@ func _rendu_de(evenement: Dictionary) -> String:
 
 func test_les_signatures_validees_du_lot_8_sont_en_jeu_et_seules_elles() -> void:
 	var vues: int = 0
+	var lot_9: int = 0
 	for id: String in SignaturesArmes.ids():
 		if SignaturesArmes.en_jeu(id):
-			verifier(SignaturesLot8.LIGNES.has(id), "%s : en jeu sans validation" % id)
+			# Une arme du lot 9 y entre quand elle reçoit son élément (T9.19).
+			verifier(
+				SignaturesLot8.LIGNES.has(id) or ElementsArmes.de(id) != "",
+				"%s : en jeu sans validation" % id
+			)
 			vues += 1
-	verifier_egal(vues, SignaturesLot8.LIGNES.size())
+			lot_9 += 0 if SignaturesLot8.LIGNES.has(id) else 1
+	verifier_egal(vues, SignaturesLot8.LIGNES.size() + lot_9)
 	verifier(not SignaturesArmes.en_jeu("arme_qui_n_existe_pas"))
 
 
-## Une signature proposée (T9.18) n'est pas encore validée : l'arme garde le rendu par type, tir
-## comme impact, tant que `en_jeu` est faux (T9.19 le lèvera).
+## Une signature proposée (T9.18) sans élément n'est pas encore en jeu : l'arme garde le rendu par
+## type, tir comme impact, tant que `en_jeu` est faux (T9.19 le lève famille par famille).
 func test_une_signature_proposee_ne_change_pas_le_rendu_en_jeu() -> void:
 	_avec_catalogue()
 	var vues: int = 0
@@ -460,7 +466,9 @@ func test_une_signature_proposee_ne_change_pas_le_rendu_en_jeu() -> void:
 			var sans: Dictionary = avec.duplicate()
 			sans.erase("arme")
 			verifier_egal(_rendu_de(avec), _rendu_de(sans), "%s : %s par type" % [id, k])
-	verifier(vues >= 45, "les 45 signatures proposées : %d" % vues)
+	# Les 45 signatures du lot 9 : celles qui ont déjà leur élément ne sont plus « proposées ».
+	var avec_element: int = ElementsArmes.ids().size() - SignaturesLot8.LIGNES.size()
+	verifier(vues + avec_element >= 45, "les 45 signatures proposées : %d" % vues)
 
 
 func _sans_alpha(c: Color) -> Color:

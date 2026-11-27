@@ -243,13 +243,18 @@ func test_les_nouveaux_statuts_ont_chacun_leur_forme_et_leur_libelle() -> void:
 		formes[forme] = true
 
 
-func test_seules_les_signatures_validees_sont_en_jeu() -> void:
+## Entre en jeu une signature validée (lot 8) ou une arme du lot 9 qui a reçu son élément (T9.19).
+func test_seules_les_signatures_validees_ou_a_element_sont_en_jeu() -> void:
 	for id: Variant in SignaturesLot8.LIGNES:
 		verifier(SignaturesArmes.en_jeu(String(id)), "%s : validée" % id)
 	var proposees: int = 0
 	for id: String in SignaturesArmes.ids():
 		if not SignaturesLot8.LIGNES.has(id):
-			verifier(not SignaturesArmes.en_jeu(id), "%s : seulement proposée" % id)
+			verifier_egal(
+				SignaturesArmes.en_jeu(id),
+				ElementsArmes.de(id) != "",
+				"%s : en jeu ou proposée" % id
+			)
 			proposees += 1
-	verifier(proposees >= 45, "%d signatures proposées" % proposees)
+	verifier(proposees >= 45, "%d signatures du lot 9" % proposees)
 	verifier(not SignaturesArmes.en_jeu("arme_qui_n_existe_pas"))

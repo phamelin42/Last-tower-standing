@@ -149,3 +149,4 @@ privé, lu en direct). Ses lignes vivent dans sa base, pas dans la page :
 - Une session écrit à la pilote par l'outil `mcp__claude-code-remote__send_message`, pas par `SendMessage` (erreur 401 vers une session cloud).
 - Une classe interne GDScript ne voit pas les fonctions statiques de sa classe englobante : les appeler par la classe interne elle-même ou les y dupliquer (`tools/dessin/planche_outils.gd`).
 - Une signature ajoutée à `SignaturesArmes` est utilisée en jeu par `Effets` : celles qui attendent la validation de Phil vont dans `TABLE_LOT_9`, que garde `SignaturesArmes.en_jeu` (T9.19 la lève).
+- gdlint refuse plus de 40 méthodes publiques par fichier, tests compris : un fichier de test qui grossit se répartit en plusieurs `test_*.gd` qui étendent une base à `class_name` sous `tests/outils/` (`CasAttaquesTranchant`).
