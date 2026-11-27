@@ -2,7 +2,8 @@ class_name SignaturesArmes
 extends RefCounted
 ## Signature visuelle de chaque arme : forme et couleur du projectile, traînée, impact, statut.
 ## Seules les signatures de `TABLE` (lot 8, validées) servent en jeu (`en_jeu`) ; celles de
-## `TABLE_LOT_9` attendent la validation de Phil sur `docs/planche_signatures.png`.
+## `TABLE_LOT_9` et `TABLE_LOT_12` attendent la validation de Phil
+## (`docs/planche_signatures.png`).
 ## La table se lit par identifiant d'arme et ne fige aucun effectif : une arme ajoutée à
 ## `data/armes.json` reçoit sa ligne ici, sinon `de()` rend `{}` et `test_signatures_armes` échoue.
 ##
@@ -180,6 +181,26 @@ const TABLE_LOT_9: Dictionary = {
 	["shuriken", "magenta", "pointille", "eclaboussure", "malediction_degats"],
 }
 
+## Les 15 signatures proposées des armes de fin de partie (T12.7) : même forme de ligne. Comme
+## celles du lot 9, elles s'affichent sur la planche mais pas en jeu (voir `en_jeu`).
+const TABLE_LOT_12: Dictionary = {
+	"lame_des_aieux": ["fleche", "turquoise", "double", "halo", "vulnerabilite"],
+	"ouragan_de_lames": ["spirale", "acier", "etincelles", "explosion", "malediction_toucher"],
+	"faux_du_dernier_jour": ["fleche", "acier", "zigzag", "anneau", "vulnerabilite"],
+	"carquois_des_ancetres": ["goutte", "vert", "etincelles", "entaille", ""],
+	"epine_de_mille_ans": ["croissant", "paille", "double", "entaille", "vulnerabilite"],
+	"pique_du_souverain": ["disque", "vert", "pointille", "croix", "repoussement"],
+	"sceptre_des_astres": ["shuriken", "bleu", "double", "pointes", "givre"],
+	"sablier_d_aurore": ["fleche", "bleu", "ondule", "explosion", "siphon"],
+	"oeil_du_firmament": ["dynamite", "indigo", "ondule", "entaille", "vulnerabilite"],
+	"catapulte_des_anciens": ["shuriken", "orange", "pointille", "etoile", "etourdissement"],
+	"lance_braise_du_conquerant": ["trait", "rouge", "etincelles", "entaille", ""],
+	"canon_du_dernier_rempart": ["shuriken", "rouge", "ondule", "entaille", "vulnerabilite"],
+	"urne_des_mille_ombres": ["dynamite", "magenta", "etincelles", "eclaboussure", ""],
+	"pendule_du_desordre": ["trait", "violet", "zigzag", "explosion", "brulure"],
+	"couronne_du_vide": ["disque", "magenta", "double", "anneau", "vulnerabilite"],
+}
+
 ## id → marque de la mécanique propre de l'arme (voir `MARQUES`) ; une arme absente n'en a pas.
 const MARQUES_ARMES: Dictionary = {
 	"serpe_de_vigne": "vulnerabilite",
@@ -207,6 +228,17 @@ const MARQUES_ARMES: Dictionary = {
 	"archere_fantome": "allie",
 	"miroir_de_discorde": "vulnerabilite",
 	"tempete_de_malefices": "vulnerabilite",
+	"lame_des_aieux": "vulnerabilite",
+	"ouragan_de_lames": "rayon_tournant",
+	"faux_du_dernier_jour": "vulnerabilite",
+	"epine_de_mille_ans": "vulnerabilite",
+	"pique_du_souverain": "vulnerabilite",
+	"sablier_d_aurore": "disque_au_sol",
+	"oeil_du_firmament": "vulnerabilite",
+	"lance_braise_du_conquerant": "bombe",
+	"canon_du_dernier_rempart": "vulnerabilite",
+	"urne_des_mille_ombres": "allie",
+	"couronne_du_vide": "vulnerabilite",
 }
 
 
@@ -222,6 +254,8 @@ static func ids() -> PackedStringArray:
 		liste.append(String(id))
 	for id: Variant in TABLE_LOT_9:
 		liste.append(String(id))
+	for id: Variant in TABLE_LOT_12:
+		liste.append(String(id))
 	return liste
 
 
@@ -234,7 +268,8 @@ static func en_jeu(id_arme: String) -> bool:
 
 ## `{}` pour une arme inconnue.
 static func de(id_arme: String) -> Dictionary:
-	var ligne: Array = TABLE.get(id_arme, TABLE_LOT_9.get(id_arme, []))
+	var proposee: Array = TABLE_LOT_9.get(id_arme, TABLE_LOT_12.get(id_arme, []))
+	var ligne: Array = TABLE.get(id_arme, proposee)
 	if ligne.is_empty():
 		return {}
 	return {

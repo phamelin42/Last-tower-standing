@@ -1829,5 +1829,406 @@
     "duree": 4.0
    }
   ]
+ },
+ {
+  "id": "lame_des_aieux",
+  "nom": "Lame des aïeux",
+  "description": "Une lame forgée il y a mille ans tranche chaque ennemi, du premier au dernier rang.",
+  "rarete": "ancestrale",
+  "prix": 3200,
+  "type_degats": "tranchant",
+  "degats": 3072.0,
+  "recharge": 1.0,
+  "portee": 1250,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "cible_unique"
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "vulnerabilite",
+    "ratio": 0.2,
+    "duree": 6.0
+   }
+  ]
+ },
+ {
+  "id": "ouragan_de_lames",
+  "nom": "Ouragan de lames",
+  "description": "Huit lames tournent autour de la tour et entaillent la meute qui s’approche.",
+  "rarete": "ancestrale",
+  "prix": 4400,
+  "type_degats": "tranchant",
+  "degats": 528.0,
+  "recharge": 1.0,
+  "portee": 1250,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "tournant",
+    "branches": 8,
+    "pas_deg": 12,
+    "largeur": 70,
+    "sens": "horaire"
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "malediction_toucher",
+    "ratio": 0.35,
+    "duree": 5.0
+   }
+  ]
+ },
+ {
+  "id": "faux_du_dernier_jour",
+  "nom": "Faux du dernier jour",
+  "description": "Un seul arc de faux balaye le champ de bataille et nourrit la tour de chaque coup.",
+  "rarete": "souveraine",
+  "prix": 9000,
+  "type_degats": "tranchant",
+  "degats": 5400.0,
+  "recharge": 2.0,
+  "portee": 1250,
+  "ciblage": "plus_fort",
+  "effets": [
+   {
+    "kind": "onde",
+    "rayon_max": 700,
+    "vitesse": 700
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "vulnerabilite",
+    "ratio": 0.2,
+    "duree": 6.0
+   },
+   {
+    "kind": "vol_de_vie",
+    "ratio": 0.08,
+    "a_la_mort": false
+   }
+  ]
+ },
+ {
+  "id": "carquois_des_ancetres",
+  "nom": "Carquois des ancêtres",
+  "description": "Le carquois ne se vide jamais : douze traits fusent à chaque salve.",
+  "rarete": "ancestrale",
+  "prix": 3600,
+  "type_degats": "perçant",
+  "degats": 1152.0,
+  "recharge": 2.0,
+  "portee": 1250,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "barrage",
+    "projectiles": 12,
+    "dispersion_deg": 45,
+    "rayon": 55
+   }
+  ],
+  "statuts": []
+ },
+ {
+  "id": "epine_de_mille_ans",
+  "nom": "Épine de mille ans",
+  "description": "Des épines millénaires jaillissent du sol sous les pas des assaillants.",
+  "rarete": "ancestrale",
+  "prix": 4800,
+  "type_degats": "perçant",
+  "degats": 4608.0,
+  "recharge": 2.0,
+  "portee": 750,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "piege",
+    "rayon": 120,
+    "max_actives": 6
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "vulnerabilite",
+    "ratio": 0.15,
+    "duree": 5.0
+   }
+  ]
+ },
+ {
+  "id": "pique_du_souverain",
+  "nom": "Pique du souverain",
+  "description": "Une couronne de piques repousse la foule et fait trembler les lignes ennemies.",
+  "rarete": "souveraine",
+  "prix": 8500,
+  "type_degats": "perçant",
+  "degats": 2040.0,
+  "recharge": 0.6,
+  "portee": 750,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "aura",
+    "rayon": 450,
+    "periode": 0.6
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "repoussement",
+    "distance": 80
+   },
+   {
+    "kind": "vulnerabilite",
+    "ratio": 0.12,
+    "duree": 4.0
+   }
+  ]
+ },
+ {
+  "id": "sceptre_des_astres",
+  "nom": "Sceptre des astres",
+  "description": "Un éclair d’étoile saute de proche en proche entre dix ennemis.",
+  "rarete": "ancestrale",
+  "prix": 3800,
+  "type_degats": "magique",
+  "degats": 1710.1,
+  "recharge": 2.0,
+  "portee": 1250,
+  "ciblage": "plus_fort",
+  "effets": [
+   {
+    "kind": "rebond",
+    "cibles": 8,
+    "portee_saut": 350,
+    "decroissance": 0.94
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "givre"
+   }
+  ]
+ },
+ {
+  "id": "sablier_d_aurore",
+  "nom": "Sablier d’aurore",
+  "description": "Un sablier de lumière dépose des cercles qui brûlent d’or ce qui les traverse.",
+  "rarete": "ancestrale",
+  "prix": 4500,
+  "type_degats": "magique",
+  "degats": 1157.2,
+  "recharge": 2.5,
+  "portee": 1250,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "zone_posee",
+    "rayon": 200,
+    "duree": 5.0,
+    "periode": 0.5,
+    "ratio": 0.35,
+    "max_actives": 3
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "siphon",
+    "ressource": "mana",
+    "par_seconde": 10.0,
+    "duree": 4.0
+   }
+  ]
+ },
+ {
+  "id": "oeil_du_firmament",
+  "nom": "Œil du firmament",
+  "description": "Le regard du ciel passe sur la plaine en une onde que rien n’arrête.",
+  "rarete": "souveraine",
+  "prix": 9500,
+  "type_degats": "magique",
+  "degats": 9619.4,
+  "recharge": 3.0,
+  "portee": 1250,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "onde",
+    "rayon_max": 800,
+    "vitesse": 650
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "vulnerabilite",
+    "ratio": 0.2,
+    "duree": 6.0
+   },
+   {
+    "kind": "siphon",
+    "ressource": "mana",
+    "par_seconde": 10.0,
+    "duree": 4.0
+   }
+  ]
+ },
+ {
+  "id": "catapulte_des_anciens",
+  "nom": "Catapulte des anciens",
+  "description": "Un bloc de granit s’abat en grand cercle et assomme tout ce qu’il touche.",
+  "rarete": "ancestrale",
+  "prix": 3400,
+  "type_degats": "siège",
+  "degats": 4460.8,
+  "recharge": 4.0,
+  "portee": 1250,
+  "ciblage": "plus_fort",
+  "effets": [
+   {
+    "kind": "zone",
+    "rayon": 280
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "etourdissement",
+    "duree": 1.2
+   }
+  ]
+ },
+ {
+  "id": "lance_braise_du_conquerant",
+  "nom": "Lance-braise du conquérant",
+  "description": "Les marmites de poudre mettent le feu aux lignes ennemies : l’explosion arrive deux temps plus tard.",
+  "rarete": "ancestrale",
+  "prix": 4200,
+  "type_degats": "siège",
+  "degats": 1377.6,
+  "recharge": 2.0,
+  "portee": 1250,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "bombe",
+    "delai": 1.5,
+    "rayon": 200,
+    "ratio": 2.0,
+    "max_actives": 4
+   }
+  ],
+  "statuts": []
+ },
+ {
+  "id": "canon_du_dernier_rempart",
+  "nom": "Canon du dernier rempart",
+  "description": "Un unique boulet, lourd comme une muraille, écrase l’ennemi le plus dangereux.",
+  "rarete": "souveraine",
+  "prix": 10000,
+  "type_degats": "siège",
+  "degats": 49200.0,
+  "recharge": 4.0,
+  "portee": 1250,
+  "ciblage": "plus_fort",
+  "effets": [
+   {
+    "kind": "cible_unique"
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "vulnerabilite",
+    "ratio": 0.2,
+    "duree": 6.0
+   },
+   {
+    "kind": "etourdissement",
+    "duree": 1.0
+   }
+  ]
+ },
+ {
+  "id": "urne_des_mille_ombres",
+  "nom": "Urne des mille ombres",
+  "description": "Cinq ombres sortent de l’urne et harcèlent la meute jusqu’à s’évanouir.",
+  "rarete": "ancestrale",
+  "prix": 3000,
+  "type_degats": "chaos",
+  "degats": 2460.1,
+  "recharge": 4.0,
+  "portee": 1000,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "invocation",
+    "unite": "sentinelle_de_braise",
+    "duree": 8.0,
+    "ratio_degats": 0.6,
+    "max_actives": 5
+   }
+  ],
+  "statuts": []
+ },
+ {
+  "id": "pendule_du_desordre",
+  "nom": "Pendule du désordre",
+  "description": "Le pendule bat à contretemps : dix éclats partent en tous sens et couvent en brûlant.",
+  "rarete": "ancestrale",
+  "prix": 4000,
+  "type_degats": "chaos",
+  "degats": 1574.4,
+  "recharge": 2.0,
+  "portee": 1250,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "barrage",
+    "projectiles": 10,
+    "dispersion_deg": 65,
+    "rayon": 65
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "brulure",
+    "ratio": 0.25,
+    "duree": 3.0
+   }
+  ]
+ },
+ {
+  "id": "couronne_du_vide",
+  "nom": "Couronne du vide",
+  "description": "Des mines de néant jonchent le sol et déchirent la foule en la maudissant.",
+  "rarete": "souveraine",
+  "prix": 8800,
+  "type_degats": "chaos",
+  "degats": 16236.3,
+  "recharge": 3.0,
+  "portee": 750,
+  "ciblage": "plus_proche",
+  "effets": [
+   {
+    "kind": "mine",
+    "rayon": 160,
+    "max_actives": 5
+   }
+  ],
+  "statuts": [
+   {
+    "kind": "vulnerabilite",
+    "ratio": 0.2,
+    "duree": 6.0
+   },
+   {
+    "kind": "malediction_degats",
+    "ratio": 0.35,
+    "duree": 5.0
+   }
+  ]
  }
 ]
