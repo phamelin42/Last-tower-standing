@@ -79,9 +79,6 @@ const TYPES_RUBAN_CATEGORIE: Array[String] = ["RubanArme", "RubanAmelioration", 
 ## Texte du ruban de catégorie : une encre plus sombre que celle des boutons, pour atteindre 4,5:1
 ## sur le rouge du ruban (vérifié par `test_theme_pack`).
 const ENCRE_RUBAN_CATEGORIE := Color("#050708")
-## Le ruban de catégorie n'utilise que le corps du ruban du pack (sans ses queues) : une bande
-## qui s'allonge avec le mot et tient sur une seule ligne basse.
-const CORPS_RUBAN := Rect2(64.0, 0.0, 64.0, 52.0)
 ## Toutes les textures citées par le thème (le test vérifie qu'elles existent).
 const TEXTURES: Array[String] = [
 	TEX_BOUTON,
@@ -103,9 +100,6 @@ const POLICE := "res://assets/polices/metamorphous/metamorphous-latin-400-normal
 ## Repli pour tout caractère absent de Metamorphous : symboles de rareté et d'armure, ∅, espace
 ## fine.
 const POLICE_REPLI := "res://assets/polices/dejavu-sans/dejavu-sans-latin-400-normal.woff2"
-## Zone des icônes (64 px, glyphe centré) : on rogne les marges vides.
-const ZONE_ICONE := Rect2(16.0, 9.0, 32.0, 32.0)
-const POINTEUR_POINTE := Vector2(22.0, 17.0)
 
 ## Panneaux et cartes : la texture sculptée, multipliée pour retrouver `ENCRE` et `ENCRE_CARTE`
 ## (moyenne du pack : #cab18d).
@@ -132,6 +126,15 @@ const TYPE_CELLULE := "CelluleIcone"
 const TYPE_CELLULE_FIXE := "CelluleFixe"
 const TYPE_RUBAN := "TitreRuban"
 
+# gdlint:disable=class-variable-name
+## Le ruban de catégorie n'utilise que le corps du ruban du pack (sans ses queues) : une bande
+## qui s'allonge avec le mot et tient sur une seule ligne basse.
+static var CORPS_RUBAN: Rect2 = Assets.typee("ui").get("corps_ruban", Rect2())
+## Zone des icônes (64 px, glyphe centré) : on rogne les marges vides.
+static var ZONE_ICONE: Rect2 = Assets.typee("ui").get("zone_icone", Rect2())
+static var POINTEUR_POINTE: Vector2 = Assets.typee("ui").get("pointeur_pointe", Vector2.ZERO)
+# gdlint:enable=class-variable-name
+
 static var _cache: Theme = null
 static var _police: Font = null
 
@@ -156,7 +159,7 @@ static func boite(fond: Color, bord: Color, filet: int = FILET, marge: int = 0) 
 
 ## Boîte d'un panneau opaque : la texture sculptée du pack, en neuf tranches.
 static func boite_panneau() -> StyleBoxTexture:
-	return _tranches(TEX_PANNEAU, 16, 16, 16, 16, MARGE_PANNEAU, TEINTE_PANNEAU)
+	return _tranches_de("panneau", TEX_PANNEAU, MARGE_PANNEAU, TEINTE_PANNEAU)
 
 
 ## Barre pleine largeur (HUD, bandeau de la boutique) : aplat d'encre, filet de la teinte du pack.
@@ -166,6 +169,23 @@ static func boite_barre() -> StyleBoxFlat:
 	b.shadow_color = Color(0.0, 0.0, 0.0, 0.45)
 	b.shadow_size = 8
 	return b
+
+
+## Style en tranches de neuf dont les marges viennent de `data/assets.json` (`ui.tranches`).
+static func _tranches_de(
+	nom: String, chemin: String, interieur: int, teinte: Color
+) -> StyleBoxTexture:
+	var t: Dictionary = Assets.section("ui").get("tranches", {})
+	var m: Dictionary = t.get(nom, {})
+	return _tranches(
+		chemin,
+		int(m.get("gauche", 0)),
+		int(m.get("haut", 0)),
+		int(m.get("droite", 0)),
+		int(m.get("bas", 0)),
+		interieur,
+		teinte
+	)
 
 
 ## Style en tranches de neuf, pixels nets : les marges sont celles de la texture, jamais étirées.
@@ -384,7 +404,7 @@ static func _construire() -> Theme:
 	t.set_type_variation(TYPE_RUBAN, "Label")
 	t.set_font_size("font_size", TYPE_RUBAN, taille("titre"))
 	t.set_color("font_color", TYPE_RUBAN, ENCRE_TEXTE_BOUTON)
-	var ruban := _tranches(TEX_RUBAN, 56, 12, 56, 20, 0, Color.WHITE)
+	var ruban := _tranches_de("ruban", TEX_RUBAN, 0, Color.WHITE)
 	ruban.content_margin_left = 64.0
 	ruban.content_margin_right = 64.0
 	ruban.content_margin_top = 10.0
@@ -394,7 +414,7 @@ static func _construire() -> Theme:
 		t.set_type_variation(TYPES_RUBAN_CATEGORIE[c], "PanelContainer")
 		t.set_stylebox("panel", TYPES_RUBAN_CATEGORIE[c], _bande_ruban(TEXTURES_RUBAN_CATEGORIE[c]))
 	t.set_type_variation("Carte", "PanelContainer")
-	var carte := _tranches(TEX_PANNEAU, 16, 16, 16, 16, 8, TEINTE_CARTE)
+	var carte := _tranches_de("panneau", TEX_PANNEAU, 8, TEINTE_CARTE)
 	# Haut et bas plus serrés que les côtés : la boutique doit tenir dans 45 % de la hauteur, même
 	# avec les noms les plus longs et la note « Or insuffisant » sur chaque carte (S15).
 	carte.content_margin_top = MARGE_VERTICALE_CARTE
@@ -422,7 +442,7 @@ static func _style_bouton(chemin: String, teinte: Color = Color.WHITE) -> StyleB
 	# Textures de 64 px de haut (corps de 56 px et ombre de 8 px) : on ne les étire qu'en largeur,
 	# le centre se répète, les extrémités arrondies gardent leur forme. Le haut et le bas laissent
 	# la place du contour et de l'ombre pour que le texte tombe au milieu du corps.
-	var b := _tranches(chemin, 40, 0, 40, 0, 0, teinte)
+	var b := _tranches_de("bouton", chemin, 0, teinte)
 	b.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
 	b.content_margin_left = 24.0
 	b.content_margin_right = 24.0

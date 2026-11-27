@@ -55,6 +55,17 @@ const HACHE: String = "hache"
 const SCIE: String = "scie"
 const MOISSONNEUSE: String = "moissonneuse"
 
+## Les armes perçantes du lot 9 : un élément par arme, comme la famille du carreau.
+const JAVELINE: String = "javeline"
+const TRAIT_GERBE: String = "trait_gerbe"
+const FLECHE_MARQUANTE: String = "fleche_marquante"
+const ARC_REMPARTS: String = "arc_remparts"
+const HERSE_PIEUX: String = "herse_pieux"
+const LANCE_EPINEUSE: String = "lance_epineuse"
+const CARQUOIS: String = "carquois"
+const MUR_POINTES: String = "mur_pointes"
+const COURONNE_POINTES: String = "couronne_pointes"
+
 const ELEMENTS: Array[String] = [
 	FEU,
 	GLACE,
@@ -95,6 +106,15 @@ const ELEMENTS: Array[String] = [
 	HACHE,
 	SCIE,
 	MOISSONNEUSE,
+	JAVELINE,
+	TRAIT_GERBE,
+	FLECHE_MARQUANTE,
+	ARC_REMPARTS,
+	HERSE_PIEUX,
+	LANCE_EPINEUSE,
+	CARQUOIS,
+	MUR_POINTES,
+	COURONNE_POINTES,
 ]
 
 ## id d'arme → élément.
@@ -138,6 +158,15 @@ const TABLE: Dictionary = {
 	"hache_de_garde": HACHE,
 	"scie_a_ruban": SCIE,
 	"moissonneuse_d_acier": MOISSONNEUSE,
+	"javeline_de_jet": JAVELINE,
+	"trait_en_gerbe": TRAIT_GERBE,
+	"fleche_marquante": FLECHE_MARQUANTE,
+	"arc_de_remparts": ARC_REMPARTS,
+	"herse_de_pieux": HERSE_PIEUX,
+	"lance_epineuse": LANCE_EPINEUSE,
+	"carquois_en_rafale": CARQUOIS,
+	"mur_de_pointes": MUR_POINTES,
+	"couronne_de_pointes": COURONNE_POINTES,
 }
 
 

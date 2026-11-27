@@ -36,8 +36,6 @@ const NOM_ECART: float = 8.0
 
 ## Opacité d'un ennemi qui recouvre la tour : elle reste visible dessous.
 const ALPHA_RECOUVRE: float = 0.4
-## Demi-largeur visible de la tour dans sa feuille, en pixels de feuille.
-const TOUR_DEMI_LARGEUR: float = 56.0
 
 ## Ordre des animations dans les tableaux à plat.
 const REPOS: int = 0
@@ -47,6 +45,11 @@ const ATTAQUE_BAS: int = 3
 const ATTAQUE_HAUT: int = 4
 const NB_ANIMATIONS: int = 5
 const NOMS_ANIMATIONS: Array[String] = ["repos", "course", "attaque", "attaque_bas", "attaque_haut"]
+
+# gdlint:disable=class-variable-name
+## Demi-largeur visible de la tour dans sa feuille, en pixels de feuille.
+static var TOUR_DEMI_LARGEUR: float = float(Assets.section("tour").get("demi_largeur", 0.0))
+# gdlint:enable=class-variable-name
 
 ## Injectable avant l'entrée dans l'arbre (tests) ; sinon chargé depuis `data/`.
 var donnees: Donnees = null
