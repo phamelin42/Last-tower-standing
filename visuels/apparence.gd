@@ -333,6 +333,16 @@ static func numero_valide(numero: int) -> int:
 	return posmod(numero - 1, NB_TOURS) + 1
 
 
+## Fichier d'une image de superposition de la tour : `dossier` vient de `data/apparence_tour.json`,
+## `couche` est `arriere` ou `avant`, `image` l'image du tour lent (0 : l'image de base, dessinée
+## au palier 3 seulement pour les statistiques animées).
+static func fichier_superposition(
+	dossier: String, stat: String, palier: int, couche: String, image: int = 0
+) -> String:
+	var suffixe := "" if image <= 0 else "_a%d" % image
+	return "%s%s_%d_%s%s.png" % [dossier, stat, palier, couche, suffixe]
+
+
 ## `{fichier, decalage}` de la tour du joueur `numero` ; `decalage` est la rotation de teinte
 ## appliquée par le nuanceur, en fraction de tour (0 pour les couleurs du pack).
 static func tour(numero: int) -> Dictionary:

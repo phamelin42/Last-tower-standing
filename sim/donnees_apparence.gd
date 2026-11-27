@@ -12,6 +12,11 @@ const SUPERPOSITIONS: Array[String] = ["epines", "mana", "armure", "esquive", "r
 const PALIERS := 3
 ## Agrandissement maximal de la tour (purement visuel, A3).
 const AGRANDISSEMENT_MAX := 0.25
+## Aucun éclair au-dessus de trois par seconde : une période d'au moins un tiers de seconde, au plus
+## trois images d'animation par seconde.
+const MIN_PERIODE_S := 1.0 / 3.0
+const MAX_PAR_SECONDE := 3.0
+const IMAGES_ANIMEES_MAX := 8
 
 
 ## Un fichier vide (dossier de test) est accepté : il n'y a alors aucune apparence.
@@ -33,6 +38,50 @@ static func valider(t: Dictionary, err: Array[String]) -> void:
 			_valider_liste(stats[nom], "stats.%s" % nom, -1.0, err)
 	if agrandissement_ok:
 		_valider_liste(t["agrandissement"], "agrandissement", AGRANDISSEMENT_MAX, err)
+	_valider_dessin(t, err)
+
+
+## Ce dont le dessin a besoin (T9.25) : dossier des images, durée du fondu, rythme de l'esquive et
+## de l'animation. Aucun éclair au-dessus de trois par seconde : les périodes sont bornées.
+static func _valider_dessin(t: Dictionary, err: Array[String]) -> void:
+	var f := "apparence_tour.json"
+	var dossier: Variant = t.get("dossier")
+	if not dossier is String or not String(dossier).ends_with("/"):
+		Donnees._err(err, f, "dossier", "chemin de dossier terminé par « / » attendu")
+	var fondu := _nombre(t, "fondu_s", 0.05, 2.0, err)
+	if (
+		not Donnees._objet(t, "esquive", f, "", err)
+		or not Donnees._objet(t, "animation", f, "", err)
+	):
+		return
+	var esquive: Dictionary = t["esquive"]
+	var periode := _nombre(esquive, "periode_s", MIN_PERIODE_S, 60.0, err, "esquive.")
+	var duree := _nombre(esquive, "duree_s", 0.05, 60.0, err, "esquive.")
+	if is_finite(periode) and is_finite(duree) and duree >= periode:
+		Donnees._err(err, f, "esquive.duree_s", "inférieure à la période attendue")
+	var animation: Dictionary = t["animation"]
+	var images: Variant = animation.get("images")
+	var entier := (images is float or images is int) and float(images) == floorf(float(images))
+	if not entier or float(images) < 1.0 or float(images) > IMAGES_ANIMEES_MAX:
+		Donnees._err(err, f, "animation.images", "entier de 1 à %d attendu" % IMAGES_ANIMEES_MAX)
+	_nombre(animation, "par_seconde", 0.05, MAX_PAR_SECONDE, err, "animation.")
+	if not is_finite(fondu):
+		return
+
+
+## Un nombre fini de `bas` à `haut` (bornes comprises) ; `NAN` (et une erreur) sinon.
+static func _nombre(
+	d: Dictionary, cle: String, bas: float, haut: float, err: Array[String], prefixe: String = ""
+) -> float:
+	var v: Variant = d.get(cle)
+	if not (v is float or v is int) or not is_finite(float(v)):
+		Donnees._err(err, "apparence_tour.json", prefixe + cle, "nombre fini attendu")
+		return NAN
+	var x := float(v)
+	if x < bas or x > haut:
+		Donnees._err(err, "apparence_tour.json", prefixe + cle, "de %s à %s attendu" % [bas, haut])
+		return NAN
+	return x
 
 
 ## `maximum` : borne haute des valeurs (négatif : aucune). Trois nombres finis, positifs,
@@ -69,12 +118,26 @@ static func _valider_liste(v: Variant, chemin: String, maximum: float, err: Arra
 ## Copie profonde, en flottants, pour `Donnees.apparence_tour`.
 static func normaliser(t: Dictionary) -> Dictionary:
 	if t.is_empty():
-		return {"stats": {}, "agrandissement": []}
+		return {
+			"stats": {},
+			"agrandissement": [],
+			"dossier": "",
+			"fondu_s": 0.3,
+			"esquive": {},
+			"animation": {}
+		}
 	var stats: Dictionary = {}
 	var brutes: Dictionary = t["stats"]
 	for nom: String in brutes:
 		stats[nom] = _en_flottants(brutes[nom])
-	return {"stats": stats, "agrandissement": _en_flottants(t["agrandissement"])}
+	var sortie: Dictionary = {"stats": stats, "agrandissement": _en_flottants(t["agrandissement"])}
+	for cle: String in ["dossier", "fondu_s", "esquive", "animation"]:
+		sortie[cle] = (
+			(t[cle] as Variant)
+			if not t[cle] is Dictionary
+			else (t[cle] as Dictionary).duplicate(true)
+		)
+	return sortie
 
 
 static func _en_flottants(liste: Array) -> Array[float]:

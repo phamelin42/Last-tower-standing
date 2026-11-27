@@ -13,6 +13,8 @@ const PALIERS_MAX := 3
 const OPACITE_MIN := 0.3
 ## Agrandissement maximal, même si les données en demandaient plus (A3).
 const ECHELLE_MAX := 1.25
+## Part de l'agrandissement qu'on parcourt en une durée de fondu (la borne `ECHELLE_MAX` moins 1).
+const ECHELLE_MAX_PART := ECHELLE_MAX - 1.0
 ## Champ de la vue qui porte chaque statistique.
 const CHAMPS: Dictionary = {
 	"epines": "tour_epines",
