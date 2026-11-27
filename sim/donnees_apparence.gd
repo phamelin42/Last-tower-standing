@@ -9,6 +9,8 @@ const STATS: Array[String] = [
 ]
 ## Celles qui ont une image : la tour qui grandit (`pv_max`) n'a qu'un facteur.
 const SUPERPOSITIONS: Array[String] = ["epines", "mana", "armure", "esquive", "regen", "vol_de_vie"]
+## Les superpositions sont dessinées pour la tour par défaut : l'échelle d'un skin (2 au plus).
+const ECHELLE_SKIN_MAX := 2.0
 const PALIERS := 3
 ## Agrandissement maximal de la tour (purement visuel, A3).
 const AGRANDISSEMENT_MAX := 0.25
@@ -84,11 +86,12 @@ static func _en_flottants(liste: Array) -> Array[float]:
 	return sortie
 
 
-## Skins de la tour (`data/skins_tour.json`, B5 à B8) : id → `{sprite, cadre?, defi, marque,
-## licence, source, ancrages}`. Un skin donne le sprite de la tour (`cadre` : la partie de l'image
-## utilisée, pour une feuille d'images), le défi qui le débloque (vide pour `defaut`), la zone de
-## marque de la couleur du joueur, sa licence et, pour chaque superposition, le point (en pixels du
-## cadre) où son centre se pose. Un fichier non vide contient au moins le skin `defaut`.
+## Skins de la tour (`data/skins_tour.json`, B5 à B8) : id → `{sprite, cadre?, echelle, defi,
+## marque, licence, source, ancrages}`. Un skin donne le sprite de la tour (`cadre` : la partie
+## de l'image utilisée, pour une feuille), l'échelle des superpositions (1 pour la tour par
+## défaut), le défi qui le débloque (vide pour `defaut`), la zone de marque de la couleur du
+## joueur, sa licence et, pour chaque superposition, le point (en pixels du cadre) où son centre
+## se pose. Un fichier non vide contient au moins le skin `defaut`.
 static func valider_skins(skins: Dictionary, err: Array[String]) -> void:
 	var f := "skins_tour.json"
 	if skins.is_empty():
@@ -120,7 +123,7 @@ static func valider_skins(skins: Dictionary, err: Array[String]) -> void:
 					Donnees._err(err, f, "%s.%s" % [ch, axe], "nombre fini attendu")
 
 
-## Défi, cadre, marque, licence et source d'un skin (T11.6) : tout sauf le sprite et les ancrages.
+## Défi, échelle, cadre, marque, licence et source d'un skin (T11.6), hors sprite et ancrages.
 static func _valider_identite_skin(skin: Dictionary, chemin: String, err: Array[String]) -> void:
 	var f := "skins_tour.json"
 	if not skin.get("defi") is String:
@@ -130,6 +133,11 @@ static func _valider_identite_skin(skin: Dictionary, chemin: String, err: Array[
 	for champ: String in ["licence", "source"]:
 		if not skin.get(champ) is String or String(skin[champ]).is_empty():
 			Donnees._err(err, f, "%s.%s" % [chemin, champ], "texte attendu")
+	var echelle: Variant = skin.get("echelle")
+	if not (echelle is float or echelle is int) or not is_finite(float(echelle)):
+		Donnees._err(err, f, "%s.echelle" % chemin, "nombre fini attendu")
+	elif float(echelle) <= 0.0 or float(echelle) > ECHELLE_SKIN_MAX:
+		Donnees._err(err, f, "%s.echelle" % chemin, "entre 0 (exclu) et %s" % ECHELLE_SKIN_MAX)
 	if skin.has("cadre"):
 		_valider_rectangle(skin["cadre"], "%s.cadre" % chemin, err)
 	if not skin.get("marque") is Dictionary:

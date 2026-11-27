@@ -1,7 +1,7 @@
 # Candidats de sprites de tour : sources et licences (T11.6, partie 1)
 
 Relevé du 26/11/2026. **Rien n'est intégré** : ces images sont des candidats pour la validation de Phil.
-Planche v3 : `docs/skins/planche_v3.png` (générée par `docs/skins/generer_planche.py`), 50 skins.
+Planche v4 : `docs/skins/planche_v4.png` (générée par `docs/skins/generer_planche.py`), 50 skins.
 
 ## Licences vérifiées
 
@@ -33,15 +33,13 @@ tournantes, ruines, trophées, crânes, rond de sièges, couronne, puits, ronces
 
 ## Limites
 
-- Les aperçus de `docs/skins/apercus/` sont recadrés dans les images de couverture publiées par l'auteur : il faut
-  télécharger les packs (itch.io demande un clic, que le conteneur a refusé de scripter) pour les vrais fichiers.
-- Les Spire sont plus détaillés que Tiny Swords et portent déjà une arme ou un cristal au sommet, ce qui peut
-  gêner les superpositions de D19 et la zone de marque de couleur (ils n'ont ni drapeau ni liseré de couleur joueur
-  garanti, sauf la bannière bleue des packs 1 et 3).
-- Recherches : 0 appel de WebSearch ; une vingtaine de requêtes de recherche OpenGameArt et itch.io (pages de listes
-  filtrées par licence) et une trentaine de pages de packs lues directement.
+- Les Spire sont plus détaillés que Tiny Swords et n'ont pas de marque de couleur joueur : le jeu pose un fanion
+  (zone `marque` du JSON). Leurs superpositions (D19) sont dessinées pour la tour par défaut : l'`echelle` du
+  skin les adapte, à ajuster à l'œil en T11.7.
+- Recherches de la première passe : 0 appel de WebSearch ; une vingtaine de requêtes de listes OpenGameArt et
+  itch.io et une trentaine de pages de packs lues directement.
 
-## Nouvelle recherche (planche v3)
+## Nouvelle recherche (planches v3 et v4)
 
 Décision de Phil (26/11/2026) : les ébauches dessinées sont écartées (le script de dessin est supprimé), changer de
 famille est permis, et un skin sans candidat reçoit le **meilleur rapprochement** plutôt qu'un dessin pauvre.
@@ -57,12 +55,18 @@ famille est permis, et un skin sans candidat reçoit le **meilleur rapprochement
 - **Famille retenue :** les 24 tours **Spire** de Foozle (CC0), mêlées aux bâtiments de **Tiny Swords** déjà dans le
   dépôt (`assets/tiny_swords/`, CC0, non retouchés) : tour de bois et cabane des Gobelins, tour en chantier et tour en
   ruine, maison, mine d'or des Chevaliers (le château, 320 px de large, dépasse les 256 px permis). La tour des Chevaliers reste la tour par défaut.
-- **Planche v3** (`docs/skins/planche_v3.png`, 50 skins) : 9 bons candidats, 13 partiels, 28 rapprochés ; 31 sprites
-  distincts pour 50 skins, soit **19 réemplois** (un même sprite sert deux ou trois skins). Un vrai skin distinct
-  pour chacun demande un pack de plus ou un dessinateur : à décider.
-- **Marque de couleur :** le fanion bleu de la planche est posé à l'affichage, par-dessus l'aperçu, comme le fera le
-  jeu (T11.7) ; aucun fichier de sprite n'est modifié. Marque d'origine : fanions du Gobelin, tout le bleu des
-  bâtiments Chevaliers et la bannière du pack Spire 1.
+- **Planche v4** (`docs/skins/planche_v4.png`, 50 skins, lue dans `data/skins_tour.json`) : 9 bons candidats, 13
+  partiels, 28 rapprochés ; 31 images distinctes pour 50 skins, soit **19 réemplois** (une même image sert deux ou
+  trois skins), acceptés par Phil (26/11/2026), sans variante de couleur. Un skin vraiment distinct pour chacun
+  demande un pack de plus ou un dessinateur.
+- **Archives Spire** (27/11/2026) : fournies par Phil, `Readme.txt` de chaque pack lu (CC0, commandé à Baldur,
+  distribué par Foozle). Les fichiers de base des huit tours (`Towers bases/PNGs/`) sont copiés tels quels sous
+  `assets/tours/` ; les armes, projectiles, GIF et `.aseprite` ne sont pas repris. La tour est vide : les armes du
+  joueur y sont dessinées par le jeu. Les couvertures de pack utilisées par la planche v3 sont remplacées par ces
+  vrais sprites (`docs/skins/apercus/` supprimé).
+- **Marque de couleur** :** le fanion bleu de la planche est posé à l'affichage, dans la zone `marque` du JSON, comme le fera le jeu (T11.7) ;
+  aucun fichier de sprite n'est modifié. Marque d'origine (teintable) : les bâtiments bleus de Tiny Swords. Les
+  Spire reçoivent toujours un fanion : leurs couleurs (cristaux, runes) sont celles de leur dessin.
 
 Sources des bâtiments Tiny Swords : `assets/tiny_swords/LICENCE.md` (Pixel Frog, https://pixelfrog-assets.itch.io/tiny-swords,
 « TS_old version_CC0 Licensed »).
