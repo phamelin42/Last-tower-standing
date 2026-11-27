@@ -77,6 +77,9 @@ const VASQUE: String = "vasque"
 const NUEE: String = "nuee"
 const NOVA_CELESTE: String = "nova_celeste"
 
+## Les armes de siège du lot 9 : un élément par arme, comme la grande bombarde.
+const BARIL: String = "baril"
+
 const ELEMENTS: Array[String] = [
 	FEU,
 	GLACE,
@@ -135,6 +138,7 @@ const ELEMENTS: Array[String] = [
 	VASQUE,
 	NUEE,
 	NOVA_CELESTE,
+	BARIL,
 ]
 
 ## id d'arme → élément.
@@ -196,6 +200,7 @@ const TABLE: Dictionary = {
 	"vasque_d_arcanes": VASQUE,
 	"nuee_d_etincelles": NUEE,
 	"nova_celeste": NOVA_CELESTE,
+	"baril_a_retardement": BARIL,
 }
 
 
