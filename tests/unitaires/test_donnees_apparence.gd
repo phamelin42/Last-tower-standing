@@ -117,3 +117,48 @@ func test_le_fichier_n_entre_pas_dans_l_empreinte_reseau() -> void:
 	stats["armure"] = [1.0, 2.0, 3.0]
 	var b := Donnees.depuis_brut(brut)
 	verifier_egal(a.empreinte, b.empreinte, "l'apparence est locale")
+
+
+func test_le_dessin_a_son_dossier_son_fondu_son_esquive_et_son_animation() -> void:
+	var d := Donnees.charger()
+	var t: Dictionary = d.apparence_tour
+	verifier(String(t["dossier"]).ends_with("/"), "dossier")
+	verifier(float(t["fondu_s"]) > 0.0, "fondu")
+	var esquive: Dictionary = t["esquive"]
+	verifier(float(esquive["periode_s"]) >= 1.0 / 3.0, "au plus trois éclairs par seconde")
+	verifier(float(esquive["duree_s"]) < float(esquive["periode_s"]), "l'esquive s'éteint")
+	var animation: Dictionary = t["animation"]
+	verifier(float(animation["par_seconde"]) <= 3.0, "au plus trois images par seconde")
+	# Chaque image du tour lent annoncée existe, pour les deux couches des deux statistiques.
+	for stat: String in ["epines", "vol_de_vie"]:
+		for couche: String in ["arriere", "avant"]:
+			for k: int in int(animation["images"]):
+				var chemin := Apparence.fichier_superposition(
+					String(t["dossier"]), stat, 3, couche, k
+				)
+				verifier(FileAccess.file_exists(chemin), "image présente : %s" % chemin)
+
+
+func test_un_reglage_de_dessin_mal_forme_est_refuse() -> void:
+	var refus: Array[Array] = [
+		["dossier", "sans_barre", "dossier sans « / »"],
+		["dossier", 3.0, "dossier mal typé"],
+		["fondu_s", 0.0, "fondu nul"],
+		["fondu_s", NAN, "fondu non fini"],
+		["fondu_s", 10.0, "fondu trop long"],
+		["esquive", {"periode_s": 0.2, "duree_s": 0.1}, "plus de trois éclairs par seconde"],
+		["esquive", {"periode_s": 2.0, "duree_s": 2.0}, "durée égale à la période"],
+		["esquive", {"periode_s": 2.0}, "durée manquante"],
+		["animation", {"images": 0, "par_seconde": 1.0}, "aucune image"],
+		["animation", {"images": 99, "par_seconde": 1.0}, "trop d'images"],
+		["animation", {"images": 4, "par_seconde": 4.0}, "plus de trois images par seconde"],
+		["animation", {"images": 4}, "rythme manquant"],
+	]
+	for r: Array in refus:
+		var brut := _brut()
+		_table(brut)[r[0]] = r[1]
+		verifier(not _erreurs(brut).is_empty(), "%s refusé" % r[2])
+	for cle: String in ["dossier", "fondu_s", "esquive", "animation"]:
+		var brut := _brut()
+		_table(brut).erase(cle)
+		verifier(not _erreurs(brut).is_empty(), "%s manquant refusé" % cle)

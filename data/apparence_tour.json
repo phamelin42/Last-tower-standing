@@ -1,12 +1,54 @@
 {
   "stats": {
-    "epines": [0.3, 1.0, 2.0],
-    "pv_max": [1150, 1450, 2000],
-    "mana": [60, 150, 300],
-    "armure": [3, 8, 20],
-    "esquive": [0.07, 0.15, 0.25],
-    "regen": [1.5, 4.0, 8.0],
-    "vol_de_vie": [0.02, 8.0, 16.0]
+    "epines": [
+      0.3,
+      1.0,
+      2.0
+    ],
+    "pv_max": [
+      1150,
+      1450,
+      2000
+    ],
+    "mana": [
+      60,
+      150,
+      300
+    ],
+    "armure": [
+      3,
+      8,
+      20
+    ],
+    "esquive": [
+      0.07,
+      0.15,
+      0.25
+    ],
+    "regen": [
+      1.5,
+      4.0,
+      8.0
+    ],
+    "vol_de_vie": [
+      0.02,
+      8.0,
+      16.0
+    ]
   },
-  "agrandissement": [0.08, 0.16, 0.25]
+  "agrandissement": [
+    0.08,
+    0.16,
+    0.25
+  ],
+  "dossier": "res://assets/tour_apparence/",
+  "fondu_s": 0.3,
+  "esquive": {
+    "periode_s": 3.0,
+    "duree_s": 0.45
+  },
+  "animation": {
+    "images": 4,
+    "par_seconde": 1.5
+  }
 }

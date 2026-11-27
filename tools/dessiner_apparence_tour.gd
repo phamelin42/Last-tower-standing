@@ -27,7 +27,6 @@ const SANG_FONCE := Color("6a0e1c")
 const SPECTRE := Color("cfe8ff")
 const GRAINE := 24
 const IMAGES_ANIMEES := 4
-const COUCHES: Array[String] = ["arriere", "avant"]
 
 var _rng := RandomNumberGenerator.new()
 
@@ -89,22 +88,6 @@ func _contour(img: Image) -> void:
 				if nx >= 0 and ny >= 0 and nx < img.get_width() and ny < img.get_height():
 					if copie.get_pixel(nx, ny).a > 0.5:
 						img.set_pixel(x, y, ENCRE)
-						break
-
-
-## Fin liseré sombre translucide autour d'une silhouette, pour la garder nette.
-func _contour_clair(img: Image) -> void:
-	var copie := img.duplicate() as Image
-	for y: int in img.get_height():
-		for x: int in img.get_width():
-			if copie.get_pixel(x, y).a > 0.0:
-				continue
-			for d: Vector2i in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
-				var nx := x + d.x
-				var ny := y + d.y
-				if nx >= 0 and ny >= 0 and nx < img.get_width() and ny < img.get_height():
-					if copie.get_pixel(nx, ny).a > 0.0:
-						img.set_pixel(x, y, Color(ENCRE, 0.55))
 						break
 
 
@@ -277,27 +260,32 @@ func _armure(palier: int) -> Dictionary:
 	return c
 
 
-## Esquive : deux silhouettes nettes de la tour, légèrement décalées à gauche et à droite et
-## transparentes ; l'écart et l'opacité croissent avec le palier. Derrière la tour, plus pâles
-## devant. Image de 176 de large, tour à (24, 0).
+## Esquive : deux silhouettes fines de la tour, décalées à gauche et à droite : un contour de deux
+## pixels sur un fond à peine teinté. L'écart et l'opacité croissent avec le palier. Derrière la
+## tour le contour est plus net, devant il est plus pâle. Image de 176 de large, tour à (24, 0).
 func _esquive(palier: int, tour: Image) -> Dictionary:
 	var c := _couches(176, 256)
 	var ecart: int = [12, 16, 20][palier - 1]
-	var alpha: float = [0.34, 0.44, 0.54][palier - 1]
+	var alpha: float = [0.65, 0.75, 0.85][palier - 1]
 	for signe: int in [-1, 1]:
+		var masque: Dictionary = {}
 		for y: int in 256:
 			for x: int in 128:
-				var p := tour.get_pixel(x, y)
-				if p.a < 0.5:
-					continue
-				var teinte := Color(p.r, p.g, p.b).lerp(SPECTRE, 0.7)
-				var xd := 24 + x + ecart * signe
-				var arriere: Image = c["arriere"]
-				var avant: Image = c["avant"]
-				arriere.set_pixel(xd, y, Color(teinte, alpha))
-				avant.set_pixel(xd, y, Color(teinte, alpha * 0.4))
-	for nom: String in COUCHES:
-		_contour_clair(c[nom])
+				if tour.get_pixel(x, y).a >= 0.5:
+					masque[Vector2i(24 + x + ecart * signe, y)] = Color(tour.get_pixel(x, y)).lerp(
+						SPECTRE, 0.7
+					)
+		for p: Vector2i in masque:
+			var bord := false
+			for d: Vector2i in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+				if not masque.has(p + d) or not masque.has(p + 2 * d):
+					bord = true
+					break
+			var teinte: Color = masque[p]
+			var arriere: Image = c["arriere"]
+			var avant: Image = c["avant"]
+			arriere.set_pixelv(p, Color(teinte, alpha if bord else alpha * 0.12))
+			avant.set_pixelv(p, Color(teinte, alpha * 0.6 if bord else 0.0))
 	return c
 
 
