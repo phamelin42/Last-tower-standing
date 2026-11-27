@@ -42,6 +42,7 @@ func _initialize() -> void:
 		_ecrire("esquive", p, "", _esquive(p, tour))
 		_ecrire("regen", p, "", _regen(p))
 		_ecrire("vol_de_vie", p, "", _vol_de_vie(p, 0))
+	_fanion().save_png(ProjectSettings.globalize_path("%s/fanion.png" % SORTIE))
 	for k: int in range(1, IMAGES_ANIMEES):
 		_ecrire("epines", 3, "_a%d" % k, _epines(3, k))
 		_ecrire("vol_de_vie", 3, "_a%d" % k, _vol_de_vie(3, k))
@@ -118,6 +119,18 @@ func _fer(lumiere: float) -> Color:
 	if lumiere < 0.5:
 		return FER_OMBRE.lerp(FER, lumiere * 2.0)
 	return FER.lerp(FER_CLAIR, (lumiere - 0.5) * 1.4)
+
+
+## Le fanion de la marque des skins sans couleur propre (B8) : un mât et une flamme bleue
+## de Tiny Swords, que la teinte du joueur fait tourner. Même taille que la zone de marque.
+func _fanion() -> Image:
+	var img := Image.create(16, 24, false, Image.FORMAT_RGBA8)
+	img.fill(VIDE)
+	_rect(img, 2, 0, 2, 22, Color("5a4646"))
+	_triangle(img, Vector2(4, 0), Vector2(15, 5.5), Vector2(4, 11), Color("448e9f"))
+	_rect(img, 4, 1, 6, 1, Color("8cc3d2"))
+	_contour(img)
+	return img
 
 
 ## Ceinture de piques autour du bas de la cuvette : longueurs, épaisseurs et angles varient ; plus

@@ -61,3 +61,4 @@ l’identique. Points de pose : `data/skins_tour.json`.
 | `epines_3_avant_a3.png`       | ceinture de piques de longueurs, d’épaisseurs et d’angles variés, palier 3, couche avant, image 4 du tour lent      | Godot 4.7.2, `Image` (MIT) | CC0 1.0 |
 | `vol_de_vie_3_arriere_a3.png` | filets rouges en spirale, d’épaisseurs variées, palier 3, couche arriere, image 4 du tour lent                      | Godot 4.7.2, `Image` (MIT) | CC0 1.0 |
 | `vol_de_vie_3_avant_a3.png`   | filets rouges en spirale, d’épaisseurs variées, palier 3, couche avant, image 4 du tour lent                        | Godot 4.7.2, `Image` (MIT) | CC0 1.0 |
+| `fanion.png`                  | fanion de la marque de couleur des skins sans couleur propre (mât et flamme bleue, teintée au joueur)               | Godot 4.7.2, `Image` (MIT) | CC0 1.0 |

@@ -11,6 +11,8 @@ const STATS: Array[String] = [
 const SUPERPOSITIONS: Array[String] = ["epines", "mana", "armure", "esquive", "regen", "vol_de_vie"]
 ## Les superpositions sont dessinées pour la tour par défaut : l'échelle d'un skin (2 au plus).
 const ECHELLE_SKIN_MAX := 2.0
+## Filtres de texture d'un skin : `nearest` (pixel net, le défaut) ou `lineaire` (image lissée).
+const FILTRES_SKIN: Array[String] = ["nearest", "lineaire"]
 const PALIERS := 3
 ## Agrandissement maximal de la tour (purement visuel, A3).
 const AGRANDISSEMENT_MAX := 0.25
@@ -50,6 +52,9 @@ static func _valider_dessin(t: Dictionary, err: Array[String]) -> void:
 	var dossier: Variant = t.get("dossier")
 	if not dossier is String or not String(dossier).ends_with("/"):
 		Donnees._err(err, f, "dossier", "chemin de dossier terminé par « / » attendu")
+	var fanion: Variant = t.get("fanion")
+	if not fanion is String or String(fanion).get_extension() != "png":
+		Donnees._err(err, f, "fanion", "nom d'un fichier .png du dossier attendu")
 	var fondu := _nombre(t, "fondu_s", 0.05, 2.0, err)
 	if (
 		not Donnees._objet(t, "esquive", f, "", err)
@@ -124,6 +129,7 @@ static func normaliser(t: Dictionary) -> Dictionary:
 			"stats": {},
 			"agrandissement": [],
 			"dossier": "",
+			"fanion": "",
 			"fondu_s": 0.3,
 			"esquive": {},
 			"animation": {}
@@ -133,7 +139,7 @@ static func normaliser(t: Dictionary) -> Dictionary:
 	for nom: String in brutes:
 		stats[nom] = _en_flottants(brutes[nom])
 	var sortie: Dictionary = {"stats": stats, "agrandissement": _en_flottants(t["agrandissement"])}
-	for cle: String in ["dossier", "fondu_s", "esquive", "animation"]:
+	for cle: String in ["dossier", "fanion", "fondu_s", "esquive", "animation"]:
 		sortie[cle] = (
 			(t[cle] as Variant)
 			if not t[cle] is Dictionary
@@ -150,11 +156,12 @@ static func _en_flottants(liste: Array) -> Array[float]:
 
 
 ## Skins de la tour (`data/skins_tour.json`, B5 à B8) : id → `{sprite, cadre?, echelle, defi,
-## marque, licence, source, ancrages}`. Un skin donne le sprite de la tour (`cadre` : la partie
-## de l'image utilisée, pour une feuille), l'échelle des superpositions (1 pour la tour par
+## marque, licence, source, ancrages, filtre?}`. Un skin donne le sprite de la tour (`cadre` : la
+## partie de l'image utilisée, pour une feuille), l'échelle des superpositions (1 pour la tour par
 ## défaut), le défi qui le débloque (vide pour `defaut`), la zone de marque de la couleur du
 ## joueur, sa licence et, pour chaque superposition, le point (en pixels du cadre) où son centre
-## se pose. Un fichier non vide contient au moins le skin `defaut`.
+## se pose ; `filtre` (`nearest` par défaut, ou `lineaire`) règle le lissage de l'image.
+## Un fichier non vide contient au moins le skin `defaut`.
 static func valider_skins(skins: Dictionary, err: Array[String]) -> void:
 	var f := "skins_tour.json"
 	if skins.is_empty():
@@ -189,6 +196,8 @@ static func valider_skins(skins: Dictionary, err: Array[String]) -> void:
 ## Défi, échelle, cadre, marque, licence et source d'un skin (T11.6), hors sprite et ancrages.
 static func _valider_identite_skin(skin: Dictionary, chemin: String, err: Array[String]) -> void:
 	var f := "skins_tour.json"
+	if skin.has("filtre") and not (skin["filtre"] is String and skin["filtre"] in FILTRES_SKIN):
+		Donnees._err(err, f, "%s.filtre" % chemin, "« nearest » ou « lineaire » attendu")
 	if not skin.get("defi") is String:
 		Donnees._err(err, f, "%s.defi" % chemin, "identifiant de défi attendu (vide pour defaut)")
 	elif String(skin["defi"]).is_empty() != (chemin == "defaut"):

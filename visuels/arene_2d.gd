@@ -74,6 +74,10 @@ var _graine_partie: int = 0
 var _graine_decor: int = 0
 var _tour: Sprite2D = null
 var _superpositions: SuperpositionsTour = null
+## Index (dans `Donnees.ids_skins`) du skin de la tour affichée et de celui du joueur local, gardé
+## pendant le regard sur l'arène d'un autre.
+var _skin: int = 0
+var _skin_propre: int = 0
 var _noms: Node2D = null
 var _nom: Label = null
 var _camera: CameraArene = null
@@ -264,26 +268,42 @@ func definir_joueur(numero: int, nom: String) -> void:
 		_poser_joueur(numero, nom)
 
 
+## Le skin de tour du joueur local (index du catalogue de `data/skins_tour.json`, lu dans la vue
+## globale ou au profil) ; un index inconnu se dessine avec le skin par défaut. Pendant le regard
+## sur l'arène d'un autre, il est gardé pour le retour.
+func definir_skin(index: int) -> void:
+	_assurer_construite()
+	_skin_propre = index
+	if _regarde < 0:
+		_skin = index
+		_poser_skin()
+
+
+func _poser_skin() -> void:
+	var ids := donnees.ids_skins()
+	var id := ids[_skin] if _skin >= 0 and _skin < ids.size() else "defaut"
+	_superpositions.definir_skin(id, _numero)
+
+
 func _poser_joueur(numero: int, nom: String) -> void:
 	if numero != _numero or _tour.texture == null:
 		_numero = numero
 		_poser_le_decor()
-		var t: Dictionary = Apparence.tour(numero)
-		_tour.texture = load(String(t["fichier"])) as Texture2D
-		_tour.material = Apparence.materiau_tour(numero)
+	_poser_skin()
 	_nom.text = "%d. %s" % [Apparence.numero_valide(numero), nom] if nom != "" else ""
 
 
 ## Affiche l'arène du joueur `id_joueur` (sa tour, son nom, ses vues `vue_regardee_recue`) à la
 ## place de la sienne, tant qu'on ne revient pas ; `-1` revient à sa propre arène. Les vues
 ## propres sont ignorées pendant le regard.
-func montrer_arene(id_joueur: int, nom: String, numero: int) -> void:
+func montrer_arene(id_joueur: int, nom: String, numero: int, skin: int = 0) -> void:
 	_assurer_construite()
 	var voulu: int = id_joueur if id_joueur >= 0 else -1
 	if voulu == _regarde:
 		return
 	_regarde = voulu
 	_vider_les_vues()
+	_skin = skin if _regarde >= 0 else _skin_propre
 	if _regarde >= 0:
 		_poser_joueur(numero, nom)
 	else:

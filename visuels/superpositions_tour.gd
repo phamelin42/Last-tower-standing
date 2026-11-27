@@ -21,8 +21,18 @@ const ESQUIVE_FIXE := 0.35
 const MANA_VIDE := 0.01
 
 var _parent: Sprite2D = null
+var _fanion: Sprite2D = null
 var _donnees: Donnees = null
 var _base: Vector2 = Vector2.ONE
+## La taille de repos de la tour par défaut ; celle d'un skin en est un multiple (`echelle`).
+var _base_defaut: Vector2 = Vector2.ONE
+## La rotation de teinte posée sur la marque de couleur du joueur (fraction de tour).
+var _decalage: float = 0.0
+## Le skin et le joueur déjà posés : redemander le même skin ne change rien, pas même la taille
+## en cours de fondu.
+var _skin_pose: String = ""
+## Skin → ordonnée du pied dans son cadre (le bas de ce qui est opaque), lue sur la texture.
+var _pieds: Dictionary = {}
 var _ancrages: Dictionary = {}
 ## "statistique|couche" → {courant, ancien} : deux sprites pour fondre un palier dans l'autre.
 var _sprites: Dictionary = {}
@@ -43,7 +53,7 @@ func construire(parent: Sprite2D, donnees: Donnees) -> void:
 	_parent = parent
 	_donnees = donnees
 	_base = parent.scale
-	definir_skin("defaut")
+	_base_defaut = parent.scale
 	for couche: String in COUCHES:
 		var ordre: Array[String] = ORDRE_ARRIERE if couche == "arriere" else ORDRE_AVANT
 		for stat: String in ordre:
@@ -59,13 +69,122 @@ func construire(parent: Sprite2D, donnees: Donnees) -> void:
 			_sprites["%s|%s" % [stat, couche]] = paire
 	for stat: String in ApparenceTour.SUPERPOSITIONS:
 		_etat[stat] = {"palier": 0, "ancien": 0, "fondu": 1.0}
+	_fanion = Sprite2D.new()
+	_fanion.name = "Fanion"
+	_fanion.visible = false
+	_fanion.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	parent.add_child(_fanion)
+	definir_skin("defaut")
 
 
-## Les ancrages du skin `id` de `data/skins_tour.json` (le skin par défaut si l'id est inconnu).
-func definir_skin(id: String) -> void:
+## Le skin `id` de `data/skins_tour.json` pour le joueur `numero` (1 à 8) : son sprite, son cadre,
+## son échelle, ses ancrages et la marque de la couleur du joueur. Un identifiant inconnu, ou un
+## sprite introuvable, donne le skin par défaut sans erreur. Le skin par défaut garde les tours
+## du pack, une par couleur ; les autres tournent la teinte de leur marque (zone `marque`).
+func definir_skin(id: String, numero: int = 1) -> void:
+	var cle := "%s|%d" % [id, numero]
+	if cle == _skin_pose:
+		return
+	_skin_pose = cle
 	var skins: Dictionary = _donnees.skins_tour
-	var skin: Dictionary = skins.get(id, skins.get("defaut", {}))
+	var skin: Dictionary = skins.get(id, {}) if id != "defaut" else {}
+	var texture: Texture2D = (
+		_charger(String(skin.get("sprite", ""))) if not skin.is_empty() else null
+	)
+	_fanion.visible = false
+	if texture == null:
+		_poser_tour_native(numero)
+		return
 	_ancrages = skin.get("ancrages", {})
+	var cadre := Rect2(Vector2.ZERO, texture.get_size())
+	if skin.has("cadre"):
+		var c: Dictionary = skin["cadre"]
+		cadre = Rect2(float(c["x"]), float(c["y"]), float(c["largeur"]), float(c["hauteur"]))
+	_parent.texture = texture
+	# Pixel net par défaut ; un skin d'image lissée le dit dans ses données (`filtre`).
+	_parent.texture_filter = (
+		CanvasItem.TEXTURE_FILTER_LINEAR
+		if String(skin.get("filtre", "nearest")) == "lineaire"
+		else CanvasItem.TEXTURE_FILTER_NEAREST
+	)
+	_parent.region_enabled = skin.has("cadre")
+	_parent.region_rect = cadre
+	_parent.offset = Vector2(0.0, cadre.size.y * 0.5 - _pied(id, texture, cadre))
+	_base = _base_defaut * float(skin.get("echelle", 1.0))
+	_parent.scale = _base
+	_decalage = Apparence.decalage_marque(numero)
+	var marque: Dictionary = skin.get("marque", {})
+	if String(marque.get("genre", "")) == "fanion":
+		_parent.material = null
+		_poser_fanion(marque, cadre.size, numero)
+	else:
+		_parent.material = Apparence.materiau_decalage(_decalage)
+
+
+## La rotation de teinte de la marque du joueur, telle que posée.
+func decalage_marque() -> float:
+	return _decalage
+
+
+## Le fanion de la marque (visible pour un skin dont la marque est posée).
+func fanion() -> Sprite2D:
+	return _fanion
+
+
+## La tour du pack du joueur : une image par couleur de 1 à 4, la même teintée de 5 à 8.
+func _poser_tour_native(numero: int) -> void:
+	var skin: Dictionary = _donnees.skins_tour.get("defaut", {})
+	_ancrages = skin.get("ancrages", {})
+	var t: Dictionary = Apparence.tour(numero)
+	var texture := _charger(String(t["fichier"]))
+	if texture == null:
+		return
+	_parent.texture = texture
+	_parent.texture_filter = CanvasItem.TEXTURE_FILTER_PARENT_NODE
+	_parent.region_enabled = false
+	_parent.offset = Vector2(0.0, texture.get_height() * 0.5 - Apparence.TOUR_PIEDS)
+	_parent.material = Apparence.materiau_tour(numero)
+	_base = _base_defaut
+	_parent.scale = _base
+	_decalage = float(t["decalage"])
+
+
+## Pose le fanion dans la zone `marque` du skin (en pixels de son cadre), de la taille de la zone :
+## sa teinte tourne comme celle d'une marque d'origine.
+func _poser_fanion(marque: Dictionary, taille_cadre: Vector2, numero: int) -> void:
+	var dossier := String(_donnees.apparence_tour.get("dossier", ""))
+	var nom := String(_donnees.apparence_tour.get("fanion", ""))
+	var texture := _charger(dossier + nom)
+	if texture == null:
+		return
+	var zone := Rect2(
+		float(marque["x"]), float(marque["y"]), float(marque["largeur"]), float(marque["hauteur"])
+	)
+	_fanion.texture = texture
+	_fanion.scale = zone.size / texture.get_size()
+	_fanion.position = _parent.offset - taille_cadre / 2.0 + zone.get_center()
+	_fanion.material = Apparence.materiau_decalage(Apparence.decalage_marque(numero))
+	_fanion.visible = true
+
+
+## Ordonnée du pied d'un skin dans son cadre : le bas de ce qui est opaque, lu sur la texture.
+func _pied(id: String, texture: Texture2D, cadre: Rect2) -> float:
+	if _pieds.has(id):
+		return _pieds[id]
+	var image := texture.get_image()
+	var bas := cadre.size.y
+	if image != null:
+		var y := int(cadre.end.y) - 1
+		var trouve := false
+		while y >= int(cadre.position.y) and not trouve:
+			for x: int in range(int(cadre.position.x), int(cadre.end.x)):
+				if image.get_pixel(x, y).a >= 0.5:
+					trouve = true
+					break
+			y -= 1
+		bas = float(y + 2) - cadre.position.y if trouve else cadre.size.y
+	_pieds[id] = bas
+	return bas
 
 
 ## Le sprite d'une statistique et d'une couche : `ancien` est celui qui s'efface pendant un fondu.
@@ -126,7 +245,7 @@ func avancer(delta: float, mouvement_reduit: bool) -> void:
 		e["fondu"] = minf(float(e["fondu"]) + delta / duree, 1.0)
 	_echelle = move_toward(_echelle, _echelle_visee, delta / duree * ApparenceTour.ECHELLE_MAX_PART)
 	_parent.scale = _base * _echelle
-	var haut_gauche := _parent.offset - _parent.texture.get_size() / 2.0
+	var haut_gauche := _parent.offset - _taille_cadre() / 2.0
 	var cumul := ApparenceTour.opacite_cumul(_paliers)
 	for stat: String in ApparenceTour.SUPERPOSITIONS:
 		var e: Dictionary = _etat[stat]
@@ -214,13 +333,24 @@ func _image_animee(stat: String, palier: int, mouvement_reduit: bool) -> int:
 	return int(_temps * float(anim.get("par_seconde", 1.0))) % images
 
 
+## La taille du cadre dessiné de la tour : sa région d'image, sinon l'image entière.
+func _taille_cadre() -> Vector2:
+	return _parent.region_rect.size if _parent.region_enabled else _parent.texture.get_size()
+
+
 func _duree_fondu() -> float:
 	return maxf(float(_donnees.apparence_tour.get("fondu_s", 0.3)), 0.001)
 
 
 func _texture(stat: String, palier: int, couche: String, image: int) -> Texture2D:
 	var dossier := String(_donnees.apparence_tour.get("dossier", ""))
-	var chemin := Apparence.fichier_superposition(dossier, stat, palier, couche, image)
+	return _charger(Apparence.fichier_superposition(dossier, stat, palier, couche, image))
+
+
+## Une texture du jeu par son chemin, gardée ; `null` si le fichier n'existe pas.
+func _charger(chemin: String) -> Texture2D:
+	if chemin.is_empty():
+		return null
 	if not _textures.has(chemin):
 		_textures[chemin] = load(chemin) as Texture2D if ResourceLoader.exists(chemin) else null
 	return _textures[chemin]
