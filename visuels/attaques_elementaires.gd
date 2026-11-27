@@ -112,6 +112,15 @@ var _nb_effets: int = 0
 var _emetteurs: Array[Dictionary] = []
 var _carre: Texture2D = null
 var _degrade: Gradient = null
+## La teinte de l'élément en cours : posée par `_choisir`, copiée dans chaque effet créé ensuite.
+var _teinte: Color = Color.WHITE
+
+
+## L'élément `element` (`null` s'il est inconnu), dont la teinte colore ce que le pool crée ensuite.
+func _choisir(element: String) -> AttaqueElement:
+	var el: AttaqueElement = registre().get(element)
+	_teinte = Color.WHITE if el == null else el.teinte()
+	return el
 
 
 ## Le décalage entre deux projectiles d'un barrage d'`element` : 2 images, sauf mention `retard`.
@@ -130,6 +139,8 @@ static func registre() -> Dictionary:
 			_registre[element.id()] = element
 			_planches.merge(element.planches())
 			_visibles.merge(element.visibles())
+		for tardif: AttaqueElement in RegistreAttaques.tardives(_registre):
+			_registre[tardif.id()] = tardif
 	return _registre
 
 
@@ -252,7 +263,7 @@ func vider() -> void:
 ## monde). `retard` : attente avant l'anticipation (les boules d'un barrage). Rend le temps
 ## jusqu'à l'arrivée, anticipation et retard compris, ou -1 si rien n'a pu être créé.
 func tirer(element: String, depart: Vector2, arrivee: Vector2, retard: float = 0.0) -> float:
-	var el: AttaqueElement = registre().get(element)
+	var el: AttaqueElement = _choisir(element)
 	if el == null:
 		return -1.0
 	var conf: Dictionary = el.conf()
@@ -304,13 +315,13 @@ func tirer(element: String, depart: Vector2, arrivee: Vector2, retard: float = 0
 ## `retard` et dure `IMAGES_VOL_DIRECT` images. Rend le temps jusqu'à l'arrivée, `retard` compris,
 ## ou -1 si l'élément n'a pas de projectile par saut (son impact garde alors son décalage).
 func saut(element: String, depart: Vector2, arrivee: Vector2, retard: float) -> float:
-	var el: AttaqueElement = registre().get(element)
+	var el: AttaqueElement = _choisir(element)
 	return -1.0 if el == null else MecaniquesGenres.saut(self, el, depart, arrivee, retard)
 
 
 ## Un piège d'`element` lancé de `depart` vers `arrivee`, qui reste ensuite au sol (pixels).
 func piege(element: String, depart: Vector2, arrivee: Vector2) -> bool:
-	var el: AttaqueElement = registre().get(element)
+	var el: AttaqueElement = _choisir(element)
 	return false if el == null else el.piege(self, depart, arrivee)
 
 
@@ -327,13 +338,13 @@ func retirer_pieges(ou: Vector2) -> void:
 
 ## L'aura d'`element` en `centre` (pixels du monde), au rayon réel `rayon_px`.
 func aura(element: String, centre: Vector2, rayon_px: float, age: float = 0.0) -> bool:
-	var el: AttaqueElement = registre().get(element)
+	var el: AttaqueElement = _choisir(element)
 	return false if el == null else el.aura(self, centre, rayon_px, age)
 
 
 ## Le front de l'onde d'`element`, parti de `centre` (pixels du monde).
 func onde(element: String, centre: Vector2, age: float = 0.0) -> bool:
-	var el: AttaqueElement = registre().get(element)
+	var el: AttaqueElement = _choisir(element)
 	return false if el == null else el.onde(self, centre, age)
 
 
@@ -371,7 +382,7 @@ func impacter(
 	de: Vector2 = Vector2.ZERO,
 	age: float = 0.0
 ) -> bool:
-	var el: AttaqueElement = registre().get(element)
+	var el: AttaqueElement = _choisir(element)
 	if el == null:
 		return false
 	return el.impacter(self, ou, rayon_px, fort, de, age)
@@ -387,13 +398,13 @@ func impacter_en_groupe(
 	de: Vector2 = Vector2.ZERO,
 	age: float = 0.0
 ) -> bool:
-	var el: AttaqueElement = registre().get(element)
+	var el: AttaqueElement = _choisir(element)
 	return false if el == null else el.impacter_en_groupe(self, ou, rayon_px, fort, de, age)
 
 
 ## La zone d'un barrage d'`element`, centrée en `centre`, au rayon réel `rayon_px`.
 func zone(element: String, centre: Vector2, rayon_px: float, age: float = 0.0) -> bool:
-	var el: AttaqueElement = registre().get(element)
+	var el: AttaqueElement = _choisir(element)
 	return false if el == null else el.zone(self, centre, rayon_px, age)
 
 
@@ -493,6 +504,7 @@ func _fiche(n: Node2D, kind: String, planche: String, duree: float) -> Dictionar
 		"arrivee": Vector2.ZERO,
 		"sens": Vector2.RIGHT,
 		"couleur": Color.WHITE,
+		"teinte": _teinte,
 		"seq": [] as Array[int],
 		"image": -1,
 		"echelle": ECHELLE,
@@ -593,7 +605,7 @@ func poser(effet: Dictionary) -> void:
 	var t: float = clampf(age / duree, 0.0, 1.0)
 	if String(effet["kind"]) == "vol" or String(effet["kind"]) == "orbite":
 		t = clampf((age - float(effet["suite"])) / float(effet["vol"]), 0.0, 1.0)
-	var couleur: Color = effet["couleur"]
+	var couleur: Color = (effet["couleur"] as Color) * (effet["teinte"] as Color)
 	var alpha: float = ALPHA_MAX
 	var echelle: float = float(effet["echelle"])
 	match String(effet["kind"]):
@@ -717,7 +729,7 @@ func salve(
 	var e: Dictionary = _emetteur_libre()
 	if e.is_empty():
 		return false
-	_regler(e, ou, nombre, couleur, vie, vmin, vmax, gravite, echelle, true)
+	_regler(e, ou, nombre, couleur * _teinte, vie, vmin, vmax, gravite, echelle, true)
 	e["reste"] = vie
 	return true
 
@@ -729,7 +741,7 @@ func trainee(vol: Dictionary, nombre: int, vie: float, couleur: Color, gravite: 
 	var e: Dictionary = _emetteur_libre()
 	if e.is_empty():
 		return
-	_regler(e, vol["depart"], nombre, couleur, vie, 0.0, 20.0, gravite, 1.5, false)
+	_regler(e, vol["depart"], nombre, couleur * _teinte, vie, 0.0, 20.0, gravite, 1.5, false)
 	e["suit"] = int(vol["id"])
 	e["vie"] = vie
 	e["reste"] = INF

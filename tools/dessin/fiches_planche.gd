@@ -99,14 +99,12 @@ const FICHES: Dictionary = {
 	"legion_de_cendre": {"projectile": "cendre", "impact": "tourbillon_sable"},
 	"tempete_de_malefices": {"projectile": "malefice", "impact": "eclat_astral"},
 	# Fin de partie (T12.7) : planches existantes réutilisées, en attendant des dessins propres.
-	"lame_des_aieux":
-	{"projectile": "lame_croissant", "impact": "entaille"},
+	"lame_des_aieux": {"projectile": "lame_croissant", "impact": "entaille"},
 	"ouragan_de_lames": {"projectile": "lame_tournante", "impact": "eclat_acier"},
 	"faux_du_dernier_jour": {"projectile": "arc_lame", "impact": "balayage"},
 	"carquois_des_ancetres": {"projectile": "carreau", "impact": "gerbe"},
 	"epine_de_mille_ans": {"projectile": "pique", "impact": "pointes_sol"},
-	"pique_du_souverain":
-	{"projectile": "chausse_trape", "impact": "pointes_sol"},
+	"pique_du_souverain": {"projectile": "chausse_trape", "impact": "pointes_sol"},
 	"sceptre_des_astres": {"projectile": "etoile_astrale", "impact": "eclat_astral"},
 	"sablier_d_aurore": {"projectile": "rune", "impact": "eclat_rune", "disque": "disque_rune"},
 	"oeil_du_firmament": {"projectile": "vague_celeste", "impact": "eclat_astral"},

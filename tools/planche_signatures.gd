@@ -151,7 +151,8 @@ func _sections(donnees: Donnees) -> Array[Dictionary]:
 		if rang < 0 or rang >= TYPES.size():
 			printerr("Type inconnu : %s" % id)
 			return []
-		var cle: String = "rappel" if ElementsArmes.de(id) != "" else "nouvelles"
+		var en_jeu: bool = ElementsArmes.de(id) != "" and not _fin_de_partie
+		var cle: String = "rappel" if en_jeu else "nouvelles"
 		(par_type[rang][cle] as Array[String]).append(id)
 	var sections: Array[Dictionary] = []
 	for rang: int in TYPES.size():

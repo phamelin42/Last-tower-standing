@@ -2606,10 +2606,14 @@ validation de Phil sur la planche ; T12.9 après T12.1 à T12.7b ; T12.11 apr�
   `facteur_degats_max`, la résurrection et le revenu restent bornés) ; `test_les_statistiques_d_apparence_suivent`.
 - **Dépend de :** T12.6 (raretés) ; mêmes fichiers de `data/` que T12.7 : une seule session à la fois.
 
-### Task 12.8 : Signatures visuelles des 15 armes — `sonnet` — **attend Phil**
+### Task 12.8 : Signatures visuelles des 15 armes — `sonnet`
 
-- [ ] **Objectif :** Q5. Planche avant intégration (familles existantes teintées, insigne de rareté), validée
+- [x] **Objectif :** Q5. Planche avant intégration (familles existantes teintées, insigne de rareté), validée
       par Phil, puis levée de `TABLE_LOT_12`. Même méthode que T9.19.
+      **Validée par Phil le 27/11/2026 : teinte seule en jeu** (ambre pour l'ancestrale, rose pour la souveraine, lues dans
+      `data/assets.json`), pas de plaque au-dessus de l'effet ; l'insigne de rareté reste sur la planche (`docs/planche_armes_tardives.png`)
+      et dans la boutique. Faite : un élément D22 par arme (`AttaqueTardive`, famille existante teintée), `TABLE_LOT_12` levée
+      (`en_jeu` passe par `ElementsArmes`), captures dans `docs/planche_armes_tardives_en_jeu.png`.
 - **Fichiers :** `visuels/signatures_armes.gd`, `visuels/attaques/`, `tools/` (planche) ; tests des signatures.
 - **Dépend de :** T12.7 et de la validation de Phil.
 
