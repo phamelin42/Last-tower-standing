@@ -9,7 +9,7 @@ extends Node2D
 const PLAFOND: int = 256
 const RESERVE: int = 16
 ## Côté du marqueur à l'écran (pixels), écart entre deux marqueurs et au-dessus de la tête.
-const TAILLE: float = 22.0
+const TAILLE: float = 28.0
 const ECART: float = 2.0
 const MARGE_TETE: float = 6.0
 const FOND := Color(0.1, 0.07, 0.15, 0.8)

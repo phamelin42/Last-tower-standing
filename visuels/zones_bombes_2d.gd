@@ -8,7 +8,7 @@ extends Node2D
 ## pose qui quitte la vue disparaît. Le disque et l'anneau sont exactement la zone touchée.
 
 ## Opacité du disque d'une zone, et durée de son fondu final (secondes).
-const OPACITE_ZONE: float = 0.3
+const OPACITE_ZONE: float = 0.4
 const FONDU_ZONE: float = 0.5
 const POINTS_CERCLE: int = 64
 const EPAISSEUR_TRAIT: float = 3.0

@@ -9,8 +9,8 @@ extends RefCounted
 const DUREE_RAYON: float = 0.25
 const DUREE_RECUL: float = 0.4
 ## Distance (pixels) dont les chevrons s'éloignent, et leur taille.
-const DISTANCE_RECUL: float = 48.0
-const TAILLE_RECUL: float = 44.0
+const DISTANCE_RECUL: float = 70.0
+const TAILLE_RECUL: float = 72.0
 ## Épaisseur d'un rayon, en multiple de celle d'un trait ordinaire : il suit la largeur du tir
 ## (unités de jeu) entre ces bornes.
 const EPAISSEUR_MIN: float = 1.0
