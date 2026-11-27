@@ -36,7 +36,7 @@ func _indice_famille(id: String) -> int:
 ## remplace la vitesse de la famille (0 : il reste où on le pose).
 func _ajouter_famille(e: Ennemis, indice: int, position: Vector2, vitesse: float = -1.0) -> int:
 	var f: Dictionary = d.familles[indice]
-	return e.ajouter(
+	var id := e.ajouter(
 		indice,
 		position,
 		float(f["pv"]),
@@ -48,6 +48,8 @@ func _ajouter_famille(e: Ennemis, indice: int, position: Vector2, vitesse: float
 		int(f["armure"]),
 		bool(f["explose"])
 	)
+	e.definir_contact(id, int(f["classe_portee"]) == Types.ClassePortee.CORPS_A_CORPS)
+	return id
 
 
 func _vue(a: Arene) -> VueArene:
@@ -100,7 +102,8 @@ func test_chaque_famille_s_arrete_a_sa_portee_d_attaque() -> void:
 		for _k: int in 600:
 			e.avancer(DT, CENTRE, _rayon_tour(), 8.0, 1.0)
 		var portee: float = f["portee_attaque"]
-		var attendu := _rayon_tour() + portee if portee <= Ennemis.PORTEE_CORPS_A_CORPS else portee
+		var au_contact: bool = int(f["classe_portee"]) == Types.ClassePortee.CORPS_A_CORPS
+		var attendu := _rayon_tour() + portee if au_contact else portee
 		if e.taille == 0:
 			# Un Tonneau a explosé au contact : il est arrivé là.
 			verifier(bool(f["explose"]), "%s a disparu sans exploser" % f["id"])

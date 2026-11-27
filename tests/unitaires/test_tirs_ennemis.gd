@@ -32,7 +32,7 @@ func _famille(i: int) -> Dictionary:
 
 
 func _a_distance(i: int) -> bool:
-	return float(_famille(i)["portee_attaque"]) > Apparence.PORTEE_CORPS_A_CORPS
+	return not Apparence.attaque_au_contact(_donnees, i)
 
 
 func _rayon_tour() -> float:
@@ -40,7 +40,9 @@ func _rayon_tour() -> float:
 
 
 func _arret(i: int) -> float:
-	return Apparence.distance_arret(float(_famille(i)["portee_attaque"]), _rayon_tour())
+	return Apparence.distance_arret(
+		float(_famille(i)["portee_attaque"]), _rayon_tour(), int(not _a_distance(i))
+	)
 
 
 ## Une vue avec `nb` ennemis de la famille `i`, tous à la distance `distance` de la tour, répartis

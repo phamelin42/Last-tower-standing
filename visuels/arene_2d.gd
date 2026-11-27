@@ -890,10 +890,16 @@ func _preparer_entites() -> void:
 			portee = float((donnees.familles[f] as Dictionary)["portee_attaque"])
 		elif f == nb_familles + 1:
 			portee = float(donnees.boss["portee_attaque"])
-		_arrets.append(Apparence.distance_arret(portee, rayon_tour))
+		var au_contact := Apparence.attaque_au_contact(donnees, f)
+		# Le convoi (index n) n'a pas de classe : sa portée nulle le met au contact.
+		_arrets.append(
+			Apparence.distance_arret(
+				portee, rayon_tour, -1 if f == nb_familles else int(au_contact)
+			)
+		)
 		_explosives.append(1 if Effets.famille_explosive(ids[f]) else 0)
 		_preparer_images(e)
-		_a_distance.append(1 if portee > Apparence.PORTEE_CORPS_A_CORPS else 0)
+		_a_distance.append(0 if au_contact or f == nb_familles else 1)
 		# Le convoi (index n) ne combat pas.
 		_combat.append(0 if f == nb_familles else 1)
 	_lignes.resize(ids.size() * NB_ANIMATIONS)

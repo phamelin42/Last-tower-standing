@@ -39,6 +39,9 @@ var attaque_cd: PackedFloat32Array = PackedFloat32Array()
 var prime: PackedInt32Array = PackedInt32Array()
 ## 1 : au contact de la tour, l'ennemi explose (dégâts à la tour, puis il disparaît).
 var explose: PackedByteArray = PackedByteArray()
+## 1 : l'ennemi attaque au contact (arrêt au bord de la tour, épines et riposte le touchent), 0 : il
+## tire de loin. Lu dans la classe de portée des données, pas dans un seuil de portée.
+var contact: PackedByteArray = PackedByteArray()
 ## 1 : mort par explosion, qui ne rapporte ni prime ni élimination.
 var sans_prime: PackedByteArray = PackedByteArray()
 var armure: PackedByteArray = PackedByteArray()
@@ -171,6 +174,8 @@ func ajouter(
 	attaque_cd.append(0.0)
 	prime.append(prime_or)
 	explose.append(1 if explose_au_contact else 0)
+	# Par défaut au contact si la portée est courte ; `definir_contact` pose la classe des données.
+	contact.append(1 if _contact_par_portee(portee_attaque) else 0)
 	sans_prime.append(0)
 	armure.append(clampi(type_armure, 0, 255))
 	mort.append(0)
@@ -572,7 +577,7 @@ func avancer(
 				1.0 - Combat.ralentissement(givre_cumuls[i], _givre_par_cumul, _givre_plafond)
 			)
 		var p_att: float = portee[i]
-		var corps_a_corps := p_att <= PORTEE_CORPS_A_CORPS
+		var corps_a_corps := contact[i] != 0
 		var arret := rayon_tour + p_att if corps_a_corps else p_att
 		var depart := pos[i]
 		var vers := centre - depart
@@ -722,6 +727,18 @@ func _noter_retrait(i: int, retires: Array[Dictionary], cles: PackedInt64Array) 
 	_indice_par_id.erase(ids[i])
 
 
+## Pose la classe d'attaque de l'ennemi `id` : au contact (vrai) ou de loin, d'après la classe de
+## portée des données, quelle que soit sa portée.
+func definir_contact(id: int, au_contact: bool) -> void:
+	var i := indice_de(id)
+	if i >= 0:
+		contact[i] = 1 if au_contact else 0
+
+
+static func _contact_par_portee(portee_attaque: float) -> bool:
+	return portee_attaque <= PORTEE_CORPS_A_CORPS
+
+
 func _copier(de: int, vers: int) -> void:
 	ids[vers] = ids[de]
 	famille[vers] = famille[de]
@@ -735,6 +752,7 @@ func _copier(de: int, vers: int) -> void:
 	attaque_cd[vers] = attaque_cd[de]
 	prime[vers] = prime[de]
 	explose[vers] = explose[de]
+	contact[vers] = contact[de]
 	sans_prime[vers] = sans_prime[de]
 	armure[vers] = armure[de]
 	mort[vers] = mort[de]
@@ -774,6 +792,7 @@ func _redimensionner(n: int) -> void:
 	attaque_cd.resize(n)
 	prime.resize(n)
 	explose.resize(n)
+	contact.resize(n)
 	sans_prime.resize(n)
 	armure.resize(n)
 	mort.resize(n)
