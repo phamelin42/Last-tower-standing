@@ -5,8 +5,12 @@ extends RefCounted
 
 ## Le temps affiché a un intervalle entre vues de retard, mesuré à la réception : quand la vue b
 ## arrive, on affiche encore la position de a, puis on glisse vers b en l'atteignant pile quand
-## la vue suivante tombe (cadence régulière). La position ne saute donc jamais à une arrivée, que
-## les vues viennent à 15 Hz (réseau) ou à 5 Hz (arène regardée).
+## la vue suivante tombe. À cadence régulière (20, 15 ou 5 Hz), la position ne saute donc pas à
+## une arrivée : le pas affiché reste le pas idéal. En cadence irrégulière, deux garanties
+## seulement : le retard ne bouge que d'un tiers de l'écart (`LISSAGE_RETARD`), et deux vues
+## reçues dans la même image de rendu se fondent en un seul glissement. Une vue très en retard ou
+## en avance déplace quand même l'ennemi : un rejeu à 20 Hz avec ±40 ms de gigue a mesuré 6 à 8 fois
+## le pas idéal, une perte de 200 ms 8 fois ; seul un tampon de plusieurs vues y remédierait.
 ## Bornes du retard : pas moins de 1/30 s (deux vues presque simultanées ne doivent pas figer le
 ## calcul), pas plus de 0,25 s (une longue pause ne doit pas geler l'ennemi, ni l'affichage
 ## traîner d'un quart de seconde derrière la partie).
@@ -18,6 +22,8 @@ const RETARD_MAX_S: float = 0.25
 const LISSAGE_RETARD: float = 0.3
 ## Au-delà, un ennemi n'a pas « glissé » : il est apparu ailleurs (téléportation, nouvel ennemi).
 const SAUT_MAX: float = 200.0
+## Deux vues reçues à moins de cela l'une de l'autre l'ont été dans la même image de rendu.
+const MEME_IMAGE_S: float = 0.001
 
 var _a: VueArene = null
 var _b: VueArene = null
@@ -26,6 +32,9 @@ var _t_b: float = 0.0
 ## Retard d'affichage courant (secondes) ; `_retard_mesure` vaut faux avant le premier intervalle.
 var _retard: float = RETARD_MAX_S
 var _retard_mesure: bool = false
+## Le retard d'avant la dernière vue, pour le rendre quand une vue arrive dans la même image.
+var _retard_avant: float = RETARD_MAX_S
+var _retard_mesure_avant: bool = false
 ## id → indice dans `_a`, construit une seule fois par `pousser`.
 var _index_a: Dictionary = {}
 ## Même chose pour les alliés : identifiant → indice dans `_a.allies`.
@@ -37,6 +46,11 @@ var _index_allies_a: Dictionary = {}
 func pousser(vue: VueArene, temps_reception: float) -> void:
 	if vue == null or (_b != null and vue.tick <= _b.tick):
 		return
+	if _b != null and _a != null and temps_reception - _t_b < MEME_IMAGE_S:
+		_fondre_dans_la_meme_image(vue, temps_reception)
+		return
+	_retard_avant = _retard
+	_retard_mesure_avant = _retard_mesure
 	if _b != null:
 		var intervalle: float = clampf(temps_reception - _t_b, RETARD_MIN_S, RETARD_MAX_S)
 		_retard = lerpf(_retard, intervalle, LISSAGE_RETARD) if _retard_mesure else intervalle
@@ -55,6 +69,19 @@ func pousser(vue: VueArene, temps_reception: float) -> void:
 			_index_allies_a[int((_a.allies[j] as Dictionary)["id"])] = j
 
 
+## `vue` arrive dans la même image que `_b` : en faire la nouvelle paire (a, b) mettrait deux vues
+## au même temps, et l'ennemi sauterait d'un coup à la dernière (`_alpha` rendrait 1). Elle remplace
+## donc `_b`. Le retard d'avant reprend sa valeur : la vue précédente, tardive, l'avait allongé d'un
+## intervalle que les deux vues réunies annulent. Le glissement part de ce qui est affiché à cet
+## instant (la vue a, ou plus loin si l'affichage avait déjà avancé) et atteint `_b` à l'heure : il
+## rattrape l'attente en au plus deux fois la vitesse normale, sans saut.
+func _fondre_dans_la_meme_image(vue: VueArene, temps_reception: float) -> void:
+	_b = vue
+	_retard = _retard_avant
+	_retard_mesure = _retard_mesure_avant
+	_t_a = maxf(_t_a, temps_reception - _retard)
+
+
 func reinitialiser() -> void:
 	_a = null
 	_b = null
@@ -62,6 +89,8 @@ func reinitialiser() -> void:
 	_t_b = 0.0
 	_retard = RETARD_MAX_S
 	_retard_mesure = false
+	_retard_avant = RETARD_MAX_S
+	_retard_mesure_avant = false
 	_index_a.clear()
 	_index_allies_a.clear()
 

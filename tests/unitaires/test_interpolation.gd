@@ -10,6 +10,9 @@ const IPS: float = 60.0
 ## Vitesse de l'ennemi des tests de fluidité (unités par seconde) : 100 u/s fait 20 unités par
 ## vue à 5 Hz, sous `SAUT_MAX`.
 const VITESSE: float = 100.0
+const IMAGE: float = 1.0 / 60.0
+## L'ennemi du rejeu avance à 100 u/s : 1,67 u par image de rendu.
+const PAS_IDEAL: float = VITESSE * IMAGE
 
 
 func _vue(tick: int, ids: Array, positions: Array, familles: Array = []) -> VueArene:
@@ -322,3 +325,54 @@ func test_une_longue_pause_entre_deux_vues_ne_fige_pas_l_ennemi() -> void:
 	interp.pousser(_vue(1, [1], [Vector2(0, 0)]), 1.0)
 	interp.pousser(_vue(2, [1], [Vector2(100, 0)]), 6.0)
 	verifier(_pos_de(interp.echantillon(6.0), 1).x >= 90.0, "retard borné : proche de la vue reçue")
+
+
+# --- Rejeu : un ennemi à vitesse constante, vues reçues à des images de rendu précises ---------
+
+
+## Rejoue `arrivees` (`[image de rendu, rang de la vue]`, la vue de rang k porte l'état de la
+## simulation à k × `dt_sim`) et rend le plus grand pas affiché d'une image à la suivante, une fois
+## les trois premières vues passées (l'affichage démarre sur la première).
+func _pas_max_du_rejeu(arrivees: Array, dt_sim: float, images: int) -> float:
+	var interp := Interpolation.new()
+	var suivante: int = 0
+	var precedent: float = NAN
+	var pire: float = 0.0
+	for image: int in images:
+		var t: float = image * IMAGE
+		while suivante < arrivees.size() and int(arrivees[suivante][0]) <= image:
+			var rang: int = int(arrivees[suivante][1])
+			interp.pousser(_vue(rang + 1, [1], [Vector2(VITESSE * rang * dt_sim, 0)]), t)
+			suivante += 1
+		var e: Dictionary = interp.echantillon(t)
+		if e["vue"] == null:
+			continue
+		var x: float = _pos_de(e, 1).x
+		if suivante >= 3 and not is_nan(precedent):
+			pire = maxf(pire, x - precedent)
+		precedent = x
+	return pire
+
+
+func _regulieres(images_par_vue: int, nombre: int) -> Array:
+	var liste: Array = []
+	for k: int in nombre:
+		liste.append([k * images_par_vue, k])
+	return liste
+
+
+func test_deux_vues_dans_la_meme_image_ne_font_pas_sauter_l_ennemi() -> void:
+	# Vues à 20 Hz (toutes les 3 images) ; la vue 50 est retenue et arrive avec la 51.
+	var arrivees: Array = []
+	for k: int in 100:
+		arrivees.append([3 * 51 if k == 50 else 3 * k, k])
+	var pas: float = _pas_max_du_rejeu(arrivees, 0.05, 400)
+	verifier(pas <= 2.0 * PAS_IDEAL + 0.001, "pas max %.2f u pour %.2f u idéal" % [pas, PAS_IDEAL])
+
+
+func test_une_cadence_reguliere_garde_le_pas_ideal_a_20_15_et_5_hz() -> void:
+	# 20 Hz = une vue toutes les 3 images, 15 Hz = 4, 5 Hz = 12.
+	for images_par_vue: int in [3, 4, 12]:
+		var dt: float = images_par_vue * IMAGE
+		var pas: float = _pas_max_du_rejeu(_regulieres(images_par_vue, 80), dt, 80 * images_par_vue)
+		verifier_proche(pas, PAS_IDEAL, 0.01, "%d images par vue" % images_par_vue)
