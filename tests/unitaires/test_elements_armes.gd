@@ -42,6 +42,15 @@ const ATTENDU: Dictionary = {
 	"hache_de_garde": "hache",
 	"scie_a_ruban": "scie",
 	"moissonneuse_d_acier": "moissonneuse",
+	"javeline_de_jet": "javeline",
+	"trait_en_gerbe": "trait_gerbe",
+	"fleche_marquante": "fleche_marquante",
+	"arc_de_remparts": "arc_remparts",
+	"herse_de_pieux": "herse_pieux",
+	"lance_epineuse": "lance_epineuse",
+	"carquois_en_rafale": "carquois",
+	"mur_de_pointes": "mur_pointes",
+	"couronne_de_pointes": "couronne_pointes",
 }
 
 
