@@ -100,5 +100,13 @@ static func tardives(base: Dictionary) -> Array[AttaqueElement]:
 		var rarete: Dictionary = teintes.get(str(fiche.get("rarete", "")), {})
 		if famille == null or rarete.is_empty():
 			continue
-		sortie.append(AttaqueTardive.creer(arme, famille, rarete["teinte"]))
+		sortie.append(
+			AttaqueTardive.creer(
+				arme,
+				famille,
+				rarete["teinte"],
+				str(fiche.get("rarete", "")),
+				str(fiche.get("disque", ""))
+			)
+		)
 	return sortie

@@ -53,16 +53,26 @@ func test_les_armes_d_avant_ne_sont_pas_teintees() -> void:
 			verifier_egal(element.teinte(), Color.WHITE, "%s : pas de teinte" % id)
 
 
-func test_les_planches_d_une_arme_tardive_sont_celles_de_sa_famille() -> void:
+func test_les_planches_d_une_arme_tardive_sont_celles_de_sa_famille_et_son_tapis_propre() -> void:
 	var familles: Dictionary = Assets.typee("signatures").get("familles_tardives", {})
 	var registre: Dictionary = AttaquesElementaires.registre()
 	for id: String in _tardives():
-		var famille: String = str((familles[id] as Dictionary)["famille"])
-		var base: AttaqueElement = registre.get(famille)
+		var fiche: Dictionary = familles[id]
+		var base: AttaqueElement = registre.get(str(fiche["famille"]))
 		var element: AttaqueElement = registre.get(id)
-		verifier_non_nul(base, "%s : famille %s" % [id, famille])
-		if base != null and element != null:
-			verifier_egal(element.conf(), base.conf(), "%s : fiche de la famille" % id)
+		verifier_non_nul(base, "%s : famille %s" % [id, fiche["famille"]])
+		if base == null or element == null:
+			continue
+		# Un tapis propre (`disque` des données) remplace celui de la famille, rien d'autre.
+		var attendu: Dictionary = base.conf().duplicate()
+		if fiche.has("disque"):
+			attendu["disque"] = fiche["disque"]
+		verifier_egal(element.conf(), attendu, "%s : fiche de la famille" % id)
+		for planche: String in base.planches():
+			verifier_egal(
+				element.planches().get(planche), base.planches()[planche], "%s : %s" % [id, planche]
+			)
+		if not fiche.has("disque"):
 			verifier_egal(element.planches(), base.planches(), "%s : planches de la famille" % id)
 
 

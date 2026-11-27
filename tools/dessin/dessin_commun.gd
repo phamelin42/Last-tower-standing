@@ -159,6 +159,12 @@ const PLANCHES: Dictionary = {
 	"bloc_colosse": {"taille": Vector2i(18, 16), "images": 1},
 	"disque_braise": {"taille": Vector2i(32, 16), "images": 3},
 	"disque_ruines": {"taille": Vector2i(32, 16), "images": 3},
+	# Marques de rareté des armes de fin de partie et tapis de la couronne du vide.
+	"marque_traine": {"taille": Vector2i(24, 12), "images": 1},
+	"marque_braises": {"taille": Vector2i(20, 20), "images": 4},
+	"marque_etoile": {"taille": Vector2i(24, 12), "images": 3},
+	"marque_eclat": {"taille": Vector2i(20, 20), "images": 4},
+	"disque_vide": {"taille": Vector2i(32, 16), "images": 3},
 	"onde_choc": {"taille": Vector2i(32, 32), "images": 5},
 	"bombe_meche": {"taille": Vector2i(18, 18), "images": 3},
 	"urne": {"taille": Vector2i(12, 14), "images": 1},
