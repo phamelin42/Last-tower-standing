@@ -8,12 +8,20 @@ extends SceneTree
 ## `tools/dessin/fiches_planche.gd` (une arme sans fiche est montrée par les formes de sa
 ## signature). Rendu par `Image`, sans fenêtre ni hasard : la même exécution sort les mêmes octets.
 ##   godot --headless --path . --script res://tools/planche_signatures.gd [-- --sortie <fichier>]
+## Avec `--fin-de-partie`, la planche ne montre que les 15 armes de fin de partie (T12.8) : la
+## famille existante de chacune, teintée de la teinte de sa rareté (`data/assets.json`,
+## `signatures.raretes_tardives`), avec l'insigne de sa rareté.
 
 const Outils := preload("res://tools/dessin/planche_outils.gd")
 const Fiches := preload("res://tools/dessin/fiches_planche.gd")
 const Commun := preload("res://tools/dessin/dessin_commun.gd")
 
 const SORTIE_DEFAUT := "res://docs/planche_signatures.png"
+const SORTIE_FIN_DE_PARTIE := "res://docs/planche_armes_tardives.png"
+const OPTION_FIN_DE_PARTIE := "--fin-de-partie"
+## Insigne de rareté : plaque de la couleur de la rareté, avec son mot en encre sombre.
+const INSIGNE := Vector2i(92, 18)
+const ENCRE_INSIGNE := Color("161c2e")
 const CARTE := Vector2i(374, 156)
 const VIGNETTE := Vector2i(188, 90)
 const MARGE: int = 10
@@ -79,6 +87,7 @@ const COULEURS_STATUTS: Dictionary = {
 const COULEUR_STATUT_DEFAUT := Color(0.45, 0.9, 0.5)
 
 var _texte: Outils.Texte = Outils.Texte.new()
+var _fin_de_partie: bool = false
 
 
 func _initialize() -> void:
@@ -86,12 +95,17 @@ func _initialize() -> void:
 
 
 func _lancer(args: PackedStringArray) -> int:
-	var sortie: String = ProjectSettings.globalize_path(SORTIE_DEFAUT)
+	_fin_de_partie = args.has(OPTION_FIN_DE_PARTIE)
+	var sortie: String = ProjectSettings.globalize_path(
+		SORTIE_FIN_DE_PARTIE if _fin_de_partie else SORTIE_DEFAUT
+	)
 	var i: int = 0
 	while i < args.size():
 		if args[i] == "--sortie" and i + 1 < args.size():
 			sortie = args[i + 1]
 			i += 2
+		elif args[i] == OPTION_FIN_DE_PARTIE:
+			i += 1
 		else:
 			printerr("Argument inconnu : %s" % args[i])
 			return 1
@@ -105,14 +119,14 @@ func _lancer(args: PackedStringArray) -> int:
 		return 1
 	var planche: Image = Image.create(_largeur(), _hauteur(sections), false, Image.FORMAT_RGBA8)
 	planche.fill(FOND)
-	_texte.ecrire(planche, "Signatures d’armes", Vector2i(MARGE, 8), 22, TEXTE)
-	_texte.ecrire(
-		planche,
-		"Proposition à valider : le style D22 des armes du lot 9, sans intégration en jeu.",
-		Vector2i(MARGE, 40),
-		13,
-		TEXTE_DISCRET
+	var titre: String = "Armes de fin de partie" if _fin_de_partie else "Signatures d’armes"
+	var sous_titre: String = (
+		"Proposition à valider : familles existantes teintées et insigne de rareté, hors jeu."
+		if _fin_de_partie
+		else "Proposition à valider : le style D22 des armes du lot 9, sans intégration en jeu."
 	)
+	_texte.ecrire(planche, titre, Vector2i(MARGE, 8), 22, TEXTE)
+	_texte.ecrire(planche, sous_titre, Vector2i(MARGE, 40), 13, TEXTE_DISCRET)
 	var y: int = ENTETE
 	for section: Dictionary in sections:
 		y = _dessiner_section(planche, y, section, donnees)
@@ -132,6 +146,8 @@ func _sections(donnees: Donnees) -> Array[Dictionary]:
 		par_type.append({"rappel": [] as Array[String], "nouvelles": [] as Array[String]})
 	for id: String in SignaturesArmes.ids():
 		var rang: int = int((donnees.armes[id] as Dictionary)["type_degats"])
+		if _tardive(donnees.armes[id]) != _fin_de_partie:
+			continue
 		if rang < 0 or rang >= TYPES.size():
 			printerr("Type inconnu : %s" % id)
 			return []
@@ -192,7 +208,10 @@ func _dessiner_section(planche: Image, y0: int, section: Dictionary, donnees: Do
 		y += ceili(float(rappel.size()) / COLONNES_VIGNETTES) * (VIGNETTE.y + 4) + 6
 	var nouvelles: Array = section["nouvelles"]
 	if not nouvelles.is_empty():
-		_texte.ecrire(planche, "Nouvelles armes (lot 9)", Vector2i(MARGE, y), 13, TEXTE_DISCRET)
+		var legende: String = (
+			"Fin de partie (T12.7)" if _fin_de_partie else "Nouvelles armes (lot 9)"
+		)
+		_texte.ecrire(planche, legende, Vector2i(MARGE, y), 13, TEXTE_DISCRET)
 		y += SOUS_TITRE
 		for k: int in nouvelles.size():
 			var id: String = nouvelles[k]
@@ -240,15 +259,18 @@ func _carte(planche: Image, origine: Vector2i, id: String, arme: Dictionary) -> 
 	_cadre(planche, origine, CARTE)
 	var s: Dictionary = SignaturesArmes.de(id)
 	var fiche: Dictionary = Fiches.de(id)
+	var teinte: Color = _teinte_rarete(arme)
 	_texte.ecrire(planche, String(arme["nom"]), origine + Vector2i(10, 8), 14, TEXTE)
 	_pastille_statut(planche, origine + Vector2i(CARTE.x - 26, 18), s)
+	if _tardive(arme):
+		_insigne(planche, origine + Vector2i(CARTE.x - INSIGNE.x - 40, 6), int(arme["rarete"]))
 	var y: int = origine.y + 30
 	var projectile: Rect2i = Rect2i(Vector2i(origine.x + 10, y), Vector2i(CASE, CASE))
 	_case(planche, projectile)
-	var image: Image = _image_projectile(fiche, s, CASE_PROJECTILE)
+	var image: Image = _image_projectile(fiche, s, CASE_PROJECTILE, teinte)
 	if image != null:
 		Outils.poser_centree(planche, image, projectile)
-	var impacts: Array[Image] = _images_impact(fiche, s)
+	var impacts: Array[Image] = _images_impact(fiche, s, teinte)
 	for k: int in impacts.size():
 		var case: Rect2i = Rect2i(
 			Vector2i(origine.x + 10 + (CASE + 4) * (k + 1) + 6, y), Vector2i(CASE, CASE)
@@ -291,7 +313,9 @@ func _texte_marque(s: Dictionary, arme: Dictionary) -> String:
 
 ## Le projectile : l'image 1 de sa planche, teintée, ou la forme de la signature sans fiche ;
 ## `null` pour une arme sans projectile (aura, onde).
-func _image_projectile(fiche: Dictionary, s: Dictionary, cote: int) -> Image:
+func _image_projectile(
+	fiche: Dictionary, s: Dictionary, cote: int, teinte_rarete: Color = Fiches.SANS
+) -> Image:
 	if fiche.is_empty():
 		var forme: Image = FormesSignatures.image(String(s["projectile"]))
 		return Outils.teinter(forme, s["couleur"])
@@ -300,18 +324,21 @@ func _image_projectile(fiche: Dictionary, s: Dictionary, cote: int) -> Image:
 		return null
 	var image: Image = Outils.image_de(nom, 0)
 	image = Outils.teinter(image, fiche.get("teinte", Fiches.SANS))
+	image = Outils.teinter(image, teinte_rarete)
 	return Outils.agrandir(image, Outils.echelle_pour(image, cote))
 
 
 ## Trois images de l'impact (le début, le milieu, la fin), ou la forme de la signature sans fiche.
-func _images_impact(fiche: Dictionary, s: Dictionary) -> Array[Image]:
+func _images_impact(
+	fiche: Dictionary, s: Dictionary, teinte_rarete: Color = Fiches.SANS
+) -> Array[Image]:
 	var images: Array[Image] = []
 	if fiche.is_empty():
 		images.append(Outils.teinter(FormesSignatures.image(String(s["impact"])), s["couleur"]))
 		return images
 	var nom: String = String(fiche["impact"])
 	for rang: int in Fiches.images_impact(Outils.nombre_images(nom)):
-		var image: Image = Outils.image_de(nom, rang)
+		var image: Image = Outils.teinter(Outils.image_de(nom, rang), teinte_rarete)
 		images.append(Outils.agrandir(image, Outils.echelle_pour(image, CASE)))
 	return images
 
@@ -392,3 +419,24 @@ func _pastille_statut(planche: Image, centre: Vector2i, s: Dictionary) -> void:
 			var p: Color = forme.get_pixel(x, y)
 			if p.a > 0.0:
 				Outils.melanger(planche, centre - forme.get_size() / 2 + Vector2i(x, y), p)
+
+
+## Vrai pour une arme de fin de partie (rareté ancestrale ou souveraine).
+func _tardive(arme: Dictionary) -> bool:
+	return int(arme["rarete"]) >= Types.Rarete.ANCESTRALE
+
+
+## La teinte de fin de partie de la rareté de l'arme (`data/assets.json`), blanche pour les autres.
+func _teinte_rarete(arme: Dictionary) -> Color:
+	if not _tardive(arme):
+		return Fiches.SANS
+	var table: Dictionary = Assets.typee("signatures").get("raretes_tardives", {})
+	var nom: String = Types.NOMS_RARETES[int(arme["rarete"])]
+	return (table.get(nom, {}) as Dictionary).get("teinte", Fiches.SANS)
+
+
+## L'insigne de rareté : une plaque de la couleur de la rareté et son mot, en encre sombre.
+func _insigne(planche: Image, origine: Vector2i, rarete: int) -> void:
+	planche.fill_rect(Rect2i(origine, INSIGNE), Apparence.couleur_rarete(rarete))
+	var mot: String = TranslationServer.translate(Apparence.cle_libelle_rarete(rarete))
+	_texte.ecrire(planche, mot, origine + Vector2i(6, 2), 13, ENCRE_INSIGNE)

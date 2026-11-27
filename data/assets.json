@@ -1315,6 +1315,22 @@
     "bandeau": {
       "largeur": 64,
       "hauteur": 16
+    },
+    "raretes_tardives": {
+      "ancestrale": {
+        "teinte": [
+          1.0,
+          0.82,
+          0.45
+        ]
+      },
+      "souveraine": {
+        "teinte": [
+          1.0,
+          0.55,
+          0.62
+        ]
+      }
     }
   },
   "ui": {
