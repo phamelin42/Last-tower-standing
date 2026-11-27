@@ -54,7 +54,7 @@ const MECANIQUES_IMPOSEES: Dictionary = {
 		["M1", "vulnerabilite_du_type", ""],
 		["M2", "statut", "malediction_degats"],
 		["M4", "siphon_de_vie", ""],
-		["M5", "champ", "degats_par_exemplaire"],
+		["M5", "champ", "degats_par_niveau"],
 		["M6", "effet", "invocation"],
 	],
 	"perçant":
@@ -330,7 +330,7 @@ func test_chaque_mecanique_est_portee_par_au_moins_une_arme() -> void:
 		["M4", "statut", "mana_au_coup"],
 		["M4", "siphon_de_vie", ""],
 		["M5", "champ", "degats_par_pv_max"],
-		["M5", "champ", "degats_par_exemplaire"],
+		["M5", "champ", "degats_par_niveau"],
 		["M5", "champ", "degats_par_amelioration"],
 		["M6", "effet", "invocation"],
 		["M7", "effet", "tournant"],

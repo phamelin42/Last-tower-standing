@@ -148,7 +148,7 @@ func _vue(nb_ennemis: int, nb_evt: int = 0) -> VueArene:
 			)
 		)
 	for i in 8:
-		v.armes.append({"id": _catalogue[i * 3], "recharge_ratio": float(i) / 8.0})
+		v.armes.append({"id": _catalogue[i * 3], "recharge_ratio": float(i) / 8.0, "niveau": 1 + i})
 	v.ameliorations = {_catalogue[40]: 2, _catalogue[50]: 255, _catalogue[7]: 1}
 	for i in nb_ennemis:
 		var angle := rng.randf() * TAU
@@ -259,7 +259,7 @@ func _compteur(v: VueArene, zone: String) -> int:
 	o += 1 + 5 * v.offres.size()
 	if zone == "armes":
 		return o
-	o += 1 + 3 * v.armes.size()
+	o += 1 + 4 * v.armes.size()
 	if zone == "amelios":
 		return o
 	o += 2 + 3 * v.ameliorations.size()
@@ -594,7 +594,7 @@ func test_taille_d_un_etat_arene_suit_la_formule() -> void:
 			Protocole.TAILLE_FIXE
 			+ 5 * v.offres.size()
 			+ 2 * v.prochaines_familles.size()
-			+ 3 * v.armes.size()
+			+ 4 * v.armes.size()
 			+ 3 * v.ameliorations.size()
 			+ 9 * nb
 			+ 14 * 5
@@ -859,7 +859,7 @@ func test_fuzz_10000_paquets_sans_plantage_ni_erreur_journalisee() -> void:
 
 
 func test_lecteur_public_refuse_toute_lecture_hors_des_octets_disponibles() -> void:
-	var l := Protocole.LecteurOctets.new(PackedByteArray([1, 2, 3]))
+	var l := LecteurOctets.new(PackedByteArray([1, 2, 3]))
 	verifier_egal(l.u16(), 0x0201, "deux octets lus en petit-boutiste")
 	verifier(l.ok, "lecture dans les bornes")
 	verifier_egal(l.u32(), 0, "quatre octets demandés, un seul disponible")

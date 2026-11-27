@@ -65,7 +65,7 @@ static func encoder(nom: String, joueurs: int, maxi: int, port: int) -> PackedBy
 static func decoder(b: PackedByteArray) -> Dictionary:
 	if b.size() < _ENTETE or b.size() > MAX_TAILLE:
 		return {}
-	var l := Protocole.LecteurOctets.new(b)
+	var l := LecteurOctets.new(b)
 	if l.u8() != MAGIE or l.u8() != Protocole.VERSION:
 		return {}
 	var joueurs := l.u8()

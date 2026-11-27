@@ -39,7 +39,7 @@ const STATUTS: Array[String] = [
 ]
 ## Champs facultatifs d'une arme qui ajoutent une ligne (`degats_par_amelioration` cite une stat).
 const CHAMPS_ARME: Array[String] = [
-	"degats_par_pv_max", "degats_par_exemplaire", "degats_par_amelioration", "type_secondaire"
+	"degats_par_pv_max", "degats_par_niveau", "degats_par_amelioration", "type_secondaire"
 ]
 const TYPES_SECONDAIRES: Array[String] = ["epines"]
 const STATISTIQUES: Array[String] = [
@@ -238,11 +238,9 @@ static func _morceaux_champs_arme(entree: Dictionary, donnees: Donnees) -> Array
 	var par_pv := float(entree.get("degats_par_pv_max", 0.0))
 	if par_pv > 0.0:
 		morceaux.append(_t("BOUTIQUE_EFFET_ARME_PAR_PV_MAX", [_pourcent(par_pv), borne]))
-	var par_exemplaire := float(entree.get("degats_par_exemplaire", 0.0))
-	if par_exemplaire > 0.0:
-		morceaux.append(
-			_t("BOUTIQUE_EFFET_ARME_PAR_EXEMPLAIRE", [_pourcent(par_exemplaire), borne])
-		)
+	var par_niveau := float(entree.get("degats_par_niveau", 0.0))
+	if par_niveau > 0.0:
+		morceaux.append(_t("BOUTIQUE_EFFET_ARME_PAR_NIVEAU", [_pourcent(par_niveau), borne]))
 	var par_amelio: Dictionary = entree.get("degats_par_amelioration", {})
 	var stat := String(par_amelio.get("stat", ""))
 	if not stat.is_empty() and float(par_amelio.get("ratio", 0.0)) > 0.0:

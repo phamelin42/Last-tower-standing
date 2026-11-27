@@ -491,7 +491,7 @@ static func _valider_armes(
 		_nombre(a, _pos("degats"), f, ch, err)
 		_nombre(a, _pos("recharge"), f, ch, err)
 		_nom_enum(a, "ciblage", Types.NOMS_CIBLAGES, f, ch, err)
-		for nom: String in ["degats_par_mana_max", "degats_par_pv_max", "degats_par_exemplaire"]:
+		for nom: String in ["degats_par_mana_max", "degats_par_pv_max", "degats_par_niveau"]:
 			if a.has(nom):
 				_nombre(a, _nn(nom), f, ch, err)
 		if a.has("degats_par_amelioration"):
@@ -928,7 +928,7 @@ static func _normaliser_arme(v: Variant) -> Dictionary:
 		"ciblage": Types.ciblage_depuis_nom(a["ciblage"]),
 		"degats_par_mana_max": float(a.get("degats_par_mana_max", 0.0)),
 		"degats_par_pv_max": float(a.get("degats_par_pv_max", 0.0)),
-		"degats_par_exemplaire": float(a.get("degats_par_exemplaire", 0.0)),
+		"degats_par_niveau": float(a.get("degats_par_niveau", 0.0)),
 		"degats_par_amelioration": DonneesLot9.normaliser_par_amelioration(a),
 		"type_secondaire": String(a.get("type_secondaire", "")),
 	}

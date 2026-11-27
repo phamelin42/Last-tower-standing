@@ -50,7 +50,8 @@ enum Intention {
 ## 9 : quatre flottants d'apparence de la tour dans l'état d'arène (16 octets), aussi regardée.
 ## 10 : l'état global porte le skin de chaque joueur (1 octet) ; intention `SKIN` au salon.
 ## 11 : plus d'intention `VENDRE` (la vente disparaît du jeu, D23) ; son numéro est refusé.
-const VERSION: int = 11
+## 12 : chaque arme de l'état d'arène porte son niveau (1 octet de plus par arme, D23).
+const VERSION: int = 12
 ## Taille du jeton d'hôte ; un bonjour sans jeton en porte 0.
 const JETON_OCTETS: int = 8
 const MAX_ENNEMIS: int = 2000
@@ -118,7 +119,7 @@ static func encoder_bonjour(
 	nom: String, empreinte: int, jeton: PackedByteArray = PackedByteArray()
 ) -> PackedByteArray:
 	var octets := _nom_en_octets(nom)
-	var e := _Ecrivain.new(_MAX_BONJOUR + 255)
+	var e := EcrivainOctets.new(_MAX_BONJOUR + 255)
 	e.u8(Msg.BONJOUR)
 	e.u8(VERSION)
 	e.u8(octets.size())
@@ -176,7 +177,7 @@ static func encoder_intention(genre: int, arg: int, texte: String = "") -> Packe
 	var octets := texte.to_utf8_buffer()
 	if octets.size() > MAX_TEXTE_OCTETS or not _texte_sain(texte):
 		return PackedByteArray()
-	var e := _Ecrivain.new(_MAX_INTENTION)
+	var e := EcrivainOctets.new(_MAX_INTENTION)
 	e.u8(Msg.INTENTION)
 	e.u8(genre)
 	e.i32(arg)
@@ -213,7 +214,7 @@ static func encoder_refus(motif: String) -> PackedByteArray:
 	while propre.to_utf8_buffer().size() > MAX_MOTIF_OCTETS:
 		propre = propre.substr(0, propre.length() - 1)
 	var octets := propre.to_utf8_buffer()
-	var e := _Ecrivain.new(_MAX_REFUS)
+	var e := EcrivainOctets.new(_MAX_REFUS)
 	e.u8(Msg.REFUS)
 	e.u8(octets.size())
 	e.octets(octets)
@@ -243,7 +244,7 @@ static func encoder_resultat(genre: int, code: int) -> PackedByteArray:
 		return PackedByteArray()
 	if code < Types.Resultat.OK or code > Types.Resultat.ARMES_AU_MAXIMUM:
 		return PackedByteArray()
-	var e := _Ecrivain.new(_TAILLE_RESULTAT)
+	var e := EcrivainOctets.new(_TAILLE_RESULTAT)
 	e.u8(Msg.RESULTAT)
 	e.u8(genre)
 	e.u8(code)
@@ -311,7 +312,7 @@ static func encoder_etat_global(v: VueGlobale) -> PackedByteArray:
 			return PackedByteArray()
 	var capacite := 11 + 1 + 4 * MAX_JOUEURS + 1 + _OCTETS_DENSITE * v.densites.size()
 	capacite += v.joueurs.size() * (_OCTETS_JOUEUR_MIN + _MAX_NOM_OCTETS)
-	var e := _Ecrivain.new(capacite)
+	var e := EcrivainOctets.new(capacite)
 	e.u8(Msg.ETAT_GLOBAL)
 	e.f32(v.temps_ecoule)
 	e.u8((1 if v.en_cours else 0) | (2 if v.termine else 0))
@@ -506,12 +507,12 @@ static func encoder_etat_arene(
 		+ ProtocolePoses.octets(v)
 		+ 2 * familles_suivantes.size()
 		+ 5 * indices_offres.size()
-		+ 3 * indices_armes.size()
+		+ 4 * indices_armes.size()
 		+ 3 * indices_amelios.size()
 		+ _OCTETS_ENNEMI * n
 		+ _OCTETS_EVENEMENT * nb_evt
 	)
-	var e := _Ecrivain.new(taille)
+	var e := EcrivainOctets.new(taille)
 	e.u8(Msg.ETAT_ARENE)
 	e.u32(v.tick)
 	e.u8(v.phase)
@@ -545,6 +546,7 @@ static func encoder_etat_arene(
 	for i in indices_armes.size():
 		e.u16(indices_armes[i])
 		e.u8(roundi(clampf(float(v.armes[i]["recharge_ratio"]), 0.0, 1.0) * 255.0))
+		e.u8(clampi(int((v.armes[i] as Dictionary).get("niveau", 1)), 1, 255))
 	e.u16(indices_amelios.size())
 	for i in indices_amelios.size():
 		e.u16(indices_amelios[i])
@@ -660,14 +662,17 @@ static func decoder_etat_arene(
 		)
 
 	var n_armes := l.u8()
-	if n_armes > MAX_ARMES or not l.exiger(3 * n_armes):
+	if n_armes > MAX_ARMES or not l.exiger(4 * n_armes):
 		return null
 	for i in n_armes:
 		var idx := l.u16()
 		var ratio := l.u8()
-		if idx >= nb_catalogue:
+		var niveau := l.u8()
+		if idx >= nb_catalogue or niveau < 1:
 			return null
-		v.armes.append({"id": catalogue[idx], "recharge_ratio": float(ratio) / 255.0})
+		v.armes.append(
+			{"id": catalogue[idx], "recharge_ratio": float(ratio) / 255.0, "niveau": niveau}
+		)
 
 	var n_amelios := l.u16()
 	if n_amelios > nb_catalogue or not l.exiger(3 * n_amelios):
@@ -853,148 +858,3 @@ static func _utf8_valide(raw: PackedByteArray) -> bool:
 			return false
 		i += extra + 1
 	return true
-
-
-## Lecteur à curseur : toute lecture hors des octets disponibles passe `ok` à faux et renvoie 0,
-## sans jamais appeler `decode_*` hors bornes.
-class LecteurOctets:
-	extends RefCounted
-	var b: PackedByteArray
-	var p: int = 0
-	var ok: bool = true
-
-	func _init(octets: PackedByteArray) -> void:
-		b = octets
-
-	func reste() -> int:
-		return b.size() - p
-
-	func exiger(n: int) -> bool:
-		if n < 0 or n > reste():
-			ok = false
-			return false
-		return true
-
-	func u8() -> int:
-		if not exiger(1):
-			return 0
-		p += 1
-		return b[p - 1]
-
-	func i8() -> int:
-		if not exiger(1):
-			return 0
-		p += 1
-		return b.decode_s8(p - 1)
-
-	func u16() -> int:
-		if not exiger(2):
-			return 0
-		p += 2
-		return b.decode_u16(p - 2)
-
-	func i16() -> int:
-		if not exiger(2):
-			return 0
-		p += 2
-		return b.decode_s16(p - 2)
-
-	func u32() -> int:
-		if not exiger(4):
-			return 0
-		p += 4
-		return b.decode_u32(p - 4)
-
-	func i32() -> int:
-		if not exiger(4):
-			return 0
-		p += 4
-		return b.decode_s32(p - 4)
-
-	func i64() -> int:
-		if not exiger(8):
-			return 0
-		p += 8
-		return b.decode_s64(p - 8)
-
-	## Flottant 32 bits ; NaN et infinis sont refusés.
-	func f32() -> float:
-		if not exiger(4):
-			return 0.0
-		p += 4
-		var x := b.decode_float(p - 4)
-		if is_nan(x) or is_inf(x):
-			ok = false
-			return 0.0
-		return x
-
-	## `n` octets UTF-8 valides, sans caractère de contrôle, d'au plus `max_caracteres`.
-	func texte(n: int, max_caracteres: int) -> String:
-		if not exiger(n):
-			return ""
-		var brut := b.slice(p, p + n)
-		p += n
-		# Un octet de contrôle (dont NUL, que le décodeur de Godot prendrait pour une fin).
-		for c in brut:
-			if c < 32 or c == 127:
-				ok = false
-				return ""
-		if not Protocole._utf8_valide(brut):
-			ok = false
-			return ""
-		var s := brut.get_string_from_utf8()
-		if s.length() > max_caracteres or not Protocole._texte_sain(s):
-			ok = false
-			return ""
-		return s
-
-
-## Écrivain à curseur sur un tampon dimensionné une fois ; les valeurs sont bornées au type.
-class _Ecrivain:
-	extends RefCounted
-	var b: PackedByteArray = PackedByteArray()
-	var p: int = 0
-
-	func _init(capacite: int) -> void:
-		b.resize(capacite)
-
-	func u8(v: int) -> void:
-		b.encode_u8(p, clampi(v, 0, 255))
-		p += 1
-
-	func i8(v: int) -> void:
-		b.encode_s8(p, clampi(v, -128, 127))
-		p += 1
-
-	func u16(v: int) -> void:
-		b.encode_u16(p, clampi(v, 0, 65535))
-		p += 2
-
-	func i16(v: int) -> void:
-		b.encode_s16(p, clampi(v, -32768, 32767))
-		p += 2
-
-	func u32(v: int) -> void:
-		b.encode_u32(p, v & 0xFFFFFFFF)
-		p += 4
-
-	func i32(v: int) -> void:
-		b.encode_s32(p, clampi(v, -2147483648, 2147483647))
-		p += 4
-
-	func i64(v: int) -> void:
-		b.encode_s64(p, v)
-		p += 8
-
-	func f32(v: float) -> void:
-		b.encode_float(p, v)
-		p += 4
-
-	func octets(brut: PackedByteArray) -> void:
-		for i in brut.size():
-			b[p + i] = brut[i]
-		p += brut.size()
-
-	func fin() -> PackedByteArray:
-		b.resize(p)
-		return b
