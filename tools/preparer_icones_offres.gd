@@ -1,6 +1,7 @@
 extends SceneTree
 ## Rastérise les icônes de game-icons.net (CC BY 3.0, Lorc et Delapouite) listées par
-## `tools/icones_offres.json` : blanc sur fond transparent, TAILLE px, sous `assets/icones/game_icons/`.
+## `tools/icones_offres.json` : blanc sur fond transparent, `TAILLE` px, sous
+## `assets/icones/game_icons/`.
 ## Usage : godot --headless --path . --script res://tools/preparer_icones_offres.gd -- <dossier du
 ## dépôt game-icons/icons>. Le blanc se teinte dans l'interface par `modulate`.
 
@@ -24,7 +25,7 @@ func _init() -> void:
 		for id: String in liste[groupe]:
 			var source := String((liste[groupe] as Dictionary)[id])
 			var svg := FileAccess.get_file_as_string("%s/%s.svg" % [args[0], source])
-			svg = svg.replace(FOND, "").replace('<path ', '<path fill="#fff" ')
+			svg = svg.replace(FOND, "").replace("<path ", '<path fill="#fff" ')
 			var image := Image.new()
 			var erreur := image.load_svg_from_string(svg, float(TAILLE) / 512.0)
 			if erreur != OK:
