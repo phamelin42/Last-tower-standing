@@ -97,3 +97,21 @@ func test_le_corps_du_bouton_ne_saute_pas_d_un_etat_a_l_autre() -> void:
 			verifier_proche(e.position.y, base.position.y, 1.0, lieu + " : haut du corps")
 			verifier_proche(e.position.x, base.position.x, 1.0, lieu + " : bord gauche")
 			verifier_proche(e.end.x, base.end.x, 1.0, lieu + " : bord droit")
+
+
+func test_acheter_ne_deplace_ni_ne_redimensionne_les_boutons_d_achat() -> void:
+	var jeu := _jeu()
+	await attendre_images(3)
+	var achats: Array[Button] = []
+	for b: Button in jeu.boutique._achats:
+		achats.append(b)
+	var avant := _rects(achats)
+	var tailles_avant: Array[String] = []
+	for b: Button in achats:
+		tailles_avant.append("%s|%s" % [b.text, b.theme_type_variation])
+	for k: int in achats.size():
+		achats[k].pressed.emit()
+		for i: int in 3:
+			jeu.source._process(0.1)
+		await attendre_images(2)
+		verifier_egal(_rects(achats), avant, "après achat de l'offre %d" % k)
