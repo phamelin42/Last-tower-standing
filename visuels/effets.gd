@@ -13,6 +13,10 @@ extends Node2D
 ## une aura ni une onde.
 signal impact_visible(ou: Vector2, rayon: float, fort: bool)
 
+## Le type de dégâts (`Types.TypeDegats`) de ce même impact visible, émis juste après
+## `impact_visible` : le son d'impact suit ce signal, donc l'image de l'effet, pas l'événement.
+signal impact_visible_de_type(type_degats: int)
+
 ## Un coup se joue en images à 60 i/s : les durées ci-dessous sont des nombres d'images.
 const IMAGE: float = 1.0 / 60.0
 
@@ -776,6 +780,7 @@ func _impact_maintenant(
 	# Un coup que le plafond d'effets a empêché de dessiner n'a pas de cause visible : ni gel ni recul.
 	if cree and (element == "" or genre != TirTournant.GENRE):
 		impact_visible.emit(vers, rayon, coup_fort)
+		impact_visible_de_type.emit(type_degats)
 	return cree
 
 

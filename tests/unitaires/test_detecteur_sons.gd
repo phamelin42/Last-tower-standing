@@ -1,7 +1,7 @@
 extends CasDeTest
-## Les sons qu'on entend à chaque pas de l'arène, lus seulement dans la vue : un tir ou un impact
-## ne se joue qu'une fois par vue, un franchissement de seuil ou de phase se joue une seule fois,
-## et rien ne se joue sans changement.
+## Les sons qu'on entend à chaque pas de l'arène, lus seulement dans la vue : un tir ne se joue
+## qu'une fois par vue, l'impact jamais (il suit l'effet : `LecteurSons.jouer_impact`), un
+## franchissement de seuil ou de phase se joue une seule fois, et rien ne se joue sans changement.
 
 
 func _vue(manche: int = 1, phase: int = Types.Phase.MANCHE, pv: float = 100.0) -> VueArene:
@@ -31,11 +31,9 @@ func test_une_vue_identique_ne_joue_aucun_son() -> void:
 
 func test_la_premiere_vue_ne_joue_que_ses_evenements() -> void:
 	var v := _vue(1, Types.Phase.BOSS)
-	v.evenements.append(_evenement("impact"))
+	v.evenements.append(_evenement("tir"))
 	var sons := DetecteurSons.sons_du_pas(null, v)
-	verifier_egal(
-		sons, [CatalogueSons.id_impact(0)], "sans vue précédente, ni boss ni manche ne jouent"
-	)
+	verifier_egal(sons, [CatalogueSons.TIR], "sans vue précédente, ni boss ni manche ne jouent")
 
 
 func test_un_tir_ne_se_joue_qu_une_fois_par_vue_meme_en_rafale() -> void:
@@ -46,15 +44,15 @@ func test_un_tir_ne_se_joue_qu_une_fois_par_vue_meme_en_rafale() -> void:
 	verifier_egal(sons.count(CatalogueSons.TIR), 1, "quarante tirs ne font qu'un son de tir")
 
 
-func test_tir_impact_et_mort_ont_chacun_leur_son() -> void:
+func test_tir_et_mort_ont_chacun_leur_son_et_l_impact_attend_son_effet() -> void:
 	var v := _vue()
 	v.evenements.append(_evenement("tir"))
 	v.evenements.append(_evenement("impact"))
 	v.evenements.append(_evenement("mort"))
 	var sons := DetecteurSons.sons_du_pas(null, v)
 	verifier_contient(sons, CatalogueSons.TIR)
-	verifier_contient(sons, CatalogueSons.id_impact(0))
 	verifier_contient(sons, CatalogueSons.MORT)
+	verifier_egal(sons.size(), 2, "l'événement d'impact ne joue rien : le son part à l'effet")
 
 
 func test_la_pv_basse_se_joue_au_passage_du_seuil_seulement() -> void:
@@ -198,13 +196,11 @@ func test_un_index_d_arme_hors_catalogue_donne_le_son_tir() -> void:
 		)
 
 
-func test_l_impact_depend_du_type_de_degats() -> void:
+func test_aucun_type_de_degats_ne_joue_son_impact_a_l_evenement() -> void:
 	for type: int in 5:
 		var v := _vue()
 		v.evenements.append(_evenement_arme("impact", -1, type))
-		verifier_egal(
-			DetecteurSons.sons_du_pas(null, v), [CatalogueSons.id_impact(type)] as Array[String]
-		)
+		verifier_egal(DetecteurSons.sons_du_pas(null, v).size(), 0, "type %d" % type)
 
 
 func test_des_tirs_de_deux_armes_jouent_deux_sons_sans_doublon() -> void:

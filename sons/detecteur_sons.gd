@@ -1,8 +1,10 @@
 class_name DetecteurSons
 extends RefCounted
 ## Dit quels sons jouer entre deux vues d'arène. Pure : elle ne lit que les vues, n'écrit rien
-## dans la simulation et ne joue rien. Les événements (tir, impact, mort) se jouent une fois par
-## vue ; les transitions (seuil de PV, manche, phase, achat, relance) se jouent au passage seul.
+## dans la simulation et ne joue rien. Les événements (tir, mort) se jouent une fois par vue ;
+## l'impact n'en fait pas partie : son son suit l'effet (`LecteurSons.jouer_impact`), car le
+## projectile retient l'impact visible de 50 à 233 ms après l'événement.
+## Les transitions (seuil de PV, manche, phase, achat, relance) se jouent au passage seul.
 
 ## Sous ce ratio de PV de la tour, un son d'alerte se joue une fois, au franchissement.
 const SEUIL_PV_BAS := 0.3
@@ -37,8 +39,6 @@ static func _ajouter_evenements(
 		match str(evenement.get("k", "")):
 			"tir":
 				_ajouter(sons, CatalogueSons.id_tir(_arme_de(evenement, catalogue)))
-			"impact":
-				_ajouter(sons, CatalogueSons.id_impact(int(evenement.get("type_degats", -1))))
 			"mort":
 				_ajouter(sons, CatalogueSons.MORT)
 

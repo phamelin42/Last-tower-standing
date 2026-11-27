@@ -12,6 +12,9 @@ extends Node2D
 ## Fin du regard sur l'arène d'un autre (Espace) : l'Interface répond en appelant
 ## `SourceVue.regarder(-1)`.
 signal arene_regardee_quittee
+## Un impact de sa propre arène devient visible : le son d'impact part à cette image, pas à
+## l'événement. Muet quand on regarde l'arène d'un autre joueur (seuls ses propres sons jouent).
+signal son_impact_demande(type_degats: int)
 
 const RESERVE_POOL: int = 16
 ## Morts affichées en même temps au plus (crânes, ennemis qui attendent leur impact).
@@ -169,6 +172,7 @@ func _assurer_construite() -> void:
 	if donnees != null:
 		_effets.catalogue = donnees.ids_catalogue
 	_effets.impact_visible.connect(_sur_impact_visible)
+	_effets.impact_visible_de_type.connect(_sur_impact_de_type)
 	add_child(_effets)
 	_marques = MarquesStatut.new()
 	_marques.name = "Marques"
@@ -555,6 +559,11 @@ func _plus_proche(positions: Array[Vector2], ou: Vector2) -> int:
 func _sur_impact_visible(ou: Vector2, rayon: float, fort: bool) -> void:
 	var echantillon: Dictionary = _echantillon_courant()
 	_reactions.toucher(ou, rayon, echantillon["ids"], echantillon["pos"], Vector2.ZERO, fort)
+
+
+func _sur_impact_de_type(type_degats: int) -> void:
+	if _regarde < 0:
+		son_impact_demande.emit(type_degats)
 
 
 func _echantillon_courant() -> Dictionary:

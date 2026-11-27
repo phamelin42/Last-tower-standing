@@ -189,6 +189,7 @@ func _monter() -> void:
 		camera = arene.camera()
 		arene.lier(source)
 		arene.arene_regardee_quittee.connect(_sur_arene_quittee)
+		arene.son_impact_demande.connect(_sons.jouer_impact)
 	camera.vitesse_relative = _vitesse_camera
 	arene.mouvement_reduit = _mouvement_reduit
 	arene.reinitialiser()
