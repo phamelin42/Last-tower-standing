@@ -353,8 +353,6 @@ static func _nom_du_genre(genre: int) -> String:
 			return "acheter"
 		Protocole.Intention.RELANCER:
 			return "relancer"
-		Protocole.Intention.VENDRE:
-			return "vendre"
 		Protocole.Intention.MARCHE_NOIR:
 			return "choisir_marche_noir"
 		Protocole.Intention.OBSERVER:
@@ -413,13 +411,6 @@ func acheter(index_offre: int) -> void:
 
 func relancer() -> void:
 	_intention(Protocole.Intention.RELANCER, 0)
-
-
-func vendre(index_arme: int) -> void:
-	if index_arme < 0:
-		resultat_intention.emit("vendre", Types.Resultat.INDICE_INVALIDE)
-		return
-	_intention(Protocole.Intention.VENDRE, index_arme)
 
 
 func choisir_marche_noir(id_amelioration: String) -> void:

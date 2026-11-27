@@ -9,7 +9,6 @@
 	"spawn_plancher": 0.1,
 	"tour": {"pv": 1000, "armure": 0, "regen": 0, "rayon": 60, "mana_max": 0, "mana_regen": 1.0},
 	"nb_offres": 4,
-	"vente_ratio": 0.5,
 	"gel_max_s": 3.0,
 	"givre": {"cumuls_max": 8, "ralentissement_par_cumul": 0.08, "plafond": 0.6},
 	"critique": {"palier": 0.05, "puissance_base": 2.0, "coef_exces": 1.0},
@@ -31,5 +30,6 @@
   "controle_boss": {"immunite_s": 2.0},
 	"limites": {"allies": 64, "zones": 32, "bombes": 32},
 	"armes": {"bonus_selon_stat_max": 4.0},
+	"niveaux": {"gain_degats": 0.30, "gain_cadence": 0.20, "cadence_max": 3.0},
 	"ameliorations": {"facteur_degats_max": 20.0, "croissance_pas_s": 30.0}
 }

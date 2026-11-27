@@ -1,7 +1,8 @@
 extends CasDeTest
 ## Ce que le joueur obtient de la boutique : quatre offres variées et reproductibles, des achats
-## qui ne débitent jamais à tort, des relances au coût croissant, une vente à moitié prix et
-## un marché noir qui ne s'ouvre qu'avec un jeton.
+## qui ne débitent jamais à tort, des relances au coût croissant, des achats répétés qui
+## montent le niveau d'une arme (la vente n'existe plus, D23) et un marché
+## noir qui ne s'ouvre qu'avec un jeton.
 
 const GRAINE := 20261124
 const MANCHES := 40
@@ -281,19 +282,20 @@ func test_la_neuvieme_arme_s_achete_et_est_debitee() -> void:
 	verifier_egal(inv.armes.size(), 9)
 
 
-func test_la_256e_arme_est_refusee_sans_debit_avec_armes_au_maximum() -> void:
+func test_acheter_300_fois_la_meme_arme_monte_son_niveau_sans_jamais_etre_refuse() -> void:
 	var d := _donnees_reelles()
 	var b := _boutique(d)
 	var inv := Inventaire.new(d)
-	for i: int in Inventaire.ARMES_MAX:
-		inv.ajouter(_id_arme(d, i % d.armes.size()))
-	b.nouvelle_manche(1, 0)
-	_forcer(b, d, 2, _id_arme(d, 0))
+	var id := _id_arme(d, 0)
+	var prix := int((d.armes[id] as Dictionary)["prix"])
 	var eco := _eco(d, 1000000)
-	verifier_egal(b.acheter(2, eco, inv), Types.Resultat.ARMES_AU_MAXIMUM)
-	verifier_egal(eco.argent, 1000000, "aucun or débité")
-	verifier_faux(bool(b.offres[2]["vendu"]), "l'offre reste disponible")
-	verifier_egal(inv.armes.size(), Inventaire.ARMES_MAX)
+	b.nouvelle_manche(1, 0)
+	for i: int in 300:
+		_forcer(b, d, 2, id)
+		verifier_egal(b.acheter(2, eco, inv), Types.Resultat.OK, "achat %d" % (i + 1))
+	verifier_egal(inv.armes.size(), 1, "l'arme reste unique")
+	verifier_egal(inv.niveau(id), 300)
+	verifier_egal(eco.argent, 1000000 - 300 * prix, "chaque achat est payé plein pot")
 
 
 func test_emplacements_pleins_n_est_jamais_renvoye() -> void:
@@ -435,83 +437,11 @@ func test_relance_gratuite_marche_meme_sans_or() -> void:
 	verifier_egal(r[0], Types.Resultat.OK)
 
 
-# --- Vente ---------------------------------------------------------------------------------------
+# --- Vente supprimée (D23) -----------------------------------------------------------------------
 
 
-func test_vendre_rend_la_moitie_arrondie_a_l_inferieur_et_libere_l_emplacement() -> void:
-	var d := _donnees_reelles()
-	var b := _boutique(d)
-	var inv := Inventaire.new(d)
-	inv.ajouter(_id_arme(d, 0))
-	var prix := int((d.armes[_id_arme(d, 0)] as Dictionary)["prix"])
-	var eco := _eco(d, 0)
-	verifier_egal(b.vendre(0, eco, inv), Types.Resultat.OK)
-	verifier_egal(eco.argent, prix / 2)
-	verifier(inv.armes.is_empty())
-
-
-func test_vente_a_prix_impair_arrondit_a_l_inferieur() -> void:
-	var modele: Dictionary = ((_lire("armes.json") as Array)[0] as Dictionary).duplicate(true)
-	modele["id"] = "impaire"
-	modele["prix"] = 901
-	var d := _donnees_avec([modele], [])
-	var b := _boutique(d)
-	var inv := Inventaire.new(d)
-	inv.ajouter("impaire")
-	var eco := _eco(d, 0)
-	b.vendre(0, eco, inv)
-	verifier_egal(eco.argent, 450)
-
-
-func test_vendre_un_emplacement_vide_ou_hors_bornes_est_refuse() -> void:
-	var d := _donnees_reelles()
-	var b := _boutique(d)
-	var inv := Inventaire.new(d)
-	inv.ajouter(_id_arme(d, 0))
-	var eco := _eco(d, 7)
-	for i: int in [-1, 1, 7, 99]:
-		verifier_egal(b.vendre(i, eco, inv), Types.Resultat.INDICE_INVALIDE, "indice %d" % i)
-	verifier_egal(eco.argent, 7)
-	verifier_egal(inv.armes.size(), 1)
-
-
-func test_l_emplacement_libere_par_une_vente_est_reutilisable() -> void:
-	var d := _donnees_reelles()
-	var b := _boutique(d)
-	var inv := Inventaire.new(d)
-	for i: int in 8:
-		inv.ajouter(_id_arme(d, i))
-	var eco := _eco(d, 100000)
-	b.vendre(0, eco, inv)
-	b.nouvelle_manche(1, 0)
-	_forcer(b, d, 0, _id_arme(d, 9))
-	verifier_egal(b.acheter(0, eco, inv), Types.Resultat.OK)
-	verifier_egal(inv.armes.size(), 8)
-
-
-func test_acheter_puis_revendre_chaque_arme_rend_exactement_le_prix_de_vente() -> void:
-	var d := _donnees_reelles()
-	var b := _boutique(d)
-	var inv := Inventaire.new(d)
-	var depart := 1000000
-	var eco := _eco(d, depart)
-	b.nouvelle_manche(1, 0)
-	for id: String in d.armes:
-		var prix := int((d.armes[id] as Dictionary)["prix"])
-		var attendu := eco.argent - prix + floori(float(prix) * 0.5)
-		_forcer(b, d, 0, id)
-		verifier_egal(b.acheter(0, eco, inv), Types.Resultat.OK, id)
-		verifier_egal(b.vendre(inv.armes.size() - 1, eco, inv), Types.Resultat.OK, id)
-		verifier_egal(eco.argent, attendu, "aller-retour de %s" % id)
-	# Cent aller-retour de la même arme : la perte est constante, sans dérive d'arrondi.
-	var id_arme := _id_arme(d, 0)
-	var prix_arme := int((d.armes[id_arme] as Dictionary)["prix"])
-	eco.argent = depart
-	for n: int in 100:
-		_forcer(b, d, 0, id_arme)
-		b.acheter(0, eco, inv)
-		b.vendre(0, eco, inv)
-		verifier_egal(eco.argent, depart - (n + 1) * (prix_arme - prix_arme / 2), "tour %d" % n)
+func test_la_vente_n_existe_plus() -> void:
+	verifier_faux(_boutique(_donnees_reelles()).has_method("vendre"))
 
 
 # --- Marché noir ---------------------------------------------------------------------------------

@@ -12,7 +12,7 @@ const EPSILON_TEMPS := 1e-9
 const PERIODES_MAX_PAR_APPEL := 100000
 
 var argent: int = 0
-## Pour le bilan de partie : or gagné (revenu, primes, bonus ; pas les ventes), dont les primes, et
+## Pour le bilan de partie : or gagné (revenu, primes, bonus), dont les primes, et
 ## or dépensé (achats et relances).
 var or_gagne_total: int = 0
 var or_gagne_primes: int = 0

@@ -90,10 +90,6 @@ func relancer() -> void:
 	_intention("relancer", func() -> int: return _partie.intention_relancer(ID_LOCAL))
 
 
-func vendre(index_arme: int) -> void:
-	_intention("vendre", func() -> int: return _partie.intention_vendre(ID_LOCAL, index_arme))
-
-
 func choisir_marche_noir(id_amelioration: String) -> void:
 	_intention(
 		"choisir_marche_noir",

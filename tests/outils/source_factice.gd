@@ -59,10 +59,6 @@ func relancer() -> void:
 	_noter("relancer", [])
 
 
-func vendre(index_arme: int) -> void:
-	_noter("vendre", [index_arme])
-
-
 func choisir_marche_noir(id_amelioration: String) -> void:
 	_noter("choisir_marche_noir", [id_amelioration])
 

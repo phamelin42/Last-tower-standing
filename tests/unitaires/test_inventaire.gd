@@ -1,7 +1,7 @@
 extends CasDeTest
-## Ce que le joueur obtient de son équipement : autant d'armes qu'il en achète (255 au plus, la
-## limite du réseau), des améliorations qui s'empilent, et des statistiques cumulées comme la spec
-## le dit (additif dans une catégorie, multiplicatif entre catégories).
+## Ce que le joueur obtient de son équipement : une arme n'est portée qu'une fois (acheter à
+## nouveau monte son niveau, D23), des améliorations qui s'empilent, et des statistiques cumulées
+## comme la spec le dit (additif dans une catégorie, multiplicatif entre catégories).
 
 const PAS_S := 30.0
 
@@ -70,21 +70,20 @@ func test_la_neuvieme_et_la_quarantieme_arme_sont_acceptees() -> void:
 	var d := _donnees_reelles()
 	var inv := _huit_armes(d)
 	var ids: Array = d.armes.keys()
-	verifier_egal(inv.ajouter(str(ids[8 % ids.size()])), Types.Resultat.OK, "la 9e arme entre")
+	verifier_egal(inv.ajouter(str(ids[8])), Types.Resultat.OK, "la 9e arme entre")
 	for i: int in range(9, 40):
-		verifier_egal(inv.ajouter(str(ids[i % ids.size()])), Types.Resultat.OK, "arme %d" % (i + 1))
+		verifier_egal(inv.ajouter(str(ids[i])), Types.Resultat.OK, "arme %d" % (i + 1))
 	verifier_egal(inv.armes.size(), 40)
 
 
-func test_la_256e_arme_est_refusee_avec_armes_au_maximum_et_n_entre_pas() -> void:
+func test_acheter_300_fois_la_meme_arme_monte_son_niveau_et_l_arme_reste_unique() -> void:
 	var d := _donnees_reelles()
 	var inv := Inventaire.new(d)
-	var ids: Array = d.armes.keys()
-	for i: int in Inventaire.ARMES_MAX:
-		verifier_egal(inv.ajouter(str(ids[i % ids.size()])), Types.Resultat.OK)
-	verifier_egal(inv.armes.size(), 255)
-	verifier_egal(inv.ajouter(str(ids[0])), Types.Resultat.ARMES_AU_MAXIMUM)
-	verifier_egal(inv.armes.size(), 255, "la 256e n'entre pas")
+	var id := str(d.armes.keys()[0])
+	for i: int in 300:
+		verifier_egal(inv.ajouter(id), Types.Resultat.OK, "achat %d" % (i + 1))
+	verifier_egal(inv.armes.size(), 1)
+	verifier_egal(inv.niveau(id), 300)
 	var id_amelio := str(d.ameliorations.keys()[0])
 	verifier_egal(inv.ajouter(id_amelio), Types.Resultat.OK, "une amélioration entre toujours")
 
@@ -93,17 +92,10 @@ func test_la_limite_d_armes_est_celle_du_reseau() -> void:
 	verifier_egal(Inventaire.ARMES_MAX, Protocole.MAX_ARMES)
 
 
-func test_la_vente_de_la_40e_arme_rend_50_pour_cent_de_son_prix() -> void:
-	var d := _donnees_reelles()
-	var inv := Inventaire.new(d)
-	var ids: Array = d.armes.keys()
-	for i: int in 40:
-		inv.ajouter(str(ids[i % ids.size()]))
-	var id := inv.armes[39]
-	var prix := int((d.armes[id] as Dictionary)["prix"])
-	verifier_egal(inv.prix_vente(39), floori(float(prix) * 0.5))
-	verifier_egal(inv.retirer_arme(39), id)
-	verifier_egal(inv.armes.size(), 39)
+func test_la_vente_n_existe_plus_sur_l_inventaire() -> void:
+	var inv := Inventaire.new(_donnees_reelles())
+	verifier_faux(inv.has_method("prix_vente"))
+	verifier_faux(inv.has_method("retirer_arme"))
 
 
 func test_une_amelioration_entre_meme_avec_huit_armes_et_s_empile() -> void:
@@ -121,38 +113,6 @@ func test_un_id_inconnu_est_refuse() -> void:
 	verifier_egal(inv.ajouter("n_existe_pas"), Types.Resultat.OFFRE_INVALIDE)
 	verifier_egal(inv.armes.size(), 0)
 	verifier(inv.ameliorations.is_empty())
-
-
-func test_retirer_libere_un_emplacement_reutilisable() -> void:
-	var d := _donnees_reelles()
-	var inv := _huit_armes(d)
-	var ids: Array = d.armes.keys()
-	verifier_egal(inv.retirer_arme(3), str(ids[3]))
-	verifier_egal(inv.armes.size(), 7)
-	verifier_egal(inv.ajouter(str(ids[9])), Types.Resultat.OK)
-	verifier_egal(inv.armes.size(), 8)
-
-
-func test_retirer_un_indice_invalide_rend_vide_sans_rien_changer() -> void:
-	var d := _donnees_reelles()
-	var inv := Inventaire.new(d)
-	verifier_egal(inv.retirer_arme(0), "", "emplacement vide")
-	inv.ajouter(str(d.armes.keys()[0]))
-	for i: int in [-1, 1, 99]:
-		verifier_egal(inv.retirer_arme(i), "", "indice %d" % i)
-	verifier_egal(inv.armes.size(), 1)
-
-
-func test_prix_de_vente_est_la_moitie_arrondie_a_l_inferieur() -> void:
-	var d := _donnees_avec([_arme("a_pair", 900), _arme("a_impair", 901), _arme("a_un", 1)], [])
-	var inv := Inventaire.new(d)
-	for id: String in ["a_pair", "a_impair", "a_un"]:
-		inv.ajouter(id)
-	verifier_egal(inv.prix_vente(0), 450)
-	verifier_egal(inv.prix_vente(1), 450, "901 → 450, pas 451")
-	verifier_egal(inv.prix_vente(2), 0, "1 → 0")
-	for i: int in [-1, 3, 99]:
-		verifier_egal(inv.prix_vente(i), 0, "indice invalide %d" % i)
 
 
 # --- Cumul des améliorations --------------------------------------------------------------------
@@ -265,15 +225,6 @@ func test_statistiques_additives_et_compteurs() -> void:
 	verifier_egal(s.tirs_multiples, 2)
 
 
-func test_vendre_une_arme_ne_touche_pas_aux_ameliorations() -> void:
-	var inv := _inventaire_avec(
-		[_amelio("x", [_degats("magique", 0.1, "A")])] as Array, ["x"] as Array[String]
-	)
-	inv.ajouter("a")
-	inv.retirer_arme(0)
-	verifier_proche(inv.stats().degats_type[Types.TypeDegats.MAGIQUE], 1.1)
-
-
 func test_chaque_amelioration_reelle_s_agrege_sans_erreur() -> void:
 	var d := _donnees_reelles()
 	for id: String in d.ameliorations:
@@ -308,7 +259,7 @@ func test_les_ameliorations_de_mana_s_additionnent_dans_les_stats() -> void:
 	verifier_proche(vide.mana_regen, 0.0, 0.0)
 
 
-func test_exemplaires_et_comptes_d_ameliorations() -> void:
+func test_niveaux_et_comptes_d_ameliorations() -> void:
 	var armes: Array = [_arme("a", 10), _arme("b", 10)]
 	var amelios: Array = [
 		_amelio("x", [_degats("tranchant", 0.1, "A")]),
@@ -316,12 +267,13 @@ func test_exemplaires_et_comptes_d_ameliorations() -> void:
 	]
 	var d := _donnees_avec(armes, amelios)
 	var inv := Inventaire.new(d)
-	verifier_egal(inv.exemplaires("a"), 0)
+	verifier_egal(inv.niveau("a"), 0)
 	for id: String in ["a", "a", "b", "x", "x", "x", "y"]:
 		inv.ajouter(id)
-	verifier_egal(inv.exemplaires("a"), 2)
-	verifier_egal(inv.exemplaires("b"), 1)
-	verifier_egal(inv.exemplaires("inconnue"), 0)
+	verifier_egal(inv.niveau("a"), 2)
+	verifier_egal(inv.niveau("b"), 1)
+	verifier_egal(inv.niveau("inconnue"), 0)
+	verifier_egal(inv.armes, ["a", "b"] as Array[String])
 	verifier_egal(inv.comptes_armes(), {"a": 2, "b": 1})
 	verifier_egal(
 		inv.compter_stat("degats_type"), 3, "une amélioration achetée trois fois compte trois fois"

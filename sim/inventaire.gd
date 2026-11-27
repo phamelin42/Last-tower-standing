@@ -1,14 +1,17 @@
 class_name Inventaire
 extends RefCounted
-## Ce que la tour porte : des armes sans plafond de jeu (seulement celui du réseau, `ARMES_MAX`)
-## et des améliorations empilables. `stats()` les agrège en un `StatsTour`.
+## Ce que la tour porte : des armes, chacune une seule fois avec un niveau (D23 : acheter une arme
+## déjà portée la monte d'un niveau), et des améliorations empilables. `stats()` les agrège en un
+## `StatsTour`. Aucune vente : une arme achetée reste portée.
 
-## Plus grand nombre d'armes portables : le réseau le transporte sur un octet
-## (`Protocole.MAX_ARMES`, vérifié par un test).
+## Plus grand nombre d'armes distinctes que le réseau transporte (un octet, `Protocole.MAX_ARMES`,
+## vérifié par un test) ; le catalogue en compte bien moins, la boutique ne refuse jamais pour cela.
 const ARMES_MAX: int = 255
 
-## Ids des armes équipées (un id peut y figurer plusieurs fois).
+## Ids des armes portées, distincts, dans l'ordre du premier achat.
 var armes: Array[String] = []
+## id d'arme → niveau (1 au premier achat, +1 à chaque achat de la même arme).
+var niveaux: Dictionary = {}
 ## id d'amélioration → nombre d'exemplaires.
 var ameliorations: Dictionary = {}
 ## Jetons de marché noir déjà dépensés : les jetons disponibles sont ceux de `stats()` moins
@@ -19,20 +22,21 @@ var jetons_marche_noir_utilises: int = 0
 var copies_utilisees: int = 0
 
 var _donnees: Donnees
-var _ratio_vente: float
 
 
 func _init(donnees: Donnees) -> void:
 	_donnees = donnees
-	_ratio_vente = float(donnees.partie["vente_ratio"])
 
 
-## `OFFRE_INVALIDE` pour un id inconnu, `ARMES_AU_MAXIMUM` pour la 256e arme.
+## `OFFRE_INVALIDE` pour un id inconnu. Une arme déjà portée monte d'un niveau, rien n'est ajouté
+## à `armes`.
 func ajouter(id: String) -> int:
 	if _donnees.armes.has(id):
-		if armes.size() >= ARMES_MAX:
-			return Types.Resultat.ARMES_AU_MAXIMUM
-		armes.append(id)
+		if niveaux.has(id):
+			niveaux[id] = int(niveaux[id]) + 1
+		else:
+			armes.append(id)
+			niveaux[id] = 1
 		return Types.Resultat.OK
 	if _donnees.ameliorations.has(id):
 		ameliorations[id] = int(ameliorations.get(id, 0)) + 1
@@ -40,21 +44,15 @@ func ajouter(id: String) -> int:
 	return Types.Resultat.OFFRE_INVALIDE
 
 
-## Nombre d'exemplaires équipés de l'arme `id_arme`.
-func exemplaires(id_arme: String) -> int:
-	var n := 0
-	for id: String in armes:
-		if id == id_arme:
-			n += 1
-	return n
+## Niveau de l'arme `id_arme` : 0 si elle n'est pas portée.
+func niveau(id_arme: String) -> int:
+	return int(niveaux.get(id_arme, 0))
 
 
-## id d'arme → exemplaires équipés, en un seul balayage.
+## id d'arme → niveau, pour les armes portées. Chaque niveau compte comme un achat dans les
+## décomptes « par arme commune ».
 func comptes_armes() -> Dictionary:
-	var comptes: Dictionary = {}
-	for id: String in armes:
-		comptes[id] = int(comptes.get(id, 0)) + 1
-	return comptes
+	return niveaux.duplicate()
 
 
 ## stat → nombre d'améliorations possédées qui la portent ; une amélioration achetée n fois compte
@@ -85,22 +83,6 @@ func copie_disponible(rarete: int) -> bool:
 	if compter_stat("copie_prochaine_offre") <= copies_utilisees:
 		return false
 	return rarete <= stats().copie_prochaine_offre
-
-
-func retirer_arme(index: int) -> String:
-	if index < 0 or index >= armes.size():
-		return ""
-	var id := armes[index]
-	armes.remove_at(index)
-	return id
-
-
-## 0 pour un indice invalide.
-func prix_vente(index: int) -> int:
-	if index < 0 or index >= armes.size():
-		return 0
-	var arme: Dictionary = _donnees.armes[armes[index]]
-	return floori(float(int(arme["prix"])) * _ratio_vente)
 
 
 func stats() -> StatsTour:

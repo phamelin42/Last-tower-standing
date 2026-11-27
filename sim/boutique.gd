@@ -1,7 +1,7 @@
 class_name Boutique
 extends RefCounted
 ## La boutique d'une arène : quatre offres tirées selon les poids de rareté de la manche,
-## achat, relance au coût croissant, vente à moitié prix et marché noir.
+## achat, relance au coût croissant et marché noir. Aucune vente (D23).
 
 ## Entrées `{id, genre, rarete, prix, vendu}`.
 var offres: Array[Dictionary] = []
@@ -61,10 +61,7 @@ func acheter(index: int, economie: Economie, inventaire: Inventaire) -> int:
 	var offre := offres[index]
 	if bool(offre["vendu"]):
 		return Types.Resultat.DEJA_ACHETE
-	var est_arme := int(offre["genre"]) == Types.Genre.ARME
 	# Tout est vérifié avant de payer : un refus ne débite jamais.
-	if est_arme and inventaire.armes.size() >= Inventaire.ARMES_MAX:
-		return Types.Resultat.ARMES_AU_MAXIMUM
 	if not economie.peut_payer(int(offre["prix"])):
 		return Types.Resultat.OR_INSUFFISANT
 	# La charge de copie se lit avant l'achat : l'objet acheté ne se double pas lui-même.
@@ -74,7 +71,7 @@ func acheter(index: int, economie: Economie, inventaire: Inventaire) -> int:
 		return resultat
 	economie.payer(int(offre["prix"]))
 	offre["vendu"] = true
-	# Le second exemplaire est gratuit ; une arme sans place pour lui n'en consomme pas la charge.
+	# Le second exemplaire est gratuit : pour une arme, un niveau de plus.
 	if copie and inventaire.ajouter(str(offre["id"])) == Types.Resultat.OK:
 		inventaire.copies_utilisees += 1
 	return Types.Resultat.OK
@@ -91,15 +88,6 @@ func relancer(economie: Economie, relances_gratuites: int) -> Array:
 	cout_relance = _cout_depart + _relances_payees * _increment
 	tirer(_manche)
 	return [Types.Resultat.OK, relances_gratuites]
-
-
-func vendre(index_arme: int, economie: Economie, inventaire: Inventaire) -> int:
-	if index_arme < 0 or index_arme >= inventaire.armes.size():
-		return Types.Resultat.INDICE_INVALIDE
-	var prix := inventaire.prix_vente(index_arme)
-	inventaire.retirer_arme(index_arme)
-	economie.gagner(prix)
-	return Types.Resultat.OK
 
 
 ## Ids des améliorations de rareté ≤ `marche_noir.raretes_max`, triés.

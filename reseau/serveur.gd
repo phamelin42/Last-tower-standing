@@ -402,8 +402,6 @@ func _intention_de_jeu(pair: int, genre: int, arg: int, texte: String) -> int:
 			resultat = partie.intention_acheter(pair, arg)
 		Protocole.Intention.RELANCER:
 			resultat = partie.intention_relancer(pair)
-		Protocole.Intention.VENDRE:
-			resultat = partie.intention_vendre(pair, arg)
 		Protocole.Intention.MARCHE_NOIR:
 			resultat = partie.intention_marche_noir(pair, texte)
 		Protocole.Intention.SANS_FIN:

@@ -336,6 +336,8 @@ func test_bonjour_de_version_differente_est_refuse_avec_un_motif_clair() -> void
 
 func test_intention_aller_retour_pour_chaque_genre() -> void:
 	for genre in range(Protocole.Intention.ACHETER, Protocole.Intention.OPTIONS + 1):
+		if genre == Protocole.Intention.VENDRE_RETIREE:
+			continue  # numéro réservé et refusé (test_fin_de_la_vente.gd)
 		for arg: int in [0, 3, -1, 2147483647, -2147483648]:
 			var d := Protocole.decoder_intention(Protocole.encoder_intention(genre, arg, "id_é"))
 			verifier_egal(d.get("genre"), genre)

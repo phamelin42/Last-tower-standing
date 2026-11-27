@@ -173,13 +173,16 @@ func test_hors_connexion_une_intention_n_envoie_rien_et_repond_tout_de_suite() -
 	var c := _nouveau_client("X")
 	var e := _espionner(c)
 	c.acheter(-1)
-	c.vendre(-3)
 	c.acheter(0)
 	verifier_egal(e.resultats[0], ["acheter", Types.Resultat.INDICE_INVALIDE])
-	verifier_egal(e.resultats[1], ["vendre", Types.Resultat.INDICE_INVALIDE])
-	verifier_egal(e.resultats[2][1], Types.Resultat.ARENE_MORTE)
+	verifier_egal(e.resultats[1][1], Types.Resultat.ARENE_MORTE)
 	c.regler_options(1.0, 0, false)
-	verifier_egal(e.resultats[3], ["options", Types.Resultat.NON_DISPONIBLE])
+	verifier_egal(e.resultats[2], ["options", Types.Resultat.NON_DISPONIBLE])
+
+
+func test_le_client_n_a_plus_de_methode_vendre() -> void:
+	var c := _nouveau_client("X")
+	verifier_faux(c.has_method("vendre"), "la vente n'existe plus (D23)")
 
 
 # --- Une partie réelle -----------------------------------------------------------------------
@@ -567,12 +570,24 @@ func test_un_resultat_valide_est_relaye_pour_chaque_genre_et_code() -> void:
 	var e := _espionner(c)
 	var attendus := 0
 	for g: int in range(Protocole.Intention.ACHETER, Protocole.Intention.OPTIONS + 1):
+		if g == Protocole.Intention.VENDRE_RETIREE:
+			continue
 		for k: int in range(Types.Resultat.OK, Types.Resultat.NON_DISPONIBLE + 1):
 			c._a_la_reception_resultat(Protocole.encoder_resultat(g, k))
 			attendus += 1
 			verifier_egal(e.resultats.size(), attendus)
 			verifier_egal(e.dernier_resultat()[1], k)
 			verifier(not String(e.dernier_resultat()[0]).is_empty())
+
+
+func test_un_resultat_du_genre_de_vente_retire_n_est_pas_relaye() -> void:
+	var c := _nouveau_client("Nu")
+	var e := _espionner(c)
+	for k: int in range(Types.Resultat.OK, Types.Resultat.NON_DISPONIBLE + 1):
+		c._a_la_reception_resultat(
+			Protocole.encoder_resultat(Protocole.Intention.VENDRE_RETIREE, k)
+		)
+	verifier_egal(e.resultats.size(), 0, "le numéro 3 est réservé et refusé")
 
 
 # --- Jeton d'hôte ------------------------------------------------------------------------------

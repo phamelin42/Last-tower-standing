@@ -1,7 +1,7 @@
 class_name BoutiqueUi
 extends Control
 ## Panneau de boutique : quatre cartes (ruban de catégorie, nom, rareté en texte et en couleur,
-## prix), relance, grille des armes équipées (une arme se touche pour la vendre), améliorations
+## prix), relance, grille des armes équipées (en lecture, sans vente), améliorations
 ## achetées et choix du marché noir. Il lit une `VueArene` et n'agit que par les intentions de la
 ## `SourceVue`. Une offre trop chère reste cliquable : la source tranche, l'interface annonce
 ## « or insuffisant » en texte. Le panneau se replie (touche B ou bouton) : il ne reste alors que
@@ -89,10 +89,6 @@ var _message: Label
 var _noir: VBoxContainer
 var _section_armes: VBoxContainer
 var _grille_armes: GridContainer
-var _ligne_vente: VBoxContainer
-var _nom_vente: Label
-var _bouton_vente: Button
-var _selection: int = -1
 var _section_amelios: VBoxContainer
 var _grille_amelios: GridContainer
 var _amelios_vues: Dictionary = {}
@@ -159,7 +155,7 @@ func _construire_bandeau() -> void:
 		actions.add_child(libelle)
 
 
-## Panneau compact sur le côté de l'arène : armes équipées à vendre et marché noir. Il se place
+## Panneau compact sur le côté de l'arène : armes équipées et marché noir. Il se place
 ## sous le HUD, au bord droit, et défile si la liste dépasse l'arène visible.
 func _construire_cote() -> void:
 	_cote = PanelContainer.new()
@@ -190,21 +186,6 @@ func _construire_cote() -> void:
 	var titre_armes := _etiquette("TitreArmes", "BOUTIQUE_ARMES_TITRE")
 	titre_armes.add_theme_color_override("font_color", ThemeJeu.LAITON_CLAIR)
 	entete.add_child(titre_armes)
-	_ligne_vente = VBoxContainer.new()
-	_ligne_vente.name = "LigneVente"
-	_section_armes.add_child(_ligne_vente)
-	_nom_vente = _etiquette("NomVente")
-	# Le nom de l'arme choisie (ou la consigne) passe à la ligne : il a toute la largeur du panneau,
-	# le bouton « Vendre » est dessous.
-	_nom_vente.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_nom_vente.custom_minimum_size = Vector2(
-		LARGEUR_COTE - 2.0 * MARGE_COTE - LARGEUR_ASCENSEUR, 0.0
-	)
-	_ligne_vente.add_child(_nom_vente)
-	_bouton_vente = _bouton(Callable(self, "vendre_selection"))
-	_bouton_vente.autowrap_mode = TextServer.AUTOWRAP_OFF
-	_bouton_vente.theme_type_variation = ThemeJeu.TYPE_DANGER
-	_ligne_vente.add_child(_bouton_vente)
 	_grille_armes = _creer_grille("GrilleArmes")
 	_section_armes.add_child(_grille_armes)
 	_section_amelios = VBoxContainer.new()
@@ -216,7 +197,6 @@ func _construire_cote() -> void:
 	_section_amelios.add_child(titre_amelios)
 	_grille_amelios = _creer_grille("GrilleAmeliorations")
 	_section_amelios.add_child(_grille_amelios)
-	_afficher_vente()
 	_placer_cote()
 
 
@@ -316,7 +296,7 @@ func _placer_cote() -> void:
 	_defilement.custom_minimum_size = Vector2(0.0, voulu if vide else minf(voulu, disponible))
 
 
-## Fournit les noms, descriptions et prix de vente, et branche les messages de résultat.
+## Fournit les noms et descriptions, et branche les messages de résultat.
 func configurer(donnees: Donnees, source: SourceVue) -> void:
 	if _source != null and _source.resultat_intention.is_connected(_sur_resultat):
 		_source.resultat_intention.disconnect(_sur_resultat)
@@ -640,7 +620,6 @@ func _afficher_armes(vue: VueArene) -> void:
 	if ids == _armes_ids and _grille_armes.get_child_count() > 0:
 		return
 	_armes_ids = ids
-	_selection = -1
 	_vider(_grille_armes)
 	for i: int in ids.size():
 		var entree := _entree(ids[i], Types.Genre.ARME)
@@ -648,40 +627,13 @@ func _afficher_armes(vue: VueArene) -> void:
 		case.name = "Arme%d" % i
 		case.theme_type_variation = ThemeJeu.TYPE_CELLULE
 		case.custom_minimum_size = Vector2(CELLULE, CELLULE)
-		case.toggle_mode = true
 		case.icon = ImageOffre.texture(ids[i])
 		case.expand_icon = true
 		case.tooltip_text = _infobulle(entree, Types.Genre.ARME)
-		case.pressed.connect(_choisir_arme.bind(i))
 		case.add_child(_coin(_categorie(ids[i], Types.Genre.ARME)))
 		_grille_armes.add_child(case)
 	if ids.is_empty():
 		_grille_armes.add_child(_etiquette("AucuneArme", "BOUTIQUE_AUCUNE_ARME"))
-	_afficher_vente()
-
-
-## Une arme se touche pour la choisir, puis « Vendre » la vend : une seule touche ne vend rien.
-func _choisir_arme(index: int) -> void:
-	_selection = -1 if _selection == index else index
-	if _selection >= _armes_ids.size():
-		_selection = -1
-	_afficher_vente()
-
-
-func _afficher_vente() -> void:
-	for i: int in _grille_armes.get_child_count():
-		var case := _grille_armes.get_child(i) as Button
-		if case != null:
-			case.set_pressed_no_signal(i == _selection)
-	var choisie := _selection >= 0 and _selection < _armes_ids.size()
-	_bouton_vente.visible = choisie
-	if choisie:
-		var entree := _entree(_armes_ids[_selection], Types.Genre.ARME)
-		_nom_vente.text = str(entree.get("nom", _armes_ids[_selection]))
-		_bouton_vente.text = tr("BOUTIQUE_VENDRE_PRIX") % Nombres.groupe(_prix_vente(entree))
-	else:
-		_nom_vente.text = "" if _armes_ids.is_empty() else tr("BOUTIQUE_ARME_A_VENDRE")
-	_ligne_vente.visible = not _armes_ids.is_empty()
 
 
 ## Améliorations achetées (id → nombre d'achats), rangées par identifiant. Chaque case porte le
@@ -756,20 +708,6 @@ func _vider(conteneur: Node) -> void:
 		enfant.free()
 
 
-## Vend l'arme choisie dans la grille.
-func vendre_selection() -> void:
-	vendre(_selection)
-
-
-## Vend l'arme d'index `index` de la liste équipée ; un index hors de la grille ne fait rien.
-func vendre(index: int) -> void:
-	if _source == null or index < 0 or index >= _armes_ids.size():
-		return
-	_source.vendre(index)
-	_selection = -1
-	_afficher_vente()
-
-
 func _sur_resultat(_genre: String, code: int) -> void:
 	_message.text = tr(CLES_RESULTAT.get(code, "BOUTIQUE_RESULTAT_INCONNU"))
 
@@ -813,13 +751,6 @@ func _categorie(id: String, genre: int) -> int:
 	if genre == Types.Genre.AMELIORATION:
 		return Types.Categorie.AMELIORATION
 	return -1
-
-
-## Même arrondi que `Inventaire.prix_vente`.
-func _prix_vente(entree: Dictionary) -> int:
-	if _donnees == null or not entree.has("prix"):
-		return 0
-	return floori(float(int(entree["prix"])) * float(_donnees.partie["vente_ratio"]))
 
 
 # --- Contrôles -------------------------------------------------------------------------------

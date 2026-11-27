@@ -22,13 +22,13 @@ func _arme(champs: Dictionary = {}) -> Dictionary:
 func _dmg(
 	arme: Dictionary,
 	pv_max: float = 1000.0,
-	exemplaires: int = 1,
+	niveau: int = 1,
 	par_stat: Dictionary = {},
 	temps: float = 0.0,
 	stats: StatsTour = StatsTour.new(),
 	mana_max: float = 0.0
 ) -> float:
-	return Tir.degats_de_base(arme, stats, pv_max, exemplaires, par_stat, temps, mana_max, PLAFOND)
+	return Tir.degats_de_base(arme, stats, pv_max, niveau, par_stat, temps, mana_max, PLAFOND)
 
 
 func test_degats_par_pv_max_ajoute_ratio_fois_les_pv_maximum_de_la_tour() -> void:
@@ -56,7 +56,7 @@ func test_degats_par_amelioration_compte_chaque_exemplaire_achete() -> void:
 	)
 
 
-func test_le_bonus_total_est_borne_meme_avec_255_exemplaires_et_toutes_les_ameliorations() -> void:
+func test_le_bonus_total_est_borne_meme_au_niveau_255_et_avec_toutes_les_ameliorations() -> void:
 	var arme := _arme(
 		{
 			"degats_par_pv_max": 1.0,
@@ -202,7 +202,7 @@ func test_le_tir_lit_les_pv_maximum_les_copies_et_les_ameliorations_de_la_lectur
 	}
 	var lecture := Tir.Lecture.new()
 	lecture.pv_max_tour = 1000.0
-	lecture.exemplaires = {"arme_selon": 3}
+	lecture.niveaux = {"arme_selon": 3}
 	lecture.ameliorations_par_stat = {"cadence": 2}
 	var bilan := Tir.Bilan.new()
 	var rng := RandomNumberGenerator.new()

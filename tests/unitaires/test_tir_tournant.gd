@@ -213,7 +213,7 @@ func _empreinte_de_partie(graine: int) -> int:
 		a.avancer(0.05)
 		var v := a.vue(Types.Phase.MANCHE, 10.0, -1, false)
 		cumul = hash([cumul, str(v.ennemis_pos), str(v.ennemis_pv), str(v.evenements), v.tour_pv])
-	verifier(a.armes.size() == 2, "les deux exemplaires sont équipés")
+	verifier(a.armes.size() == 1 and a.armes[0].niveau == 2, "une arme équipée, au niveau 2")
 	return cumul
 
 

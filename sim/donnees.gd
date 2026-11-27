@@ -345,7 +345,6 @@ static func _valider_partie(p: Dictionary, err: Array[String]) -> void:
 		_pos("rayon_spawn"),
 		_nn("spawn_baisse_par_manche"),
 		_ent("nb_offres", 1.0),
-		_ratio("vente_ratio"),
 		_nn("gel_max_s"),
 		_pos("esquive_k"),
 	]:
@@ -362,6 +361,12 @@ static func _valider_partie(p: Dictionary, err: Array[String]) -> void:
 			_nn("mana_regen")
 		]:
 			_nombre(tour, spec, f, "tour", err)
+	# Niveaux d'arme (D23) : gain de dégâts et de cadence par niveau au-dessus du premier, et plafond
+	# de la cadence totale d'une arme (améliorations et niveaux).
+	if _objet(p, "niveaux", f, "", err):
+		var niveaux: Dictionary = p["niveaux"]
+		for spec: Dictionary in [_nn("gain_degats"), _nn("gain_cadence"), _nn("cadence_max")]:
+			_nombre(niveaux, spec, f, "niveaux", err)
 	var givre_ok := _objet(p, "givre", f, "", err)
 	if givre_ok:
 		var givre: Dictionary = p["givre"]

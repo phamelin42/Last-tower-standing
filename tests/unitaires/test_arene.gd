@@ -131,7 +131,7 @@ func test_les_ennemis_recoivent_les_multiplicateurs_de_la_manche() -> void:
 # --- Reproductibilité --------------------------------------------------------------------------
 
 
-## Mêmes intentions aux mêmes pas : achat, relance, vente, nouvelle manche.
+## Mêmes intentions aux mêmes pas : achat, relance, nouvelle manche.
 func _jouer(a: Arene, vues: Array[Dictionary]) -> void:
 	a.demarrer_manche(1, Composition.unique(0), _mult(8.0))
 	for pas: int in 2000:
@@ -144,7 +144,7 @@ func _jouer(a: Arene, vues: Array[Dictionary]) -> void:
 		if pas == 600:
 			a.acheter(2)
 		if pas == 900:
-			a.vendre(0)
+			a.acheter(3)
 		if pas == 1000:
 			a.demarrer_manche(2, Composition.unique(3), _mult(8.0))
 		a.avancer(DT)
@@ -203,7 +203,6 @@ func test_arene_detruite_refuse_toute_intention() -> void:
 	verifier_egal(a.acheter(0), Types.Resultat.ARENE_MORTE)
 	verifier_egal(a.acheter(99), Types.Resultat.ARENE_MORTE, "même un indice invalide")
 	verifier_egal(a.relancer(), Types.Resultat.ARENE_MORTE)
-	verifier_egal(a.vendre(0), Types.Resultat.ARENE_MORTE)
 	verifier_egal(a.choisir_marche_noir("x"), Types.Resultat.ARENE_MORTE)
 	verifier_egal(a.economie.argent, argent, "rien n'est débité")
 
@@ -271,8 +270,8 @@ func test_convoi_verse_une_prime_elevee_et_n_inflige_aucun_degat() -> void:
 func test_vue_quatre_offres_huit_armes_tableaux_alignes() -> void:
 	var a := Arene.new(d, GRAINE)
 	a.demarrer_manche(1, Composition.unique(0), _mult(1.0))
-	for _i: int in 8:
-		a.inventaire.ajouter("de_pipe")
+	for i: int in 8:
+		a.inventaire.ajouter(str(d.armes.keys()[i]))
 	a.synchroniser()
 	_avancer(a, 300)
 	var v := _vue(a)
@@ -349,8 +348,8 @@ func test_les_evenements_ont_le_tick_courant_et_les_morts_sont_signales() -> voi
 func test_les_evenements_ne_s_accumulent_pas_sans_fin() -> void:
 	d.partie["tour"]["pv"] = 1e9
 	var a := Arene.new(d, GRAINE)
-	for _i: int in 8:
-		a.inventaire.ajouter("de_pipe")
+	for i: int in 8:
+		a.inventaire.ajouter(str(d.armes.keys()[i]))
 	a.synchroniser()
 	a.demarrer_manche(40, Composition.unique(0), _mult(5.0))
 	_avancer(a, 4000)
@@ -367,6 +366,8 @@ func test_intentions_invalides_sont_refusees_sans_effet() -> void:
 	var avant := _vue(a).to_dict()
 	for i: int in [-1, 4, 8, 99]:
 		verifier_egal(a.acheter(i), Types.Resultat.INDICE_INVALIDE, "acheter(%d)" % i)
-	for i: int in [-1, 1, 8, 99]:
-		verifier_egal(a.vendre(i), Types.Resultat.INDICE_INVALIDE, "vendre(%d)" % i)
 	verifier_egal(_vue(a).to_dict(), avant, "aucun effet")
+
+
+func test_la_vente_n_existe_plus_dans_l_arene() -> void:
+	verifier_faux(Arene.new(d, GRAINE).has_method("vendre"))

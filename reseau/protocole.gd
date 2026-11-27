@@ -27,7 +27,7 @@ enum Msg {
 enum Intention {
 	ACHETER = 1,
 	RELANCER,
-	VENDRE,
+	VENDRE_RETIREE,  # retirée en version 11 (D23) : numéro réservé, refusé
 	MARCHE_NOIR,
 	OBSERVER,
 	SANS_FIN,
@@ -49,7 +49,8 @@ enum Intention {
 ## 8 : message `BILAN`, le bilan de fin de partie envoyé à chaque joueur présent (lot 11).
 ## 9 : quatre flottants d'apparence de la tour dans l'état d'arène (16 octets), aussi regardée.
 ## 10 : l'état global porte le skin de chaque joueur (1 octet) ; intention `SKIN` au salon.
-const VERSION: int = 10
+## 11 : plus d'intention `VENDRE` (la vente disparaît du jeu, D23) ; son numéro est refusé.
+const VERSION: int = 11
 ## Taille du jeton d'hôte ; un bonjour sans jeton en porte 0.
 const JETON_OCTETS: int = 8
 const MAX_ENNEMIS: int = 2000
@@ -168,7 +169,7 @@ static func motif_version(version_recue: int) -> String:
 ## trop long (64 octets) ou invalide ; pour `REGARDER`, l'argument est -1 (cesser) ou un
 ## identifiant de joueur (0 à `MAX_ID_REGARDE`).
 static func encoder_intention(genre: int, arg: int, texte: String = "") -> PackedByteArray:
-	if genre < Intention.ACHETER or genre > Intention.SKIN:
+	if genre < Intention.ACHETER or genre > Intention.SKIN or genre == Intention.VENDRE_RETIREE:
 		return PackedByteArray()
 	if genre == Intention.REGARDER and not _id_regarde_valide(arg):
 		return PackedByteArray()
@@ -199,7 +200,7 @@ static func decoder_intention(b: PackedByteArray) -> Dictionary:
 	var texte := l.texte(n, MAX_TEXTE_OCTETS)
 	if not l.ok or l.reste() != 0:
 		return {}
-	if genre < Intention.ACHETER or genre > Intention.SKIN:
+	if genre < Intention.ACHETER or genre > Intention.SKIN or genre == Intention.VENDRE_RETIREE:
 		return {}
 	if genre == Intention.REGARDER and not _id_regarde_valide(arg):
 		return {}
@@ -238,7 +239,7 @@ static func decoder_refus(b: PackedByteArray) -> String:
 ## `u8 type · u8 genre · u8 code` : ce que le serveur a répondu à une intention (`genre` =
 ## `Intention`, `code` = `Types.Resultat`). Vide si l'un des deux est hors bornes.
 static func encoder_resultat(genre: int, code: int) -> PackedByteArray:
-	if genre < Intention.ACHETER or genre > Intention.SKIN:
+	if genre < Intention.ACHETER or genre > Intention.SKIN or genre == Intention.VENDRE_RETIREE:
 		return PackedByteArray()
 	if code < Types.Resultat.OK or code > Types.Resultat.ARMES_AU_MAXIMUM:
 		return PackedByteArray()
@@ -260,7 +261,7 @@ static func decoder_resultat(b: PackedByteArray) -> Dictionary:
 	var code := l.u8()
 	if not l.ok or l.reste() != 0:
 		return {}
-	if genre < Intention.ACHETER or genre > Intention.SKIN:
+	if genre < Intention.ACHETER or genre > Intention.SKIN or genre == Intention.VENDRE_RETIREE:
 		return {}
 	if code < Types.Resultat.OK or code > Types.Resultat.ARMES_AU_MAXIMUM:
 		return {}
