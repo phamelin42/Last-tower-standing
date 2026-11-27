@@ -5,8 +5,6 @@ extends RefCounted
 ## nœud : `Decor` la dessine, les tests la lisent. Même graine, même plan ; deux graines, deux
 ## plans. Tout est en pixels du monde (la tour est en `(0, 0)`, une case de terre mesure `CASE`).
 
-## Une tuile du pack fait 64 px ; affichée à ×2 comme les unités et la tour, elle en fait 128.
-const CASE: int = 128
 const ECHELLE: float = 2.0
 ## Le cercle d'apparition, en pixels du monde (1 300 unités à 0,5 px par unité).
 const RAYON_CERCLE: float = CameraArene.RAYON_APPARITION * Apparence.PX_PAR_UNITE
@@ -22,444 +20,8 @@ const RAYON_TERRE_FORCEE: float = 1000.0
 const DEMI_COLONNES: int = 22
 const DEMI_LIGNES: int = 16
 
-const FEUILLE_TERRAIN := "Terrain/Ground/Tilemap_Flat.png"
-const FEUILLE_EAU := "Terrain/Water/Water.png"
-const FEUILLE_ECUME := "Terrain/Water/Foam/Foam.png"
-const CASE_ECUME: int = 192
-const IMAGES_ECUME: int = 8
-## Le contenu de l'écume dans sa case de 192 px, toutes images confondues (centré sur la case) :
-## on ne dessine que lui, le reste est transparent et coûterait du remplissage pour rien.
-const BOITE_ECUME := Rect2(53, 53, 86, 86)
 ## Le retournement d'une tuile intérieure (bits de `TileSetAtlasSource`).
 const RETOURNEMENTS: Array[int] = [0, 4096, 8192, 12288]
-
-## Les images du pack. `cellule` : taille d'une image dans la feuille ; `origine` : coin de la
-## première image ; `ligne` : rangée de l'animation ; `images` : combien de pas ; `boite` : le
-## contenu visible dans une cellule, toutes images confondues (seul lui est dessiné) ; `pieds` :
-## le point de la cellule posé sur la position de l'objet ; `haut` : un objet qui peut cacher
-## quelqu'un, donc jamais dans la zone de marche.
-const TYPES: Dictionary = {
-	"sapin":
-	{
-		"fichier": "Resources/Trees/Tree.png",
-		"cellule": Vector2i(192, 192),
-		"origine": Vector2i(0, 0),
-		"ligne": 0,
-		"images": 4,
-		"boite": Rect2(42, 4, 112, 174),
-		"pieds": Vector2(98, 172),
-		"echelle": 2.0,
-		"categorie": "sapin",
-		"haut": true,
-	},
-	"souche":
-	{
-		"fichier": "Resources/Trees/Tree.png",
-		"cellule": Vector2i(192, 192),
-		"origine": Vector2i(0, 0),
-		"ligne": 2,
-		"images": 1,
-		"boite": Rect2(79, 146, 36, 30),
-		"pieds": Vector2(97, 172),
-		"echelle": 2.0,
-		"categorie": "divers",
-		"haut": true,
-	},
-	"maison_bleue":
-	{
-		"fichier": "Factions/Knights/Buildings/House/House_Blue.png",
-		"cellule": Vector2i(128, 192),
-		"origine": Vector2i(0, 0),
-		"ligne": 0,
-		"images": 1,
-		"boite": Rect2(10, 24, 108, 148),
-		"pieds": Vector2(64, 168),
-		"echelle": 2.0,
-		"categorie": "maison",
-		"haut": true,
-	},
-	"maison_rouge":
-	{
-		"fichier": "Factions/Knights/Buildings/House/House_Red.png",
-		"cellule": Vector2i(128, 192),
-		"origine": Vector2i(0, 0),
-		"ligne": 0,
-		"images": 1,
-		"boite": Rect2(10, 24, 108, 148),
-		"pieds": Vector2(64, 168),
-		"echelle": 2.0,
-		"categorie": "maison",
-		"haut": true,
-	},
-	"maison_jaune":
-	{
-		"fichier": "Factions/Knights/Buildings/House/House_Yellow.png",
-		"cellule": Vector2i(128, 192),
-		"origine": Vector2i(0, 0),
-		"ligne": 0,
-		"images": 1,
-		"boite": Rect2(10, 24, 108, 148),
-		"pieds": Vector2(64, 168),
-		"echelle": 2.0,
-		"categorie": "maison",
-		"haut": true,
-	},
-	"maison_violette":
-	{
-		"fichier": "Factions/Knights/Buildings/House/House_Purple.png",
-		"cellule": Vector2i(128, 192),
-		"origine": Vector2i(0, 0),
-		"ligne": 0,
-		"images": 1,
-		"boite": Rect2(10, 24, 108, 148),
-		"pieds": Vector2(64, 168),
-		"echelle": 2.0,
-		"categorie": "maison",
-		"haut": true,
-	},
-	"maison_gobelin":
-	{
-		"fichier": "Factions/Goblins/Buildings/Wood_House/Goblin_House.png",
-		"cellule": Vector2i(128, 192),
-		"origine": Vector2i(0, 0),
-		"ligne": 0,
-		"images": 1,
-		"boite": Rect2(7, 26, 113, 145),
-		"pieds": Vector2(64, 168),
-		"echelle": 2.0,
-		"categorie": "maison",
-		"haut": true,
-	},
-	"mine":
-	{
-		"fichier": "Resources/Gold Mine/GoldMine_Active.png",
-		"cellule": Vector2i(192, 128),
-		"origine": Vector2i(0, 0),
-		"ligne": 0,
-		"images": 1,
-		"boite": Rect2(12, 5, 169, 121),
-		"pieds": Vector2(96, 116),
-		"echelle": 2.0,
-		"categorie": "mine",
-		"haut": true,
-	},
-	# Plus petit que le mouton du convoi (×2 avec son sac d'or) : on ne les confond pas.
-	"mouton":
-	{
-		"fichier": "Resources/Sheep/HappySheep_Idle.png",
-		"cellule": Vector2i(128, 128),
-		"origine": Vector2i(0, 0),
-		"ligne": 0,
-		"images": 8,
-		"boite": Rect2(42, 48, 46, 38),
-		"pieds": Vector2(64, 84),
-		"echelle": 1.5,
-		"categorie": "mouton",
-		"haut": true,
-	},
-	"champignon_geant":
-	{
-		"fichier": "Deco/03.png",
-		"cellule": Vector2i(64, 64),
-		"origine": Vector2i(0, 0),
-		"ligne": 0,
-		"images": 1,
-		"boite": Rect2(14, 12, 38, 37),
-		"pieds": Vector2(33, 46),
-		"echelle": 2.0,
-		"categorie": "divers",
-		"haut": true,
-	},
-	"rocher":
-	{
-		"fichier": "Deco/06.png",
-		"cellule": Vector2i(64, 64),
-		"origine": Vector2i(0, 0),
-		"ligne": 0,
-		"images": 1,
-		"boite": Rect2(12, 15, 44, 34),
-		"pieds": Vector2(34, 46),
-		"echelle": 2.0,
-		"categorie": "rocher",
-		"haut": true,
-	},
-	"buisson_petit":
-	{
-		"fichier": "Deco/07.png",
-		"cellule": Vector2i(64, 64),
-		"origine": Vector2i(0, 0),
-		"ligne": 0,
-		"images": 1,
-		"boite": Rect2(16, 21, 31, 22),
-		"pieds": Vector2(31, 42),
-		"echelle": 2.0,
-		"categorie": "buisson",
-		"haut": true,
-	},
-	"buisson_moyen":
-	{
-		"fichier": "Deco/08.png",
-		"cellule": Vector2i(64, 64),
-		"origine": Vector2i(0, 0),
-		"ligne": 0,
-		"images": 1,
-		"boite": Rect2(11, 17, 42, 32),
-		"pieds": Vector2(32, 47),
-		"echelle": 2.0,
-		"categorie": "buisson",
-		"haut": true,
-	},
-	"buisson_grand":
-	{
-		"fichier": "Deco/09.png",
-		"cellule": Vector2i(64, 64),
-		"origine": Vector2i(0, 0),
-		"ligne": 0,
-		"images": 1,
-		"boite": Rect2(2, 11, 61, 42),
-		"pieds": Vector2(32, 51),
-		"echelle": 2.0,
-		"categorie": "buisson",
-		"haut": true,
-	},
-	"citrouille_petite":
-	{
-		"fichier": "Deco/12.png",
-		"cellule": Vector2i(64, 64),
-		"origine": Vector2i(0, 0),
-		"ligne": 0,
-		"images": 1,
-		"boite": Rect2(11, 12, 40, 39),
-		"pieds": Vector2(31, 49),
-		"echelle": 2.0,
-		"categorie": "divers",
-		"haut": true,
-	},
-	"citrouille_grande":
-	{
-		"fichier": "Deco/13.png",
-		"cellule": Vector2i(64, 64),
-		"origine": Vector2i(0, 0),
-		"ligne": 0,
-		"images": 1,
-		"boite": Rect2(5, 10, 56, 45),
-		"pieds": Vector2(33, 53),
-		"echelle": 2.0,
-		"categorie": "divers",
-		"haut": true,
-	},
-	"panneau_crane":
-	{
-		"fichier": "Deco/16.png",
-		"cellule": Vector2i(64, 128),
-		"origine": Vector2i(0, 0),
-		"ligne": 0,
-		"images": 1,
-		"boite": Rect2(7, 3, 52, 101),
-		"pieds": Vector2(32, 100),
-		"echelle": 2.0,
-		"categorie": "divers",
-		"haut": true,
-	},
-	"panneau_fleche":
-	{
-		"fichier": "Deco/17.png",
-		"cellule": Vector2i(64, 128),
-		"origine": Vector2i(0, 0),
-		"ligne": 0,
-		"images": 1,
-		"boite": Rect2(2, 15, 59, 90),
-		"pieds": Vector2(32, 102),
-		"echelle": 2.0,
-		"categorie": "divers",
-		"haut": true,
-	},
-	"epouvantail":
-	{
-		"fichier": "Deco/18.png",
-		"cellule": Vector2i(192, 192),
-		"origine": Vector2i(0, 0),
-		"ligne": 0,
-		"images": 1,
-		"boite": Rect2(54, 48, 87, 121),
-		"pieds": Vector2(97, 166),
-		"echelle": 2.0,
-		"categorie": "divers",
-		"haut": true,
-	},
-	# Décor plat : à ras du sol, il se pose aussi dans la zone de marche, sous les ennemis.
-	"champignon_petit":
-	{
-		"fichier": "Deco/01.png",
-		"cellule": Vector2i(64, 64),
-		"origine": Vector2i(0, 0),
-		"ligne": 0,
-		"images": 1,
-		"boite": Rect2(25, 24, 17, 19),
-		"pieds": Vector2(33, 41),
-		"echelle": 2.0,
-		"categorie": "plat",
-		"haut": false,
-	},
-	"champignon_moyen":
-	{
-		"fichier": "Deco/02.png",
-		"cellule": Vector2i(64, 64),
-		"origine": Vector2i(0, 0),
-		"ligne": 0,
-		"images": 1,
-		"boite": Rect2(21, 20, 26, 27),
-		"pieds": Vector2(34, 45),
-		"echelle": 2.0,
-		"categorie": "plat",
-		"haut": false,
-	},
-	"caillou_petit":
-	{
-		"fichier": "Deco/04.png",
-		"cellule": Vector2i(64, 64),
-		"origine": Vector2i(0, 0),
-		"ligne": 0,
-		"images": 1,
-		"boite": Rect2(24, 19, 20, 18),
-		"pieds": Vector2(34, 36),
-		"echelle": 2.0,
-		"categorie": "plat",
-		"haut": false,
-	},
-	"caillou_moyen":
-	{
-		"fichier": "Deco/05.png",
-		"cellule": Vector2i(64, 64),
-		"origine": Vector2i(0, 0),
-		"ligne": 0,
-		"images": 1,
-		"boite": Rect2(18, 18, 29, 22),
-		"pieds": Vector2(32, 38),
-		"echelle": 2.0,
-		"categorie": "plat",
-		"haut": false,
-	},
-	"touffe_petite":
-	{
-		"fichier": "Deco/10.png",
-		"cellule": Vector2i(64, 64),
-		"origine": Vector2i(0, 0),
-		"ligne": 0,
-		"images": 1,
-		"boite": Rect2(22, 23, 22, 23),
-		"pieds": Vector2(33, 45),
-		"echelle": 2.0,
-		"categorie": "plat",
-		"haut": false,
-	},
-	"touffe_moyenne":
-	{
-		"fichier": "Deco/11.png",
-		"cellule": Vector2i(64, 64),
-		"origine": Vector2i(0, 0),
-		"ligne": 0,
-		"images": 1,
-		"boite": Rect2(20, 15, 32, 35),
-		"pieds": Vector2(36, 48),
-		"echelle": 2.0,
-		"categorie": "plat",
-		"haut": false,
-	},
-	"os_long":
-	{
-		"fichier": "Deco/14.png",
-		"cellule": Vector2i(64, 64),
-		"origine": Vector2i(0, 0),
-		"ligne": 0,
-		"images": 1,
-		"boite": Rect2(15, 16, 36, 31),
-		"pieds": Vector2(33, 45),
-		"echelle": 2.0,
-		"categorie": "plat",
-		"haut": false,
-	},
-	"os_court":
-	{
-		"fichier": "Deco/15.png",
-		"cellule": Vector2i(64, 64),
-		"origine": Vector2i(0, 0),
-		"ligne": 0,
-		"images": 1,
-		"boite": Rect2(24, 20, 24, 24),
-		"pieds": Vector2(36, 42),
-		"echelle": 2.0,
-		"categorie": "plat",
-		"haut": false,
-	},
-	# Les trois touffes d'herbe dessinées au bord de la feuille du terrain.
-	"herbe_hautes":
-	{
-		"fichier": "Terrain/Ground/Tilemap_Flat.png",
-		"cellule": Vector2i(58, 21),
-		"origine": Vector2i(258, 43),
-		"ligne": 0,
-		"images": 1,
-		"boite": Rect2(0, 0, 58, 21),
-		"pieds": Vector2(29, 19),
-		"echelle": 2.0,
-		"categorie": "plat",
-		"haut": false,
-	},
-	# Rochers qui dépassent de l'eau, avec leurs ondes.
-	"rocher_eau_1":
-	{
-		"fichier": "Terrain/Water/Rocks/Rocks_01.png",
-		"cellule": Vector2i(128, 128),
-		"origine": Vector2i(0, 0),
-		"ligne": 0,
-		"images": 8,
-		"boite": Rect2(46, 54, 32, 23),
-		"pieds": Vector2(62, 70),
-		"echelle": 2.0,
-		"categorie": "eau",
-		"haut": false,
-	},
-	"rocher_eau_2":
-	{
-		"fichier": "Terrain/Water/Rocks/Rocks_02.png",
-		"cellule": Vector2i(128, 128),
-		"origine": Vector2i(0, 0),
-		"ligne": 0,
-		"images": 8,
-		"boite": Rect2(39, 53, 47, 34),
-		"pieds": Vector2(63, 82),
-		"echelle": 2.0,
-		"categorie": "eau",
-		"haut": false,
-	},
-	"rocher_eau_3":
-	{
-		"fichier": "Terrain/Water/Rocks/Rocks_03.png",
-		"cellule": Vector2i(128, 128),
-		"origine": Vector2i(0, 0),
-		"ligne": 0,
-		"images": 8,
-		"boite": Rect2(29, 35, 75, 56),
-		"pieds": Vector2(66, 85),
-		"echelle": 2.0,
-		"categorie": "eau",
-		"haut": false,
-	},
-	"rocher_eau_4":
-	{
-		"fichier": "Terrain/Water/Rocks/Rocks_04.png",
-		"cellule": Vector2i(128, 128),
-		"origine": Vector2i(0, 0),
-		"ligne": 0,
-		"images": 8,
-		"boite": Rect2(20, 34, 91, 65),
-		"pieds": Vector2(65, 94),
-		"echelle": 2.0,
-		"categorie": "eau",
-		"haut": false,
-	},
-}
 
 const MAISONS: Array[String] = [
 	"maison_bleue", "maison_rouge", "maison_jaune", "maison_violette", "maison_gobelin"
@@ -492,6 +54,27 @@ const NB_DIVERS: int = 14
 const NB_PLATS_ZONE: int = 80
 const NB_PLATS_DEHORS: int = 110
 const NB_ROCHERS_EAU: int = 14
+
+# gdlint:disable=class-variable-name
+## Une tuile du pack fait 64 px ; affichée à ×2 comme les unités et la tour, elle en fait 128.
+static var CASE: int = int(_decor().get("case", 128))
+## Feuilles, cases et images du pack : `data/assets.json` (`decor`), pour qu'un autre pack ne
+## demande que de remplacer les fichiers.
+static var FEUILLE_TERRAIN: String = str(_decor().get("feuille_terrain", ""))
+static var FEUILLE_EAU: String = str(_decor().get("feuille_eau", ""))
+static var FEUILLE_ECUME: String = str(_ecume().get("feuille", ""))
+static var CASE_ECUME: int = int(_ecume().get("case", 0))
+static var IMAGES_ECUME: int = int(_ecume().get("images", 0))
+## Le contenu de l'écume dans sa case de 192 px, toutes images confondues (centré sur la case) :
+## on ne dessine que lui, le reste est transparent et coûterait du remplissage pour rien.
+static var BOITE_ECUME: Rect2 = _ecume().get("boite", Rect2())
+## Les images du pack. `cellule` : taille d'une image dans la feuille ; `origine` : coin de la
+## première image ; `ligne` : rangée de l'animation ; `images` : combien de pas ; `boite` : le
+## contenu visible dans une cellule, toutes images confondues (seul lui est dessiné) ; `pieds` :
+## le point de la cellule posé sur la position de l'objet ; `haut` : un objet qui peut cacher
+## quelqu'un, donc jamais dans la zone de marche.
+static var TYPES: Dictionary = _decor().get("types", {})
+# gdlint:enable=class-variable-name
 
 ## Cases de terre : `Vector2i` → `true`.
 var terre: Dictionary = {}
@@ -908,3 +491,12 @@ func _poser_les_rochers_d_eau(rng: RandomNumberGenerator) -> void:
 			)
 		)
 		poses += 1
+
+
+static func _decor() -> Dictionary:
+	return Assets.typee("decor")
+
+
+static func _ecume() -> Dictionary:
+	var e: Dictionary = _decor().get("ecume", {})
+	return e

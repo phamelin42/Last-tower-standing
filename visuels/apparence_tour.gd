@@ -11,8 +11,8 @@ const SUPERPOSITIONS: Array[String] = DonneesApparence.SUPERPOSITIONS
 const PALIERS_MAX := 3
 ## Opacité d'une superposition quand les six sont actives : le plancher de la règle de cumul.
 const OPACITE_MIN := 0.3
-## Agrandissement maximal, même si les données en demandaient plus (A3).
-const ECHELLE_MAX := 1.25
+## Agrandissement maximal, même si les données en demandaient plus (A3) : la borne du validateur.
+const ECHELLE_MAX := 1.0 + DonneesApparence.AGRANDISSEMENT_MAX
 ## Les bornes de teinte que le nuanceur `teinte_tour.gdshader` fait tourner : la pierre bleu-vert.
 const TEINTE_MIN := 0.375
 const TEINTE_MAX := 0.75
