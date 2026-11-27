@@ -136,3 +136,50 @@ func test_mouvement_reduit_la_fleche_sans_particule() -> void:
 	_a.tirer("fleche_marquante", TOUR, CIBLE)
 	_a.impacter("fleche_marquante", CIBLE, 0.0)
 	verifier_egal(_a.particules_actives(), 0)
+
+
+# --- Arc de remparts : rebond de quatre cibles, vulnérabilité ----------------------------------
+
+
+func test_l_arc_est_un_rebond_de_quatre_cibles_qui_rend_vulnerable() -> void:
+	_verifier_arme("arc_de_remparts", "arc_remparts", "rebond")
+	verifier_egal(int(_effet("arc_de_remparts")["cibles"]), 4, "quatre cibles")
+	verifier_egal(_statut("arc_de_remparts"), "vulnerabilite")
+
+
+func test_l_arc_dure_dix_images_et_son_trait_est_plus_chaud_et_plus_gros_que_le_ricochet() -> void:
+	verifier_proche(_a.tirer("arc_remparts", TOUR, CIBLE) / IMAGE, 10.0, 0.01)
+	_a.tirer("ricochet", TOUR, CIBLE)
+	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 2)
+	var arc: Dictionary = _a.etats("carreau")[0]
+	var ricochet: Dictionary = _a.etats("carreau")[1]
+	verifier(arc["taille"].x > ricochet["taille"].x, "plus gros")
+	verifier(arc["teinte"].r > arc["teinte"].b, "teinté de chaud")
+	verifier_egal(ricochet["teinte"], Color.WHITE, "le ricochet reste acier")
+
+
+func test_un_saut_de_l_arc_est_un_vol_de_sept_images_sans_anticipation() -> void:
+	var fin: float = _a.saut("arc_remparts", CIBLE, CIBLE + Vector2(90.0, 20.0), 4.0 * IMAGE)
+	verifier_proche(fin / IMAGE, 4.0 + AttaquesElementaires.IMAGES_VOL_DIRECT, 0.01)
+	verifier_egal(_a.etats("depart").size(), 0, "pas d'anticipation à chaque saut")
+	verifier_faux(_a.etats("carreau")[0]["visible"], "il attend la fin du saut précédent")
+	_avancer(5)
+	verifier(_a.etats("carreau")[0]["visible"], "il vole")
+	_avancer(10)
+	verifier_egal(_a.nombre_vivants(), 0, "arrivé, il disparaît")
+
+
+func test_chaque_saut_de_l_arc_mord_petit_sans_rester_plante() -> void:
+	_a.impacter("arc_remparts", CIBLE, 0.0)
+	verifier_egal(_a.etats("gerbe").size(), 1, "une gerbe")
+	verifier_egal(_a.etats("plante").size(), 0, "le trait repart : il ne reste pas planté")
+	verifier(_a.diametre_max() <= 60.0, "cible unique : au plus 60 px")
+	verifier_egal(_a.particules_actives(), 1, "des éclats")
+	_avancer(40)
+	verifier_egal(_a.nombre_vivants(), 0)
+
+
+func test_l_arc_dans_effets_envoie_un_trait_par_saut() -> void:
+	var effets: Effets = _effets_de("arc_de_remparts")
+	verifier_egal(effets.elementaires().etats("carreau").size(), 3, "un tir puis deux sauts")
+	effets.free()
