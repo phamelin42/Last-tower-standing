@@ -523,13 +523,9 @@ func _mutations_partie() -> Array[Array]:
 		["partie : hz_min nul", f, ["reseau", "hz_min"], 0, "hz_min"],
 		["partie : hz_min en chaîne", f, ["reseau", "hz_min"], "5", "hz_min"],
 		["partie : hz_min > hz_arene", f, ["reseau", "hz_min"], 16, "hz_min"],
-		[
-			"partie : probabilité de convoi < 0",
-			f,
-			["convoi", "probabilite"],
-			-0.1,
-			"convoi.probabilite"
-		],
+		["partie : convoi tous_les nul", f, ["convoi", "tous_les"], 0, "convoi.tous_les"],
+		["partie : convoi tous_les à 1", f, ["convoi", "tous_les"], 1, "convoi.tous_les"],
+		["partie : convoi tous_les décimal", f, ["convoi", "tous_les"], 2.5, "convoi.tous_les"],
 	]
 
 
