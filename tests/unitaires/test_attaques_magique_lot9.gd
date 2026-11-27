@@ -146,3 +146,44 @@ func test_mouvement_reduit_la_lueur_sans_particule() -> void:
 	_a.impacter("lueur", CIBLE, 25.0)
 	verifier_egal(_a.particules_actives(), 0)
 	verifier_egal(_a.etats("eclat_rune").size(), 1, "l'éclat reste")
+
+
+# --- Prisme de faille : cible unique, vulnérabilité ----------------------------------------------
+
+
+func test_le_prisme_de_faille_est_une_cible_unique_qui_rend_vulnerable() -> void:
+	_verifier_arme("prisme_de_faille", "prisme", "cible_unique")
+	verifier_egal(_statut("prisme_de_faille"), "vulnerabilite")
+
+
+func test_le_prisme_dure_dix_images_file_droit_et_tourne_sur_lui_meme() -> void:
+	verifier_proche(_a.tirer("prisme", TOUR, CIBLE) / IMAGE, 10.0, 0.01, "3 + 7 images")
+	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 3)
+	var prisme: Dictionary = _a.etats("prisme")[0]
+	verifier(prisme["visible"], "il vole")
+	verifier_proche(prisme["position"].y, CIBLE.y, 1.0, "droit")
+	verifier(absf(prisme["rotation"]) > 0.01, "il tourne sur lui-même")
+	verifier(_a.particules_actives() >= 1, "une traînée de reflets")
+
+
+func test_mouvement_reduit_le_prisme_ne_tourne_pas_et_n_a_pas_de_particule() -> void:
+	_a.mouvement_reduit = true
+	_a.tirer("prisme", TOUR, CIBLE)
+	_a.impacter("prisme", CIBLE, 0.0)
+	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 3)
+	verifier_proche(_a.etats("prisme")[0]["rotation"], 0.0, 0.0001, "il ne tourne pas")
+	verifier_egal(_a.particules_actives(), 0)
+
+
+func test_le_prisme_eclate_en_etoile_petit_sans_dessiner_la_marque() -> void:
+	verifier(_a.impacter("prisme", CIBLE, 0.0))
+	verifier_egal(_a.etats("eclat_prisme").size(), 1, "un éclat")
+	verifier(_a.diametre_max() <= 60.0, "cible unique : au plus 60 px")
+	verifier_egal(_a.etats("").size(), 0, "la marque reste celle d'Effets : pas d'anneau ici")
+	verifier(_a.particules_actives() >= 1, "des éclats de cristal")
+	var total: int = AttaquePrisme.SEQ_ECLAT.size()
+	var rang: int = _rang_du_pic("eclat_prisme", AttaquePrisme.IMAGE_PIC, total)
+	verifier(rang >= 0 and rang <= total / 4, "pic à l'image %d sur %d" % [rang, total])
+	_avancer(total + 30)
+	verifier_egal(_a.nombre_vivants(), 0, "tout se dissipe")
+	verifier_egal(_a.particules_actives(), 0)
