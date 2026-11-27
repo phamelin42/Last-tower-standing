@@ -35,6 +35,7 @@ Spécification : `docs/superpowers/specs/2026-11-24-jeu-tour-design.md`. Plan :
 - `visuels/` : rendu 2D pixel art (Tiny Swords), caméra, décor, effets. La correspondance entité → sprites est dans `visuels/apparence.gd`.
   Attaques d'élément (D22) : `attaques_elementaires.gd` aiguille, un fichier par élément sous `visuels/attaques/` (`AttaqueElement`) ; leurs sprites sont dessinés par `tools/dessiner_effets_attaques.gd` et un fichier de dessins par famille sous `tools/dessin/` ; les mécaniques de genre (aura, onde, saut) sont dans `visuels/mecaniques_genres.gd`. Ajouter un élément : un fichier sous `visuels/attaques/`, ses dessins, une ligne de table ; un genre posé au sol (piège, mine) s'aiguille aussi dans `Effets._tir`.
 - `ui/` : menus, salon, HUD, boutique, tableau des scores, écran de fin.
+- `progression/` : le profil local du joueur (`Profil`, `Sauvegarde` : `user://progression.json` versionné, avec copie de secours, jamais écrasé s'il vient d'une version plus récente) et l'évaluation des défis (`Defis`). Il ne lit que `data/` et le bilan de `sim/` (`Donnees`, `BilanPartie`) ; `app/progression_locale.gd` le relie à la fin de partie, chaque poste évaluant son propre bilan (un serveur dédié n'écrit rien) ; `ui/` le lit.
 - `i18n/*.csv` : tous les textes visibles (colonne `fr`).
 - `tests/` : `lanceur.gd`, `tests/unitaires/test_*.gd`, `tests/integration/`.
 - `tools/` : installeurs et `verifier.sh`.
@@ -44,6 +45,7 @@ Spécification : `docs/superpowers/specs/2026-11-24-jeu-tour-design.md`. Plan :
 - `sim/` ne dépend de rien d'autre que `data/`. Il ne connaît ni `reseau/`, ni `visuels/`, ni `ui/`.
 - `visuels/` et `ui/` lisent l'état d'arène ; ils n'écrivent jamais dans `sim/` directement.
 - `reseau/` ne parle à la simulation que par `sim/partie.gd`.
+- `progression/` ne connaît ni `reseau/`, ni `visuels/`, ni `ui/` : elle reçoit un bilan et rend des défis.
 
 ## Règles pour les agents
 
@@ -149,6 +151,10 @@ privé, lu en direct). Ses lignes vivent dans sa base, pas dans la page :
 - Une session écrit à la pilote par l'outil `mcp__claude-code-remote__send_message`, pas par `SendMessage` (erreur 401 vers une session cloud).
 - Une classe interne GDScript ne voit pas les fonctions statiques de sa classe englobante : les appeler par la classe interne elle-même ou les y dupliquer (`tools/dessin/planche_outils.gd`).
 - Une signature ajoutée à `SignaturesArmes` est utilisée en jeu par `Effets` : celles qui attendent la validation de Phil vont dans `TABLE_LOT_9`, que garde `SignaturesArmes.en_jeu` (T9.19 la lève).
+- Skins de tour (lot 11) : le filtre (`lineaire` ou `nearest`), l'échelle, les ancrages et le fanion d'un skin vivent dans `data/skins_tour.json` ; `tools/composer_skins_tour.py` les recalcule d'après le PNG et `tools/preparer_skins_realistes.py` rogne et réduit les sprites d'OpenGameArt (environ 45 000 px²) : remplacer une image puis relancer ces scripts suffit. Une planche de skins se relit à l'œil, étiquette contre image (un décalage d'une case est déjà passé inaperçu).
+- Une rangée d'interface dont le contenu change d'une offre à l'autre se construit à **structure fixe** (emplacements réutilisés, cachés ou réglés : `ReperesArme.creer_fixe`) : `test_solo` compte les nœuds avant et après « Rejouer », et chaque nœud créé par offre le fait échouer.
+- Les garde-fous de totaux du catalogue (`test_catalogue_boutique`, `test_catalogue_armes`) cassent à chaque lot qui ajoute des objets : compter les raretés de fin de partie (ancestrale, souveraine) à part de la cible D18.
+- Un `git add` avec un seul chemin inexistant n'ajoute **rien** (échec atomique) et le `git commit` qui suit n'a rien à valider : relire `git status` et `git log -1` après un `git add` de plusieurs chemins. Un `tools/verifier.sh` lancé en arrière-plan écrase son journal : attendre la fin du processus (`pgrep -f tools/verifier.sh`), pas la présence d'une ligne `FIN` d'un journal plus ancien.
 - gdlint refuse plus de 40 méthodes publiques par fichier, tests compris : un fichier de test qui grossit se répartit en plusieurs `test_*.gd` qui étendent une base à `class_name` sous `tests/outils/` (`CasAttaquesTranchant`).
 - Une bombe (genre `bombe`) n'explose qu'après son délai : la vitrine l'attend, et la fiche de son élément ne dit jamais `explosion` (c'est l'explosion du pack, en double de celle de l'élément). Un tic de zone posée n'est pas un coup de siège : ni gel ni recul (`Effets._impact_element`, `tic`).
 - Une invocation n'émet qu'un événement `tir` (de la tour à l'allié) et un `impact` par coup de l'allié : l'élément pose l'apparition à l'arrivée de son projectile (`AttaqueChaos.apparaitre`, impact à âge négatif) ; les planches carrées neuves de D22 donnent leur case et leur diamètre visible par `GeometriePlanches`, pas par des constantes (T10.4).

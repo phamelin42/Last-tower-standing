@@ -51,7 +51,35 @@ sans défense.
 Votre tour change selon ce que vous achetez : pour chaque statistique suivie (épines, PV max, mana,
 armure, esquive, régénération, vol de vie), des paliers ajoutent une superposition devant et derrière la tour.
 Ces images sont purement décoratives : elles ne changent pas les chiffres. Vous pouvez aussi
-choisir un **skin** de tour débloqué par un défi (écran « Progression »).
+choisir un **skin** de tour débloqué par un défi (voir « La progression, les défis et les skins »).
+
+## La progression, les défis et les skins
+
+- **Cinquante défis**, un par skin de tour : « Tenez jusqu’à la dixième manche », « Soyez la dernière
+  tour debout d’une partie à plusieurs », « Jouez dix parties à plusieurs »… La liste complète, avec le
+  skin que chacun débloque, est dans `docs/defis.md`. Quarante-sept défis valent en solo comme à
+  plusieurs ; trois (dernière tour debout, dix parties à plusieurs, trois fois dernière tour debout) ne
+  se jouent qu’à plusieurs.
+- **À la fin de chaque partie**, l’écran de fin vous montre le récapitulatif de votre partie et, s’il y
+  en a, les défis que vous venez de réussir et les skins qu’ils débloquent. Chaque poste lit **son**
+  bilan : en ligne, personne ne valide un défi à votre place, et un serveur dédié, qui n’a pas de joueur,
+  n’écrit aucun fichier.
+- **L’écran « Progression »** (menu principal) affiche vos statistiques (parties jouées, meilleure manche)
+  et chacun des défis, « Réussi » ou « Pas encore réussi », avec le skin qu’il débloque.
+- **Choisir son skin** : dans le salon, la liste « Skin de la tour » propose la tour d’origine et les
+  skins débloqués ; un skin verrouillé reste visible et dit le défi à réussir pour l’obtenir. Votre
+  choix est gardé dans votre profil et vu par les autres joueurs de la partie. **En solo**, il n’y a pas
+  de salon : la partie prend le skin choisi la dernière fois.
+- **Le fichier de progression** est `progression.json` dans le dossier de données de l’utilisateur de
+  Godot (`user://`) : `~/.local/share/godot/app_userdata/Last Tower Standing/` sous Linux,
+  `%APPDATA%\Godot\app_userdata\Last Tower Standing\` sous Windows,
+  `~/Library/Application Support/Godot/app_userdata/Last Tower Standing/` sous macOS. Il n’est écrit
+  qu’après un contrôle de relecture et garde une copie de secours (`progression.json.bak`) ; un fichier
+  abîmé est mis de côté (`.corrompu`) au lieu d’être écrasé, et un fichier d’une version plus récente
+  du jeu n’est jamais modifié. Un échec d’écriture ne perd rien : le défi reste à gagner à la partie
+  suivante.
+- **Les images des skins** sont des rendus réalistes d’OpenGameArt (CC0 ou CC BY 3.0) : leurs auteurs
+  et leurs licences sont dans `CREDITS.md` et `assets/tours/SOURCES.md`.
 
 ## La caméra et la mini-carte
 

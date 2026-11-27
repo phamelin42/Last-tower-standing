@@ -22,11 +22,13 @@ func _init(effets: Effets, rayons: RayonsReculs) -> void:
 func rayon(
 	type_degats: int, de: Vector2, vers: Vector2, largeur: float, signature: Dictionary, arme: int
 ) -> bool:
+	# Le rayon d'une arme de fin de partie prend la teinte de sa rareté, comme ses autres effets.
+	var teinte: Color = AttaquesElementaires.teinte_de(_effets.element_de(arme))
 	var cree: bool = _rayons.rayon(
 		Apparence.vers_pixels(de),
 		Apparence.vers_pixels(vers),
 		largeur,
-		Effets.COULEURS[type_degats]
+		(Effets.COULEURS[type_degats] as Color) * teinte
 	)
 	if _effets.element_de(arme) == "":
 		return cree

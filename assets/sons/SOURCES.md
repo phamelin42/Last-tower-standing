@@ -14,7 +14,7 @@ ffmpeg : silence de tête coupé, volume normalisé (`loudnorm`, −18 LUFS). Cr
   « CC0 ». Le choix a été fait sur le nom, la durée et le niveau des fichiers, sans les écouter ;
   les familles `laser*`, `thruster*` et `engine*`, trop marquées science-fiction, sont écartées.
 
-- Les 15 tirs des armes de fin de partie (T12.7) viennent de six packs CC0 d’OpenGameArt, licence lue
+- Les 15 tirs des armes de fin de partie (T12.7) viennent de cinq packs CC0 d’OpenGameArt, licence lue
   sur la page de chaque pack (champ « License(s) » : CC0) le 27/11/2026 ; la conversion est la même
   (Ogg Vorbis mono 44,1 kHz) ; le choix s’est fait sur le nom, la durée et le niveau, sans écoute :
   « 20 Sword Sound Effects » de StarNinjas (<https://opengameart.org/content/20-sword-sound-effects-attacks-and-clashes>),
