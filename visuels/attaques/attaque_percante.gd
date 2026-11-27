@@ -16,6 +16,12 @@ const IMAGES_OSCILLATION: int = 2
 const MULTIPLE_PLANTE_LOURD: float = 4.0
 
 
+## Le diamètre à l'écran d'un projectile planté qui garde `multiple` pixels d'écran par pixel de la
+## planche `plante`.
+func diametre_plante(multiple: float) -> float:
+	return AttaquesElementaires.visible_de("plante") * multiple
+
+
 ## Une gerbe d'éclats de bois et d'acier de `diametre` pixels.
 func gerbe(m: AttaquesElementaires, ou: Vector2, diametre: float, age: float) -> bool:
 	return not m.image_impact("gerbe", ou, diametre, SEQ_GERBE, age).is_empty()
@@ -23,14 +29,13 @@ func gerbe(m: AttaquesElementaires, ou: Vector2, diametre: float, age: float) ->
 
 ## Un projectile planté en `ou`, visible `images` images (il s'efface sur le dernier quart).
 func planter(
-	m: AttaquesElementaires, ou: Vector2, images: int, age: float, multiple: float = 0.0
+	m: AttaquesElementaires, ou: Vector2, images: int, age: float, diametre: float = -1.0
 ) -> bool:
 	var seq: Array[int] = []
 	for i: int in images:
 		seq.append(0 if i < IMAGES_OSCILLATION else 1)
-	var pixels: float = multiple if multiple > 0.0 else PlanchesEffets.echelle()
-	var diametre: float = AttaquesElementaires.visible_de("plante") * pixels
-	return not m.image_impact("plante", ou, diametre, seq, age).is_empty()
+	var voulu: float = diametre if diametre > 0.0 else diametre_plante(PlanchesEffets.echelle())
+	return not m.image_impact("plante", ou, voulu, seq, age).is_empty()
 
 
 ## Une salve d'éclats de `couleur` : `nombre` carrés, vifs et courts.

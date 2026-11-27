@@ -36,7 +36,7 @@ func impacter(
 	m: AttaquesElementaires, ou: Vector2, _rayon_px: float, _fort: bool, _de: Vector2, age: float
 ) -> bool:
 	var cree: bool = gerbe(m, ou, DIAMETRE_GERBE, age)
-	cree = planter(m, ou, IMAGES_PLANTE, age, MULTIPLE_PLANTE_LOURD) or cree
+	cree = planter(m, ou, IMAGES_PLANTE, age, diametre_plante(MULTIPLE_PLANTE_LOURD)) or cree
 	m.salve(
 		ou, EPINES, COULEUR_EPINE, 14.0 * AttaquesElementaires.IMAGE, 70.0, 160.0, Vector2.ZERO, 1.5
 	)
