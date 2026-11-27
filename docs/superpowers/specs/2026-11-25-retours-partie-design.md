@@ -3,7 +3,7 @@
 > Date : 25/11/2026. Source : 13 retours de Phil après une partie jouée sous Godot, et ses
 > réponses aux questions de cadrage le même soir. Cette conception complète la spec du jeu
 > (`2026-11-24-jeu-tour-design.md`) et l'emporte sur elle là où elles diffèrent. Elle donnera le
-> lot 8 du plan. **Validée par Phil le 25/11/2026** ; D19, D20 et D21 ajoutées le 26/11/2026, D23 le 27/11/2026.
+> lot 8 du plan. **Validée par Phil le 25/11/2026** ; D19, D20 et D21 ajoutées le 26/11/2026, D23 le 27/11/2026 (validée).
 
 ## 1. Intention
 
@@ -493,12 +493,13 @@ T8.23 (la case des réglages) du plan.
   de l'ennemi touché (des mouvements) ; il ne reste à l'impact **qu'un éclat bref** (l'éclaircissement
   de l'ennemi touché, déjà borné à trois par seconde par ennemi, WCAG 2.3.1).
 
-### 6.17 Armes de fin de partie et niveaux d'arme (D23, brouillon à valider par Phil)
+### 6.17 Armes de fin de partie et niveaux d'arme (D23, validée le 27/11/2026)
 
-> **Statut : proposition.** Rien de ce paragraphe n'est codé ni validé. Les valeurs sont des
-> propositions chiffrées, chacune avec son défaut aux §6.17.7 ; Phil tranche, puis le lot 12 du plan
-> s'exécute. D23 remplace D2 sur un seul point : un doublon ne fait plus une arme de plus, il monte
-> l'arme existante (« aucun plafond » reste vrai : le niveau n'a pas de plafond par défaut).
+> **Statut : validé par Phil le 27/11/2026** (réponses au §6.17.7 : Q1 dégâts **et** cadence par niveau,
+> Q4 plus de vente, Q6 améliorations de fin de partie aussi, le reste par défaut). Les valeurs
+> chiffrées restent des propositions à confirmer par la mesure (T12.9). D23 remplace D2 sur un seul
+> point : un doublon ne fait plus une arme de plus, il monte l'arme existante (« aucun plafond »
+> reste vrai : le niveau n'a pas de plafond par défaut).
 
 **Décision de Phil (27/11/2026)** : « Oui très bien pour les armes plus puissantes, par contre je
 vois pas bien l'intérêt de juste monter le prix des armes en double sans monter leurs stats. Autre
@@ -536,8 +537,19 @@ dans les achats de fin de partie, et d'**or qui s'accumule** (primes) quand la p
 - **Apparition** (`data/boutique.json`, `poids`) : ancestrale **dès la manche 14** (poids 4 en
   manche 14, 10 en manche 28), souveraine **dès la manche 22** (poids 2, puis 6) ; la boutique
   n'en propose pas avant, le marché noir non plus (`raretes_max` reste « rare »).
-- **Catalogue** : **15 armes**, soit 3 par type de dégâts (2 ancestrales, 1 souveraine), noms
-  originaux. Pas de nouvelle amélioration (question Q6).
+- **Catalogue d'armes** : **15 armes**, soit 3 par type de dégâts (2 ancestrales, 1 souveraine),
+  noms originaux.
+- **Améliorations de fin de partie** (Phil, Q6 : « Oui late game upgrade aussi ») : **20
+  améliorations**, une ancestrale et une souveraine par **famille des 10 épiques d'aujourd'hui**
+  (dégâts globaux, cadence, revenu, dégâts de chacun des 5 types, PV maximum, résurrection),
+  noms originaux. Valeur de l'effet **1,2 ×** (ancestrale) et **1,5 ×** (souveraine) celle de
+  l'épique de la même famille (0,35 → 0,42 et 0,525 pour un type de dégâts) ; prix dans les mêmes
+  bandes que les armes de la rareté (3 000 à 5 000 et 8 000 à 10 000 or). **Plafonds respectés** :
+  `ameliorations.facteur_degats_max` (20) borne toujours le produit des dégâts ; les nouvelles
+  améliorations de dégâts entrent dans la catégorie C des épiques (additives entre elles), pas dans
+  une catégorie multiplicative de plus ; les résurrections et le revenu gardent leurs bornes.
+  `Inventaire` empile déjà les améliorations (n exemplaires = n fois la valeur) : un test
+  vérifie que la pile d'une amélioration tardive reste dans les plafonds.
 - **Puissance** : le rendement (`Equilibrage.rendement`, dégâts par seconde par pièce d'or) d'une
   arme ancestrale vaut **1,2 ×** celui de la meilleure épique du même type, celui d'une souveraine
   **1,5 ×**. Dépenser de l'or tardif est donc toujours plus rentable que de le garder, et la
@@ -553,18 +565,25 @@ dans les achats de fin de partie, et d'**or qui s'accumule** (primes) quand la p
   Acheter une arme déjà portée **monte son niveau de 1** ; rien n'est ajouté à la liste.
   `ArmeEquipee` (recharge, mines, ondes, phase) est créée une fois par arme, pas par exemplaire :
   l'état de tir ne se multiplie plus.
-- **Gain par niveau** (proposition) : **+30 % des dégâts de base** de l'arme, **additif** :
-  dégâts du niveau n = base × (1 + 0,30 × (n − 1)). Le facteur vit dans `data/partie.json`
-  (`niveaux.gain_degats`). Seuls les **dégâts** montent (cadence, portée, nombre de projectiles,
-  durée des statuts ne bougent pas), comme le demande Phil ; les bonus de type, globaux et
-  d'améliorations s'appliquent ensuite comme aujourd'hui.
-- **Prix d'un niveau** : le **prix de l'arme** (sans surcoût, puisque le niveau fait monter les
-  dégâts). Chaque niveau vaut donc 30 % de la base pour le prix plein : une arme nouvelle (100 %
-  de la base) est **3,3 fois plus rentable qu'un niveau**, ce qui pousse à diversifier, et le
-  niveau reste le moyen de convertir de l'or quand la boutique ne propose rien de neuf.
+- **Gain par niveau** (**Phil : « 30 % is good but cadence need to get better as well »**) :
+  **+30 % des dégâts de base** de l'arme, **additif** (dégâts du niveau n = base × (1 + 0,30 ×
+  (n − 1))), **et** une cadence qui monte aussi : **+10 % de cadence par niveau**, additif
+  (cadence du niveau n = cadence de base × (1 + 0,10 × (n − 1)), s'ajoutant à la cadence des
+  améliorations). Ces deux facteurs vivent dans `data/partie.json` (`niveaux.gain_degats` 0,30 et
+  `niveaux.gain_cadence` 0,10) ; **0,10 est une valeur à confirmer par la mesure T12.9** (levier
+  de la passe d'équilibrage). La cadence totale d'une arme (améliorations et niveaux) est bornée
+  par `niveaux.cadence_max` (proposition : +300 %, soit une recharge divisée par quatre ; aucun
+  plafond de cadence n'existe aujourd'hui, voir le risque 9). Seuls les **dégâts et la cadence**
+  montent (portée, nombre de projectiles, durée des statuts ne bougent pas) ; les bonus de type,
+  globaux et d'améliorations s'appliquent ensuite comme aujourd'hui.
+- **Prix d'un niveau** : le **prix de l'arme** (sans surcoût, puisque le niveau fait monter
+  dégâts et cadence). Le premier niveau ajoute environ 43 % du débit de dégâts de base (×1,3 de
+  dégâts et ×1,1 de cadence) pour le prix plein : une arme nouvelle (100 % du débit de base)
+  reste **2,3 fois plus rentable qu'un niveau**, ce qui pousse à diversifier, et le niveau reste
+  le moyen de convertir de l'or quand la boutique ne propose rien de neuf.
 - **Plafond** : aucun niveau maximal par défaut (D2) ; le réseau borne le niveau à 255 (un octet).
-- **Vente** : vendre une arme baisse son niveau de 1 et rend `vente_ratio` du prix, jusqu'à ce
-  qu'elle disparaisse au niveau 1.
+- **Pas de vente** (Phil, Q4) : voir §6.17.4. Une arme achetée reste portée jusqu'à la fin de la
+  partie ; rien ne baisse de niveau.
 - **`copie_prochaine_offre`** : le second exemplaire gratuit devient un niveau gratuit.
 - **M5 `degats_par_exemplaire`** (2 armes) : renommé `degats_par_niveau`, même sens (ratio de la
   base par niveau au-dessus du premier, borné par `bonus_selon_stat_max`), **en plus** du gain
@@ -588,6 +607,14 @@ dans les achats de fin de partie, et d'**or qui s'accumule** (primes) quand la p
   avant de l'incrémenter (10 aujourd'hui), garder les formats précédents refusés par un test en
   boucle. La liste est plus courte (ids distincts) : le budget de 50 000 octets par client ne peut
   que baisser. `Protocole.MAX_ARMES` (255) reste la borne des ids distincts.
+- **Fin de la vente** (Phil, Q4) : `Boutique.vendre`, `Arene.vendre`, `Partie.intention_vendre`,
+  `Inventaire.prix_vente` et la clé `vente_ratio` de `data/partie.json` sont retirés ; l'intention
+  « vendre » du réseau (`Protocole`, `Client.vendre`, `Serveur`) aussi, son numéro de genre reste
+  réservé et refusé ; le bouton « Vendre » et ses textes (`BOUTIQUE_VENDRE_PRIX`,
+  `BOUTIQUE_ARME_A_VENDRE`, `i18n/textes_boutique.csv`) disparaissent, la grille des armes ne sert
+  plus qu'à lire (infobulle) ; `StrategiesJoueur` ne vend plus. Aucun défi ni `Bilan` ne lit la
+  vente (grep fait : seul un commentaire de `Economie` la cite). Les tests de la vente sont
+  inversés (« on ne peut pas vendre ») et non supprimés.
 - **Sauvegarde** : le profil enregistre des compteurs de bilan, pas l'inventaire : **aucun
   changement de format**, vérifié par un test. `Bilan.achat_arme` compte toujours un achat par
   niveau (`armes_achetees`), `armes_distinctes` ne change pas.
@@ -606,46 +633,59 @@ dans les achats de fin de partie, et d'**or qui s'accumule** (primes) quand la p
   tombe en **moins de 10 minutes** (cible souhaitée : 5) sur au moins 5 graines sur 10 ; (3) les
   cibles du robot de `docs/equilibrage.md` (D16, D17, médiane du raisonnable, victoire de la bonne
   stratégie sur 10 à 30 %) restent tenues, ou sont déplacées et justifiées dans la PR de la passe.
-- Si le boss ne tombe pas assez vite malgré des armes à ×8 : le levier est la **puissance
-  des raretés tardives** (rendement 1,5 → 2, ou plus d'armes), jamais le plafond de PV ;
-  si cela ne suffit pas, question à Phil (Q8).
+- Si le boss ne tombe pas assez vite malgré des armes à ×8 : les leviers sont le **gain de
+  cadence par niveau** (valeur à confirmer par la mesure T12.9) et la **puissance des raretés
+  tardives** (rendement 1,5 → 2, ou plus d'armes), jamais le plafond de PV ; si cela ne
+  suffit pas, question à Phil (Q8).
 
 #### 6.17.6 Risques
 
-1. **Le premier tiers de la partie s'affaiblit** : aujourd'hui, 2 exemplaires d'une arme à 100 or
-   valent +100 % de dégâts ; avec +30 % par niveau, la même dépense vaut trois fois moins. La
-   rampe D16/D17 (la tour passive tombe en manche 3, le robot « bonne » tient la manche 20)
-   se rejoue ; le gain par niveau est le premier levier (Q1).
-2. **Les robots achètent des doublons** (6 à 8 armes distinctes sur 8) : `StrategiesJoueur` est
-   à réécrire pour monter des niveaux et acheter les raretés tardives, sinon les mesures
-   comparent deux robots différents.
+1. **Le premier tiers de la partie change** : aujourd'hui, 2 exemplaires d'une arme à 100 or
+   valent +100 % de dégâts ; un niveau vaut +30 % de dégâts et +10 % de cadence, soit environ
+   ×1,43 sur le débit de dégâts de l'arme au lieu de ×2. La rampe D16/D17 (la tour passive tombe en
+   manche 3, le robot « bonne » tient la manche 20) se rejoue ; les gains par niveau sont le premier
+   levier (T12.9).
+2. **Les robots achètent des doublons et vendent** (6 à 8 armes distinctes sur 8 ; la stratégie
+   de remplacement d'arme utilise `intention_vendre`) : `StrategiesJoueur` est à réécrire pour monter des niveaux,
+   acheter les raretés tardives et ne plus vendre, sinon les mesures comparent deux robots
+   différents.
 3. **Un contenu tardif que personne ne verra** : les raretés n'apparaissent qu'à partir de la
-   manche 14 et 22 ; si la plupart des parties se terminent avant, les 15 armes sont mortes.
-   Les poids d'apparition se mesurent (nombre de parties qui voient une souveraine).
+   manche 14 et 22 ; si la plupart des parties se terminent avant, les 15 armes et les 20
+   améliorations sont mortes. Les poids d'apparition se mesurent (nombre de parties qui voient une
+   souveraine).
 4. **Protocole** : version partagée par tous les lots (deux PR parallèles l'ont déjà portée au
-   même numéro) ; le lot 12 la relit avant de l'incrémenter.
+   même numéro) ; le lot 12 la relit avant de l'incrémenter. La fin de la vente retire une
+   intention, le niveau ajoute un champ : deux montées consécutives, ou une seule si les deux
+   tâches sont intégrées ensemble.
 5. **Signatures et sons des 15 armes** (D5, D15) : un travail de rendu par arme ; défaut :
    réutiliser les familles de signatures existantes avec une teinte de fin de partie, planche à
    valider (Q5).
-6. **Tests qui figeaient « N exemplaires »** : une douzaine de fichiers lisent `armes` comme une
-   liste d'exemplaires (grep `exemplaires(`, `armes.size()`) ; ils sont inversés, pas supprimés.
+6. **Tests qui figeaient « N exemplaires » ou la vente** : une douzaine de fichiers lisent
+   `armes` comme une liste d'exemplaires (grep `exemplaires(`, `armes.size()`) et quatorze
+   fichiers touchent la vente ; ils sont inversés, pas supprimés.
 7. **Or que le robot ne dépense pas** (graine 1 : 76 509 or en manche 28) : à vérifier que ce
    n'est pas un défaut du robot (arsenal plafonné à 8, `ARMES_VISEES`) avant de conclure sur
    l'économie.
+8. **Sans vente, un mauvais achat est définitif** : la boutique n'a plus de sortie pour une arme
+   inutile ; le niveau et le choix des offres compensent, à vérifier à la mesure (la tour
+   passive, D16, ne change pas).
+9. **Pas de plafond de cadence dans les données** : `StatsTour.cadence` n'est borné nulle part
+   (la durée de recharge n'a pas de plancher) ; les niveaux y ajoutent un bonus, donc un plafond
+   `niveaux.cadence_max` est ajouté (T12.1), sans quoi l'arme de niveau élevé tirerait à chaque pas.
 
-#### 6.17.7 Questions pour Phil, avec leur défaut
+#### 6.17.7 Réponses de Phil (27/11/2026) et défauts retenus
 
-| #   | Question                                                  | Défaut proposé                                                                        |
-| --- | --------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| Q1  | Gain d'un niveau, additif ou multiplicatif, et de combien | **+30 % de la base, additif**                                                         |
-| Q2  | Un niveau maximal                                         | **Aucun** (D2), 255 pour le réseau                                                    |
-| Q3  | Prix d'un niveau                                          | **Le prix de l'arme**, sans surcoût                                                   |
-| Q4  | Vendre une arme                                           | **Baisse d'un niveau**, rend `vente_ratio` du prix                                    |
-| Q5  | Effets et sons des 15 nouvelles armes                     | **Familles existantes teintées**, planche à valider avant l'intégration               |
-| Q6  | Améliorations de fin de partie (mêmes raretés)            | **Aucune** : seules les armes montent en rareté                                       |
-| Q7  | Noms des deux raretés                                     | **ancestrale**, **souveraine**                                                        |
-| Q8  | Si le boss ne tombe pas assez vite malgré les armes à ×8  | **Renforcer les raretés tardives**, jamais plafonner les PV ; sinon redemander à Phil |
-| Q9  | Les doublons déjà achetés d'une partie en cours           | Sans objet : une partie n'est pas sauvegardée ; **aucune migration**                  |
+| #   | Question                                                 | Réponse / défaut retenu                                                                                                 |
+| --- | -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| Q1  | Gain d'un niveau                                         | **Phil : « 30 % is good but cadence need to get better as well »** : +30 % de dégâts **et** +10 % de cadence par niveau |
+| Q2  | Un niveau maximal                                        | Défaut : **aucun** (D2), 255 pour le réseau                                                                             |
+| Q3  | Prix d'un niveau                                         | Défaut : **le prix de l'arme**, sans surcoût                                                                            |
+| Q4  | Vendre une arme                                          | **Phil : « No selling in game »** : la vente disparaît du jeu                                                           |
+| Q5  | Effets et sons des 15 nouvelles armes                    | Défaut : **familles existantes teintées**, planche à valider avant l'intégration                                        |
+| Q6  | Améliorations de fin de partie                           | **Phil : « Oui late game upgrade aussi »** : 20 améliorations tardives (§6.17.2)                                        |
+| Q7  | Noms des deux raretés                                    | Défaut : **ancestrale**, **souveraine**                                                                                 |
+| Q8  | Si le boss ne tombe pas assez vite malgré les armes à ×8 | Défaut : **renforcer les raretés tardives**, jamais plafonner les PV ; sinon redemander à Phil                          |
+| Q9  | Les doublons déjà achetés d'une partie en cours          | Sans objet : une partie n'est pas sauvegardée ; **aucune migration**                                                    |
 
 ## 7. Découpage proposé pour le plan (lot 8)
 
