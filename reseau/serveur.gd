@@ -185,8 +185,15 @@ func rouvrir_salon() -> void:
 	_tampons = {}
 	_acc_global = 0.0
 	_taille_globale = 0
+	# Les pairs de la partie précédente reçoivent le salon neuf, où ils ne figurent pas : leur client
+	# y répond par un bonjour (`Client._a_la_reception_salon`). Le délai de bonjour repart de zéro,
+	# sans quoi ils seraient coupés quelques secondes après la fin de la partie.
+	var octets := salon.vers_octets()
 	for pair: int in _pairs:
-		(_pairs[pair] as _Pair).enregistre = false
+		var p := _pairs[pair] as _Pair
+		p.enregistre = false
+		p.age = 0.0
+		_envoyer(pair, "rpc_salon", octets)
 
 
 func arreter() -> void:
@@ -286,7 +293,9 @@ func pair_deconnecte(pair: int) -> void:
 
 
 func _couper(pair: int) -> void:
-	if _actif and _peer != null:
+	# Le délai ne se réarme pas : un pair qui renvoie un bonjour toutes les demi-secondes ne
+	# repoussait jamais sa propre coupure.
+	if _actif and _peer != null and not _coupures.has(pair):
 		_coupures[pair] = DELAI_COUPURE_S
 	pair_deconnecte(pair)
 
@@ -307,7 +316,8 @@ func _a_la_reception_intention(pair: int, octets: PackedByteArray) -> void:
 
 ## Vrai si le pair est admis au salon.
 func traiter_bonjour(pair: int, octets: PackedByteArray) -> bool:
-	if _donnees == null:
+	if _donnees == null or _coupures.has(pair):
+		# Un pair en cours de coupure n'est plus servi : ni décodage, ni nouvelle réponse.
 		return false
 	var p := _pairs.get(pair) as _Pair
 	if p == null:
