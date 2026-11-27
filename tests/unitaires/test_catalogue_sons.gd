@@ -56,6 +56,19 @@ func test_chaque_son_du_catalogue_a_son_fichier_sauf_l_ambiance() -> void:
 		)
 
 
+## Sens inverse : un fichier sans identifiant n'est jamais joué (28 `tir_*.ogg` avaient perdu la
+## première lettre de l'id de leur arme).
+func test_chaque_fichier_ogg_du_dossier_correspond_a_un_son_du_catalogue() -> void:
+	var connus: Dictionary = {}
+	for identifiant: String in CatalogueSons.tous():
+		connus[CatalogueSons.chemin(identifiant).get_file()] = true
+	var fichiers: PackedStringArray = DirAccess.get_files_at(CatalogueSons.dossier)
+	verifier(fichiers.size() > 0, "le dossier des sons est lisible")
+	for fichier: String in fichiers:
+		if fichier.get_extension() == "ogg":
+			verifier(connus.has(fichier), "%s : aucun identifiant du catalogue" % fichier)
+
+
 func _ids_armes() -> PackedStringArray:
 	var ids: PackedStringArray = []
 	for id: Variant in _donnees.armes:
