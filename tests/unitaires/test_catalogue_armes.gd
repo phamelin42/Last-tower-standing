@@ -3,8 +3,11 @@ extends CasDeTest
 ## 6 peu communes, 6 rares et 2 épiques, avec les mécaniques que le plan impose à chaque type.
 ## Les cinq types sont terminés (T9.13 à T9.17) : boucle sur `Types.NOMS_TYPES`.
 
-const RARETES: Array[String] = ["commune", "peu_commune", "rare", "epique"]
-const REPARTITION: Array[int] = [1, 6, 6, 2]
+const RARETES: Array[String] = [
+	"commune", "peu_commune", "rare", "epique", "ancestrale", "souveraine"
+]
+## Quinze armes d'avant (D18) puis, par type, deux ancestrales et une souveraine (T12.7).
+const REPARTITION: Array[int] = [1, 6, 6, 2, 2, 1]
 const MANA_MAX_REFERENCE := 100.0
 const PORTEES: Array[int] = [500, 750, 1000, 1250]
 
@@ -130,10 +133,10 @@ func _porte(arme: Dictionary, genre: String, nom: String) -> bool:
 	return false
 
 
-func test_la_cible_d18_quinze_armes_par_type_reparties_1_6_6_2() -> void:
+func test_la_cible_dix_huit_armes_par_type_reparties_1_6_6_2_2_1() -> void:
 	for type_degats in Types.NOMS_TYPES:
 		var du_type := _du_type(type_degats)
-		verifier_egal(du_type.size(), 15, "%s : nombre d'armes" % type_degats)
+		verifier_egal(du_type.size(), 18, "%s : nombre d'armes" % type_degats)
 		for k in RARETES.size():
 			var n := 0
 			for arme in du_type:
@@ -313,11 +316,11 @@ func test_chaos_a_deux_invocations_parmi_les_nouvelles_armes() -> void:
 	verifier(n >= 2, "chaos : %d invocations" % n)
 
 
-func test_la_cible_d18_est_75_armes_quinze_par_type_1_6_6_2_en_boucle_sur_les_cinq_types() -> void:
+func test_la_cible_est_90_armes_dix_huit_par_type_en_boucle_sur_les_cinq_types() -> void:
 	verifier_egal(Types.NOMS_TYPES.size(), 5, "cinq types de dégâts")
-	verifier_egal(armes.size(), 75, "75 armes au catalogue")
+	verifier_egal(armes.size(), 90, "90 armes au catalogue (75 et les 15 de fin de partie)")
 	for type_degats in Types.NOMS_TYPES:
-		verifier_egal(_du_type(type_degats).size(), 15, "%s : quinze armes" % type_degats)
+		verifier_egal(_du_type(type_degats).size(), 18, "%s : dix-huit armes" % type_degats)
 
 
 ## M1 à M10 du lot 9 : chacune est portée par au moins une arme du catalogue.

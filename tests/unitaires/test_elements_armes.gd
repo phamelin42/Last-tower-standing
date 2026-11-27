@@ -118,8 +118,13 @@ func test_toute_arme_en_jeu_a_un_element_et_toute_arme_a_element_est_en_jeu() ->
 
 func test_chacune_des_armes_du_catalogue_a_exactement_son_element() -> void:
 	var donnees: Donnees = Donnees.charger()
-	verifier_egal(ATTENDU.size(), donnees.armes.size(), "autant d'éléments que d'armes")
+	# Les armes de fin de partie (T12.7) attendent leur élément : elles n'en ont pas encore.
+	var attendues: int = donnees.armes.size() - SignaturesArmes.TABLE_LOT_12.size()
+	verifier_egal(ATTENDU.size(), attendues, "autant d'éléments que d'armes à élément")
 	for id: Variant in donnees.armes:
+		if SignaturesArmes.TABLE_LOT_12.has(String(id)):
+			verifier_egal(ElementsArmes.de(String(id)), "", "%s : pas encore d'élément" % id)
+			continue
 		verifier(ATTENDU.has(String(id)), "%s : pas d'élément attendu" % id)
 		verifier_egal(ElementsArmes.de(String(id)), String(ATTENDU[String(id)]), "%s" % id)
 		verifier(ElementsArmes.de(String(id)) != "", "%s : sans élément" % id)
