@@ -598,7 +598,9 @@ func avancer(
 			degats_tour += degats[i] * deg_mult * _facteur_malediction(i)
 			if corps_a_corps:
 				attaquants.append(i)
-			cd = intervalle[i]
+			# `+=` : le reste du pas (cd ≤ 0) compte pour le coup suivant ; `= intervalle` le perdait et
+			# ralentissait la cadence réelle sous celle des données.
+			cd += intervalle[i]
 		attaque_cd[i] = maxf(cd, 0.0)
 	resultat["degats_tour"] = degats_tour
 	resultat["siphon_mana"] = _siphon_mana_pas

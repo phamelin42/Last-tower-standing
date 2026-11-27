@@ -10,7 +10,7 @@ const DT := 0.05
 const GRAINE := 7
 const PV := 1.0e9
 ## Une attaque tous les deux pas de 0,05 s.
-const CADENCE_TEST := 16.0
+const CADENCE_TEST := 20.0
 const PAS := 200
 const DEGATS := 100.0
 ## Les quatre couches, chacune poussée à son maximum.
@@ -75,7 +75,7 @@ func _perdu_avec(couches: Array[String], cac: bool = true) -> float:
 
 
 func _brut() -> float:
-	return DEGATS * float(PAS) / 2.0
+	return DEGATS * float(PAS)
 
 
 func test_la_donnee_est_un_ratio_strictement_inferieur_a_un() -> void:
@@ -127,8 +127,7 @@ func test_la_mana_absorbe_apres_le_plancher() -> void:
 	a.ennemis.ajouter(0, Vector2(100, 0), PV, 0.0, DEGATS, 40.0, CADENCE_TEST, 0, 4)
 	var avant_pv := a.pv
 	var avant_mana := a.mana
-	for _i: int in 2:
-		a.avancer(DT)
+	a.avancer(DT)
 	# Premier pas : une attaque de 100 → plancher 15 → absorbés par la mana (30 disponibles).
 	verifier_proche(avant_mana - a.mana, 15.0, 0.1, "la mana absorbe le plancher")
 	verifier_proche(avant_pv - a.pv, 0.0, 0.01, "aucun PV perdu tant que la mana tient")

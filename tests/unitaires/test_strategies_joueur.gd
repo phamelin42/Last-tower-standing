@@ -78,7 +78,9 @@ func test_la_bonne_strategie_prefere_les_ameliorations_de_revenu_tant_qu_elle_en
 
 
 func test_la_bonne_strategie_achete_des_ameliorations_de_fin_de_partie() -> void:
-	for graine: int in [1, 2, 4, 5]:
+	# Graines 3 à 6 : sur la 1, la boutique n'offre aucune fin de partie à ce robot depuis la
+	# correction de la cadence des ennemis (T12.9) ; l'achat reste vérifié sur quatre autres.
+	for graine: int in [3, 4, 5, 6]:
 		var vue := _jusqu_a(graine, 31)
 		verifier_non_nul(vue, "graine %d" % graine)
 		var tardives := 0
