@@ -158,3 +158,70 @@ func test_mouvement_reduit_les_ruines_sans_particule() -> void:
 	verifier(_a.etats("cratere").size() > 0, "le cœur reste")
 	_avancer(120)
 	verifier_egal(_a.nombre_vivants(), 0)
+
+
+# --- Salve du rempart : bombe, brûlure ------------------------------------------------------------
+
+
+func test_la_salve_est_une_bombe_de_siege_qui_brule() -> void:
+	_verifier_arme("salve_du_rempart", "salve", "bombe")
+	verifier_egal(_statut("salve_du_rempart"), "brulure")
+
+
+func test_la_bombe_de_la_salve_est_lancee_en_cloche_teintee_et_arrive_en_quatorze_images() -> void:
+	verifier_proche(_a.tirer("salve", TOUR, CIBLE) / IMAGE, 14.0, 0.01, "3 + 11 images")
+	verifier_egal(_a.etats("ombre").size(), 1, "l'ombre suit la cloche")
+	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 6)
+	var bombe: Dictionary = _a.etats("bombe")[0]
+	verifier(bombe["visible"], "elle vole")
+	verifier(bombe["teinte"] != Color.WHITE, "teintée : on ne la prend pas pour une autre bombe")
+	verifier(bombe["position"].y < CIBLE.y - 10.0, "elle passe au-dessus de la ligne de tir")
+
+
+func test_la_salve_n_explose_pas_a_la_pose_et_explose_une_seule_fois_a_l_impact() -> void:
+	var effets: Effets = _effets_neuf()
+	effets.ajouter(_evenement("salve_du_rempart", "tir"))
+	for _i: int in 40:
+		effets.avancer(IMAGE)
+	verifier_egal(effets.elementaires().etats("pop_petard").size(), 0, "rien à la pose")
+	verifier_faux(effets.formes_vivantes().has("explosion"), "pas d'explosion du pack à la pose")
+	effets.ajouter(_evenement("salve_du_rempart", "impact"))
+	verifier(effets.elementaires().etats("pop_petard").size() > 0, "la salve de pops")
+	verifier_faux(effets.formes_vivantes().has("explosion"), "jamais deux explosions")
+	verifier_faux(AttaquesElementaires.explosion_du_pack("salve"), "l'élément porte l'explosion")
+	effets.free()
+
+
+func test_la_salve_eclate_en_pops_dont_aucun_ne_depasse_le_rayon_reel_et_gele() -> void:
+	var rayon: float = _rayon_px("salve_du_rempart")
+	verifier(_a.impacter("salve", CIBLE, rayon, true))
+	verifier(_a.etats("pop_petard").size() > 1, "plusieurs pops : une salve")
+	verifier_proche(_a.diametre_max(), rayon * 2.0, rayon * 0.2, "le plus grand est au rayon")
+	verifier(_a.gel_restant() > 0.0, "coup de siège : le gel visuel")
+	_avancer(10)
+	var visibles: int = 0
+	for pop: Dictionary in _a.etats("pop_petard"):
+		if not pop["visible"]:
+			continue
+		visibles += 1
+		var d: float = (pop["position"] as Vector2).distance_to(CIBLE) + pop["diametre"] * 0.5
+		verifier(d <= rayon + 1.0, "tout reste dans le rayon réel")
+	verifier(visibles > 1, "la salve est sortie")
+
+
+func test_le_grand_pop_de_la_salve_est_au_pic_dans_le_premier_quart() -> void:
+	_a.impacter("salve", CIBLE, 100.0, true)
+	var total: int = 12
+	var rang: int = _rang_du_pic("pop_petard", int(PIC["pop_petard"]), total)
+	verifier(rang >= 0 and rang <= total / 4, "pic à l'image %d sur %d" % [rang, total])
+
+
+func test_mouvement_reduit_la_salve_sans_particule_ni_gel() -> void:
+	_a.mouvement_reduit = true
+	_a.tirer("salve", TOUR, CIBLE)
+	_a.impacter("salve", CIBLE, 100.0, true)
+	verifier_egal(_a.particules_actives(), 0)
+	verifier_egal(_a.gel_restant(), 0.0)
+	verifier(_a.etats("pop_petard").size() > 0, "les pops restent")
+	_avancer(120)
+	verifier_egal(_a.nombre_vivants(), 0)

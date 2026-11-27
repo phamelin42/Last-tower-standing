@@ -72,4 +72,5 @@ static func scripts() -> Array[GDScript]:
 		AttaqueEcrasement,
 		AttaqueColosse,
 		AttaqueRuines,
+		AttaqueSalve,
 	]
