@@ -105,3 +105,59 @@ func test_le_disque_de_la_braise_pulse_et_se_fige_en_mouvement_reduit() -> void:
 		_poses.avancer(0.05)
 		images[_poses.image_disque(0)] = true
 	verifier_egal(images.size(), 1, "figé en mouvement réduit")
+
+
+# --- La bombe de la vue apparaît à l'arrivée du projectile ----------------------------------
+
+
+func _tir_de_bombe(id: String) -> Dictionary:
+	var vitrine: VitrineArmes = VitrineArmes.new()
+	vitrine.armes = [id] as Array[String]
+	var tir: Dictionary = vitrine.evenement_de(id, "tir")
+	vitrine.free()
+	return tir
+
+
+## Pose la bombe de `id` dans la vue et rend les images (à 60 i/s) avant qu'elle apparaisse, -1 si
+## elle n'apparaît pas en `max_images`.
+func _images_avant_apparition(id: String, reduit: bool, avec_tir: bool) -> int:
+	var effets: Effets = Effets.new()
+	effets.catalogue = _donnees.ids_catalogue
+	effets.mouvement_reduit = reduit
+	arbre.root.add_child(effets)
+	_poses.vider()
+	_poses.mouvement_reduit = reduit
+	var tir: Dictionary = _tir_de_bombe(id)
+	if avec_tir:
+		effets.ajouter(tir)
+	var bombe: Dictionary = {"pos": tir["vers"], "rayon": 90.0, "reste": 2.0}
+	_poses.afficher(_vue([], [bombe]), effets)
+	var rang: int = -1
+	for i: int in 40:
+		if _poses.nombre_bombes_visibles() > 0:
+			rang = i
+			break
+		effets.avancer(1.0 / 60.0)
+		_poses.avancer(1.0 / 60.0)
+	effets.free()
+	return rang
+
+
+func test_la_bombe_de_la_vue_attend_l_arrivee_du_projectile_de_l_element() -> void:
+	var arrivee: int = (
+		AttaquesElementaires.IMAGES_ANTICIPATION + AttaquesElementaires.IMAGES_VOL_CLOCHE
+	)
+	for reduit: bool in [false, true]:
+		var rang: int = _images_avant_apparition("baril_a_retardement", reduit, true)
+		verifier(abs(rang - arrivee) <= 1, "réduit %s : apparaît à l'arrivée (%d)" % [reduit, rang])
+	var direct: int = (
+		AttaquesElementaires.IMAGES_ANTICIPATION + AttaquesElementaires.IMAGES_VOL_DIRECT
+	)
+	var obus: int = _images_avant_apparition("obusier_de_breche", false, true)
+	verifier(abs(obus - direct) <= 1, "l'obus arrive en vol droit (%d)" % obus)
+
+
+func test_une_bombe_sans_projectile_apparait_tout_de_suite() -> void:
+	verifier_egal(_images_avant_apparition("baril_a_retardement", false, false), 0, "pas de tir")
+	_poses.afficher(_vue([], [_bombe(2.0)]))
+	verifier_egal(_poses.nombre_bombes_visibles(), 1, "sans Effets non plus")

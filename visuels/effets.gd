@@ -683,6 +683,20 @@ func impacter_arme(
 	return true
 
 
+## Le temps de vol qui reste au projectile d'une bombe qui retombe en `ou` (unités de jeu), 0 s'il
+## n'y en a pas : la vue n'y pose la bombe qu'à son arrivée.
+func vol_restant(ou: Vector2) -> float:
+	var point: Vector2 = Apparence.vers_pixels(ou)
+	var reste: float = 0.0
+	for tir: Dictionary in _tirs_en_vol:
+		if (
+			String(tir["genre"]) == "bombe"
+			and (tir["arrivee"] as Vector2).distance_to(point) <= TOLERANCE_LIEN
+		):
+			reste = maxf(reste, float(tir["reste"]))
+	return reste
+
+
 ## Le temps de vol qui reste au projectile que cet impact attend, -1 s'il n'y en a pas. Un tir ne
 ## retient qu'un impact.
 func _reprendre_tir(type_degats: int, genre: String, arme: int, arrivee: Vector2) -> float:

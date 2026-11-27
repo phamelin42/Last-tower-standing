@@ -116,6 +116,14 @@ func taille_disque(i: int) -> Vector2:
 	return Vector2(cote, cote)
 
 
+## Les bombes que la vue dessine : celles dont le projectile est arrivé.
+func nombre_bombes_visibles() -> int:
+	var n: int = 0
+	for bombe: Dictionary in _bombes:
+		n += 1 if float(bombe["attente"]) <= 0.0 else 0
+	return n
+
+
 func position_bombe(i: int) -> Vector2:
 	return (
 		Apparence.vers_pixels(_bombes[i]["pos"]) if i >= 0 and i < _bombes.size() else Vector2.ZERO
@@ -157,8 +165,9 @@ func echelle_bombe(i: int) -> float:
 	return moyenne * (1.0 + PULSATION * sin(float(_bombes[i]["phase"])))
 
 
-## Pose les zones et les bombes de `vue` ; les autres disparaissent.
-func afficher(vue: VueArene) -> void:
+## Pose les zones et les bombes de `vue` ; les autres disparaissent. `effets` dit si le projectile
+## d'une bombe est encore en vol : elle n'apparaît qu'à son arrivée (sans projectile : de suite).
+func afficher(vue: VueArene, effets: Effets = null) -> void:
 	_zones.clear()
 	for zone: Dictionary in vue.zones.slice(0, VueArene.ZONES_MAX):
 		(
@@ -183,6 +192,7 @@ func afficher(vue: VueArene) -> void:
 			"reste": bombe["reste"],
 			"pic": bombe["reste"],
 			"phase": 0.0,
+			"attente": 0.0 if effets == null else effets.vol_restant(bombe["pos"]),
 		}
 		for k: int in avant.size():
 			var vieille: Dictionary = avant[k]
@@ -193,6 +203,7 @@ func afficher(vue: VueArene) -> void:
 				reprises[k] = true
 				neuve["pic"] = maxf(float(vieille["pic"]), float(bombe["reste"]))
 				neuve["phase"] = vieille["phase"]
+				neuve["attente"] = vieille["attente"]
 				break
 		_bombes.append(neuve)
 	_ecoule = 0.0
@@ -204,6 +215,8 @@ func avancer(delta: float) -> void:
 		return
 	_ecoule += delta
 	_horloge += delta
+	for bombe: Dictionary in _bombes:
+		bombe["attente"] = maxf(float(bombe["attente"]) - delta, 0.0)
 	for i: int in _bombes.size():
 		var battement: float = lerpf(BATTEMENT_MIN, BATTEMENT_MAX, avancement_bombe(i))
 		_bombes[i]["phase"] = float(_bombes[i]["phase"]) + TAU * battement * delta
@@ -281,6 +294,8 @@ func _dessiner_disque(i: int, centre: Vector2, alpha: float) -> void:
 
 
 func _dessiner_bombe(i: int) -> void:
+	if float(_bombes[i]["attente"]) > 0.0:
+		return
 	var centre: Vector2 = position_bombe(i)
 	var rayon: float = rayon_bombe(i)
 	var avance: float = avancement_bombe(i)
