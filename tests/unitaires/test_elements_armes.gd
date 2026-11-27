@@ -78,6 +78,21 @@ const ATTENDU: Dictionary = {
 	"coupe_d_oubli": "coupe",
 	"legion_de_cendre": "legion",
 	"tempete_de_malefices": "malefices",
+	"lame_des_aieux": "lame_des_aieux",
+	"ouragan_de_lames": "ouragan_de_lames",
+	"faux_du_dernier_jour": "faux_du_dernier_jour",
+	"carquois_des_ancetres": "carquois_des_ancetres",
+	"epine_de_mille_ans": "epine_de_mille_ans",
+	"pique_du_souverain": "pique_du_souverain",
+	"sceptre_des_astres": "sceptre_des_astres",
+	"sablier_d_aurore": "sablier_d_aurore",
+	"oeil_du_firmament": "oeil_du_firmament",
+	"catapulte_des_anciens": "catapulte_des_anciens",
+	"lance_braise_du_conquerant": "lance_braise_du_conquerant",
+	"canon_du_dernier_rempart": "canon_du_dernier_rempart",
+	"urne_des_mille_ombres": "urne_des_mille_ombres",
+	"pendule_du_desordre": "pendule_du_desordre",
+	"couronne_du_vide": "couronne_du_vide",
 }
 
 
@@ -118,13 +133,8 @@ func test_toute_arme_en_jeu_a_un_element_et_toute_arme_a_element_est_en_jeu() ->
 
 func test_chacune_des_armes_du_catalogue_a_exactement_son_element() -> void:
 	var donnees: Donnees = Donnees.charger()
-	# Les armes de fin de partie (T12.7) attendent leur élément : elles n'en ont pas encore.
-	var attendues: int = donnees.armes.size() - SignaturesArmes.TABLE_LOT_12.size()
-	verifier_egal(ATTENDU.size(), attendues, "autant d'éléments que d'armes à élément")
+	verifier_egal(ATTENDU.size(), donnees.armes.size(), "autant d'éléments que d'armes")
 	for id: Variant in donnees.armes:
-		if SignaturesArmes.TABLE_LOT_12.has(String(id)):
-			verifier_egal(ElementsArmes.de(String(id)), "", "%s : pas encore d'élément" % id)
-			continue
 		verifier(ATTENDU.has(String(id)), "%s : pas d'élément attendu" % id)
 		verifier_egal(ElementsArmes.de(String(id)), String(ATTENDU[String(id)]), "%s" % id)
 		verifier(ElementsArmes.de(String(id)) != "", "%s : sans élément" % id)

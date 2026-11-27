@@ -153,6 +153,9 @@ func test_une_arme_de_chaos_ne_partage_son_impact_avec_aucune_autre_arme() -> vo
 	for element: String in AttaquesElementaires.registre():
 		if not _est_chaos(element):
 			var el: AttaqueElement = AttaquesElementaires.registre()[element]
+			# Un élément de fin de partie reprend les planches de sa famille, teintées (T12.8).
+			if el is AttaqueTardive:
+				continue
 			for planche: String in el.visibles():
 				planches[planche] = true
 	for id: String in ARMES:

@@ -25,6 +25,12 @@ func conf() -> Dictionary:
 	return {}
 
 
+## La teinte que `AttaquesElementaires` applique à tout ce que cet élément crée (blanc sans) : les
+## éléments de fin de partie (`AttaqueTardive`) y mettent celle de leur rareté.
+func teinte() -> Color:
+	return Color.WHITE
+
+
 ## Taille d'une image des planches propres à cet élément, en pixels : celles que
 ## `data/assets.json` lui attribue (`effets.maison.elements`). Un élément dont les planches sont
 ## carrées les lit sur les images (`AttaqueChaos.cases`) et ajoute celles-là.

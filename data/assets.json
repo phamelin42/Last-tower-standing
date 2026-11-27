@@ -1381,6 +1381,84 @@
     "bandeau": {
       "largeur": 64,
       "hauteur": 16
+    },
+    "raretes_tardives": {
+      "ancestrale": {
+        "teinte": [
+          1.0,
+          0.82,
+          0.45
+        ]
+      },
+      "souveraine": {
+        "teinte": [
+          1.0,
+          0.55,
+          0.62
+        ]
+      }
+    },
+    "familles_tardives": {
+      "lame_des_aieux": {
+        "famille": "lame",
+        "rarete": "ancestrale"
+      },
+      "ouragan_de_lames": {
+        "famille": "rasoir",
+        "rarete": "ancestrale"
+      },
+      "faux_du_dernier_jour": {
+        "famille": "guillotine",
+        "rarete": "souveraine"
+      },
+      "carquois_des_ancetres": {
+        "famille": "carquois",
+        "rarete": "ancestrale"
+      },
+      "epine_de_mille_ans": {
+        "famille": "mur_pointes",
+        "rarete": "ancestrale"
+      },
+      "pique_du_souverain": {
+        "famille": "couronne_pointes",
+        "rarete": "souveraine"
+      },
+      "sceptre_des_astres": {
+        "famille": "tempete",
+        "rarete": "ancestrale"
+      },
+      "sablier_d_aurore": {
+        "famille": "rune_veille",
+        "rarete": "ancestrale"
+      },
+      "oeil_du_firmament": {
+        "famille": "nova_celeste",
+        "rarete": "souveraine"
+      },
+      "catapulte_des_anciens": {
+        "famille": "trebuchet",
+        "rarete": "ancestrale"
+      },
+      "lance_braise_du_conquerant": {
+        "famille": "baril",
+        "rarete": "ancestrale"
+      },
+      "canon_du_dernier_rempart": {
+        "famille": "colosse",
+        "rarete": "souveraine"
+      },
+      "urne_des_mille_ombres": {
+        "famille": "coupe",
+        "rarete": "ancestrale"
+      },
+      "pendule_du_desordre": {
+        "famille": "horloge",
+        "rarete": "ancestrale"
+      },
+      "couronne_du_vide": {
+        "famille": "ruines",
+        "rarete": "souveraine"
+      }
     }
   },
   "ui": {
