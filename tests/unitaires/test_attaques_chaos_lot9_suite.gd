@@ -5,7 +5,6 @@ extends CasAttaquesChaosLot9
 
 const APPARITIONS: Dictionary = {"urne": "apparition_ombre", "archere": "apparition_spectre"}
 
-
 # --- Invocation : l'apparition d'un allié ---------------------------------------------------------
 
 
@@ -51,8 +50,10 @@ func test_l_urne_et_l_archere_n_ont_ni_la_meme_apparition_ni_le_meme_coup() -> v
 	verifier(String(APPARITIONS["urne"]) != String(APPARITIONS["archere"]))
 	verifier(_impact("urne_des_ombres") != _impact("archere_fantome"))
 	verifier(
-		AttaquesElementaires.planche_projectile("urne")
-		!= AttaquesElementaires.planche_projectile("archere")
+		(
+			AttaquesElementaires.planche_projectile("urne")
+			!= AttaquesElementaires.planche_projectile("archere")
+		)
 	)
 
 
@@ -135,8 +136,10 @@ func test_deux_armes_de_chaos_ne_produisent_jamais_le_meme_rendu() -> void:
 			var a: AttaqueElement = AttaquesElementaires.registre()[_element(String(ids[i]))]
 			var b: AttaqueElement = AttaquesElementaires.registre()[_element(String(ids[j]))]
 			verifier(
-				String(a.conf()["projectile"]) != String(b.conf()["projectile"])
-				or String(a.conf()["projectile"]) == "",
+				(
+					String(a.conf()["projectile"]) != String(b.conf()["projectile"])
+					or String(a.conf()["projectile"]) == ""
+				),
 				"%s et %s : même projectile" % [ids[i], ids[j]]
 			)
 			verifier(

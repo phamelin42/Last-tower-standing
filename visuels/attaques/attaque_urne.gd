@@ -34,9 +34,7 @@ func visibles() -> Dictionary:
 	return mesures(["apparition_ombre", "eclat_ombre"])
 
 
-func suivre_vol(
-	m: AttaquesElementaires, vol: Dictionary, attente: float, duree_vol: float
-) -> void:
+func suivre_vol(m: AttaquesElementaires, vol: Dictionary, attente: float, duree_vol: float) -> void:
 	apparaitre(m, vol, attente, duree_vol, "apparition_ombre", DIAMETRE_APPARITION)
 
 

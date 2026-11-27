@@ -13,7 +13,9 @@ const CONF: Dictionary = {
 	"fige_reduit": true,
 }
 ## Le nuage s'attarde : trois images de montée, le pic au troisième rang, puis un long fondu.
-const SEQ_NUAGE: Array[int] = [0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3]
+const SEQ_NUAGE: Array[int] = [
+	0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3
+]
 const IMAGES_ANNEAU_ZONE: int = 14
 const FLOCONS: int = 6
 const COULEUR_FLOCON := Color(0.7, 0.68, 0.7)

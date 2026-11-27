@@ -61,7 +61,9 @@ func test_la_geometrie_des_planches_d_impact_se_lit_sur_les_fichiers() -> void:
 		)
 		var el: AttaqueElement = AttaquesElementaires.registre()[_element(id)]
 		verifier_egal(
-			el.planches()[planche], Vector2i(img.get_height(), img.get_height()), "case de %s" % planche
+			el.planches()[planche],
+			Vector2i(img.get_height(), img.get_height()),
+			"case de %s" % planche
 		)
 		verifier_egal(
 			AttaquesElementaires.visible_de(planche),
@@ -119,7 +121,9 @@ func test_l_impact_est_au_pic_dans_le_premier_quart_de_sa_duree() -> void:
 		verifier(_dessiner(id), "%s : un effet est créé" % id)
 		var total: int = int(ARMES[id]["total"])
 		var rang: int = _rang_du_pic(_impact(id), _image_du_pic(_impact(id)), total)
-		verifier(rang >= 0 and rang <= total / 4, "%s : pic à l'image %d sur %d" % [id, rang, total])
+		verifier(
+			rang >= 0 and rang <= total / 4, "%s : pic à l'image %d sur %d" % [id, rang, total]
+		)
 
 
 func test_la_zone_de_la_legion_est_dessinee_au_rayon_reel() -> void:
@@ -149,7 +153,9 @@ func test_l_aura_de_la_coupe_s_etend_jusqu_au_rayon_reel() -> void:
 	var loin: float = 0.0
 	for coupe: Dictionary in _a.etats("coupe"):
 		loin = maxf(loin, (coupe["position"] as Vector2).distance_to(TOUR))
-	verifier(loin >= rayon * 0.8 and loin <= rayon * 1.05, "les coupes atteignent le rayon : %f" % loin)
+	verifier(
+		loin >= rayon * 0.8 and loin <= rayon * 1.05, "les coupes atteignent le rayon : %f" % loin
+	)
 	verifier_egal(_a.etats("coupe").size(), 5, "cinq coupes")
 
 
@@ -235,7 +241,9 @@ func test_dans_effets_aucune_arme_de_chaos_ne_gele_ni_ne_fait_reculer() -> void:
 			verifier(effets.nombre_vivants() <= Effets.PLAFOND, "%s : plafond" % id)
 		for fort: bool in forts:
 			verifier_faux(fort, "%s : pas un coup de siège" % id)
-		verifier_faux(effets.formes_vivantes().has("explosion"), "%s : pas d'explosion du pack" % id)
+		verifier_faux(
+			effets.formes_vivantes().has("explosion"), "%s : pas d'explosion du pack" % id
+		)
 		effets.free()
 
 

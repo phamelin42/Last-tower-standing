@@ -39,7 +39,9 @@ func aura(m: AttaquesElementaires, centre: Vector2, rayon_px: float, age: float)
 	# reculé d'autant (lue sur la planche, pas en dur).
 	var demi: float = float(AttaquesElementaires.planches()["coupe"].y) * 0.5
 	var recul: float = demi * AttaquesElementaires.ECHELLE
-	var cree: bool = m.couronne("coupe", centre, maxf(rayon_px - recul, 0.0), COUPES, age, Color.WHITE)
+	var cree: bool = m.couronne(
+		"coupe", centre, maxf(rayon_px - recul, 0.0), COUPES, age, Color.WHITE
+	)
 	for k: int in VOLUTES:
 		var angle: float = TAU * (k + 0.5) / VOLUTES
 		var ou: Vector2 = centre + Vector2.from_angle(angle) * rayon_px * PART_VOLUTES

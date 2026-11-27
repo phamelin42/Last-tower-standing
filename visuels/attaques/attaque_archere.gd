@@ -24,16 +24,16 @@ func conf() -> Dictionary:
 
 
 func planches() -> Dictionary:
-	return cases(["apparition_spectre", "eclat_spectre"]).merged({"fleche_spectre": Vector2i(20, 8)})
+	return cases(["apparition_spectre", "eclat_spectre"]).merged(
+		{"fleche_spectre": Vector2i(20, 8)}
+	)
 
 
 func visibles() -> Dictionary:
 	return mesures(["apparition_spectre", "eclat_spectre"])
 
 
-func suivre_vol(
-	m: AttaquesElementaires, vol: Dictionary, attente: float, duree_vol: float
-) -> void:
+func suivre_vol(m: AttaquesElementaires, vol: Dictionary, attente: float, duree_vol: float) -> void:
 	m.trainee(vol, 3, 9.0 * AttaquesElementaires.IMAGE, VERRE, Vector2.ZERO)
 	apparaitre(m, vol, attente, duree_vol, "apparition_spectre", DIAMETRE_APPARITION)
 

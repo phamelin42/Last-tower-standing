@@ -180,7 +180,9 @@ static func _spectre() -> Image:
 			t.disque(p.x, p.y, taille, VERRE_PALE if k % 2 == 0 else VERRE_BLEU)
 		for k: int in 4:
 			var dir: Vector2 = Vector2.from_angle(PI / 4.0 + k * PI / 2.0)
-			Outils.trait_epais(t, CENTRE_24 + dir * r * 0.2, CENTRE_24 + dir * r * 0.5, 1.5, VERRE_BLEU)
+			Outils.trait_epais(
+				t, CENTRE_24 + dir * r * 0.2, CENTRE_24 + dir * r * 0.5, 1.5, VERRE_BLEU
+			)
 		var rc: float = [1.8, 3.2, 4.0, 2.6][i]
 		t.disque(CENTRE_24.x, CENTRE_24.y, rc, VERRE_PALE)
 		t.disque(CENTRE_24.x, CENTRE_24.y, rc * 0.45, BLANC)
@@ -268,9 +270,7 @@ static func _nuage() -> Image:
 						t.p(x, y, FUMEE)
 		var braises: int = [3, 6, 6, 2][i]
 		for b: int in braises:
-			var p: Vector2 = (
-				CENTRE_32 + Vector2.from_angle(b * 2.4 + 0.5) * (3.0 + b * 1.9) * k_c
-			)
+			var p: Vector2 = CENTRE_32 + Vector2.from_angle(b * 2.4 + 0.5) * (3.0 + b * 1.9) * k_c
 			t.p(floori(p.x), floori(p.y), ORANGE if b % 2 == 0 else JAUNE)
 		t.entourer(ENCRE)
 	return img
@@ -332,7 +332,9 @@ static func _apparition_ombre() -> Image:
 			Outils.trait_epais(t, pied, tete, 3.0, ORANGE)
 			Outils.trait_epais(t, pied, pied.lerp(tete, 0.6), 1.4, JAUNE)
 		for k: int in 5:
-			var p: Vector2 = Vector2(CENTRE_32.x - 5.0 + k * 2.5, CENTRE_32.y - haut - 2.0 - (k % 2) * 2.0)
+			var p: Vector2 = Vector2(
+				CENTRE_32.x - 5.0 + k * 2.5, CENTRE_32.y - haut - 2.0 - (k % 2) * 2.0
+			)
 			t.disque(p.x, p.y, 1.3 + (i % 2) * 0.4, VIOLET)
 		t.entourer(NUIT)
 	return img
