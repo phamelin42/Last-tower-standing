@@ -116,6 +116,12 @@ var _degrade: Gradient = null
 var _teinte: Color = Color.WHITE
 
 
+## La teinte de l'élément `element` (blanche s'il est inconnu ou sans teinte).
+static func teinte_de(element: String) -> Color:
+	var el: AttaqueElement = registre().get(element)
+	return Color.WHITE if el == null else el.teinte()
+
+
 ## L'élément `element` (`null` s'il est inconnu), dont la teinte colore ce que le pool crée ensuite.
 func _choisir(element: String) -> AttaqueElement:
 	var el: AttaqueElement = registre().get(element)

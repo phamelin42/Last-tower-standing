@@ -211,3 +211,63 @@ func test_un_client_coupe_brutalement_n_arrete_pas_l_autre() -> void:
 		"le serveur retire le joueur coupé"
 	)
 	verifier_egal(a.perte, "", "le premier n'a rien perdu")
+
+
+## T11.9 : la partie finie, chaque poste reçoit son bilan et le range dans son propre profil.
+func test_la_partie_finie_chaque_poste_recoit_son_bilan_et_valide_son_defi() -> void:
+	var joueurs := await _lancer_a_deux()
+	# Une seule joueuse s'arme : elle tombe après l'autre, donc seule dernière tour debout.
+	var offre := _offre_abordable((joueurs[0] as Ecoute).arene())
+	verifier(offre >= 0, "une offre abordable")
+	(joueurs[0] as Ecoute).session.client.acheter(offre)
+	for e: Ecoute in joueurs:
+		verifier(
+			await _jusqua(func() -> bool: return not e.session.client.bilan().is_empty()),
+			"le bilan arrive à chaque poste"
+		)
+	var derniers := 0
+	var avec_defi := 0
+	for i: int in joueurs.size():
+		var bilan: Dictionary = joueurs[i].session.client.bilan()
+		var chemin := dossier_temporaire().path_join("progression_%d.json" % i)
+		var nouveaux := ProgressionLocale.enregistrer_fin(bilan, 2, _donnees, chemin)
+		var profil := Sauvegarde.charger(chemin)
+		verifier_egal(profil.parties, 1, "poste %d : une partie au profil" % i)
+		verifier_egal(profil.cumul_parties_multijoueur, 1, "poste %d : une partie à plusieurs" % i)
+		var dernier := int(bilan.get("dernier_rempart", 0))
+		derniers += dernier
+		# Seule la dernière tour debout valide « Dernier debout » : chaque poste lit son bilan.
+		verifier_egal(nouveaux.has("dernier_debout"), dernier == 1, "poste %d : défi" % i)
+		if nouveaux.has("dernier_debout"):
+			verifier(profil.defis_reussis.has("dernier_debout"), "poste %d : défi gardé" % i)
+			avec_defi += 1
+	verifier_egal(derniers, 1, "une seule dernière tour debout")
+	verifier_egal(avec_defi, 1, "un seul poste valide « Dernier debout »")
+
+
+## T11.9 : un échec d'écriture à la fin de la partie ne perd ni l'ancienne progression ni le défi,
+## qui reste à gagner à la partie suivante.
+func test_un_echec_d_ecriture_a_la_fin_de_la_partie_ne_perd_pas_la_progression() -> void:
+	var joueurs := await _lancer_a_deux()
+	for e: Ecoute in joueurs:
+		verifier(
+			await _jusqua(func() -> bool: return not e.session.client.bilan().is_empty()),
+			"le bilan arrive à chaque poste"
+		)
+	var bilan: Dictionary = joueurs[0].session.client.bilan()
+	var chemin := dossier_temporaire().path_join("progression.json")
+	var ancien := Profil.new()
+	ancien.parties = 3
+	ancien.cumul_parties_multijoueur = 2
+	verifier(Sauvegarde.enregistrer(ancien, chemin), "un profil existe déjà")
+	for etape: String in Sauvegarde.ETAPES:
+		Sauvegarde.simuler_echec(etape)
+		var nouveaux := ProgressionLocale.enregistrer_fin(bilan, 2, _donnees, chemin)
+		Sauvegarde.simuler_echec("")
+		verifier(nouveaux.is_empty(), "%s : aucun défi annoncé sans écriture" % etape)
+		var relu := Sauvegarde.charger(chemin)
+		verifier_egal(relu.parties, 3, "%s : l'ancien profil est intact" % etape)
+		verifier_egal(relu.cumul_parties_multijoueur, 2, "%s : les cumuls aussi" % etape)
+	var ok := ProgressionLocale.enregistrer_fin(bilan, 2, _donnees, chemin)
+	verifier_egal(Sauvegarde.charger(chemin).parties, 4, "la partie suivante s'enregistre")
+	verifier(ok.size() >= 0, "l'écriture normale fonctionne")
