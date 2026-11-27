@@ -2,6 +2,8 @@ extends CasAttaquesTranchant
 ## Les armes tranchantes du lot 9 (D22), seconde moitié : fléau de rasoirs, hache de garde, scie à
 ## ruban, moissonneuse d'acier. Mêmes phases et mêmes bornes que l'acier du lot 8.
 
+var _impacts_visibles: int = 0
+
 # --- Fléau de rasoirs : rebond, vulnérabilité --------------------------------------------------
 
 
@@ -217,3 +219,30 @@ func test_mouvement_reduit_la_moissonneuse_ne_tourne_pas_et_sans_particule() -> 
 	_a.impacter("moissonneuse", CIBLE, 30.0)
 	verifier_egal(_a.particules_actives(), 0)
 	verifier_egal(_a.etats("balayage").size(), 1, "l'arc reste")
+
+
+# --- Tir tournant : l'impact du bout est un décor ----------------------------------------------
+
+
+func _noter_impact(_ou: Vector2, _rayon: float, _fort: bool) -> void:
+	_impacts_visibles += 1
+
+
+## La simulation n'émet aucun impact au bout d'un rayon : aucun ennemi ne doit y réagir.
+func test_un_tir_tournant_sans_impact_ne_fait_reagir_aucun_ennemi() -> void:
+	for id: String in ["rasoir_tournoyant", "faucheuse_double", "moissonneuse_d_acier"]:
+		_impacts_visibles = 0
+		var effets: Effets = Effets.new()
+		effets.catalogue = _donnees.ids_catalogue
+		effets.impact_visible.connect(_noter_impact)
+		arbre.root.add_child(effets)
+		var vitrine: VitrineArmes = VitrineArmes.new()
+		vitrine.armes = [id] as Array[String]
+		for evenement: Dictionary in vitrine.evenements_du_cycle(id):
+			verifier_egal(String(evenement["k"]), "tir", "%s : que des tirs" % id)
+			effets.ajouter(evenement)
+		vitrine.free()
+		for _i: int in 40:
+			effets.avancer(IMAGE)
+		verifier_egal(_impacts_visibles, 0, "%s : aucune réaction" % id)
+		effets.free()

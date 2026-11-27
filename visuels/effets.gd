@@ -185,6 +185,7 @@ var _pause_absorption: float = 0.0
 var _etincelles: Etincelles = Etincelles.new(self)
 ## Rayons des tirs tournants et traits de recul des repoussements.
 var _mecaniques := RayonsReculs.new(self)
+var _tournant := TirTournant.new(self, _mecaniques)
 ## Les attaques des armes qui ont un élément (`ElementsArmes`) : leur pool compte dans `PLAFOND`.
 var _elementaires: AttaquesElementaires = AttaquesElementaires.new()
 ## Rang du projectile dans le barrage en cours (entre deux `avancer`).
@@ -410,9 +411,9 @@ func ajouter(evenement: Dictionary) -> bool:
 	var arme: int = evenement.get("arme", -1) if typeof(evenement.get("arme")) == TYPE_INT else -1
 	if k == "tir":
 		if genre == "tournant":
-			return _tournant(type_degats, de, vers, rayon, signature, arme)
-		return _tir(type_degats, genre, de, vers, signature, arme)
-	return _impact(type_degats, genre, de, vers, rayon, statut, signature, arme)
+			return _tournant.rayon(type_degats, de, vers, rayon, signature, arme)
+		return tirer_arme(type_degats, genre, de, vers, signature, arme)
+	return impacter_arme(type_degats, genre, de, vers, rayon, statut, signature, arme)
 
 
 ## Le genre et le statut arrivent en index (simulation, réseau) ; un nom est accepté tel quel. Une
@@ -506,7 +507,8 @@ func _avancer_attentes(delta: float) -> void:
 # --- Création ----------------------------------------------------------------------------------
 
 
-func _tir(
+## Le tir d'une arme (publique pour `TirTournant`, qui y ajoute son projectile).
+func tirer_arme(
 	type_degats: int,
 	genre: String,
 	de: Vector2,
@@ -515,7 +517,7 @@ func _tir(
 	arme: int = -1
 ) -> bool:
 	var rendu_arme: Dictionary = rendu(type_degats, genre)
-	var element: String = _element(arme)
+	var element: String = element_de(arme)
 	if element != "" and (rendu_arme["sol"] == "" or genre == "piege" or genre == "mine"):
 		return _tir_element(element, type_degats, genre, de, vers, arme)
 	var couleur: Color = COULEURS[type_degats]
@@ -564,21 +566,6 @@ func _tir(
 	return true
 
 
-## Un rayon de tir tournant : le trait de la marque, toujours ; une arme à élément y ajoute son
-## projectile, qui file jusqu'au bout du rayon, et son impact à l'arrivée, à la largeur du rayon.
-func _tournant(
-	type_degats: int, de: Vector2, vers: Vector2, largeur: float, signature: Dictionary, arme: int
-) -> bool:
-	var bout: Vector2 = Apparence.vers_pixels(vers)
-	var cree: bool = _mecaniques.rayon(
-		Apparence.vers_pixels(de), bout, largeur, COULEURS[type_degats]
-	)
-	if _element(arme) == "":
-		return cree
-	cree = _tir(type_degats, "tournant", de, vers, signature, arme) or cree
-	return _impact(type_degats, "tournant", de, vers, largeur, "", signature, arme) or cree
-
-
 ## Le tir d'une arme à élément : l'impact attend l'arrivée du projectile (anticipation comprise).
 ## Un barrage ne tire pas ici : chaque boule part avec son impact (`_impact`).
 func _tir_element(
@@ -603,7 +590,7 @@ func _tir_element(
 
 
 ## L'élément de l'arme d'index `arme` du catalogue, `""` si elle garde son rendu.
-func _element(arme: int) -> String:
+func element_de(arme: int) -> String:
 	if not rendu_par_element or arme < 0 or arme >= catalogue.size():
 		return ""
 	return ElementsArmes.de(catalogue[arme])
@@ -626,10 +613,10 @@ func _trainee(forme: String, depart: Vector2, arrivee: Vector2, couleur: Color) 
 	PoseEffets.poser(effet)
 
 
-## Un impact qui répond à un tir du même lot attend l'arrivée du projectile ; un saut de rebond
-## attend en plus 3 images après le précédent de sa chaîne. Les autres (aura, onde, piège, mine)
-## partent tout de suite.
-func _impact(
+## Un impact d'arme (publique pour `TirTournant`). Celui qui répond à un tir du même lot attend
+## l'arrivée du projectile ; un saut de rebond attend en plus 3 images après le précédent de sa
+## chaîne. Les autres (aura, onde, piège, mine) partent tout de suite.
+func impacter_arme(
 	type_degats: int,
 	genre: String,
 	de: Vector2,
@@ -642,7 +629,7 @@ func _impact(
 	var depart: Vector2 = Apparence.vers_pixels(de)
 	var arrivee: Vector2 = Apparence.vers_pixels(vers)
 	var attente: float = _reprendre_tir(type_degats, genre, arme, arrivee)
-	var element: String = _element(arme)
+	var element: String = element_de(arme)
 	var groupe: Dictionary = {}
 	if element != "" and genre == "barrage" and attente < 0.0:
 		var retard: float = _rang_barrage * AttaquesElementaires.retard_barrage(element)
@@ -721,7 +708,7 @@ func _impact_maintenant(
 	arme: int = -1,
 	groupe: Dictionary = {}
 ) -> bool:
-	var element: String = _element(arme)
+	var element: String = element_de(arme)
 	var couleur: Color = COULEURS[type_degats]
 	if not signature.is_empty():
 		couleur = signature["couleur"]
@@ -776,7 +763,9 @@ func _impact_maintenant(
 	var nombre: int = Etincelles.NOMBRE_ZONE if zone else Etincelles.NOMBRE_COUP
 	if not mouvement_reduit and element == "":
 		_etincelles.lancer(arrivee, nombre, couleur, _age_initial)
-	impact_visible.emit(vers, rayon, _coup_fort)
+	# L'impact décoratif d'un rayon de tir tournant n'est pas un coup : personne n'y réagit.
+	if genre != TirTournant.GENRE:
+		impact_visible.emit(vers, rayon, _coup_fort)
 	return cree
 
 
