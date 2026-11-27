@@ -104,6 +104,8 @@ var _texture_mort: Texture2D = null
 var _effets: Effets = null
 ## Les alliés invoqués, posés dans le nœud des ennemis pour se trier en profondeur avec eux.
 var _allies := Allies2D.new()
+## Marqueurs des statuts du lot 9, au-dessus des ennemis.
+var _marques: MarquesStatut = null
 ## Zones posées et bombes de la vue, au sol sous les ennemis.
 var _poses: ZonesBombes2D = null
 ## Ennemis touchés : flash et recul, par id d'ennemi (purement visuel).
@@ -169,6 +171,9 @@ func _assurer_construite() -> void:
 		_effets.catalogue = donnees.ids_catalogue
 	_effets.impact_visible.connect(_sur_impact_visible)
 	add_child(_effets)
+	_marques = MarquesStatut.new()
+	_marques.name = "Marques"
+	add_child(_marques)
 	_construire_tour()
 	_barres = BarresArene.new()
 	_barres.name = "Barres"
@@ -217,6 +222,8 @@ func reinitialiser() -> void:
 	_vider_mourants()
 	_allies.vider()
 	_poses.vider()
+	_marques.debut()
+	_marques.fin()
 	_reactions.reinitialiser()
 	_echantillon_affiche = {}
 	_barres.reinitialiser()
@@ -399,6 +406,12 @@ func zones_bombes() -> ZonesBombes2D:
 	return _poses
 
 
+## Les marqueurs des statuts du lot 9 (lecture, pour les tests et les vitrines).
+func marques_statut() -> MarquesStatut:
+	_assurer_construite()
+	return _marques
+
+
 func nombre_allies_visibles() -> int:
 	_assurer_construite()
 	return _allies.nombre_visibles()
@@ -428,20 +441,9 @@ func position_allie(i: int) -> Vector2:
 	return a.position if a != null else Vector2.ZERO
 
 
-## La teinte d'un octet de statuts (`Types.STATUT_*`) : un seul statut se lit, le plus gênant
-## d'abord (étourdi, brûlé, empoisonné, gelé, ralenti) ; blanc sans statut.
+## La teinte d'un octet de statuts (`Types.STATUT_*`) : voir `TeintesStatut`.
 static func teinte_statut(octet: int) -> Color:
-	if octet & Types.STATUT_ETOURDI != 0:
-		return Color(1.0, 0.92, 0.45)
-	if octet & Types.STATUT_BRULE != 0:
-		return Color(1.0, 0.6, 0.4)
-	if octet & Types.STATUT_EMPOISONNE != 0:
-		return Color(0.6, 1.0, 0.55)
-	if octet & Types.STATUT_GELE != 0:
-		return Color(0.6, 0.85, 1.0)
-	if octet & Types.STATUT_RALENTI != 0:
-		return Color(0.8, 0.7, 1.0)
-	return Color.WHITE
+	return TeintesStatut.teinte(octet)
 
 
 func _process(delta: float) -> void:
@@ -567,6 +569,7 @@ func _afficher_echantillon() -> void:
 		_dimensionner(f, decompte[f])
 		decompte[f] = 0
 	var image_courante: int = int(_horloge * Apparence.IMAGES_PAR_SECONDE)
+	_marques.debut()
 	for i: int in total:
 		var f: int = familles[i]
 		if f >= nb:
@@ -588,7 +591,9 @@ func _afficher_echantillon() -> void:
 			_poser_image(sprite, _regions[f], _decalages[f], image, miroir)
 		var couvre: bool = p.y >= 0.0 and absf(p.x) < _couvre_x[f] and p.y < _couvre_h[f]
 		var alpha: float = ALPHA_RECOUVRE if couvre else 1.0
-		var teinte: Color = teinte_statut(statuts[i] if i < statuts.size() else 0)
+		var octet: int = statuts[i] if i < statuts.size() else 0
+		var teinte: Color = teinte_statut(octet)
+		_marques.poser(sprite.position, _couvre_h[f] * Apparence.PX_PAR_UNITE, octet)
 		var base: Color = _entrees[f]["couleur"]
 		var eclat: float = _reactions.eclat(ids[i])
 		var voulue := Color(
@@ -602,6 +607,7 @@ func _afficher_echantillon() -> void:
 			teintes.resize(rang + 1)
 		teintes[rang] = teinte
 		_teintes[f] = teintes
+	_marques.fin()
 	_allies.afficher(_interpolation.echantillon_allies(_horloge), image_courante)
 	_animer_morts()
 

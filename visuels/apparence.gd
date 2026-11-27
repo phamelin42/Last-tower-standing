@@ -170,21 +170,21 @@ const ALLIES: Dictionary = {
 		"modele": "warrior",
 		"couleur_pack": "Blue",
 		"echelle": 1.0,
-		"teinte": Color(1.0, 0.72, 0.96),
+		"teinte": Color(1.0, 0.65, 0.92),
 	},
 	"archer":
 	{
 		"modele": "archer",
 		"couleur_pack": "Blue",
 		"echelle": 1.0,
-		"teinte": Color(1.0, 0.72, 0.96),
+		"teinte": Color(1.0, 0.65, 0.92),
 	},
 	"paysan":
 	{
 		"modele": "pawn",
 		"couleur_pack": "Blue",
 		"echelle": 1.0,
-		"teinte": Color(1.0, 0.72, 0.96),
+		"teinte": Color(1.0, 0.65, 0.92),
 	},
 }
 ## L'anneau double au sol des alliés : couleur du trait extérieur et de l'intérieur.

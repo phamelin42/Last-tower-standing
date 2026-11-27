@@ -131,6 +131,11 @@ const COULEURS_STATUT: Dictionary = {
 	"brulure": Color(1.0, 0.55, 0.2),
 	"vol_de_vie": COULEUR_SOIN,
 	"repoussement": Color(1.0, 1.0, 0.85),
+	"vulnerabilite": TeintesStatut.VULNERABLE,
+	"malediction_degats": TeintesStatut.MAUDIT,
+	"malediction_toucher": TeintesStatut.MAUDIT,
+	"siphon": TeintesStatut.SIPHONNE,
+	"mana_au_coup": Color(0.35, 0.5, 1.0),
 }
 const FORMES_STATUT: Dictionary = {
 	"givre": "flocon",
@@ -139,6 +144,11 @@ const FORMES_STATUT: Dictionary = {
 	"brulure": "feu",
 	"vol_de_vie": "soin",
 	"repoussement": "recul",
+	"vulnerabilite": "cible_brisee",
+	"malediction_degats": "voile_fendu",
+	"malediction_toucher": "voile",
+	"siphon": "siphon",
+	"mana_au_coup": "cristal",
 }
 
 ## Où poser les objets au sol (mines, pièges, flammes). Sans valeur : sous les autres effets.
