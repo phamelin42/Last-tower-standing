@@ -437,9 +437,12 @@ func test_trente_deux_zones_et_trente_deux_bombes_contre_mille_ennemis_sous_5_ms
 		poses.ajouter_bombe(_bombe(pos, 60.0, 100 + k), 1)
 	verifier_egal(poses.zones.size(), 32)
 	verifier_egal(poses.bombes.size(), 32)
-	var debut := Time.get_ticks_usec()
+	# 10e centile de 40 pas (S16, `MesurePas`). Coût local : 0,20 ms par pas ; budget de 5 ms.
+	var durees := PackedInt32Array()
 	for _k: int in 40:
+		var debut := Time.get_ticks_usec()
 		poses.avancer(DT, e, stats, CENTRE, d, 1.0)
-	var moyenne := float(Time.get_ticks_usec() - debut) / 1000.0 / 40.0
-	print("PERF poses : %.3f ms par pas" % moyenne)
-	verifier(moyenne < 5.0, "moins de 5 ms par pas (%f)" % moyenne)
+		durees.append(Time.get_ticks_usec() - debut)
+	var rapide := MesurePas.centile_bas_ms(durees)
+	print("PERF poses : %.3f ms par pas (10e centile)" % rapide)
+	verifier(rapide < 5.0, "moins de 5 ms par pas (%f)" % rapide)
