@@ -533,6 +533,8 @@ func _pas_armes(dt: float) -> void:
 	lecture.niveaux = inventaire.niveaux
 	lecture.gain_degats = _gain_degats_niveau
 	lecture.ameliorations_par_stat = inventaire.comptes_stats()
+	if _stats.a_des_degats_dynamiques():
+		lecture.communes = Tir.communes_par_type(inventaire.niveaux, _donnees)
 	lecture.poses = poses
 	lecture.allies = allies
 	for arme: ArmeEquipee in armes:
@@ -585,16 +587,19 @@ func _purger() -> void:
 			economie.gagner_prime(economie.enregistrer_elimination(_stats))
 			if int(r["id"]) == _boss_id:
 				_boss_mort = true
-		_ajouter_evenement(
-			{
-				"k": "mort",
-				"t": _tick,
-				"de": p,
-				"vers": p,
-				"type_degats": Types.TypeDegats.CHAOS,
-				"rayon": 0.0
-			}
-		)
+		# Au-delà du plafond d'événements, le dictionnaire serait jeté : on ne le construit pas (mille
+		# Tonneaux qui explosent ensemble en construisaient mille par pas).
+		if _evenements.size() < EVENEMENTS_MAX:
+			_evenements.append(
+				{
+					"k": "mort",
+					"t": _tick,
+					"de": p,
+					"vers": p,
+					"type_degats": Types.TypeDegats.CHAOS,
+					"rayon": 0.0
+				}
+			)
 
 
 func _ajouter_evenement(e: Dictionary) -> void:
