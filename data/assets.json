@@ -1,0 +1,1447 @@
+{
+  "unites": {
+    "images_par_seconde": 10.0,
+    "echelle": 1.9,
+    "modeles": {
+      "torch": {
+        "chemin": "Factions/Goblins/Troops/Torch/%s/Torch_%s.png",
+        "case": {
+          "largeur": 192,
+          "hauteur": 192
+        },
+        "colonnes": 7,
+        "lignes": 5,
+        "repos": {
+          "ligne": 0,
+          "images": 7
+        },
+        "course": {
+          "ligne": 1,
+          "images": 6
+        },
+        "attaque": {
+          "ligne": 2,
+          "images": 6
+        },
+        "attaque_bas": {
+          "ligne": 3,
+          "images": 6
+        },
+        "attaque_haut": {
+          "ligne": 4,
+          "images": 6
+        },
+        "pieds": 126.0
+      },
+      "pawn": {
+        "chemin": "Factions/Knights/Troops/Pawn/%s/Pawn_%s.png",
+        "case": {
+          "largeur": 192,
+          "hauteur": 192
+        },
+        "colonnes": 6,
+        "lignes": 6,
+        "repos": {
+          "ligne": 0,
+          "images": 6
+        },
+        "course": {
+          "ligne": 1,
+          "images": 6
+        },
+        "attaque": {
+          "ligne": 2,
+          "images": 6
+        },
+        "attaque_bas": {
+          "ligne": 2,
+          "images": 6
+        },
+        "attaque_haut": {
+          "ligne": 2,
+          "images": 6
+        },
+        "pieds": 122.0
+      },
+      "archer": {
+        "chemin": "Factions/Knights/Troops/Archer/%s/Archer_%s.png",
+        "case": {
+          "largeur": 192,
+          "hauteur": 192
+        },
+        "colonnes": 8,
+        "lignes": 7,
+        "repos": {
+          "ligne": 0,
+          "images": 6
+        },
+        "course": {
+          "ligne": 1,
+          "images": 6
+        },
+        "attaque": {
+          "ligne": 4,
+          "images": 8
+        },
+        "attaque_bas": {
+          "ligne": 6,
+          "images": 8
+        },
+        "attaque_haut": {
+          "ligne": 2,
+          "images": 8
+        },
+        "pieds": 128.0,
+        "noms_irreguliers": {
+          "Purple": "Purlple"
+        }
+      },
+      "warrior": {
+        "chemin": "Factions/Knights/Troops/Warrior/%s/Warrior_%s.png",
+        "case": {
+          "largeur": 192,
+          "hauteur": 192
+        },
+        "colonnes": 6,
+        "lignes": 8,
+        "repos": {
+          "ligne": 0,
+          "images": 6
+        },
+        "course": {
+          "ligne": 1,
+          "images": 6
+        },
+        "attaque": {
+          "ligne": 2,
+          "images": 6
+        },
+        "attaque_bas": {
+          "ligne": 4,
+          "images": 6
+        },
+        "attaque_haut": {
+          "ligne": 6,
+          "images": 6
+        },
+        "pieds": 130.0
+      },
+      "barrel": {
+        "chemin": "Factions/Goblins/Troops/Barrel/%s/Barrel_%s.png",
+        "case": {
+          "largeur": 128,
+          "hauteur": 128
+        },
+        "colonnes": 6,
+        "lignes": 6,
+        "repos": {
+          "ligne": 2,
+          "images": 1
+        },
+        "course": {
+          "ligne": 4,
+          "images": 3
+        },
+        "attaque": {
+          "ligne": 5,
+          "images": 3
+        },
+        "attaque_bas": {
+          "ligne": 5,
+          "images": 3
+        },
+        "attaque_haut": {
+          "ligne": 5,
+          "images": 3
+        },
+        "pieds": 94.0
+      },
+      "tnt": {
+        "chemin": "Factions/Goblins/Troops/TNT/%s/TNT_%s.png",
+        "case": {
+          "largeur": 192,
+          "hauteur": 192
+        },
+        "colonnes": 7,
+        "lignes": 3,
+        "repos": {
+          "ligne": 0,
+          "images": 6
+        },
+        "course": {
+          "ligne": 1,
+          "images": 6
+        },
+        "attaque": {
+          "ligne": 2,
+          "images": 7
+        },
+        "attaque_bas": {
+          "ligne": 2,
+          "images": 7
+        },
+        "attaque_haut": {
+          "ligne": 2,
+          "images": 7
+        },
+        "pieds": 130.0
+      },
+      "mouton": {
+        "chemin": "Resources/Sheep/HappySheep_All.png",
+        "case": {
+          "largeur": 128,
+          "hauteur": 128
+        },
+        "colonnes": 8,
+        "lignes": 2,
+        "repos": {
+          "ligne": 0,
+          "images": 8
+        },
+        "course": {
+          "ligne": 1,
+          "images": 6
+        },
+        "attaque": {
+          "ligne": 1,
+          "images": 6
+        },
+        "attaque_bas": {
+          "ligne": 1,
+          "images": 6
+        },
+        "attaque_haut": {
+          "ligne": 1,
+          "images": 6
+        },
+        "pieds": 85.0
+      }
+    },
+    "entites": {
+      "torche_jaune": {
+        "modele": "torch",
+        "couleur_pack": "Yellow",
+        "echelle": 1.0
+      },
+      "torche_rouge": {
+        "modele": "torch",
+        "couleur_pack": "Red",
+        "echelle": 1.0
+      },
+      "torche_violet": {
+        "modele": "torch",
+        "couleur_pack": "Purple",
+        "echelle": 1.0
+      },
+      "torche_bleu": {
+        "modele": "torch",
+        "couleur_pack": "Blue",
+        "echelle": 1.0
+      },
+      "paysan_jaune": {
+        "modele": "pawn",
+        "couleur_pack": "Yellow",
+        "echelle": 1.0
+      },
+      "paysan_rouge": {
+        "modele": "pawn",
+        "couleur_pack": "Red",
+        "echelle": 1.0
+      },
+      "paysan_violet": {
+        "modele": "pawn",
+        "couleur_pack": "Purple",
+        "echelle": 1.0
+      },
+      "paysan_bleu": {
+        "modele": "pawn",
+        "couleur_pack": "Blue",
+        "echelle": 1.0
+      },
+      "guerrier_jaune": {
+        "modele": "warrior",
+        "couleur_pack": "Yellow",
+        "echelle": 1.0
+      },
+      "guerrier_rouge": {
+        "modele": "warrior",
+        "couleur_pack": "Red",
+        "echelle": 1.0
+      },
+      "guerrier_violet": {
+        "modele": "warrior",
+        "couleur_pack": "Purple",
+        "echelle": 1.0
+      },
+      "guerrier_bleu": {
+        "modele": "warrior",
+        "couleur_pack": "Blue",
+        "echelle": 1.0
+      },
+      "tonneau_jaune": {
+        "modele": "barrel",
+        "couleur_pack": "Yellow",
+        "echelle": 1.5
+      },
+      "tonneau_rouge": {
+        "modele": "barrel",
+        "couleur_pack": "Red",
+        "echelle": 1.5
+      },
+      "tonneau_violet": {
+        "modele": "barrel",
+        "couleur_pack": "Purple",
+        "echelle": 1.5
+      },
+      "tonneau_bleu": {
+        "modele": "barrel",
+        "couleur_pack": "Blue",
+        "echelle": 1.5
+      },
+      "dynamite_jaune": {
+        "modele": "tnt",
+        "couleur_pack": "Yellow",
+        "echelle": 1.0
+      },
+      "dynamite_rouge": {
+        "modele": "tnt",
+        "couleur_pack": "Red",
+        "echelle": 1.0
+      },
+      "dynamite_violet": {
+        "modele": "tnt",
+        "couleur_pack": "Purple",
+        "echelle": 1.0
+      },
+      "dynamite_bleu": {
+        "modele": "tnt",
+        "couleur_pack": "Blue",
+        "echelle": 1.0
+      },
+      "archer_jaune": {
+        "modele": "archer",
+        "couleur_pack": "Yellow",
+        "echelle": 1.0
+      },
+      "archer_rouge": {
+        "modele": "archer",
+        "couleur_pack": "Red",
+        "echelle": 1.0
+      },
+      "archer_violet": {
+        "modele": "archer",
+        "couleur_pack": "Purple",
+        "echelle": 1.0
+      },
+      "archer_bleu": {
+        "modele": "archer",
+        "couleur_pack": "Blue",
+        "echelle": 1.0
+      },
+      "troupeau_du_colporteur": {
+        "modele": "mouton",
+        "couleur_pack": "",
+        "echelle": 2.0,
+        "accessoire": {
+          "feuille": "Resources/Resources/G_Idle_(NoShadow).png",
+          "decalage": {
+            "x": 0.0,
+            "y": -42.0
+          },
+          "echelle": 0.5
+        }
+      },
+      "aieul_de_fer": {
+        "modele": "warrior",
+        "couleur_pack": "Blue",
+        "echelle": 3.0
+      }
+    },
+    "allies": {
+      "guerrier": {
+        "modele": "warrior",
+        "couleur_pack": "Blue",
+        "echelle": 1.0,
+        "teinte": [
+          1.0,
+          0.649999976158142,
+          0.920000016689301,
+          1.0
+        ]
+      },
+      "archer": {
+        "modele": "archer",
+        "couleur_pack": "Blue",
+        "echelle": 1.0,
+        "teinte": [
+          1.0,
+          0.649999976158142,
+          0.920000016689301,
+          1.0
+        ]
+      },
+      "paysan": {
+        "modele": "pawn",
+        "couleur_pack": "Blue",
+        "echelle": 1.0,
+        "teinte": [
+          1.0,
+          0.649999976158142,
+          0.920000016689301,
+          1.0
+        ]
+      }
+    },
+    "anneau_allie": {
+      "exterieur": [
+        1.0,
+        0.949999988079071,
+        0.75,
+        1.0
+      ],
+      "interieur": [
+        0.620000004768372,
+        0.300000011920929,
+        0.850000023841858,
+        1.0
+      ],
+      "contour": [
+        0.100000001490116,
+        0.0700000002980232,
+        0.150000005960464,
+        0.899999976158142
+      ]
+    },
+    "mort": {
+      "feuille": "res://assets/tiny_swords/Factions/Knights/Troops/Dead/Dead.png",
+      "case": {
+        "largeur": 128,
+        "hauteur": 128
+      },
+      "colonnes": 7,
+      "lignes": 2,
+      "images": 14,
+      "pieds": 92.0,
+      "echelle": 1.0,
+      "images_par_seconde": 14.0,
+      "cle_boites": "mort"
+    }
+  },
+  "tour": {
+    "echelle": 2.1,
+    "pieds": 228.0,
+    "demi_largeur": 56.0,
+    "fichier_base": "Factions/Knights/Buildings/Tower/Tower_Blue.png",
+    "teinte_base": 190.0,
+    "couleurs_pack": [
+      {
+        "couleur": "Blue",
+        "teinte": 190.0
+      },
+      {
+        "couleur": "Red",
+        "teinte": 355.0
+      },
+      {
+        "couleur": "Yellow",
+        "teinte": 55.0
+      },
+      {
+        "couleur": "Purple",
+        "teinte": 280.0
+      }
+    ],
+    "teintes_calculees": [
+      125.0,
+      28.0,
+      160.0,
+      325.0
+    ]
+  },
+  "decor": {
+    "images_par_seconde": 10.0,
+    "tuile": 64,
+    "case": 128,
+    "feuille_terrain": "Terrain/Ground/Tilemap_Flat.png",
+    "feuille_eau": "Terrain/Water/Water.png",
+    "ecume": {
+      "feuille": "Terrain/Water/Foam/Foam.png",
+      "case": 192,
+      "images": 8,
+      "boite": {
+        "x": 53.0,
+        "y": 53.0,
+        "largeur": 86.0,
+        "hauteur": 86.0
+      }
+    },
+    "types": {
+      "sapin": {
+        "fichier": "Resources/Trees/Tree.png",
+        "cellule": {
+          "largeur": 192,
+          "hauteur": 192
+        },
+        "origine": {
+          "x": 0,
+          "y": 0
+        },
+        "ligne": 0,
+        "images": 4,
+        "boite": {
+          "x": 42.0,
+          "y": 4.0,
+          "largeur": 112.0,
+          "hauteur": 174.0
+        },
+        "pieds": {
+          "x": 98.0,
+          "y": 172.0
+        },
+        "echelle": 2.0,
+        "categorie": "sapin",
+        "haut": true
+      },
+      "souche": {
+        "fichier": "Resources/Trees/Tree.png",
+        "cellule": {
+          "largeur": 192,
+          "hauteur": 192
+        },
+        "origine": {
+          "x": 0,
+          "y": 0
+        },
+        "ligne": 2,
+        "images": 1,
+        "boite": {
+          "x": 79.0,
+          "y": 146.0,
+          "largeur": 36.0,
+          "hauteur": 30.0
+        },
+        "pieds": {
+          "x": 97.0,
+          "y": 172.0
+        },
+        "echelle": 2.0,
+        "categorie": "divers",
+        "haut": true
+      },
+      "maison_bleue": {
+        "fichier": "Factions/Knights/Buildings/House/House_Blue.png",
+        "cellule": {
+          "largeur": 128,
+          "hauteur": 192
+        },
+        "origine": {
+          "x": 0,
+          "y": 0
+        },
+        "ligne": 0,
+        "images": 1,
+        "boite": {
+          "x": 10.0,
+          "y": 24.0,
+          "largeur": 108.0,
+          "hauteur": 148.0
+        },
+        "pieds": {
+          "x": 64.0,
+          "y": 168.0
+        },
+        "echelle": 2.0,
+        "categorie": "maison",
+        "haut": true
+      },
+      "maison_rouge": {
+        "fichier": "Factions/Knights/Buildings/House/House_Red.png",
+        "cellule": {
+          "largeur": 128,
+          "hauteur": 192
+        },
+        "origine": {
+          "x": 0,
+          "y": 0
+        },
+        "ligne": 0,
+        "images": 1,
+        "boite": {
+          "x": 10.0,
+          "y": 24.0,
+          "largeur": 108.0,
+          "hauteur": 148.0
+        },
+        "pieds": {
+          "x": 64.0,
+          "y": 168.0
+        },
+        "echelle": 2.0,
+        "categorie": "maison",
+        "haut": true
+      },
+      "maison_jaune": {
+        "fichier": "Factions/Knights/Buildings/House/House_Yellow.png",
+        "cellule": {
+          "largeur": 128,
+          "hauteur": 192
+        },
+        "origine": {
+          "x": 0,
+          "y": 0
+        },
+        "ligne": 0,
+        "images": 1,
+        "boite": {
+          "x": 10.0,
+          "y": 24.0,
+          "largeur": 108.0,
+          "hauteur": 148.0
+        },
+        "pieds": {
+          "x": 64.0,
+          "y": 168.0
+        },
+        "echelle": 2.0,
+        "categorie": "maison",
+        "haut": true
+      },
+      "maison_violette": {
+        "fichier": "Factions/Knights/Buildings/House/House_Purple.png",
+        "cellule": {
+          "largeur": 128,
+          "hauteur": 192
+        },
+        "origine": {
+          "x": 0,
+          "y": 0
+        },
+        "ligne": 0,
+        "images": 1,
+        "boite": {
+          "x": 10.0,
+          "y": 24.0,
+          "largeur": 108.0,
+          "hauteur": 148.0
+        },
+        "pieds": {
+          "x": 64.0,
+          "y": 168.0
+        },
+        "echelle": 2.0,
+        "categorie": "maison",
+        "haut": true
+      },
+      "maison_gobelin": {
+        "fichier": "Factions/Goblins/Buildings/Wood_House/Goblin_House.png",
+        "cellule": {
+          "largeur": 128,
+          "hauteur": 192
+        },
+        "origine": {
+          "x": 0,
+          "y": 0
+        },
+        "ligne": 0,
+        "images": 1,
+        "boite": {
+          "x": 7.0,
+          "y": 26.0,
+          "largeur": 113.0,
+          "hauteur": 145.0
+        },
+        "pieds": {
+          "x": 64.0,
+          "y": 168.0
+        },
+        "echelle": 2.0,
+        "categorie": "maison",
+        "haut": true
+      },
+      "mine": {
+        "fichier": "Resources/Gold Mine/GoldMine_Active.png",
+        "cellule": {
+          "largeur": 192,
+          "hauteur": 128
+        },
+        "origine": {
+          "x": 0,
+          "y": 0
+        },
+        "ligne": 0,
+        "images": 1,
+        "boite": {
+          "x": 12.0,
+          "y": 5.0,
+          "largeur": 169.0,
+          "hauteur": 121.0
+        },
+        "pieds": {
+          "x": 96.0,
+          "y": 116.0
+        },
+        "echelle": 2.0,
+        "categorie": "mine",
+        "haut": true
+      },
+      "mouton": {
+        "fichier": "Resources/Sheep/HappySheep_Idle.png",
+        "cellule": {
+          "largeur": 128,
+          "hauteur": 128
+        },
+        "origine": {
+          "x": 0,
+          "y": 0
+        },
+        "ligne": 0,
+        "images": 8,
+        "boite": {
+          "x": 42.0,
+          "y": 48.0,
+          "largeur": 46.0,
+          "hauteur": 38.0
+        },
+        "pieds": {
+          "x": 64.0,
+          "y": 84.0
+        },
+        "echelle": 1.5,
+        "categorie": "mouton",
+        "haut": true
+      },
+      "champignon_geant": {
+        "fichier": "Deco/03.png",
+        "cellule": {
+          "largeur": 64,
+          "hauteur": 64
+        },
+        "origine": {
+          "x": 0,
+          "y": 0
+        },
+        "ligne": 0,
+        "images": 1,
+        "boite": {
+          "x": 14.0,
+          "y": 12.0,
+          "largeur": 38.0,
+          "hauteur": 37.0
+        },
+        "pieds": {
+          "x": 33.0,
+          "y": 46.0
+        },
+        "echelle": 2.0,
+        "categorie": "divers",
+        "haut": true
+      },
+      "rocher": {
+        "fichier": "Deco/06.png",
+        "cellule": {
+          "largeur": 64,
+          "hauteur": 64
+        },
+        "origine": {
+          "x": 0,
+          "y": 0
+        },
+        "ligne": 0,
+        "images": 1,
+        "boite": {
+          "x": 12.0,
+          "y": 15.0,
+          "largeur": 44.0,
+          "hauteur": 34.0
+        },
+        "pieds": {
+          "x": 34.0,
+          "y": 46.0
+        },
+        "echelle": 2.0,
+        "categorie": "rocher",
+        "haut": true
+      },
+      "buisson_petit": {
+        "fichier": "Deco/07.png",
+        "cellule": {
+          "largeur": 64,
+          "hauteur": 64
+        },
+        "origine": {
+          "x": 0,
+          "y": 0
+        },
+        "ligne": 0,
+        "images": 1,
+        "boite": {
+          "x": 16.0,
+          "y": 21.0,
+          "largeur": 31.0,
+          "hauteur": 22.0
+        },
+        "pieds": {
+          "x": 31.0,
+          "y": 42.0
+        },
+        "echelle": 2.0,
+        "categorie": "buisson",
+        "haut": true
+      },
+      "buisson_moyen": {
+        "fichier": "Deco/08.png",
+        "cellule": {
+          "largeur": 64,
+          "hauteur": 64
+        },
+        "origine": {
+          "x": 0,
+          "y": 0
+        },
+        "ligne": 0,
+        "images": 1,
+        "boite": {
+          "x": 11.0,
+          "y": 17.0,
+          "largeur": 42.0,
+          "hauteur": 32.0
+        },
+        "pieds": {
+          "x": 32.0,
+          "y": 47.0
+        },
+        "echelle": 2.0,
+        "categorie": "buisson",
+        "haut": true
+      },
+      "buisson_grand": {
+        "fichier": "Deco/09.png",
+        "cellule": {
+          "largeur": 64,
+          "hauteur": 64
+        },
+        "origine": {
+          "x": 0,
+          "y": 0
+        },
+        "ligne": 0,
+        "images": 1,
+        "boite": {
+          "x": 2.0,
+          "y": 11.0,
+          "largeur": 61.0,
+          "hauteur": 42.0
+        },
+        "pieds": {
+          "x": 32.0,
+          "y": 51.0
+        },
+        "echelle": 2.0,
+        "categorie": "buisson",
+        "haut": true
+      },
+      "citrouille_petite": {
+        "fichier": "Deco/12.png",
+        "cellule": {
+          "largeur": 64,
+          "hauteur": 64
+        },
+        "origine": {
+          "x": 0,
+          "y": 0
+        },
+        "ligne": 0,
+        "images": 1,
+        "boite": {
+          "x": 11.0,
+          "y": 12.0,
+          "largeur": 40.0,
+          "hauteur": 39.0
+        },
+        "pieds": {
+          "x": 31.0,
+          "y": 49.0
+        },
+        "echelle": 2.0,
+        "categorie": "divers",
+        "haut": true
+      },
+      "citrouille_grande": {
+        "fichier": "Deco/13.png",
+        "cellule": {
+          "largeur": 64,
+          "hauteur": 64
+        },
+        "origine": {
+          "x": 0,
+          "y": 0
+        },
+        "ligne": 0,
+        "images": 1,
+        "boite": {
+          "x": 5.0,
+          "y": 10.0,
+          "largeur": 56.0,
+          "hauteur": 45.0
+        },
+        "pieds": {
+          "x": 33.0,
+          "y": 53.0
+        },
+        "echelle": 2.0,
+        "categorie": "divers",
+        "haut": true
+      },
+      "panneau_crane": {
+        "fichier": "Deco/16.png",
+        "cellule": {
+          "largeur": 64,
+          "hauteur": 128
+        },
+        "origine": {
+          "x": 0,
+          "y": 0
+        },
+        "ligne": 0,
+        "images": 1,
+        "boite": {
+          "x": 7.0,
+          "y": 3.0,
+          "largeur": 52.0,
+          "hauteur": 101.0
+        },
+        "pieds": {
+          "x": 32.0,
+          "y": 100.0
+        },
+        "echelle": 2.0,
+        "categorie": "divers",
+        "haut": true
+      },
+      "panneau_fleche": {
+        "fichier": "Deco/17.png",
+        "cellule": {
+          "largeur": 64,
+          "hauteur": 128
+        },
+        "origine": {
+          "x": 0,
+          "y": 0
+        },
+        "ligne": 0,
+        "images": 1,
+        "boite": {
+          "x": 2.0,
+          "y": 15.0,
+          "largeur": 59.0,
+          "hauteur": 90.0
+        },
+        "pieds": {
+          "x": 32.0,
+          "y": 102.0
+        },
+        "echelle": 2.0,
+        "categorie": "divers",
+        "haut": true
+      },
+      "epouvantail": {
+        "fichier": "Deco/18.png",
+        "cellule": {
+          "largeur": 192,
+          "hauteur": 192
+        },
+        "origine": {
+          "x": 0,
+          "y": 0
+        },
+        "ligne": 0,
+        "images": 1,
+        "boite": {
+          "x": 54.0,
+          "y": 48.0,
+          "largeur": 87.0,
+          "hauteur": 121.0
+        },
+        "pieds": {
+          "x": 97.0,
+          "y": 166.0
+        },
+        "echelle": 2.0,
+        "categorie": "divers",
+        "haut": true
+      },
+      "champignon_petit": {
+        "fichier": "Deco/01.png",
+        "cellule": {
+          "largeur": 64,
+          "hauteur": 64
+        },
+        "origine": {
+          "x": 0,
+          "y": 0
+        },
+        "ligne": 0,
+        "images": 1,
+        "boite": {
+          "x": 25.0,
+          "y": 24.0,
+          "largeur": 17.0,
+          "hauteur": 19.0
+        },
+        "pieds": {
+          "x": 33.0,
+          "y": 41.0
+        },
+        "echelle": 2.0,
+        "categorie": "plat",
+        "haut": false
+      },
+      "champignon_moyen": {
+        "fichier": "Deco/02.png",
+        "cellule": {
+          "largeur": 64,
+          "hauteur": 64
+        },
+        "origine": {
+          "x": 0,
+          "y": 0
+        },
+        "ligne": 0,
+        "images": 1,
+        "boite": {
+          "x": 21.0,
+          "y": 20.0,
+          "largeur": 26.0,
+          "hauteur": 27.0
+        },
+        "pieds": {
+          "x": 34.0,
+          "y": 45.0
+        },
+        "echelle": 2.0,
+        "categorie": "plat",
+        "haut": false
+      },
+      "caillou_petit": {
+        "fichier": "Deco/04.png",
+        "cellule": {
+          "largeur": 64,
+          "hauteur": 64
+        },
+        "origine": {
+          "x": 0,
+          "y": 0
+        },
+        "ligne": 0,
+        "images": 1,
+        "boite": {
+          "x": 24.0,
+          "y": 19.0,
+          "largeur": 20.0,
+          "hauteur": 18.0
+        },
+        "pieds": {
+          "x": 34.0,
+          "y": 36.0
+        },
+        "echelle": 2.0,
+        "categorie": "plat",
+        "haut": false
+      },
+      "caillou_moyen": {
+        "fichier": "Deco/05.png",
+        "cellule": {
+          "largeur": 64,
+          "hauteur": 64
+        },
+        "origine": {
+          "x": 0,
+          "y": 0
+        },
+        "ligne": 0,
+        "images": 1,
+        "boite": {
+          "x": 18.0,
+          "y": 18.0,
+          "largeur": 29.0,
+          "hauteur": 22.0
+        },
+        "pieds": {
+          "x": 32.0,
+          "y": 38.0
+        },
+        "echelle": 2.0,
+        "categorie": "plat",
+        "haut": false
+      },
+      "touffe_petite": {
+        "fichier": "Deco/10.png",
+        "cellule": {
+          "largeur": 64,
+          "hauteur": 64
+        },
+        "origine": {
+          "x": 0,
+          "y": 0
+        },
+        "ligne": 0,
+        "images": 1,
+        "boite": {
+          "x": 22.0,
+          "y": 23.0,
+          "largeur": 22.0,
+          "hauteur": 23.0
+        },
+        "pieds": {
+          "x": 33.0,
+          "y": 45.0
+        },
+        "echelle": 2.0,
+        "categorie": "plat",
+        "haut": false
+      },
+      "touffe_moyenne": {
+        "fichier": "Deco/11.png",
+        "cellule": {
+          "largeur": 64,
+          "hauteur": 64
+        },
+        "origine": {
+          "x": 0,
+          "y": 0
+        },
+        "ligne": 0,
+        "images": 1,
+        "boite": {
+          "x": 20.0,
+          "y": 15.0,
+          "largeur": 32.0,
+          "hauteur": 35.0
+        },
+        "pieds": {
+          "x": 36.0,
+          "y": 48.0
+        },
+        "echelle": 2.0,
+        "categorie": "plat",
+        "haut": false
+      },
+      "os_long": {
+        "fichier": "Deco/14.png",
+        "cellule": {
+          "largeur": 64,
+          "hauteur": 64
+        },
+        "origine": {
+          "x": 0,
+          "y": 0
+        },
+        "ligne": 0,
+        "images": 1,
+        "boite": {
+          "x": 15.0,
+          "y": 16.0,
+          "largeur": 36.0,
+          "hauteur": 31.0
+        },
+        "pieds": {
+          "x": 33.0,
+          "y": 45.0
+        },
+        "echelle": 2.0,
+        "categorie": "plat",
+        "haut": false
+      },
+      "os_court": {
+        "fichier": "Deco/15.png",
+        "cellule": {
+          "largeur": 64,
+          "hauteur": 64
+        },
+        "origine": {
+          "x": 0,
+          "y": 0
+        },
+        "ligne": 0,
+        "images": 1,
+        "boite": {
+          "x": 24.0,
+          "y": 20.0,
+          "largeur": 24.0,
+          "hauteur": 24.0
+        },
+        "pieds": {
+          "x": 36.0,
+          "y": 42.0
+        },
+        "echelle": 2.0,
+        "categorie": "plat",
+        "haut": false
+      },
+      "herbe_hautes": {
+        "fichier": "Terrain/Ground/Tilemap_Flat.png",
+        "cellule": {
+          "largeur": 58,
+          "hauteur": 21
+        },
+        "origine": {
+          "x": 258,
+          "y": 43
+        },
+        "ligne": 0,
+        "images": 1,
+        "boite": {
+          "x": 0.0,
+          "y": 0.0,
+          "largeur": 58.0,
+          "hauteur": 21.0
+        },
+        "pieds": {
+          "x": 29.0,
+          "y": 19.0
+        },
+        "echelle": 2.0,
+        "categorie": "plat",
+        "haut": false
+      },
+      "rocher_eau_1": {
+        "fichier": "Terrain/Water/Rocks/Rocks_01.png",
+        "cellule": {
+          "largeur": 128,
+          "hauteur": 128
+        },
+        "origine": {
+          "x": 0,
+          "y": 0
+        },
+        "ligne": 0,
+        "images": 8,
+        "boite": {
+          "x": 46.0,
+          "y": 54.0,
+          "largeur": 32.0,
+          "hauteur": 23.0
+        },
+        "pieds": {
+          "x": 62.0,
+          "y": 70.0
+        },
+        "echelle": 2.0,
+        "categorie": "eau",
+        "haut": false
+      },
+      "rocher_eau_2": {
+        "fichier": "Terrain/Water/Rocks/Rocks_02.png",
+        "cellule": {
+          "largeur": 128,
+          "hauteur": 128
+        },
+        "origine": {
+          "x": 0,
+          "y": 0
+        },
+        "ligne": 0,
+        "images": 8,
+        "boite": {
+          "x": 39.0,
+          "y": 53.0,
+          "largeur": 47.0,
+          "hauteur": 34.0
+        },
+        "pieds": {
+          "x": 63.0,
+          "y": 82.0
+        },
+        "echelle": 2.0,
+        "categorie": "eau",
+        "haut": false
+      },
+      "rocher_eau_3": {
+        "fichier": "Terrain/Water/Rocks/Rocks_03.png",
+        "cellule": {
+          "largeur": 128,
+          "hauteur": 128
+        },
+        "origine": {
+          "x": 0,
+          "y": 0
+        },
+        "ligne": 0,
+        "images": 8,
+        "boite": {
+          "x": 29.0,
+          "y": 35.0,
+          "largeur": 75.0,
+          "hauteur": 56.0
+        },
+        "pieds": {
+          "x": 66.0,
+          "y": 85.0
+        },
+        "echelle": 2.0,
+        "categorie": "eau",
+        "haut": false
+      },
+      "rocher_eau_4": {
+        "fichier": "Terrain/Water/Rocks/Rocks_04.png",
+        "cellule": {
+          "largeur": 128,
+          "hauteur": 128
+        },
+        "origine": {
+          "x": 0,
+          "y": 0
+        },
+        "ligne": 0,
+        "images": 8,
+        "boite": {
+          "x": 20.0,
+          "y": 34.0,
+          "largeur": 91.0,
+          "hauteur": 65.0
+        },
+        "pieds": {
+          "x": 65.0,
+          "y": 94.0
+        },
+        "echelle": 2.0,
+        "categorie": "eau",
+        "haut": false
+      }
+    }
+  },
+  "signatures": {
+    "taille": 48,
+    "bandeau": {
+      "largeur": 64,
+      "hauteur": 16
+    }
+  },
+  "ui": {
+    "corps_ruban": {
+      "x": 64.0,
+      "y": 0.0,
+      "largeur": 64.0,
+      "hauteur": 52.0
+    },
+    "zone_icone": {
+      "x": 16.0,
+      "y": 9.0,
+      "largeur": 32.0,
+      "hauteur": 32.0
+    },
+    "pointeur_pointe": {
+      "x": 22.0,
+      "y": 17.0
+    },
+    "tranches": {
+      "bouton": {
+        "gauche": 40,
+        "haut": 0,
+        "droite": 40,
+        "bas": 0
+      },
+      "panneau": {
+        "gauche": 16,
+        "haut": 16,
+        "droite": 16,
+        "bas": 16
+      },
+      "ruban": {
+        "gauche": 56,
+        "haut": 12,
+        "droite": 56,
+        "bas": 20
+      }
+    }
+  },
+  "sons": {
+    "dossier": "res://assets/sons/",
+    "extension": ".ogg",
+    "ids_armes": [
+      "lame_de_fil",
+      "disque_scie",
+      "moulinet_de_cuivre",
+      "guillotine_a_vapeur",
+      "tourbillon_d_acier",
+      "arbalete_de_bureau",
+      "chausse_trape",
+      "carreau_ricochet",
+      "herse_de_ressorts",
+      "baliste_de_guet",
+      "pluie_d_aiguilles",
+      "etincelle_runique",
+      "orbe_de_brume",
+      "chaine_d_arcanes",
+      "cercle_de_givre",
+      "nova_d_ambre",
+      "tempete_astrale",
+      "bombarde_de_poche",
+      "petard_de_rempart",
+      "trebuchet_de_chambre",
+      "mine_de_forge",
+      "canon_de_cloche",
+      "grande_bombarde",
+      "de_pipe",
+      "sablier_fele",
+      "cornue_instable",
+      "miroir_brise",
+      "vortex_de_verre",
+      "horloge_folle",
+      "serpe_de_vigne",
+      "rasoir_tournoyant",
+      "couperet_a_epines",
+      "lame_de_brume",
+      "faucheuse_double",
+      "fleau_de_rasoirs",
+      "hache_de_garde",
+      "scie_a_ruban",
+      "moissonneuse_d_acier",
+      "javeline_de_jet",
+      "trait_en_gerbe",
+      "fleche_marquante",
+      "arc_de_remparts",
+      "herse_de_pieux",
+      "lance_epineuse",
+      "carquois_en_rafale",
+      "mur_de_pointes",
+      "couronne_de_pointes",
+      "faucille_a_ressort",
+      "rune_de_veille",
+      "eclat_siphonneur",
+      "lueur_vagabonde",
+      "prisme_de_faille",
+      "orage_en_cage",
+      "couronne_d_etoiles",
+      "vasque_d_arcanes",
+      "nuee_d_etincelles",
+      "nova_celeste",
+      "baril_a_retardement",
+      "maillet_de_rempart",
+      "catapulte_a_contrepoids",
+      "obusier_de_breche",
+      "braise_de_siege",
+      "ecrasement_de_tour",
+      "champ_de_ruines",
+      "salve_du_rempart",
+      "colosse_de_pierre",
+      "urne_des_ombres",
+      "pacte_de_sang",
+      "engrenage_jumeau",
+      "serment_brise",
+      "archere_fantome",
+      "miroir_de_discorde",
+      "coupe_d_oubli",
+      "legion_de_cendre",
+      "tempete_de_malefices"
+    ],
+    "suffixes_impact": [
+      "tranchant",
+      "percant",
+      "magique",
+      "siege",
+      "chaos"
+    ],
+    "frequence_substitution": 22050
+  }
+}
