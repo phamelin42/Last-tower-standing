@@ -154,6 +154,8 @@ const FORME: Dictionary = {
 			"elements": {"*": ["texte"]},
 			"?images_vol": {"*": "entier"},
 		},
+		"?contour_tirs":
+		{"contour": "couleur", "epaisseur": "entier", "planches": ["texte"], "eclairs": "bool"},
 		"?mouvement_reduit":
 		{"decor": "entier_nul", "flamme_boss": "entier_nul", "crane": "entier_nul"},
 	},
@@ -246,6 +248,11 @@ static func _liens_effets(a: Dictionary, err: Array[String]) -> void:
 				continue
 			for nom: Variant in elements[id]:
 				citees[nom] = true
+	var contour: Variant = (effets as Dictionary).get("contour_tirs")
+	if contour is Dictionary and (contour as Dictionary).get("planches") is Array:
+		for nom: Variant in (contour as Dictionary)["planches"]:
+			if not (planches as Dictionary).has(nom):
+				_err(err, "effets.contour_tirs.planches", "planche non décrite : %s" % nom)
 	for nom: Variant in citees:
 		if not (planches as Dictionary).has(nom):
 			_err(err, "effets.maison", "planche citée mais non décrite : %s" % nom)

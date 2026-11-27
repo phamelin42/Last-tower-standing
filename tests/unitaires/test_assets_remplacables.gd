@@ -289,7 +289,9 @@ func test_une_planche_d_attaque_remplacee_par_une_autre_taille_s_affiche() -> vo
 	var moteur := AttaquesElementaires.new()
 	arbre.root.add_child(moteur)
 	var effet: Dictionary = moteur.nouveau("vol", "carreau", 1.0)
-	verifier_egal((effet["n"] as Sprite2D).region_rect.size, Vector2(32.0, 16.0), "le sprite")
+	# La case des données, élargie du contour clair des tirs fins (un pixel de planche par côté).
+	var attendu := Vector2(32.0, 16.0) + Vector2.ONE * 2.0 * float(ContoursTirs.epaisseur())
+	verifier_egal((effet["n"] as Sprite2D).region_rect.size, attendu, "le sprite")
 	moteur.free()
 	Assets.remplacer(origine)
 	verifier_egal(AttaquesElementaires.planches()["carreau"], Vector2i(16, 8), "rétabli")

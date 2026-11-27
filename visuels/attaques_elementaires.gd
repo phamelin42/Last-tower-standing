@@ -185,6 +185,13 @@ static func texture_de(planche: String) -> Texture2D:
 	return _textures_vue[planche]
 
 
+## La taille d'une image de `planche` telle que le pool la pose : sa case, élargie du contour des
+## tirs fins (`ContoursTirs`) pour une planche de projectile contourée.
+static func cellule(planche: String) -> Vector2i:
+	var taille: Vector2i = planches().get(planche, Vector2i(COTE_ANNEAU, COTE_ANNEAU))
+	return taille + Vector2i.ONE * 2 * ContoursTirs.marge(planche)
+
+
 ## Nombre d'images de `planche`, compté sur sa texture (largeur divisée par la case).
 static func images_de(planche: String) -> int:
 	return int(texture_de(planche).get_width() / float((planches()[planche] as Vector2i).x))
@@ -488,7 +495,7 @@ func nouveau(kind: String, planche: String, duree: float) -> Dictionary:
 	if _vivants.size() >= place:
 		return {}
 	var n: Sprite2D = _prendre()
-	var taille: Vector2i = planches().get(planche, Vector2i(COTE_ANNEAU, COTE_ANNEAU))
+	var taille: Vector2i = cellule(planche)
 	n.texture = _texture(planche)
 	n.region_enabled = true
 	n.region_rect = Rect2(0.0, 0.0, taille.x, taille.y)
@@ -644,6 +651,7 @@ func poser(effet: Dictionary) -> void:
 				var points: PackedVector2Array = _points_eclair(effet, retrace)
 				(n.get_node("Coeur") as Line2D).points = points
 				(n.get_node("Bord") as Line2D).points = points
+				(n.get_node("Lisere") as Line2D).points = points
 			var fin: float = IMAGES_ECLAIR_VISIBLE * IMAGE
 			alpha = ALPHA_MAX * (1.0 - maxf(age - fin, 0.0) / (IMAGES_ECLAIR_EFFACEMENT * IMAGE))
 		"couronne":
@@ -702,15 +710,13 @@ func _poser_vol(effet: Dictionary, n: Sprite2D, t: float, age: float) -> void:
 		n.rotation += age * TAU * float(effet["vrille"])
 	var fps: float = float(effet["fps"])
 	if fps > 0.0 and not (mouvement_reduit and bool(effet["fige_reduit"])):
-		var images: int = int(
-			n.texture.get_width() / float((planches()[effet["planche"]] as Vector2i).x)
-		)
+		var images: int = int(n.texture.get_width() / float(cellule(effet["planche"]).x))
 		_image(effet, int(age * fps) % images)
 
 
 func _images_planche(effet: Dictionary) -> int:
 	var texture: Texture2D = (effet["n"] as Sprite2D).texture
-	return int(texture.get_width() / float((planches()[effet["planche"]] as Vector2i).x))
+	return int(texture.get_width() / float(cellule(effet["planche"]).x))
 
 
 func _image(effet: Dictionary, i: int) -> void:
@@ -718,9 +724,7 @@ func _image(effet: Dictionary, i: int) -> void:
 		return
 	effet["image"] = i
 	var n: Sprite2D = effet["n"]
-	var taille: Vector2i = planches().get(
-		String(effet["planche"]), Vector2i(COTE_ANNEAU, COTE_ANNEAU)
-	)
+	var taille: Vector2i = cellule(String(effet["planche"]))
 	n.region_rect = Rect2(i * taille.x, 0.0, taille.x, taille.y)
 
 
@@ -875,10 +879,10 @@ func _prendre_eclair(couleur: Color) -> Node2D:
 	if _eclairs_libres.is_empty():
 		n = Node2D.new()
 		n.name = "Eclair"
-		for nom: String in ["Bord", "Coeur"]:
+		for nom: String in ["Lisere", "Bord", "Coeur"]:
 			var ligne := Line2D.new()
 			ligne.name = nom
-			ligne.width = EPAISSEUR_BORD if nom == "Bord" else EPAISSEUR_COEUR
+			ligne.width = EPAISSEUR_COEUR if nom == "Coeur" else EPAISSEUR_BORD
 			ligne.joint_mode = Line2D.LINE_JOINT_SHARP
 			ligne.begin_cap_mode = Line2D.LINE_CAP_BOX
 			ligne.end_cap_mode = Line2D.LINE_CAP_BOX
@@ -888,6 +892,13 @@ func _prendre_eclair(couleur: Color) -> Node2D:
 		n = _eclairs_libres.pop_back()
 	(n.get_node("Bord") as Line2D).default_color = couleur
 	(n.get_node("Coeur") as Line2D).default_color = Color.WHITE
+	# Le liseré clair des tirs fins : un pixel de planche de chaque côté du bord (`data/assets.json`).
+	var lisere: Line2D = n.get_node("Lisere") as Line2D
+	lisere.visible = ContoursTirs.eclairs()
+	lisere.width = (
+		EPAISSEUR_BORD + 2.0 * float(ContoursTirs.epaisseur()) * PlanchesEffets.echelle()
+	)
+	lisere.default_color = ContoursTirs.couleur()
 	n.modulate = Color(1.0, 1.0, 1.0, ALPHA_MAX)
 	n.visible = true
 	return n
@@ -896,9 +907,17 @@ func _prendre_eclair(couleur: Color) -> Node2D:
 func _texture(planche: String) -> Texture2D:
 	if planche == "":
 		return _texture_anneau()
-	if not _textures.has(planche):
-		_textures[planche] = load(PlanchesEffets.chemin_planche(planche)) as Texture2D
-	return _textures[planche]
+	var cle: String = "%s@%d" % [planche, Assets.version]
+	if not _textures.has(cle):
+		var texture: Texture2D = load(PlanchesEffets.chemin_planche(planche)) as Texture2D
+		var marge: int = ContoursTirs.marge(planche)
+		if marge > 0:
+			var case_px: Vector2i = planches()[planche]
+			texture = ImageTexture.create_from_image(
+				ContoursTirs.habiller(texture.get_image(), case_px, marge, ContoursTirs.couleur())
+			)
+		_textures[cle] = texture
+	return _textures[cle]
 
 
 ## Un anneau blanc fin (`modulate` le teinte), de 128 px.

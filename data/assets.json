@@ -2707,6 +2707,24 @@
       "decor": 0,
       "flamme_boss": 0,
       "crane": 9
+    },
+    "contour_tirs": {
+      "contour": [
+        1.0,
+        0.98,
+        0.88
+      ],
+      "epaisseur": 1,
+      "planches": [
+        "carreau",
+        "carreau_baliste",
+        "couperet",
+        "fleche_marquante",
+        "javeline",
+        "lame_croissant",
+        "lance_epineuse"
+      ],
+      "eclairs": true
     }
   }
 }
