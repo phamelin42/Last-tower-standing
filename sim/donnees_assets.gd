@@ -52,6 +52,16 @@ const TYPE_DECOR: Dictionary = {
 const TRANCHES: Dictionary = {
 	"gauche": "entier_nul", "haut": "entier_nul", "droite": "entier_nul", "bas": "entier_nul"
 }
+const TIR_FLECHE: Dictionary = {"chemin": "texte", "region": "rect", "echelle": "positif"}
+const TIR_BOMBE: Dictionary = {
+	"chemin": "texte",
+	"case": "taille",
+	"images": "entier",
+	"images_par_seconde": "positif",
+	"region": "rect",
+	"echelle": "positif",
+	"arc": "nombre",
+}
 const FORME: Dictionary = {
 	"unites":
 	{
@@ -84,6 +94,15 @@ const FORME: Dictionary = {
 		"types": {"*": TYPE_DECOR},
 	},
 	"signatures": {"taille": "entier", "bandeau": "taille"},
+	"tirs_ennemis":
+	{
+		"plafond": "entier",
+		"vol_s": "positif",
+		"decalage_id_s": "positif",
+		"marge_arret": "positif",
+		"fleche": TIR_FLECHE,
+		"bombe": TIR_BOMBE,
+	},
 	"ui":
 	{
 		"corps_ruban": "rect",

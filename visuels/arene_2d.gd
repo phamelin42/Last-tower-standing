@@ -68,6 +68,7 @@ var _dernier_tick: int = -1
 var _source: SourceVue = null
 var _construite: bool = false
 var _ennemis: Node2D = null
+var _tirs_ennemis: TirsEnnemis = null
 var _sol: Decor = null
 ## Graine de la partie, mêlée au numéro du joueur : le décor de chaque arène est le sien et ne
 ## bouge pas pendant la partie.
@@ -167,6 +168,8 @@ func _assurer_construite() -> void:
 	_ennemis.name = "Ennemis"
 	_ennemis.y_sort_enabled = true
 	add_child(_ennemis)
+	_tirs_ennemis = TirsEnnemis.new()
+	add_child(_tirs_ennemis)
 	_allies.parent = _ennemis
 	_allies.donnees = donnees
 	_effets = Effets.new()
@@ -187,6 +190,7 @@ func _assurer_construite() -> void:
 	_construire_nom()
 	if donnees != null:
 		_preparer_entites()
+		_tirs_ennemis.configurer(donnees)
 		_barres.indice_boss = _pools.size() - 1
 	_texture_mort = load(String(Apparence.mort["feuille"])) as Texture2D
 	var mort: Dictionary = Apparence.mort
@@ -404,6 +408,10 @@ func sprite_instance(famille: int, i: int) -> Sprite2D:
 	return pool[i]
 
 
+func tirs_ennemis() -> TirsEnnemis:
+	return _tirs_ennemis
+
+
 func nombre_morts_visibles() -> int:
 	var n: int = 0
 	for mort: Sprite2D in _morts:
@@ -509,7 +517,6 @@ func _recevoir(vue: VueArene, temps: float) -> void:
 		return
 	_dernier_tick = vue.tick
 	_interpolation.pousser(vue, temps)
-	_poses.afficher(vue)
 	_superpositions.viser(vue)
 	_echantillon_affiche = {}
 	var explosifs: Array[Vector2] = []
@@ -533,6 +540,8 @@ func _recevoir(vue: VueArene, temps: float) -> void:
 	# Après la boucle : l'impact qui tue peut suivre l'événement de mort dans la même vue.
 	for ou: Vector2 in tues:
 		_annoncer_mort(ou, vue)
+	# Après les événements : le tir qui pose une bombe dit si son projectile est encore en vol.
+	_poses.afficher(vue, _effets)
 	_barres.afficher(vue)
 	_vue_precedente = vue
 
@@ -641,6 +650,7 @@ func _afficher_echantillon() -> void:
 		teintes[rang] = teinte
 		_teintes[f] = teintes
 	_marques.fin()
+	_tirs_ennemis.mettre_a_jour(_horloge, ids, positions, familles)
 	_allies.afficher(_interpolation.echantillon_allies(_horloge), image_courante)
 	_animer_morts()
 
