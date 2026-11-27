@@ -98,3 +98,12 @@ func test_deux_types_d_impact_dans_la_meme_image_jouent_chacun_leur_son() -> voi
 	lecteur.jouer_impact(0, 10.0)
 	lecteur.jouer_impact(1, 10.0)
 	verifier_egal(lecteur.derniers_sons.size(), 2, "un son par type")
+
+
+func test_une_mort_montree_joue_le_son_de_mort_au_plus_une_fois_par_intervalle() -> void:
+	var lecteur := _lecteur()
+	lecteur.jouer_mort(10.0)
+	lecteur.jouer_mort(10.0 + LecteurSons.INTERVALLE_IMPACT * 0.5)
+	verifier_egal(lecteur.derniers_sons, [CatalogueSons.MORT] as Array[String], "une seule fois")
+	lecteur.jouer_mort(10.0 + LecteurSons.INTERVALLE_IMPACT)
+	verifier_egal(lecteur.derniers_sons.size(), 2, "l'intervalle passé")

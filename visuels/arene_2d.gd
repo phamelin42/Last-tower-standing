@@ -15,6 +15,9 @@ signal arene_regardee_quittee
 ## Un impact de sa propre arène devient visible : le son d'impact part à cette image, pas à
 ## l'événement. Muet quand on regarde l'arène d'un autre joueur (seuls ses propres sons jouent).
 signal son_impact_demande(type_degats: int)
+## Une mort devient visible (crâne ou explosion) : le son de mort part à cette image, pas à
+## l'événement. Muet, lui aussi, quand on regarde l'arène d'un autre joueur.
+signal son_mort_demande
 
 const RESERVE_POOL: int = 16
 ## Morts affichées en même temps au plus (crânes, ennemis qui attendent leur impact).
@@ -509,7 +512,8 @@ func _recevoir(vue: VueArene, temps: float) -> void:
 				var rang: int = _plus_proche(explosifs, ou)
 				if rang >= 0:
 					explosifs.remove_at(rang)
-					_effets.exploser(ou)
+					if _effets.exploser(ou):
+						_signaler_mort()
 				else:
 					tues.append(ou)
 			"tir", "impact", "absorption":
@@ -713,7 +717,7 @@ func _annoncer_mort(ou: Vector2, vue: VueArene) -> void:
 	if _effets.delai_avant_impact(ou) >= 0.0 and _mourants.size() < PLAFOND_MORTS:
 		rang = _disparu_proche(vue, ou)
 	if rang < 0:
-		_cranes.ajouter(ou, _horloge)
+		_montrer_crane(ou)
 		return
 	_mourants.append(_creer_mourant(_vue_precedente, rang, ou))
 
@@ -777,7 +781,18 @@ func _avancer_mourants() -> void:
 		var attente: float = _horloge - float(mourant["debut"])
 		if attente >= DELAI_MORT_MAX - MARGE_DELAI or _effets.delai_avant_impact(ou) < 0.0:
 			_liberer_mourant(i)
-			_cranes.ajouter(ou, _horloge)
+			_montrer_crane(ou)
+
+
+## Le crâne en `ou`, et le son de mort avec lui s'il est montré.
+func _montrer_crane(ou: Vector2) -> void:
+	if _cranes.ajouter(ou, _horloge):
+		_signaler_mort()
+
+
+func _signaler_mort() -> void:
+	if _regarde < 0:
+		son_mort_demande.emit()
 
 
 func _liberer_mourant(i: int) -> void:

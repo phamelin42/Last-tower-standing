@@ -8,8 +8,8 @@ const POLYPHONIE := 8
 ## Écart de hauteur d'un tir à l'autre (± 5 %), pour qu'une rafale ne sonne pas en machine à écrire.
 const VARIATION_HAUTEUR := 0.05
 
-## Intervalle minimal (s) entre deux sons d'impact du même type : un pas de simulation, la cadence
-## à laquelle `DetecteurSons` limitait déjà les impacts (un par type et par vue).
+## Intervalle minimal (s) entre deux sons d'impact du même type, ou de mort : un pas de
+## simulation, la cadence à laquelle `DetecteurSons` limitait déjà ces sons (un par vue).
 const INTERVALLE_IMPACT := 0.05
 
 var derniers_sons: Array[String] = []
@@ -63,8 +63,16 @@ func traiter(vue: VueArene) -> void:
 ## Un impact vient de devenir visible : on joue le son de son type de dégâts, au plus une fois par
 ## `INTERVALLE_IMPACT` et par type. `maintenant` (s) ne sert qu'aux tests ; sans lui, l'horloge.
 func jouer_impact(type_degats: int, maintenant: float = -1.0) -> void:
+	_jouer_limite(CatalogueSons.id_impact(type_degats), maintenant)
+
+
+## Une mort vient d'être montrée (crâne ou explosion) : le son de mort, avec la même limite.
+func jouer_mort(maintenant: float = -1.0) -> void:
+	_jouer_limite(CatalogueSons.MORT, maintenant)
+
+
+func _jouer_limite(identifiant: String, maintenant: float) -> void:
 	var instant: float = maintenant if maintenant >= 0.0 else Time.get_ticks_usec() / 1000000.0
-	var identifiant: String = CatalogueSons.id_impact(type_degats)
 	if _dernier_impact.has(identifiant):
 		if instant - float(_dernier_impact[identifiant]) < INTERVALLE_IMPACT:
 			return

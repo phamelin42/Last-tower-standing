@@ -44,15 +44,14 @@ func test_un_tir_ne_se_joue_qu_une_fois_par_vue_meme_en_rafale() -> void:
 	verifier_egal(sons.count(CatalogueSons.TIR), 1, "quarante tirs ne font qu'un son de tir")
 
 
-func test_tir_et_mort_ont_chacun_leur_son_et_l_impact_attend_son_effet() -> void:
+func test_le_tir_a_son_son_et_l_impact_et_la_mort_attendent_leur_effet() -> void:
 	var v := _vue()
 	v.evenements.append(_evenement("tir"))
 	v.evenements.append(_evenement("impact"))
 	v.evenements.append(_evenement("mort"))
 	var sons := DetecteurSons.sons_du_pas(null, v)
 	verifier_contient(sons, CatalogueSons.TIR)
-	verifier_contient(sons, CatalogueSons.MORT)
-	verifier_egal(sons.size(), 2, "l'événement d'impact ne joue rien : le son part à l'effet")
+	verifier_egal(sons, [CatalogueSons.TIR], "ni l'impact ni la mort ne jouent à l'événement")
 
 
 func test_la_pv_basse_se_joue_au_passage_du_seuil_seulement() -> void:
