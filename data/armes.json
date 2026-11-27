@@ -1833,7 +1833,7 @@
  {
   "id": "lame_des_aieux",
   "nom": "Lame des aïeux",
-  "description": "Une lame forgée il y a mille ans tranche chaque ennemi, du premier au dernier rang.",
+  "description": "Une lame vieille comme le royaume fend la meute d’un seul geste.",
   "rarete": "ancestrale",
   "prix": 3200,
   "type_degats": "tranchant",
@@ -1857,18 +1857,18 @@
  {
   "id": "ouragan_de_lames",
   "nom": "Ouragan de lames",
-  "description": "Huit lames tournent autour de la tour et entaillent la meute qui s’approche.",
+  "description": "Un cercle de lames tourne autour de la tour et taille la meute.",
   "rarete": "ancestrale",
   "prix": 4400,
   "type_degats": "tranchant",
-  "degats": 528.0,
+  "degats": 704.0,
   "recharge": 1.0,
   "portee": 1250,
   "ciblage": "plus_proche",
   "effets": [
    {
     "kind": "tournant",
-    "branches": 8,
+    "branches": 6,
     "pas_deg": 12,
     "largeur": 70,
     "sens": "horaire"
@@ -1885,7 +1885,7 @@
  {
   "id": "faux_du_dernier_jour",
   "nom": "Faux du dernier jour",
-  "description": "Un seul arc de faux balaye le champ de bataille et nourrit la tour de chaque coup.",
+  "description": "Un grand arc de faux balaie la plaine et nourrit la tour.",
   "rarete": "souveraine",
   "prix": 9000,
   "type_degats": "tranchant",
@@ -1916,7 +1916,7 @@
  {
   "id": "carquois_des_ancetres",
   "nom": "Carquois des ancêtres",
-  "description": "Le carquois ne se vide jamais : douze traits fusent à chaque salve.",
+  "description": "Le carquois ne se vide jamais et crache ses traits en salves.",
   "rarete": "ancestrale",
   "prix": 3600,
   "type_degats": "perçant",
@@ -1932,24 +1932,28 @@
     "rayon": 55
    }
   ],
-  "statuts": []
+  "statuts": [
+   {
+    "kind": "repoussement",
+    "distance": 60
+   }
+  ]
  },
  {
   "id": "epine_de_mille_ans",
   "nom": "Épine de mille ans",
-  "description": "Des épines millénaires jaillissent du sol sous les pas des assaillants.",
+  "description": "Des épines très anciennes jaillissent sous les pas des assaillants.",
   "rarete": "ancestrale",
   "prix": 4800,
   "type_degats": "perçant",
-  "degats": 4608.0,
+  "degats": 3072.0,
   "recharge": 2.0,
-  "portee": 750,
+  "portee": 1000,
   "ciblage": "plus_proche",
   "effets": [
    {
-    "kind": "piege",
-    "rayon": 120,
-    "max_actives": 6
+    "kind": "zone",
+    "rayon": 260
    }
   ],
   "statuts": [
@@ -1963,13 +1967,13 @@
  {
   "id": "pique_du_souverain",
   "nom": "Pique du souverain",
-  "description": "Une couronne de piques repousse la foule et fait trembler les lignes ennemies.",
+  "description": "Une couronne de piques repousse la foule et fait trembler les rangs.",
   "rarete": "souveraine",
   "prix": 8500,
   "type_degats": "perçant",
   "degats": 2040.0,
   "recharge": 0.6,
-  "portee": 750,
+  "portee": 1000,
   "ciblage": "plus_proche",
   "effets": [
    {
@@ -1993,7 +1997,7 @@
  {
   "id": "sceptre_des_astres",
   "nom": "Sceptre des astres",
-  "description": "Un éclair d’étoile saute de proche en proche entre dix ennemis.",
+  "description": "Un éclair d’étoile saute de proche en proche entre les ennemis.",
   "rarete": "ancestrale",
   "prix": 3800,
   "type_degats": "magique",
@@ -2018,7 +2022,7 @@
  {
   "id": "sablier_d_aurore",
   "nom": "Sablier d’aurore",
-  "description": "Un sablier de lumière dépose des cercles qui brûlent d’or ce qui les traverse.",
+  "description": "Un sablier de lumière dépose des cercles qui brûlent ce qui passe.",
   "rarete": "ancestrale",
   "prix": 4500,
   "type_degats": "magique",
@@ -2048,13 +2052,13 @@
  {
   "id": "oeil_du_firmament",
   "nom": "Œil du firmament",
-  "description": "Le regard du ciel passe sur la plaine en une onde que rien n’arrête.",
+  "description": "Le regard du ciel balaie la plaine en une onde que rien n’arrête.",
   "rarete": "souveraine",
   "prix": 9500,
   "type_degats": "magique",
   "degats": 9619.4,
   "recharge": 3.0,
-  "portee": 1250,
+  "portee": 1000,
   "ciblage": "plus_proche",
   "effets": [
    {
@@ -2080,13 +2084,13 @@
  {
   "id": "catapulte_des_anciens",
   "nom": "Catapulte des anciens",
-  "description": "Un bloc de granit s’abat en grand cercle et assomme tout ce qu’il touche.",
+  "description": "Un bloc de granit retombe en grand cercle et assomme la meute.",
   "rarete": "ancestrale",
   "prix": 3400,
   "type_degats": "siège",
   "degats": 4460.8,
   "recharge": 4.0,
-  "portee": 1250,
+  "portee": 1000,
   "ciblage": "plus_fort",
   "effets": [
    {
@@ -2103,8 +2107,8 @@
  },
  {
   "id": "lance_braise_du_conquerant",
-  "nom": "Lance-braise du conquérant",
-  "description": "Les marmites de poudre mettent le feu aux lignes ennemies : l’explosion arrive deux temps plus tard.",
+  "nom": "Braise du conquérant",
+  "description": "Des marmites de poudre roulent au sol et explosent après un délai.",
   "rarete": "ancestrale",
   "prix": 4200,
   "type_degats": "siège",
@@ -2126,13 +2130,13 @@
  {
   "id": "canon_du_dernier_rempart",
   "nom": "Canon du dernier rempart",
-  "description": "Un unique boulet, lourd comme une muraille, écrase l’ennemi le plus dangereux.",
+  "description": "Un seul boulet, lourd comme une muraille, écrase le plus dangereux.",
   "rarete": "souveraine",
   "prix": 10000,
   "type_degats": "siège",
   "degats": 49200.0,
   "recharge": 4.0,
-  "portee": 1250,
+  "portee": 1000,
   "ciblage": "plus_fort",
   "effets": [
    {
@@ -2154,21 +2158,19 @@
  {
   "id": "urne_des_mille_ombres",
   "nom": "Urne des mille ombres",
-  "description": "Cinq ombres sortent de l’urne et harcèlent la meute jusqu’à s’évanouir.",
+  "description": "Des ombres sortent de l’urne et harcèlent la meute.",
   "rarete": "ancestrale",
   "prix": 3000,
   "type_degats": "chaos",
-  "degats": 2460.1,
-  "recharge": 4.0,
-  "portee": 1000,
+  "degats": 787.2,
+  "recharge": 0.8,
+  "portee": 500,
   "ciblage": "plus_proche",
   "effets": [
    {
-    "kind": "invocation",
-    "unite": "sentinelle_de_braise",
-    "duree": 8.0,
-    "ratio_degats": 0.6,
-    "max_actives": 5
+    "kind": "aura",
+    "rayon": 380,
+    "periode": 0.8
    }
   ],
   "statuts": []
@@ -2176,13 +2178,13 @@
  {
   "id": "pendule_du_desordre",
   "nom": "Pendule du désordre",
-  "description": "Le pendule bat à contretemps : dix éclats partent en tous sens et couvent en brûlant.",
+  "description": "Le pendule bat à contretemps et projette des éclats qui couvent.",
   "rarete": "ancestrale",
   "prix": 4000,
   "type_degats": "chaos",
   "degats": 1574.4,
   "recharge": 2.0,
-  "portee": 1250,
+  "portee": 1000,
   "ciblage": "plus_proche",
   "effets": [
    {
@@ -2203,19 +2205,22 @@
  {
   "id": "couronne_du_vide",
   "nom": "Couronne du vide",
-  "description": "Des mines de néant jonchent le sol et déchirent la foule en la maudissant.",
+  "description": "Des failles de néant s’ouvrent au sol et déchirent la foule maudite.",
   "rarete": "souveraine",
   "prix": 8800,
   "type_degats": "chaos",
-  "degats": 16236.3,
+  "degats": 3092.6,
   "recharge": 3.0,
-  "portee": 750,
+  "portee": 1250,
   "ciblage": "plus_proche",
   "effets": [
    {
-    "kind": "mine",
-    "rayon": 160,
-    "max_actives": 5
+    "kind": "zone_posee",
+    "rayon": 220,
+    "duree": 5.0,
+    "periode": 0.5,
+    "ratio": 0.35,
+    "max_actives": 3
    }
   ],
   "statuts": [

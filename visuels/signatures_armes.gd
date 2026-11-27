@@ -187,7 +187,7 @@ const TABLE_LOT_12: Dictionary = {
 	"lame_des_aieux": ["fleche", "turquoise", "double", "halo", "vulnerabilite"],
 	"ouragan_de_lames": ["spirale", "acier", "etincelles", "explosion", "malediction_toucher"],
 	"faux_du_dernier_jour": ["fleche", "acier", "zigzag", "anneau", "vulnerabilite"],
-	"carquois_des_ancetres": ["goutte", "vert", "etincelles", "entaille", ""],
+	"carquois_des_ancetres": ["goutte", "vert", "etincelles", "entaille", "repoussement"],
 	"epine_de_mille_ans": ["croissant", "paille", "double", "entaille", "vulnerabilite"],
 	"pique_du_souverain": ["disque", "vert", "pointille", "croix", "repoussement"],
 	"sceptre_des_astres": ["shuriken", "bleu", "double", "pointes", "givre"],
@@ -237,8 +237,7 @@ const MARQUES_ARMES: Dictionary = {
 	"oeil_du_firmament": "vulnerabilite",
 	"lance_braise_du_conquerant": "bombe",
 	"canon_du_dernier_rempart": "vulnerabilite",
-	"urne_des_mille_ombres": "allie",
-	"couronne_du_vide": "vulnerabilite",
+	"couronne_du_vide": "disque_au_sol",
 }
 
 

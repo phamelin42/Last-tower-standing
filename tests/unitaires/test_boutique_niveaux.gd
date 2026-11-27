@@ -83,10 +83,13 @@ func test_l_offre_d_une_arme_portee_dit_son_niveau_et_les_degats_gagnes() -> voi
 		_ui.afficher(_vue_avec(id, 2))
 		var texte := _texte_carte(0)
 		var gain := roundi(float((_donnees.armes[id] as Dictionary)["degats"]) * 0.30)
-		var attendu := "Niv. 2 → 3 : +%d" % gain
+		var attendu := "Niv. 2 → 3 : +%s" % Nombres.groupe(gain)
 		verifier(texte.contains(attendu), "%s : « %s » absent de « %s »" % [id, attendu, texte])
 		var infobulle: String = (_ui.find_child("Carte0", true, false) as Control).tooltip_text
-		verifier(infobulle.contains("+%d dégâts" % gain), "%s : gain dans l'infobulle" % id)
+		verifier(
+			infobulle.contains("+%s dégâts" % Nombres.groupe(gain)),
+			"%s : gain dans l'infobulle" % id
+		)
 
 
 func test_une_arme_non_portee_ou_une_amelioration_n_affiche_aucun_niveau() -> void:

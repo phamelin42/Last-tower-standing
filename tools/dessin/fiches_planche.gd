@@ -98,6 +98,25 @@ const FICHES: Dictionary = {
 	"coupe_d_oubli": {"projectile": "coupe", "impact": "eclat_des"},
 	"legion_de_cendre": {"projectile": "cendre", "impact": "tourbillon_sable"},
 	"tempete_de_malefices": {"projectile": "malefice", "impact": "eclat_astral"},
+	# Fin de partie (T12.7) : planches existantes réutilisées, en attendant des dessins propres.
+	"lame_des_aieux":
+	{"projectile": "lame_croissant", "impact": "entaille", "teinte": Color(1.0, 0.85, 0.7)},
+	"ouragan_de_lames": {"projectile": "lame_tournante", "impact": "eclat_acier"},
+	"faux_du_dernier_jour": {"projectile": "arc_lame", "impact": "balayage"},
+	"carquois_des_ancetres": {"projectile": "carreau", "impact": "gerbe"},
+	"epine_de_mille_ans": {"projectile": "pique", "impact": "pointes_sol"},
+	"pique_du_souverain":
+	{"projectile": "chausse_trape", "impact": "pointes_sol", "teinte": Color(0.9, 1.0, 0.8)},
+	"sceptre_des_astres": {"projectile": "etoile_astrale", "impact": "eclat_astral"},
+	"sablier_d_aurore": {"projectile": "rune", "impact": "eclat_rune", "disque": "disque_rune"},
+	"oeil_du_firmament": {"projectile": "vague_celeste", "impact": "eclat_astral"},
+	"catapulte_des_anciens": {"projectile": "rocher", "impact": "cratere"},
+	"lance_braise_du_conquerant": {"projectile": "baril", "impact": "explosion_feu"},
+	"canon_du_dernier_rempart": {"projectile": "bloc_colosse", "impact": "cratere"},
+	"urne_des_mille_ombres": {"projectile": "urne", "impact": "eclat_siphon"},
+	"pendule_du_desordre": {"projectile": "de_pipe", "impact": "eclat_des"},
+	"couronne_du_vide":
+	{"projectile": "eclat_miroir", "impact": "gerbe_verre", "disque": "disque_orage"},
 }
 
 ## Part de la durée d'un impact où l'on prend ses trois images : début, milieu, dissipation.
