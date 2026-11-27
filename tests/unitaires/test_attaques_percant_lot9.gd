@@ -183,3 +183,65 @@ func test_l_arc_dans_effets_envoie_un_trait_par_saut() -> void:
 	var effets: Effets = _effets_de("arc_de_remparts")
 	verifier_egal(effets.elementaires().etats("carreau").size(), 3, "un tir puis deux sauts")
 	effets.free()
+
+
+# --- Herse de pieux : onde, repoussement -------------------------------------------------------
+
+
+func test_la_herse_de_pieux_est_une_onde_qui_repousse() -> void:
+	_verifier_arme("herse_de_pieux", "herse_pieux", "onde")
+	verifier_egal(_statut("herse_de_pieux"), "repoussement")
+	verifier_egal(AttaquesElementaires.planche_projectile("herse_pieux"), "", "rien ne part")
+
+
+func test_l_onde_de_pieux_a_le_rayon_et_la_vitesse_des_donnees() -> void:
+	var rayon: float = _rayon_px("herse_de_pieux", "rayon_max")
+	var vitesse: float = _rayon_px("herse_de_pieux", "vitesse")
+	verifier_proche(AttaqueHersePieux.RAYON_PX, rayon, 0.001, "rayon de data/armes.json")
+	verifier_proche(AttaqueHersePieux.VITESSE_PX, vitesse, 0.001, "vitesse de data/armes.json")
+
+
+func test_les_pieux_avancent_a_la_vitesse_de_l_onde_jusqu_au_rayon() -> void:
+	verifier(_a.onde("herse_pieux", TOUR))
+	var n: int = _a.etats("pique").size()
+	verifier_egal(n, AttaqueHersePieux.PIQUES, "un front de pieux")
+	_avancer(15)
+	var attendu: float = AttaqueHersePieux.VITESSE_PX * 15.0 * IMAGE
+	for pieu: Dictionary in _a.etats("pique"):
+		verifier_proche((pieu["position"] as Vector2).distance_to(TOUR), attendu, 1.0, "vitesse")
+	_avancer(60)
+	for pieu: Dictionary in _a.etats("pique"):
+		verifier(
+			(pieu["position"] as Vector2).distance_to(TOUR) <= AttaqueHersePieux.RAYON_PX + 0.5,
+			"jamais au-delà du rayon"
+		)
+
+
+func test_des_pointes_jaillissent_du_sol_quand_le_front_passe() -> void:
+	_a.onde("herse_pieux", TOUR)
+	var visibles: int = 0
+	for pointes: Dictionary in _a.etats("pointes_sol"):
+		visibles += 1 if pointes["visible"] else 0
+	verifier_egal(visibles, 0, "rien avant le passage du front")
+	_avancer(int(AttaqueHersePieux.RAYON_PX / AttaqueHersePieux.VITESSE_PX / IMAGE))
+	visibles = 0
+	for pointes: Dictionary in _a.etats("pointes_sol"):
+		visibles += 1 if pointes["visible"] else 0
+	verifier(visibles > 0, "les pointes sont sorties")
+	verifier(_a.diametre_max() <= AttaqueHersePieux.RAYON_PX * 2.0 * 1.1, "rien au-delà du rayon")
+
+
+func test_l_onde_de_pieux_s_efface_et_rend_le_pool() -> void:
+	_a.onde("herse_pieux", TOUR)
+	_avancer(120)
+	verifier_egal(_a.nombre_vivants(), 0)
+	verifier_egal(_a.particules_actives(), 0)
+
+
+func test_la_herse_de_pieux_dans_effets_se_dessine_au_depart_de_l_onde() -> void:
+	var effets: Effets = _effets_de("herse_de_pieux")
+	verifier_egal(
+		effets.elementaires().etats("pique").size(), AttaqueHersePieux.PIQUES, "un seul front"
+	)
+	verifier_egal(effets.formes_vivantes().has("anneau"), false, "plus d'anneau générique")
+	effets.free()
