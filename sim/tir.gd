@@ -717,12 +717,17 @@ static func _tournant(ctx: Contexte, effet: Dictionary) -> bool:
 		var bout := ctx.centre + Vector2(cos(angle), sin(angle)) * portee
 		_evenement(ctx, "tir", ctx.centre, bout, largeur)
 		var degats := ctx.degats_base * _critique(ctx)
-		for i: int in ennemis.ids.size():
-			if ennemis.mort[i] != 0 or deja.has(ennemis.ids[i]):
+		# Les tableaux sont lus une fois : un coup ne change que l'ennemi déjà passé.
+		var mort := ennemis.mort
+		var positions := ennemis.pos
+		var identifiants := ennemis.ids
+		for i: int in identifiants.size():
+			if mort[i] != 0:
 				continue
-			var proche := Geometry2D.get_closest_point_to_segment(ennemis.pos[i], ctx.centre, bout)
-			if proche.distance_to(ennemis.pos[i]) <= largeur:
-				deja[ennemis.ids[i]] = true
+			var p := positions[i]
+			var proche := Geometry2D.get_closest_point_to_segment(p, ctx.centre, bout)
+			if proche.distance_to(p) <= largeur and not deja.has(identifiants[i]):
+				deja[identifiants[i]] = true
 				_frapper(ctx, i, degats)
 	var sens := -1.0 if String(effet["sens"]) == "antihoraire" else 1.0
 	ctx.arme.phase_deg = fposmod(phase + sens * float(effet["pas_deg"]), 360.0)

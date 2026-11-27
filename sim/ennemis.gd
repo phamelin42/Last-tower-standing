@@ -99,11 +99,26 @@ var _centre_d2: Vector2 = Vector2.ZERO
 var _indice_par_id: Dictionary = {}
 ## Nombre d'entrées des tableaux, morts en attente compris.
 var _n: int = 0
+var _eff_plat: PackedFloat64Array = PackedFloat64Array()
+var _eff_types: int = 0
+var _eff_armures: int = 0
 
 
 func _init(donnees: Donnees) -> void:
 	_donnees = donnees
 	_table_efficacite = donnees.efficacite
+	# La table à plat, si elle est rectangulaire : `Combat.efficacite` coûtait un appel et deux
+	# indexations de tableaux imbriqués par coup (T27).
+	_eff_types = _table_efficacite.size()
+	for ligne: Array in _table_efficacite:
+		_eff_armures = maxi(_eff_armures, ligne.size())
+	for ligne: Array in _table_efficacite:
+		if ligne.size() != _eff_armures:
+			_eff_armures = 0
+	if _eff_armures > 0:
+		for ligne: Array in _table_efficacite:
+			for valeur: Variant in ligne:
+				_eff_plat.append(float(valeur))
 	_gel_max = float(donnees.partie["gel_max_s"])
 	var givre: Dictionary = donnees.partie["givre"]
 	_cumuls_max = int(givre["cumuls_max"])
@@ -216,16 +231,20 @@ func _tuer(i: int) -> void:
 ## plafonnés aux PV restants (c'est ce montant qui nourrit le score et le vol de vie) ; 0 pour
 ## un mort, un indice inconnu ou un montant négatif, nul ou NaN, qui ne soigne jamais.
 func infliger(i: int, montant: float, type_degats: int) -> float:
-	if not _vivant(i) or not montant > 0.0:
+	if i < 0 or i >= _n or mort[i] != 0 or not montant > 0.0:
 		return 0.0
 	# La vulnérabilité du type passe avant l'efficacité contre l'armure.
 	var vuln := 0.0
 	if type_degats >= 0 and type_degats < 5:
 		vuln = vulnerabilite[i * 5 + type_degats]
-	var apres := (
-		minf(montant * (1.0 + vuln), DEGATS_MAX)
-		* Combat.efficacite(_table_efficacite, type_degats, armure[i])
-	)
+	var efficacite := 1.0
+	var genre_armure := armure[i]
+	if _eff_armures > 0:
+		if type_degats >= 0 and type_degats < _eff_types and genre_armure < _eff_armures:
+			efficacite = _eff_plat[type_degats * _eff_armures + genre_armure]
+	else:
+		efficacite = Combat.efficacite(_table_efficacite, type_degats, genre_armure)
+	var apres := minf(montant * (1.0 + vuln), DEGATS_MAX) * efficacite
 	var reels := minf(apres, pv[i])
 	pv[i] -= apres
 	if pv[i] <= 0.0:
@@ -237,9 +256,10 @@ func infliger(i: int, montant: float, type_degats: int) -> float:
 ## ennemi ; la durée commune se rafraîchit (jamais additionnée) jusqu'à `duree_max`. Un ratio ou une
 ## durée non finis, nuls ou négatifs, un mort et un type inconnu sont ignorés.
 func vulnerabiliser(i: int, type_degats: int, ratio: float, duree: float) -> void:
-	if not _vivant(i) or type_degats < 0 or type_degats >= 5:
+	# La vérification d'un statut valide est en ligne : deux appels par statut et par ennemi touché.
+	if i < 0 or i >= _n or mort[i] != 0 or type_degats < 0 or type_degats >= 5:
 		return
-	if not _dot_valide(ratio, duree):
+	if not (ratio > 0.0 and duree > 0.0 and is_finite(ratio) and is_finite(duree)):
 		return
 	var k := i * 5 + type_degats
 	vulnerabilite[k] = minf(vulnerabilite[k] + ratio, _vuln_plafond)
@@ -250,7 +270,9 @@ func vulnerabiliser(i: int, type_degats: int, ratio: float, duree: float) -> voi
 ## Malédiction de dégâts : l'ennemi inflige `1 − ratio` de ses dégâts. Non cumulable : le plus fort
 ## l'emporte (plafond `malediction.plafond`), la durée se rafraîchit.
 func maudire_degats(i: int, ratio: float, duree: float) -> void:
-	if not _vivant(i) or not _dot_valide(ratio, duree):
+	if i < 0 or i >= _n or mort[i] != 0:
+		return
+	if not (ratio > 0.0 and duree > 0.0 and is_finite(ratio) and is_finite(duree)):
 		return
 	maudit_degats[i] = maxf(maudit_degats[i], minf(ratio, _maudit_plafond))
 	maudit_degats_t[i] = maxf(maudit_degats_t[i], duree)
@@ -260,7 +282,9 @@ func maudire_degats(i: int, ratio: float, duree: float) -> void:
 ## Malédiction de toucher : ses attaques échouent `ratio` du temps, en moyenne (réduction des
 ## dégâts, sans tirage). Mêmes règles que `maudire_degats`.
 func maudire_toucher(i: int, ratio: float, duree: float) -> void:
-	if not _vivant(i) or not _dot_valide(ratio, duree):
+	if i < 0 or i >= _n or mort[i] != 0:
+		return
+	if not (ratio > 0.0 and duree > 0.0 and is_finite(ratio) and is_finite(duree)):
 		return
 	maudit_toucher[i] = maxf(maudit_toucher[i], minf(ratio, _maudit_plafond))
 	maudit_toucher_t[i] = maxf(maudit_toucher_t[i], duree)
@@ -270,7 +294,9 @@ func maudire_toucher(i: int, ratio: float, duree: float) -> void:
 ## Siphon : pendant `duree`, l'ennemi verse `par_seconde` à la tour (`ressource` : 0 mana, 1 vie).
 ## Un nouveau siphon de la même ressource rafraîchit la durée et garde le plus fort débit.
 func siphonner(i: int, ressource: int, par_seconde: float, duree: float) -> void:
-	if not _vivant(i) or not _dot_valide(par_seconde, duree):
+	if i < 0 or i >= _n or mort[i] != 0:
+		return
+	if not (par_seconde > 0.0 and duree > 0.0 and is_finite(par_seconde) and is_finite(duree)):
 		return
 	if ressource == 0:
 		siphon_mana[i] = maxf(siphon_mana[i], par_seconde)
@@ -306,7 +332,9 @@ func repousser(i: int, distance: float, depuis: Vector2, facteur: float) -> void
 
 
 func empoisonner(i: int, total: float, duree: float) -> void:
-	if not _vivant(i) or not _dot_valide(total, duree):
+	if i < 0 or i >= _n or mort[i] != 0:
+		return
+	if not (total > 0.0 and duree > 0.0 and is_finite(total) and is_finite(duree)):
 		return
 	poison_reste[i] += total
 	poison_duree[i] = maxf(poison_duree[i], duree)
@@ -316,7 +344,9 @@ func empoisonner(i: int, total: float, duree: float) -> void:
 ## Brûlure : `ratio` des dégâts du coup, répartis sur `duree`, cumulative.
 func bruler(i: int, ratio: float, degats_du_coup: float, duree: float) -> void:
 	var total := ratio * degats_du_coup
-	if not _vivant(i) or not _dot_valide(total, duree):
+	if i < 0 or i >= _n or mort[i] != 0:
+		return
+	if not (total > 0.0 and duree > 0.0 and is_finite(total) and is_finite(duree)):
 		return
 	brule_reste[i] += total
 	brule_duree[i] = maxf(brule_duree[i], duree)
@@ -369,10 +399,6 @@ func _proteger_boss(i: int) -> void:
 
 func _resistance_saine(resistance: float) -> float:
 	return resistance if resistance > 0.0 and is_finite(resistance) else 0.0
-
-
-func _dot_valide(total: float, duree: float) -> bool:
-	return total > 0.0 and duree > 0.0 and is_finite(total) and is_finite(duree)
 
 
 func _recalculer_bits(i: int) -> void:

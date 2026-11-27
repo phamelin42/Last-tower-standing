@@ -148,3 +148,24 @@ catalogue d'avant les 15 armes tardives (T12.7), combat contre le boss limité �
 | Boss vaincu en moins de 400 s           | 0 graine sur 9 (une victoire en 142 s sans le boost de revenu, graine 6)      |
 
 La mesure complète (boss, 50 graines, leviers) attend T12.7 (15 armes) et S27 : voir T12.9.
+
+## Coût d'un pas de simulation (S27, 27/11/2026)
+
+Profil par section d'un pas d'arène (`Arene.avancer`), catalogue complet, 10e centile de blocs de quatre pas avec
+une lecture de la vue (`test_cout_du_pas`) :
+
+| Scénario (90 armes, lot 12 compris) | Avant   | Après        |
+| ----------------------------------- | ------- | ------------ |
+| aucun ennemi                        | 8,2 ms  | 0,38 ms      |
+| 500 ennemis à portée                | —       | 3,1 à 3,9 ms |
+| 1 000 ennemis à portée              | 10,1 ms | 5,2 à 5,7 ms |
+| 1 000 ennemis et 64 alliés          | 11,0 ms | 5,4 à 5,9 ms |
+
+- Cause principale : le contexte de tir était reconstruit pour chaque arme prête à chaque pas, même sans ennemi à
+  sa portée (`communes_par_type`, 60 µs par arme). Il l'est maintenant une fois par pas et seulement si une cible
+  existe à portée.
+- Le reste vient des coups portés : environ 4 µs par ennemi touché, 8 à 12 µs avec des statuts. Les armes du lot 12
+  (auras, ondes et barrages à statuts, portée 1 000 à 1 250) en ajoutent. Le plan vise 5 ms au pire cas : il reste
+  à tenir avec 1 000 ennemis, à reprendre en T12.9 (budget actuel du test : 7 ms).
+- Comportement inchangé : empreintes de vue identiques avant et après sur 600 pas (catalogue complet) et sous
+  charge (1 000 ennemis, 64 alliés), équilibrage identique sur 4 graines pour les trois robots.
