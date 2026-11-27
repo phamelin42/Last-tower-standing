@@ -40,2248 +40,2052 @@
     }
   },
   "tour_de_guet": {
-    "sprite": "res://assets/tiny_swords/Factions/Goblins/Buildings/Wood_Tower/Wood_Tower_Blue.png",
-    "cadre": {
-      "x": 0,
-      "y": 0,
-      "largeur": 256,
-      "hauteur": 192
-    },
+    "sprite": "res://assets/tours/avant_poste.png",
+    "filtre": "lineaire",
     "defi": "premier_rempart",
-    "echelle": 1.14,
-    "marque": {
-      "genre": "origine",
-      "x": 65,
-      "y": 31,
-      "largeur": 126,
-      "hauteur": 89
-    },
-    "licence": "CC0 1.0",
-    "source": "Tiny Swords (Pixel Frog), assets/tiny_swords/LICENCE.md",
-    "ancrages": {
-      "epines": {
-        "x": 128,
-        "y": 102
-      },
-      "mana": {
-        "x": 128,
-        "y": 93
-      },
-      "armure": {
-        "x": 128,
-        "y": 120
-      },
-      "esquive": {
-        "x": 128,
-        "y": 83
-      },
-      "regen": {
-        "x": 128,
-        "y": 102
-      },
-      "vol_de_vie": {
-        "x": 128,
-        "y": 102
-      }
-    }
-  },
-  "tour_embuscade": {
-    "sprite": "res://assets/tiny_swords/Factions/Goblins/Buildings/Wood_House/Goblin_House.png",
-    "defi": "seul_piege",
-    "echelle": 0.99,
+    "echelle": 0.66,
     "marque": {
       "genre": "fanion",
-      "x": 100,
-      "y": 26,
-      "largeur": 16,
-      "hauteur": 24
+      "x": 113,
+      "y": 0,
+      "largeur": 36,
+      "hauteur": 55
     },
-    "licence": "CC0 1.0",
-    "source": "Tiny Swords (Pixel Frog), assets/tiny_swords/LICENCE.md",
+    "licence": "CC-BY 3.0",
+    "source": "Bleed (Bleed's Game Art HD), https://opengameart.org/content/old-outpost-bleeds-game-art-hd",
     "ancrages": {
       "epines": {
-        "x": 64,
-        "y": 103
+        "x": 74,
+        "y": 171
       },
       "mana": {
-        "x": 64,
-        "y": 96
+        "x": 74,
+        "y": 153
       },
       "armure": {
-        "x": 64,
-        "y": 119
+        "x": 74,
+        "y": 206
       },
       "esquive": {
-        "x": 64,
-        "y": 86
+        "x": 74,
+        "y": 133
       },
       "regen": {
-        "x": 64,
-        "y": 103
+        "x": 74,
+        "y": 171
       },
       "vol_de_vie": {
-        "x": 64,
-        "y": 103
-      }
-    }
-  },
-  "tour_comptoir": {
-    "sprite": "res://assets/tiny_swords/Factions/Goblins/Buildings/Wood_House/Goblin_House.png",
-    "defi": "banquier",
-    "echelle": 0.99,
-    "marque": {
-      "genre": "fanion",
-      "x": 100,
-      "y": 26,
-      "largeur": 16,
-      "hauteur": 24
-    },
-    "licence": "CC0 1.0",
-    "source": "Tiny Swords (Pixel Frog), assets/tiny_swords/LICENCE.md",
-    "ancrages": {
-      "epines": {
-        "x": 64,
-        "y": 103
-      },
-      "mana": {
-        "x": 64,
-        "y": 96
-      },
-      "armure": {
-        "x": 64,
-        "y": 119
-      },
-      "esquive": {
-        "x": 64,
-        "y": 86
-      },
-      "regen": {
-        "x": 64,
-        "y": 103
-      },
-      "vol_de_vie": {
-        "x": 64,
-        "y": 103
-      }
-    }
-  },
-  "tour_du_puits": {
-    "sprite": "res://assets/tiny_swords/Factions/Knights/Buildings/Tower/Tower_Construction.png",
-    "defi": "source_unique",
-    "echelle": 1.45,
-    "marque": {
-      "genre": "fanion",
-      "x": 87,
-      "y": 148,
-      "largeur": 16,
-      "hauteur": 24
-    },
-    "licence": "CC0 1.0",
-    "source": "Tiny Swords (Pixel Frog), assets/tiny_swords/LICENCE.md",
-    "ancrages": {
-      "epines": {
-        "x": 64,
-        "y": 191
-      },
-      "mana": {
-        "x": 64,
-        "y": 187
-      },
-      "armure": {
-        "x": 64,
-        "y": 200
-      },
-      "esquive": {
-        "x": 64,
-        "y": 182
-      },
-      "regen": {
-        "x": 64,
-        "y": 191
-      },
-      "vol_de_vie": {
-        "x": 64,
-        "y": 191
-      }
-    }
-  },
-  "tour_de_la_table_ronde": {
-    "sprite": "res://assets/tiny_swords/Factions/Knights/Buildings/Tower/Tower_Construction.png",
-    "defi": "compagnon_de_table",
-    "echelle": 1.45,
-    "marque": {
-      "genre": "fanion",
-      "x": 87,
-      "y": 148,
-      "largeur": 16,
-      "hauteur": 24
-    },
-    "licence": "CC0 1.0",
-    "source": "Tiny Swords (Pixel Frog), assets/tiny_swords/LICENCE.md",
-    "ancrages": {
-      "epines": {
-        "x": 64,
-        "y": 191
-      },
-      "mana": {
-        "x": 64,
-        "y": 187
-      },
-      "armure": {
-        "x": 64,
-        "y": 200
-      },
-      "esquive": {
-        "x": 64,
-        "y": 182
-      },
-      "regen": {
-        "x": 64,
-        "y": 191
-      },
-      "vol_de_vie": {
-        "x": 64,
-        "y": 191
-      }
-    }
-  },
-  "tour_rafistolee": {
-    "sprite": "res://assets/tiny_swords/Factions/Goblins/Buildings/Wood_Tower/Wood_Tower_InConstruction.png",
-    "defi": "a_un_cheveu",
-    "echelle": 0.92,
-    "marque": {
-      "genre": "fanion",
-      "x": 151,
-      "y": 28,
-      "largeur": 16,
-      "hauteur": 24
-    },
-    "licence": "CC0 1.0",
-    "source": "Tiny Swords (Pixel Frog), assets/tiny_swords/LICENCE.md",
-    "ancrages": {
-      "epines": {
-        "x": 118,
-        "y": 112
-      },
-      "mana": {
-        "x": 118,
-        "y": 104
-      },
-      "armure": {
-        "x": 118,
-        "y": 130
-      },
-      "esquive": {
-        "x": 118,
-        "y": 93
-      },
-      "regen": {
-        "x": 118,
-        "y": 112
-      },
-      "vol_de_vie": {
-        "x": 118,
-        "y": 112
-      }
-    }
-  },
-  "tour_survivante": {
-    "sprite": "res://assets/tiny_swords/Factions/Knights/Buildings/Tower/Tower_Destroyed.png",
-    "defi": "dernier_debout",
-    "echelle": 1.1,
-    "marque": {
-      "genre": "fanion",
-      "x": 106,
-      "y": 144,
-      "largeur": 16,
-      "hauteur": 24
-    },
-    "licence": "CC0 1.0",
-    "source": "Tiny Swords (Pixel Frog), assets/tiny_swords/LICENCE.md",
-    "ancrages": {
-      "epines": {
-        "x": 64,
-        "y": 188
-      },
-      "mana": {
-        "x": 64,
-        "y": 184
-      },
-      "armure": {
-        "x": 64,
-        "y": 198
-      },
-      "esquive": {
-        "x": 64,
-        "y": 178
-      },
-      "regen": {
-        "x": 64,
-        "y": 188
-      },
-      "vol_de_vie": {
-        "x": 64,
-        "y": 188
-      }
-    }
-  },
-  "tour_familiere": {
-    "sprite": "res://assets/tiny_swords/Factions/Knights/Buildings/House/House_Blue.png",
-    "defi": "habitue",
-    "echelle": 0.95,
-    "marque": {
-      "genre": "origine",
-      "x": 30,
-      "y": 127,
-      "largeur": 68,
-      "hauteur": 25
-    },
-    "licence": "CC0 1.0",
-    "source": "Tiny Swords (Pixel Frog), assets/tiny_swords/LICENCE.md",
-    "ancrages": {
-      "epines": {
-        "x": 64,
-        "y": 105
-      },
-      "mana": {
-        "x": 64,
-        "y": 97
-      },
-      "armure": {
-        "x": 64,
-        "y": 121
-      },
-      "esquive": {
-        "x": 64,
-        "y": 87
-      },
-      "regen": {
-        "x": 64,
-        "y": 105
-      },
-      "vol_de_vie": {
-        "x": 64,
-        "y": 105
-      }
-    }
-  },
-  "tour_du_dragon_avare": {
-    "sprite": "res://assets/tours/mine_d_or.png",
-    "defi": "thesauriseur",
-    "echelle": 1.39,
-    "marque": {
-      "genre": "origine",
-      "x": 23,
-      "y": 7,
-      "largeur": 146,
-      "hauteur": 94
-    },
-    "licence": "CC0 1.0",
-    "source": "Tiny Swords (Pixel Frog), assets/tiny_swords/LICENCE.md",
-    "ancrages": {
-      "epines": {
-        "x": 96,
-        "y": 62
-      },
-      "mana": {
-        "x": 96,
-        "y": 56
-      },
-      "armure": {
-        "x": 96,
-        "y": 74
-      },
-      "esquive": {
-        "x": 96,
-        "y": 49
-      },
-      "regen": {
-        "x": 96,
-        "y": 62
-      },
-      "vol_de_vie": {
-        "x": 96,
-        "y": 62
-      }
-    }
-  },
-  "tour_du_banquier": {
-    "sprite": "res://assets/tours/mine_d_or.png",
-    "defi": "grande_fortune",
-    "echelle": 1.39,
-    "marque": {
-      "genre": "origine",
-      "x": 23,
-      "y": 7,
-      "largeur": 146,
-      "hauteur": 94
-    },
-    "licence": "CC0 1.0",
-    "source": "Tiny Swords (Pixel Frog), assets/tiny_swords/LICENCE.md",
-    "ancrages": {
-      "epines": {
-        "x": 96,
-        "y": 62
-      },
-      "mana": {
-        "x": 96,
-        "y": 56
-      },
-      "armure": {
-        "x": 96,
-        "y": 74
-      },
-      "esquive": {
-        "x": 96,
-        "y": 49
-      },
-      "regen": {
-        "x": 96,
-        "y": 62
-      },
-      "vol_de_vie": {
-        "x": 96,
-        "y": 62
+        "x": 74,
+        "y": 171
       }
     }
   },
   "tour_de_pierre": {
-    "sprite": "res://assets/tours/spire_tour_06.png",
-    "cadre": {
-      "x": 0,
-      "y": 0,
-      "largeur": 64,
-      "hauteur": 128
-    },
+    "sprite": "res://assets/tours/garde_pierre.png",
+    "filtre": "lineaire",
     "defi": "mi_parcours",
-    "echelle": 1.57,
+    "echelle": 0.66,
     "marque": {
       "genre": "fanion",
-      "x": 44,
-      "y": 24,
-      "largeur": 16,
-      "hauteur": 24
+      "x": 147,
+      "y": 0,
+      "largeur": 36,
+      "hauteur": 55
     },
     "licence": "CC0 1.0",
-    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "source": "Colorado Stark, https://opengameart.org/content/medieval-stone-guard-tower-isometric-25d",
     "ancrages": {
       "epines": {
-        "x": 32,
-        "y": 83
+        "x": 92,
+        "y": 139
       },
       "mana": {
-        "x": 32,
-        "y": 77
+        "x": 92,
+        "y": 125
       },
       "armure": {
-        "x": 32,
-        "y": 95
+        "x": 92,
+        "y": 167
       },
       "esquive": {
-        "x": 32,
-        "y": 70
+        "x": 92,
+        "y": 108
       },
       "regen": {
-        "x": 32,
-        "y": 83
+        "x": 92,
+        "y": 139
       },
       "vol_de_vie": {
-        "x": 32,
-        "y": 83
+        "x": 92,
+        "y": 139
       }
     }
   },
   "tour_du_vainqueur": {
-    "sprite": "res://assets/tours/spire_tour_01.png",
-    "cadre": {
-      "x": 128,
-      "y": 0,
-      "largeur": 64,
-      "hauteur": 128
-    },
+    "sprite": "res://assets/tours/chateau_2.png",
+    "filtre": "lineaire",
     "defi": "siege_leve",
-    "echelle": 1.41,
+    "echelle": 0.66,
     "marque": {
       "genre": "fanion",
-      "x": 44,
-      "y": 12,
-      "largeur": 16,
-      "hauteur": 24
+      "x": 179,
+      "y": 0,
+      "largeur": 36,
+      "hauteur": 55
     },
     "licence": "CC0 1.0",
-    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "source": "Julius (CityBuildingKit), https://opengameart.org/content/medieval-castle-lvl-2",
     "ancrages": {
       "epines": {
-        "x": 32,
-        "y": 78
+        "x": 108,
+        "y": 120
       },
       "mana": {
-        "x": 32,
-        "y": 71
+        "x": 108,
+        "y": 107
       },
       "armure": {
-        "x": 32,
-        "y": 92
+        "x": 108,
+        "y": 144
       },
       "esquive": {
-        "x": 32,
-        "y": 63
+        "x": 108,
+        "y": 93
       },
       "regen": {
-        "x": 32,
-        "y": 78
+        "x": 108,
+        "y": 120
       },
       "vol_de_vie": {
-        "x": 32,
-        "y": 78
+        "x": 108,
+        "y": 120
       }
     }
   },
   "tour_sans_horizon": {
-    "sprite": "res://assets/tours/spire_tour_07.png",
-    "cadre": {
-      "x": 128,
-      "y": 0,
-      "largeur": 64,
-      "hauteur": 128
-    },
+    "sprite": "res://assets/tours/galata.png",
+    "filtre": "lineaire",
     "defi": "au_dela_du_boss",
-    "echelle": 1.35,
+    "echelle": 0.66,
     "marque": {
       "genre": "fanion",
-      "x": 44,
-      "y": 7,
-      "largeur": 16,
-      "hauteur": 24
+      "x": 68,
+      "y": 3,
+      "largeur": 36,
+      "hauteur": 55
     },
-    "licence": "CC0 1.0",
-    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "licence": "CC-BY 3.0",
+    "source": "MedicineStorm (Bleed's Game Art), https://opengameart.org/content/galata-tower-bleeds-game-art",
     "ancrages": {
       "epines": {
-        "x": 32,
-        "y": 76
+        "x": 52,
+        "y": 249
       },
       "mana": {
-        "x": 32,
-        "y": 69
+        "x": 52,
+        "y": 224
       },
       "armure": {
-        "x": 32,
-        "y": 90
+        "x": 52,
+        "y": 299
       },
       "esquive": {
-        "x": 32,
-        "y": 60
+        "x": 52,
+        "y": 194
       },
       "regen": {
-        "x": 32,
-        "y": 76
+        "x": 52,
+        "y": 249
       },
       "vol_de_vie": {
-        "x": 32,
-        "y": 76
+        "x": 52,
+        "y": 249
       }
     }
   },
   "tour_lame": {
-    "sprite": "res://assets/tours/spire_tour_04.png",
-    "cadre": {
-      "x": 64,
-      "y": 0,
-      "largeur": 64,
-      "hauteur": 128
-    },
+    "sprite": "res://assets/tours/sombre.png",
+    "filtre": "lineaire",
     "defi": "seul_tranchant",
-    "echelle": 1.41,
+    "echelle": 0.66,
     "marque": {
       "genre": "fanion",
-      "x": 44,
-      "y": 12,
-      "largeur": 16,
-      "hauteur": 24
+      "x": 180,
+      "y": 0,
+      "largeur": 36,
+      "hauteur": 55
     },
     "licence": "CC0 1.0",
-    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "source": "Snabisch, https://opengameart.org/content/fantasy-tower-dark",
     "ancrages": {
       "epines": {
-        "x": 32,
-        "y": 78
+        "x": 108,
+        "y": 119
       },
       "mana": {
-        "x": 32,
-        "y": 71
+        "x": 108,
+        "y": 106
       },
       "armure": {
-        "x": 32,
-        "y": 92
+        "x": 108,
+        "y": 143
       },
       "esquive": {
-        "x": 32,
-        "y": 63
+        "x": 108,
+        "y": 92
       },
       "regen": {
-        "x": 32,
-        "y": 78
+        "x": 108,
+        "y": 119
       },
       "vol_de_vie": {
-        "x": 32,
-        "y": 78
+        "x": 108,
+        "y": 119
       }
     }
   },
   "tour_pointe": {
-    "sprite": "res://assets/tours/spire_tour_06.png",
-    "cadre": {
-      "x": 128,
-      "y": 0,
-      "largeur": 64,
-      "hauteur": 128
-    },
+    "sprite": "res://assets/tours/viking.png",
+    "filtre": "lineaire",
     "defi": "seul_percant",
-    "echelle": 1.35,
+    "echelle": 0.66,
     "marque": {
       "genre": "fanion",
-      "x": 44,
-      "y": 7,
-      "largeur": 16,
-      "hauteur": 24
+      "x": 143,
+      "y": 0,
+      "largeur": 36,
+      "hauteur": 55
     },
     "licence": "CC0 1.0",
-    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "source": "OpenGameArt (CityBuildingKit), https://opengameart.org/content/viking-archer-tower-low-poly",
     "ancrages": {
       "epines": {
-        "x": 32,
-        "y": 76
+        "x": 90,
+        "y": 143
       },
       "mana": {
-        "x": 32,
-        "y": 69
+        "x": 90,
+        "y": 128
       },
       "armure": {
-        "x": 32,
-        "y": 90
+        "x": 90,
+        "y": 172
       },
       "esquive": {
-        "x": 32,
-        "y": 60
+        "x": 90,
+        "y": 111
       },
       "regen": {
-        "x": 32,
-        "y": 76
+        "x": 90,
+        "y": 143
       },
       "vol_de_vie": {
-        "x": 32,
-        "y": 76
+        "x": 90,
+        "y": 143
       }
     }
   },
   "tour_arcane": {
-    "sprite": "res://assets/tours/spire_tour_05.png",
-    "cadre": {
-      "x": 0,
-      "y": 0,
-      "largeur": 64,
-      "hauteur": 128
-    },
+    "sprite": "res://assets/tours/globe.png",
+    "filtre": "lineaire",
     "defi": "seul_magique",
-    "echelle": 1.54,
+    "echelle": 0.87,
     "marque": {
       "genre": "fanion",
-      "x": 44,
-      "y": 22,
-      "largeur": 16,
-      "hauteur": 24
+      "x": 147,
+      "y": 0,
+      "largeur": 28,
+      "hauteur": 41
     },
     "licence": "CC0 1.0",
-    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "source": "Snabisch (CityBuildingKit), https://opengameart.org/content/research-building-for-mobile-strategy-games",
     "ancrages": {
       "epines": {
-        "x": 32,
-        "y": 82
+        "x": 109,
+        "y": 111
       },
       "mana": {
-        "x": 32,
-        "y": 76
+        "x": 109,
+        "y": 100
       },
       "armure": {
-        "x": 32,
-        "y": 95
+        "x": 109,
+        "y": 134
       },
       "esquive": {
-        "x": 32,
-        "y": 69
+        "x": 109,
+        "y": 86
       },
       "regen": {
-        "x": 32,
-        "y": 82
+        "x": 109,
+        "y": 111
       },
       "vol_de_vie": {
-        "x": 32,
-        "y": 82
+        "x": 109,
+        "y": 111
       }
     }
   },
   "tour_bastion": {
-    "sprite": "res://assets/tours/spire_tour_04.png",
-    "cadre": {
-      "x": 128,
-      "y": 0,
-      "largeur": 64,
-      "hauteur": 128
-    },
+    "sprite": "res://assets/tours/catapulte_3.png",
+    "filtre": "lineaire",
     "defi": "seul_siege",
-    "echelle": 1.31,
+    "echelle": 0.66,
     "marque": {
       "genre": "fanion",
-      "x": 44,
-      "y": 3,
-      "largeur": 16,
-      "hauteur": 24
+      "x": 176,
+      "y": 1,
+      "largeur": 36,
+      "hauteur": 55
     },
-    "licence": "CC0 1.0",
-    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "licence": "CC-BY 3.0",
+    "source": "Snabisch, https://opengameart.org/content/medieval-catapult-free-version",
     "ancrages": {
       "epines": {
-        "x": 32,
-        "y": 74
+        "x": 106,
+        "y": 121
       },
       "mana": {
-        "x": 32,
-        "y": 67
+        "x": 106,
+        "y": 109
       },
       "armure": {
-        "x": 32,
-        "y": 89
+        "x": 106,
+        "y": 146
       },
       "esquive": {
-        "x": 32,
-        "y": 58
+        "x": 106,
+        "y": 94
       },
       "regen": {
-        "x": 32,
-        "y": 74
+        "x": 106,
+        "y": 121
       },
       "vol_de_vie": {
-        "x": 32,
-        "y": 74
+        "x": 106,
+        "y": 121
       }
     }
   },
   "tour_fissure": {
-    "sprite": "res://assets/tours/spire_tour_05.png",
-    "cadre": {
-      "x": 128,
-      "y": 0,
-      "largeur": 64,
-      "hauteur": 128
-    },
+    "sprite": "res://assets/tours/tour_pirate.png",
+    "filtre": "lineaire",
     "defi": "seul_chaos",
-    "echelle": 1.35,
+    "echelle": 0.66,
     "marque": {
       "genre": "fanion",
-      "x": 44,
-      "y": 7,
-      "largeur": 16,
-      "hauteur": 24
+      "x": 142,
+      "y": 0,
+      "largeur": 36,
+      "hauteur": 55
     },
     "licence": "CC0 1.0",
-    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "source": "OpenGameArt (CityBuildingKit), https://opengameart.org/content/pirate-wood-walls-isometric-game-defense-structure",
     "ancrages": {
       "epines": {
-        "x": 32,
-        "y": 76
+        "x": 89,
+        "y": 144
       },
       "mana": {
-        "x": 32,
-        "y": 69
+        "x": 89,
+        "y": 129
       },
       "armure": {
-        "x": 32,
-        "y": 90
+        "x": 89,
+        "y": 174
       },
       "esquive": {
-        "x": 32,
-        "y": 60
+        "x": 89,
+        "y": 112
       },
       "regen": {
-        "x": 32,
-        "y": 76
+        "x": 89,
+        "y": 144
       },
       "vol_de_vie": {
-        "x": 32,
-        "y": 76
+        "x": 89,
+        "y": 144
       }
     }
   },
   "tour_oeil": {
-    "sprite": "res://assets/tours/spire_tour_05.png",
-    "cadre": {
-      "x": 64,
-      "y": 0,
-      "largeur": 64,
-      "hauteur": 128
-    },
+    "sprite": "res://assets/tours/crane_mine.png",
+    "filtre": "lineaire",
     "defi": "seul_cible_unique",
-    "echelle": 1.43,
+    "echelle": 0.8,
     "marque": {
       "genre": "fanion",
-      "x": 44,
-      "y": 14,
-      "largeur": 16,
-      "hauteur": 24
+      "x": 162,
+      "y": 2,
+      "largeur": 30,
+      "hauteur": 45
     },
     "licence": "CC0 1.0",
-    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "source": "OpenGameArt (CityBuildingKit), https://opengameart.org/content/goldmine-for-mobile-strategy-games",
     "ancrages": {
       "epines": {
-        "x": 32,
-        "y": 79
+        "x": 108,
+        "y": 106
       },
       "mana": {
-        "x": 32,
-        "y": 72
+        "x": 108,
+        "y": 95
       },
       "armure": {
-        "x": 32,
-        "y": 92
+        "x": 108,
+        "y": 127
       },
       "esquive": {
-        "x": 32,
-        "y": 64
+        "x": 108,
+        "y": 82
       },
       "regen": {
-        "x": 32,
-        "y": 79
+        "x": 108,
+        "y": 106
       },
       "vol_de_vie": {
-        "x": 32,
-        "y": 79
+        "x": 108,
+        "y": 106
       }
     }
   },
   "tour_nuee": {
-    "sprite": "res://assets/tours/spire_tour_07.png",
-    "cadre": {
-      "x": 64,
-      "y": 0,
-      "largeur": 64,
-      "hauteur": 128
-    },
+    "sprite": "res://assets/tours/chateau.png",
+    "filtre": "lineaire",
     "defi": "seul_zone",
-    "echelle": 1.46,
+    "echelle": 0.66,
     "marque": {
       "genre": "fanion",
-      "x": 44,
-      "y": 16,
-      "largeur": 16,
-      "hauteur": 24
+      "x": 195,
+      "y": 0,
+      "largeur": 36,
+      "hauteur": 55
     },
     "licence": "CC0 1.0",
-    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "source": "Andrettin, https://opengameart.org/content/western-european-castle-isometric-25d",
     "ancrages": {
       "epines": {
-        "x": 32,
-        "y": 80
+        "x": 116,
+        "y": 111
       },
       "mana": {
-        "x": 32,
-        "y": 73
+        "x": 116,
+        "y": 100
       },
       "armure": {
-        "x": 32,
-        "y": 93
+        "x": 116,
+        "y": 134
       },
       "esquive": {
-        "x": 32,
-        "y": 65
+        "x": 116,
+        "y": 86
       },
       "regen": {
-        "x": 32,
-        "y": 80
+        "x": 116,
+        "y": 111
       },
       "vol_de_vie": {
-        "x": 32,
-        "y": 80
+        "x": 116,
+        "y": 111
       }
     }
   },
   "tour_ricochet": {
-    "sprite": "res://assets/tours/spire_tour_07.png",
-    "cadre": {
-      "x": 0,
-      "y": 0,
-      "largeur": 64,
-      "hauteur": 128
-    },
+    "sprite": "res://assets/tours/archers_metal.png",
+    "filtre": "lineaire",
     "defi": "seul_rebond",
-    "echelle": 1.59,
+    "echelle": 0.66,
     "marque": {
       "genre": "fanion",
-      "x": 44,
-      "y": 25,
-      "largeur": 16,
-      "hauteur": 24
+      "x": 167,
+      "y": 0,
+      "largeur": 36,
+      "hauteur": 55
     },
     "licence": "CC0 1.0",
-    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "source": "Snabisch (CityBuildingKit), https://opengameart.org/content/steampunk-archer-tower-medieval-series",
     "ancrages": {
       "epines": {
-        "x": 32,
-        "y": 84
+        "x": 102,
+        "y": 126
       },
       "mana": {
-        "x": 32,
-        "y": 78
+        "x": 102,
+        "y": 113
       },
       "armure": {
-        "x": 32,
-        "y": 96
+        "x": 102,
+        "y": 152
       },
       "esquive": {
-        "x": 32,
-        "y": 71
+        "x": 102,
+        "y": 98
       },
       "regen": {
-        "x": 32,
-        "y": 84
+        "x": 102,
+        "y": 126
       },
       "vol_de_vie": {
-        "x": 32,
-        "y": 84
+        "x": 102,
+        "y": 126
       }
     }
   },
   "tour_sonore": {
-    "sprite": "res://assets/tours/spire_tour_03.png",
-    "cadre": {
-      "x": 0,
-      "y": 0,
-      "largeur": 64,
-      "hauteur": 128
-    },
+    "sprite": "res://assets/tours/porte.png",
+    "filtre": "lineaire",
     "defi": "seul_onde",
-    "echelle": 1.68,
+    "echelle": 0.66,
     "marque": {
       "genre": "fanion",
-      "x": 44,
-      "y": 31,
-      "largeur": 16,
-      "hauteur": 24
+      "x": 157,
+      "y": 0,
+      "largeur": 36,
+      "hauteur": 55
     },
     "licence": "CC0 1.0",
-    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "source": "Snabisch (CityBuildingKit), https://opengameart.org/content/castle-gate-and-drawbridge",
     "ancrages": {
       "epines": {
-        "x": 32,
-        "y": 86
+        "x": 96,
+        "y": 133
       },
       "mana": {
-        "x": 32,
-        "y": 81
+        "x": 96,
+        "y": 120
       },
       "armure": {
-        "x": 32,
-        "y": 98
+        "x": 96,
+        "y": 161
       },
       "esquive": {
-        "x": 32,
-        "y": 74
+        "x": 96,
+        "y": 103
       },
       "regen": {
-        "x": 32,
-        "y": 86
+        "x": 96,
+        "y": 133
       },
       "vol_de_vie": {
-        "x": 32,
-        "y": 86
+        "x": 96,
+        "y": 133
       }
     }
   },
   "tour_salve": {
-    "sprite": "res://assets/tours/spire_tour_01.png",
-    "cadre": {
-      "x": 64,
-      "y": 0,
-      "largeur": 64,
-      "hauteur": 128
-    },
+    "sprite": "res://assets/tours/stand_de_tir.png",
+    "filtre": "lineaire",
     "defi": "seul_barrage",
-    "echelle": 1.53,
+    "echelle": 0.66,
     "marque": {
       "genre": "fanion",
-      "x": 44,
-      "y": 21,
-      "largeur": 16,
-      "hauteur": 24
+      "x": 213,
+      "y": 1,
+      "largeur": 36,
+      "hauteur": 55
     },
     "licence": "CC0 1.0",
-    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "source": "looneybits, https://opengameart.org/content/medieval-archery-range-isometric-25d",
     "ancrages": {
       "epines": {
-        "x": 32,
-        "y": 82
+        "x": 125,
+        "y": 104
       },
       "mana": {
-        "x": 32,
-        "y": 76
+        "x": 125,
+        "y": 93
       },
       "armure": {
-        "x": 32,
-        "y": 94
+        "x": 125,
+        "y": 124
       },
       "esquive": {
-        "x": 32,
-        "y": 68
+        "x": 125,
+        "y": 81
       },
       "regen": {
-        "x": 32,
-        "y": 82
+        "x": 125,
+        "y": 104
       },
       "vol_de_vie": {
-        "x": 32,
-        "y": 82
+        "x": 125,
+        "y": 104
+      }
+    }
+  },
+  "tour_embuscade": {
+    "sprite": "res://assets/tours/avant_poste_2.png",
+    "filtre": "lineaire",
+    "defi": "seul_piege",
+    "echelle": 0.66,
+    "marque": {
+      "genre": "fanion",
+      "x": 110,
+      "y": 0,
+      "largeur": 36,
+      "hauteur": 55
+    },
+    "licence": "CC-BY 3.0",
+    "source": "Bleed (Bleed's Game Art HD), https://opengameart.org/content/old-outpost-bleeds-game-art-hd",
+    "ancrages": {
+      "epines": {
+        "x": 73,
+        "y": 173
+      },
+      "mana": {
+        "x": 73,
+        "y": 156
+      },
+      "armure": {
+        "x": 73,
+        "y": 209
+      },
+      "esquive": {
+        "x": 73,
+        "y": 134
+      },
+      "regen": {
+        "x": 73,
+        "y": 173
+      },
+      "vol_de_vie": {
+        "x": 73,
+        "y": 173
       }
     }
   },
   "tour_sapeur": {
-    "sprite": "res://assets/tours/spire_tour_03.png",
-    "cadre": {
-      "x": 128,
-      "y": 0,
-      "largeur": 64,
-      "hauteur": 128
-    },
+    "sprite": "res://assets/tours/taverne.png",
+    "filtre": "lineaire",
     "defi": "seul_mine",
-    "echelle": 1.29,
+    "echelle": 0.66,
     "marque": {
       "genre": "fanion",
-      "x": 44,
-      "y": 1,
-      "largeur": 16,
-      "hauteur": 24
+      "x": 182,
+      "y": 0,
+      "largeur": 36,
+      "hauteur": 55
     },
-    "licence": "CC0 1.0",
-    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "licence": "CC-BY 3.0",
+    "source": "tir2, https://opengameart.org/content/isometric-medieval-tavern",
     "ancrages": {
       "epines": {
-        "x": 32,
-        "y": 73
+        "x": 109,
+        "y": 118
       },
       "mana": {
-        "x": 32,
-        "y": 66
+        "x": 109,
+        "y": 106
       },
       "armure": {
-        "x": 32,
-        "y": 88
+        "x": 109,
+        "y": 142
       },
       "esquive": {
-        "x": 32,
-        "y": 57
+        "x": 109,
+        "y": 91
       },
       "regen": {
-        "x": 32,
-        "y": 73
+        "x": 109,
+        "y": 118
       },
       "vol_de_vie": {
-        "x": 32,
-        "y": 73
+        "x": 109,
+        "y": 118
       }
     }
   },
   "tour_halo": {
-    "sprite": "res://assets/tours/spire_tour_08.png",
-    "cadre": {
-      "x": 0,
-      "y": 0,
-      "largeur": 64,
-      "hauteur": 192
-    },
+    "sprite": "res://assets/tours/chaumiere.png",
+    "filtre": "lineaire",
     "defi": "seul_aura",
-    "echelle": 1.67,
+    "echelle": 0.72,
     "marque": {
       "genre": "fanion",
-      "x": 44,
-      "y": 94,
-      "largeur": 16,
-      "hauteur": 24
+      "x": 218,
+      "y": 1,
+      "largeur": 33,
+      "hauteur": 50
     },
-    "licence": "CC0 1.0",
-    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "licence": "CC-BY 3.0",
+    "source": "rubberduck (Bleed's Game Art), https://opengameart.org/content/hut-bleeds-game-art",
     "ancrages": {
       "epines": {
-        "x": 32,
-        "y": 150
+        "x": 144,
+        "y": 102
       },
       "mana": {
-        "x": 32,
-        "y": 144
+        "x": 144,
+        "y": 92
       },
       "armure": {
-        "x": 32,
-        "y": 161
+        "x": 144,
+        "y": 122
       },
       "esquive": {
-        "x": 32,
-        "y": 137
+        "x": 144,
+        "y": 79
       },
       "regen": {
-        "x": 32,
-        "y": 150
+        "x": 144,
+        "y": 102
       },
       "vol_de_vie": {
-        "x": 32,
-        "y": 150
+        "x": 144,
+        "y": 102
       }
     }
   },
   "tour_manege": {
-    "sprite": "res://assets/tours/spire_tour_04.png",
-    "cadre": {
-      "x": 0,
-      "y": 0,
-      "largeur": 64,
-      "hauteur": 128
-    },
+    "sprite": "res://assets/tours/catapulte.png",
+    "filtre": "lineaire",
     "defi": "seul_tournant",
-    "echelle": 1.53,
+    "echelle": 0.66,
     "marque": {
       "genre": "fanion",
-      "x": 44,
-      "y": 21,
-      "largeur": 16,
-      "hauteur": 24
+      "x": 175,
+      "y": 1,
+      "largeur": 36,
+      "hauteur": 55
     },
-    "licence": "CC0 1.0",
-    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "licence": "CC-BY 3.0",
+    "source": "Snabisch, https://opengameart.org/content/medieval-catapult-free-version",
     "ancrages": {
       "epines": {
-        "x": 32,
-        "y": 82
+        "x": 106,
+        "y": 121
       },
       "mana": {
-        "x": 32,
-        "y": 76
+        "x": 106,
+        "y": 109
       },
       "armure": {
-        "x": 32,
-        "y": 94
+        "x": 106,
+        "y": 146
       },
       "esquive": {
-        "x": 32,
-        "y": 68
+        "x": 106,
+        "y": 94
       },
       "regen": {
-        "x": 32,
-        "y": 82
+        "x": 106,
+        "y": 121
       },
       "vol_de_vie": {
-        "x": 32,
-        "y": 82
+        "x": 106,
+        "y": 121
       }
     }
   },
   "tour_venimeuse": {
-    "sprite": "res://assets/tours/spire_tour_02.png",
-    "cadre": {
-      "x": 128,
-      "y": 0,
-      "largeur": 64,
-      "hauteur": 192
-    },
+    "sprite": "res://assets/tours/ancienne.png",
+    "filtre": "lineaire",
     "defi": "seul_poison",
-    "echelle": 1.28,
+    "echelle": 0.66,
     "marque": {
       "genre": "fanion",
-      "x": 44,
-      "y": 64,
-      "largeur": 16,
-      "hauteur": 24
+      "x": 103,
+      "y": 1,
+      "largeur": 36,
+      "hauteur": 55
     },
     "licence": "CC0 1.0",
-    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "source": "manwesulimo2004, https://opengameart.org/content/old-tower",
     "ancrages": {
       "epines": {
-        "x": 32,
-        "y": 137
+        "x": 70,
+        "y": 185
       },
       "mana": {
-        "x": 32,
-        "y": 129
+        "x": 70,
+        "y": 166
       },
       "armure": {
-        "x": 32,
-        "y": 152
+        "x": 70,
+        "y": 223
       },
       "esquive": {
-        "x": 32,
-        "y": 121
+        "x": 70,
+        "y": 144
       },
       "regen": {
-        "x": 32,
-        "y": 137
+        "x": 70,
+        "y": 185
       },
       "vol_de_vie": {
-        "x": 32,
-        "y": 137
+        "x": 70,
+        "y": 185
       }
     }
   },
   "tour_braise": {
-    "sprite": "res://assets/tours/spire_tour_02.png",
-    "cadre": {
-      "x": 64,
-      "y": 0,
-      "largeur": 64,
-      "hauteur": 192
-    },
+    "sprite": "res://assets/tours/forge.png",
+    "filtre": "lineaire",
     "defi": "seul_brulure",
-    "echelle": 1.37,
+    "echelle": 0.66,
     "marque": {
       "genre": "fanion",
-      "x": 44,
-      "y": 73,
-      "largeur": 16,
-      "hauteur": 24
+      "x": 193,
+      "y": 0,
+      "largeur": 36,
+      "hauteur": 55
     },
     "licence": "CC0 1.0",
-    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "source": "rubberduck, https://opengameart.org/content/medieval-blacksmith-isometric-25d",
     "ancrages": {
       "epines": {
-        "x": 32,
-        "y": 141
+        "x": 114,
+        "y": 111
       },
       "mana": {
-        "x": 32,
-        "y": 134
+        "x": 114,
+        "y": 100
       },
       "armure": {
-        "x": 32,
-        "y": 155
+        "x": 114,
+        "y": 134
       },
       "esquive": {
-        "x": 32,
-        "y": 126
+        "x": 114,
+        "y": 86
       },
       "regen": {
-        "x": 32,
-        "y": 141
+        "x": 114,
+        "y": 111
       },
       "vol_de_vie": {
-        "x": 32,
-        "y": 141
+        "x": 114,
+        "y": 111
       }
     }
   },
   "tour_gelee": {
-    "sprite": "res://assets/tours/spire_tour_02.png",
-    "cadre": {
-      "x": 0,
-      "y": 0,
-      "largeur": 64,
-      "hauteur": 192
-    },
+    "sprite": "res://assets/tours/moulin_neige.png",
+    "filtre": "lineaire",
     "defi": "seul_givre",
-    "echelle": 1.49,
+    "echelle": 0.73,
     "marque": {
       "genre": "fanion",
-      "x": 44,
-      "y": 82,
-      "largeur": 16,
-      "hauteur": 24
+      "x": 215,
+      "y": 1,
+      "largeur": 33,
+      "hauteur": 49
     },
-    "licence": "CC0 1.0",
-    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "licence": "CC-BY 3.0",
+    "source": "rubberduck (Bleed's Game Art), https://opengameart.org/content/watermill-bleeds-game-art",
     "ancrages": {
       "epines": {
-        "x": 32,
-        "y": 145
+        "x": 145,
+        "y": 102
       },
       "mana": {
-        "x": 32,
-        "y": 138
+        "x": 145,
+        "y": 92
       },
       "armure": {
-        "x": 32,
-        "y": 157
+        "x": 145,
+        "y": 122
       },
       "esquive": {
-        "x": 32,
-        "y": 131
+        "x": 145,
+        "y": 79
       },
       "regen": {
-        "x": 32,
-        "y": 145
+        "x": 145,
+        "y": 102
       },
       "vol_de_vie": {
-        "x": 32,
-        "y": 145
+        "x": 145,
+        "y": 102
       }
     }
   },
   "tour_tonnerre": {
-    "sprite": "res://assets/tours/spire_tour_08.png",
-    "cadre": {
-      "x": 64,
-      "y": 0,
-      "largeur": 64,
-      "hauteur": 192
-    },
+    "sprite": "res://assets/tours/moulin.png",
+    "filtre": "lineaire",
     "defi": "seul_etourdissement",
-    "echelle": 1.53,
+    "echelle": 0.73,
     "marque": {
       "genre": "fanion",
-      "x": 44,
-      "y": 85,
-      "largeur": 16,
-      "hauteur": 24
+      "x": 215,
+      "y": 1,
+      "largeur": 33,
+      "hauteur": 49
     },
-    "licence": "CC0 1.0",
-    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "licence": "CC-BY 3.0",
+    "source": "rubberduck (Bleed's Game Art), https://opengameart.org/content/watermill-bleeds-game-art",
     "ancrages": {
       "epines": {
-        "x": 32,
-        "y": 146
+        "x": 145,
+        "y": 102
       },
       "mana": {
-        "x": 32,
-        "y": 140
+        "x": 145,
+        "y": 92
       },
       "armure": {
-        "x": 32,
-        "y": 158
+        "x": 145,
+        "y": 122
       },
       "esquive": {
-        "x": 32,
-        "y": 132
+        "x": 145,
+        "y": 79
       },
       "regen": {
-        "x": 32,
-        "y": 146
+        "x": 145,
+        "y": 102
       },
       "vol_de_vie": {
-        "x": 32,
-        "y": 146
+        "x": 145,
+        "y": 102
       }
     }
   },
   "tour_sanguine": {
-    "sprite": "res://assets/tours/spire_tour_05.png",
-    "cadre": {
-      "x": 64,
-      "y": 0,
-      "largeur": 64,
-      "hauteur": 128
-    },
+    "sprite": "res://assets/tours/maison_a_colombages_2.png",
+    "filtre": "lineaire",
     "defi": "seul_vol_de_vie",
-    "echelle": 1.43,
+    "echelle": 0.69,
     "marque": {
       "genre": "fanion",
-      "x": 44,
-      "y": 14,
-      "largeur": 16,
-      "hauteur": 24
+      "x": 197,
+      "y": 0,
+      "largeur": 35,
+      "hauteur": 52
     },
-    "licence": "CC0 1.0",
-    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "licence": "CC-BY 3.0",
+    "source": "mold, https://opengameart.org/content/timbered-house",
     "ancrages": {
       "epines": {
-        "x": 32,
-        "y": 79
+        "x": 122,
+        "y": 106
       },
       "mana": {
-        "x": 32,
-        "y": 72
+        "x": 122,
+        "y": 95
       },
       "armure": {
-        "x": 32,
-        "y": 92
+        "x": 122,
+        "y": 128
       },
       "esquive": {
-        "x": 32,
-        "y": 64
+        "x": 122,
+        "y": 82
       },
       "regen": {
-        "x": 32,
-        "y": 79
+        "x": 122,
+        "y": 106
       },
       "vol_de_vie": {
-        "x": 32,
-        "y": 79
+        "x": 122,
+        "y": 106
       }
     }
   },
   "tour_monolame": {
-    "sprite": "res://assets/tours/spire_tour_04.png",
-    "cadre": {
-      "x": 0,
-      "y": 0,
-      "largeur": 64,
-      "hauteur": 128
-    },
+    "sprite": "res://assets/tours/catapulte_2.png",
+    "filtre": "lineaire",
     "defi": "arme_unique",
-    "echelle": 1.53,
+    "echelle": 0.73,
     "marque": {
       "genre": "fanion",
-      "x": 44,
-      "y": 21,
-      "largeur": 16,
-      "hauteur": 24
+      "x": 194,
+      "y": 1,
+      "largeur": 33,
+      "hauteur": 49
     },
-    "licence": "CC0 1.0",
-    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "licence": "CC-BY 3.0",
+    "source": "Snabisch, https://opengameart.org/content/medieval-catapult-free-version",
     "ancrages": {
       "epines": {
-        "x": 32,
-        "y": 82
+        "x": 114,
+        "y": 93
       },
       "mana": {
-        "x": 32,
-        "y": 76
+        "x": 114,
+        "y": 84
       },
       "armure": {
-        "x": 32,
-        "y": 94
+        "x": 114,
+        "y": 112
       },
       "esquive": {
-        "x": 32,
-        "y": 68
+        "x": 114,
+        "y": 73
       },
       "regen": {
-        "x": 32,
-        "y": 82
+        "x": 114,
+        "y": 93
       },
       "vol_de_vie": {
-        "x": 32,
-        "y": 82
+        "x": 114,
+        "y": 93
       }
     }
   },
   "tour_du_duelliste": {
-    "sprite": "res://assets/tours/spire_tour_01.png",
-    "cadre": {
-      "x": 0,
-      "y": 0,
-      "largeur": 64,
-      "hauteur": 128
-    },
+    "sprite": "res://assets/tours/garde_bois.png",
+    "filtre": "lineaire",
     "defi": "arme_unique_endurante",
-    "echelle": 1.67,
+    "echelle": 0.67,
     "marque": {
       "genre": "fanion",
-      "x": 44,
-      "y": 30,
-      "largeur": 16,
-      "hauteur": 24
+      "x": 138,
+      "y": 0,
+      "largeur": 36,
+      "hauteur": 54
     },
     "licence": "CC0 1.0",
-    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "source": "OpenGameArt (CityBuildingKit), https://opengameart.org/content/medieval-wooden-guard-tower-isometric-25d",
     "ancrages": {
       "epines": {
-        "x": 32,
-        "y": 86
+        "x": 88,
+        "y": 142
       },
       "mana": {
-        "x": 32,
-        "y": 80
+        "x": 88,
+        "y": 127
       },
       "armure": {
-        "x": 32,
-        "y": 97
+        "x": 88,
+        "y": 171
       },
       "esquive": {
-        "x": 32,
-        "y": 73
+        "x": 88,
+        "y": 110
       },
       "regen": {
-        "x": 32,
-        "y": 86
+        "x": 88,
+        "y": 142
       },
       "vol_de_vie": {
-        "x": 32,
-        "y": 86
+        "x": 88,
+        "y": 142
       }
     }
   },
   "tour_du_tresor": {
-    "sprite": "res://assets/tours/spire_tour_08.png",
-    "cadre": {
-      "x": 128,
-      "y": 0,
-      "largeur": 64,
-      "hauteur": 192
-    },
+    "sprite": "res://assets/tours/coffre_or.png",
+    "filtre": "lineaire",
     "defi": "bourse_pleine",
-    "echelle": 1.41,
+    "echelle": 0.79,
     "marque": {
       "genre": "fanion",
-      "x": 44,
-      "y": 76,
-      "largeur": 16,
-      "hauteur": 24
+      "x": 170,
+      "y": 0,
+      "largeur": 30,
+      "hauteur": 46
     },
     "licence": "CC0 1.0",
-    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "source": "Snabisch (CityBuildingKit), https://opengameart.org/content/gold-storage-building-for-mobile-strategy-games",
     "ancrages": {
       "epines": {
-        "x": 32,
-        "y": 142
+        "x": 119,
+        "y": 111
       },
       "mana": {
-        "x": 32,
-        "y": 135
+        "x": 119,
+        "y": 100
       },
       "armure": {
-        "x": 32,
-        "y": 156
+        "x": 119,
+        "y": 134
       },
       "esquive": {
-        "x": 32,
-        "y": 127
+        "x": 119,
+        "y": 86
       },
       "regen": {
-        "x": 32,
-        "y": 142
+        "x": 119,
+        "y": 111
       },
       "vol_de_vie": {
-        "x": 32,
-        "y": 142
+        "x": 119,
+        "y": 111
       }
     }
   },
   "tour_ascete": {
-    "sprite": "res://assets/tours/spire_tour_06.png",
-    "cadre": {
-      "x": 0,
-      "y": 0,
-      "largeur": 64,
-      "hauteur": 128
-    },
+    "sprite": "res://assets/tours/garde_pierre.png",
+    "filtre": "lineaire",
     "defi": "sans_rente",
-    "echelle": 1.57,
+    "echelle": 0.66,
     "marque": {
       "genre": "fanion",
-      "x": 44,
-      "y": 24,
-      "largeur": 16,
-      "hauteur": 24
+      "x": 147,
+      "y": 0,
+      "largeur": 36,
+      "hauteur": 55
     },
     "licence": "CC0 1.0",
-    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "source": "Colorado Stark, https://opengameart.org/content/medieval-stone-guard-tower-isometric-25d",
     "ancrages": {
       "epines": {
-        "x": 32,
-        "y": 83
+        "x": 92,
+        "y": 139
       },
       "mana": {
-        "x": 32,
-        "y": 77
+        "x": 92,
+        "y": 125
       },
       "armure": {
-        "x": 32,
-        "y": 95
+        "x": 92,
+        "y": 167
       },
       "esquive": {
-        "x": 32,
-        "y": 70
+        "x": 92,
+        "y": 108
       },
       "regen": {
-        "x": 32,
-        "y": 83
+        "x": 92,
+        "y": 139
       },
       "vol_de_vie": {
-        "x": 32,
-        "y": 83
+        "x": 92,
+        "y": 139
+      }
+    }
+  },
+  "tour_du_puits": {
+    "sprite": "res://assets/tours/puits.png",
+    "filtre": "lineaire",
+    "defi": "source_unique",
+    "echelle": 0.66,
+    "marque": {
+      "genre": "fanion",
+      "x": 173,
+      "y": 0,
+      "largeur": 36,
+      "hauteur": 55
+    },
+    "licence": "CC-BY 3.0",
+    "source": "Varkalandar (Bleed's Game Art), https://opengameart.org/content/old-well-bleeds-game-art",
+    "ancrages": {
+      "epines": {
+        "x": 106,
+        "y": 122
+      },
+      "mana": {
+        "x": 106,
+        "y": 110
+      },
+      "armure": {
+        "x": 106,
+        "y": 148
+      },
+      "esquive": {
+        "x": 106,
+        "y": 95
+      },
+      "regen": {
+        "x": 106,
+        "y": 122
+      },
+      "vol_de_vie": {
+        "x": 106,
+        "y": 122
+      }
+    }
+  },
+  "tour_du_dragon_avare": {
+    "sprite": "res://assets/tours/coffre_or.png",
+    "filtre": "lineaire",
+    "defi": "thesauriseur",
+    "echelle": 0.79,
+    "marque": {
+      "genre": "fanion",
+      "x": 170,
+      "y": 0,
+      "largeur": 30,
+      "hauteur": 46
+    },
+    "licence": "CC0 1.0",
+    "source": "Snabisch (CityBuildingKit), https://opengameart.org/content/gold-storage-building-for-mobile-strategy-games",
+    "ancrages": {
+      "epines": {
+        "x": 119,
+        "y": 111
+      },
+      "mana": {
+        "x": 119,
+        "y": 100
+      },
+      "armure": {
+        "x": 119,
+        "y": 134
+      },
+      "esquive": {
+        "x": 119,
+        "y": 86
+      },
+      "regen": {
+        "x": 119,
+        "y": 111
+      },
+      "vol_de_vie": {
+        "x": 119,
+        "y": 111
       }
     }
   },
   "tour_du_chariot": {
-    "sprite": "res://assets/tours/spire_tour_03.png",
-    "cadre": {
-      "x": 64,
-      "y": 0,
-      "largeur": 64,
-      "hauteur": 128
-    },
+    "sprite": "res://assets/tours/ecurie.png",
+    "filtre": "lineaire",
     "defi": "primes_en_cascade",
-    "echelle": 1.38,
+    "echelle": 0.66,
     "marque": {
       "genre": "fanion",
-      "x": 44,
-      "y": 10,
-      "largeur": 16,
-      "hauteur": 24
+      "x": 202,
+      "y": 1,
+      "largeur": 36,
+      "hauteur": 55
     },
     "licence": "CC0 1.0",
-    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "source": "Snabisch, https://opengameart.org/content/medieval-stable-isometric-25d",
     "ancrages": {
       "epines": {
-        "x": 32,
-        "y": 77
+        "x": 120,
+        "y": 108
       },
       "mana": {
-        "x": 32,
-        "y": 70
+        "x": 120,
+        "y": 97
       },
       "armure": {
-        "x": 32,
-        "y": 91
+        "x": 120,
+        "y": 130
       },
       "esquive": {
-        "x": 32,
-        "y": 62
+        "x": 120,
+        "y": 84
       },
       "regen": {
-        "x": 32,
-        "y": 77
+        "x": 120,
+        "y": 108
       },
       "vol_de_vie": {
-        "x": 32,
-        "y": 77
+        "x": 120,
+        "y": 108
+      }
+    }
+  },
+  "tour_du_banquier": {
+    "sprite": "res://assets/tours/maison_a_colombages.png",
+    "filtre": "lineaire",
+    "defi": "grande_fortune",
+    "echelle": 0.7,
+    "marque": {
+      "genre": "fanion",
+      "x": 183,
+      "y": 0,
+      "largeur": 34,
+      "hauteur": 51
+    },
+    "licence": "CC-BY 3.0",
+    "source": "mold, https://opengameart.org/content/timbered-house",
+    "ancrages": {
+      "epines": {
+        "x": 114,
+        "y": 112
+      },
+      "mana": {
+        "x": 114,
+        "y": 100
+      },
+      "armure": {
+        "x": 114,
+        "y": 134
+      },
+      "esquive": {
+        "x": 114,
+        "y": 87
+      },
+      "regen": {
+        "x": 114,
+        "y": 112
+      },
+      "vol_de_vie": {
+        "x": 114,
+        "y": 112
       }
     }
   },
   "tour_de_granit": {
-    "sprite": "res://assets/tours/spire_tour_06.png",
-    "cadre": {
-      "x": 64,
-      "y": 0,
-      "largeur": 64,
-      "hauteur": 128
-    },
+    "sprite": "res://assets/tours/porte.png",
+    "filtre": "lineaire",
     "defi": "pierre_sans_fissure",
-    "echelle": 1.45,
+    "echelle": 0.66,
     "marque": {
       "genre": "fanion",
-      "x": 44,
-      "y": 15,
-      "largeur": 16,
-      "hauteur": 24
+      "x": 157,
+      "y": 0,
+      "largeur": 36,
+      "hauteur": 55
     },
     "licence": "CC0 1.0",
-    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "source": "Snabisch (CityBuildingKit), https://opengameart.org/content/castle-gate-and-drawbridge",
     "ancrages": {
       "epines": {
-        "x": 32,
-        "y": 79
+        "x": 96,
+        "y": 133
       },
       "mana": {
-        "x": 32,
-        "y": 73
+        "x": 96,
+        "y": 120
       },
       "armure": {
-        "x": 32,
-        "y": 93
+        "x": 96,
+        "y": 161
       },
       "esquive": {
-        "x": 32,
-        "y": 65
+        "x": 96,
+        "y": 103
       },
       "regen": {
-        "x": 32,
-        "y": 79
+        "x": 96,
+        "y": 133
       },
       "vol_de_vie": {
-        "x": 32,
-        "y": 79
+        "x": 96,
+        "y": 133
+      }
+    }
+  },
+  "tour_rafistolee": {
+    "sprite": "res://assets/tours/avant_poste_3.png",
+    "filtre": "lineaire",
+    "defi": "a_un_cheveu",
+    "echelle": 0.67,
+    "marque": {
+      "genre": "fanion",
+      "x": 112,
+      "y": 1,
+      "largeur": 36,
+      "hauteur": 54
+    },
+    "licence": "CC-BY 3.0",
+    "source": "Bleed (Bleed's Game Art HD), https://opengameart.org/content/old-outpost-bleeds-game-art-hd",
+    "ancrages": {
+      "epines": {
+        "x": 74,
+        "y": 172
+      },
+      "mana": {
+        "x": 74,
+        "y": 155
+      },
+      "armure": {
+        "x": 74,
+        "y": 208
+      },
+      "esquive": {
+        "x": 74,
+        "y": 134
+      },
+      "regen": {
+        "x": 74,
+        "y": 172
+      },
+      "vol_de_vie": {
+        "x": 74,
+        "y": 172
       }
     }
   },
   "tour_du_bouclier": {
-    "sprite": "res://assets/tours/spire_tour_06.png",
-    "cadre": {
-      "x": 64,
-      "y": 0,
-      "largeur": 64,
-      "hauteur": 128
-    },
+    "sprite": "res://assets/tours/globe.png",
+    "filtre": "lineaire",
     "defi": "bouclier_intact",
-    "echelle": 1.45,
+    "echelle": 0.87,
     "marque": {
       "genre": "fanion",
-      "x": 44,
-      "y": 15,
-      "largeur": 16,
-      "hauteur": 24
+      "x": 147,
+      "y": 0,
+      "largeur": 28,
+      "hauteur": 41
     },
     "licence": "CC0 1.0",
-    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "source": "Snabisch (CityBuildingKit), https://opengameart.org/content/research-building-for-mobile-strategy-games",
     "ancrages": {
       "epines": {
-        "x": 32,
-        "y": 79
+        "x": 109,
+        "y": 111
       },
       "mana": {
-        "x": 32,
-        "y": 73
+        "x": 109,
+        "y": 100
       },
       "armure": {
-        "x": 32,
-        "y": 93
+        "x": 109,
+        "y": 134
       },
       "esquive": {
-        "x": 32,
-        "y": 65
+        "x": 109,
+        "y": 86
       },
       "regen": {
-        "x": 32,
-        "y": 79
+        "x": 109,
+        "y": 111
       },
       "vol_de_vie": {
-        "x": 32,
-        "y": 79
+        "x": 109,
+        "y": 111
       }
     }
   },
   "tour_cicatrisee": {
-    "sprite": "res://assets/tours/spire_tour_04.png",
-    "cadre": {
-      "x": 128,
-      "y": 0,
-      "largeur": 64,
-      "hauteur": 128
-    },
+    "sprite": "res://assets/tours/tour_pirate.png",
+    "filtre": "lineaire",
     "defi": "sans_soin",
-    "echelle": 1.31,
+    "echelle": 0.66,
     "marque": {
       "genre": "fanion",
-      "x": 44,
-      "y": 3,
-      "largeur": 16,
-      "hauteur": 24
+      "x": 142,
+      "y": 0,
+      "largeur": 36,
+      "hauteur": 55
     },
     "licence": "CC0 1.0",
-    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "source": "OpenGameArt (CityBuildingKit), https://opengameart.org/content/pirate-wood-walls-isometric-game-defense-structure",
     "ancrages": {
       "epines": {
-        "x": 32,
-        "y": 74
+        "x": 89,
+        "y": 144
       },
       "mana": {
-        "x": 32,
-        "y": 67
+        "x": 89,
+        "y": 129
       },
       "armure": {
-        "x": 32,
-        "y": 89
+        "x": 89,
+        "y": 174
       },
       "esquive": {
-        "x": 32,
-        "y": 58
+        "x": 89,
+        "y": 112
       },
       "regen": {
-        "x": 32,
-        "y": 74
+        "x": 89,
+        "y": 144
       },
       "vol_de_vie": {
-        "x": 32,
-        "y": 74
+        "x": 89,
+        "y": 144
       }
     }
   },
   "tour_nue": {
-    "sprite": "res://assets/tours/spire_tour_06.png",
-    "cadre": {
-      "x": 0,
-      "y": 0,
-      "largeur": 64,
-      "hauteur": 128
-    },
+    "sprite": "res://assets/tours/garde_bois.png",
+    "filtre": "lineaire",
     "defi": "mains_nues",
-    "echelle": 1.57,
+    "echelle": 0.67,
     "marque": {
       "genre": "fanion",
-      "x": 44,
-      "y": 24,
-      "largeur": 16,
-      "hauteur": 24
+      "x": 138,
+      "y": 0,
+      "largeur": 36,
+      "hauteur": 54
     },
     "licence": "CC0 1.0",
-    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "source": "OpenGameArt (CityBuildingKit), https://opengameart.org/content/medieval-wooden-guard-tower-isometric-25d",
     "ancrages": {
       "epines": {
-        "x": 32,
-        "y": 83
+        "x": 88,
+        "y": 142
       },
       "mana": {
-        "x": 32,
-        "y": 77
+        "x": 88,
+        "y": 127
       },
       "armure": {
-        "x": 32,
-        "y": 95
+        "x": 88,
+        "y": 171
       },
       "esquive": {
-        "x": 32,
-        "y": 70
+        "x": 88,
+        "y": 110
       },
       "regen": {
-        "x": 32,
-        "y": 83
+        "x": 88,
+        "y": 142
       },
       "vol_de_vie": {
-        "x": 32,
-        "y": 83
+        "x": 88,
+        "y": 142
       }
     }
   },
   "tour_a_faux": {
-    "sprite": "res://assets/tours/spire_tour_06.png",
-    "cadre": {
-      "x": 128,
-      "y": 0,
-      "largeur": 64,
-      "hauteur": 128
-    },
+    "sprite": "res://assets/tours/sombre.png",
+    "filtre": "lineaire",
     "defi": "fauchage",
-    "echelle": 1.35,
+    "echelle": 0.66,
     "marque": {
       "genre": "fanion",
-      "x": 44,
-      "y": 7,
-      "largeur": 16,
-      "hauteur": 24
+      "x": 180,
+      "y": 0,
+      "largeur": 36,
+      "hauteur": 55
     },
     "licence": "CC0 1.0",
-    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "source": "Snabisch, https://opengameart.org/content/fantasy-tower-dark",
     "ancrages": {
       "epines": {
-        "x": 32,
-        "y": 76
+        "x": 108,
+        "y": 119
       },
       "mana": {
-        "x": 32,
-        "y": 69
+        "x": 108,
+        "y": 106
       },
       "armure": {
-        "x": 32,
-        "y": 90
+        "x": 108,
+        "y": 143
       },
       "esquive": {
-        "x": 32,
-        "y": 60
+        "x": 108,
+        "y": 92
       },
       "regen": {
-        "x": 32,
-        "y": 76
+        "x": 108,
+        "y": 119
       },
       "vol_de_vie": {
-        "x": 32,
-        "y": 76
+        "x": 108,
+        "y": 119
       }
     }
   },
   "tour_arsenal": {
-    "sprite": "res://assets/tours/spire_tour_01.png",
-    "cadre": {
-      "x": 64,
-      "y": 0,
-      "largeur": 64,
-      "hauteur": 128
-    },
+    "sprite": "res://assets/tours/caserne.png",
+    "filtre": "lineaire",
     "defi": "arsenal_complet",
-    "echelle": 1.53,
+    "echelle": 0.66,
     "marque": {
       "genre": "fanion",
-      "x": 44,
-      "y": 21,
-      "largeur": 16,
-      "hauteur": 24
+      "x": 202,
+      "y": 1,
+      "largeur": 36,
+      "hauteur": 55
     },
     "licence": "CC0 1.0",
-    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "source": "Snabisch, https://opengameart.org/content/medieval-barracks-isometric-25d",
     "ancrages": {
       "epines": {
-        "x": 32,
-        "y": 82
+        "x": 120,
+        "y": 108
       },
       "mana": {
-        "x": 32,
-        "y": 76
+        "x": 120,
+        "y": 97
       },
       "armure": {
-        "x": 32,
-        "y": 94
+        "x": 120,
+        "y": 130
       },
       "esquive": {
-        "x": 32,
-        "y": 68
+        "x": 120,
+        "y": 84
       },
       "regen": {
-        "x": 32,
-        "y": 82
+        "x": 120,
+        "y": 108
       },
       "vol_de_vie": {
-        "x": 32,
-        "y": 82
+        "x": 120,
+        "y": 108
       }
     }
   },
   "tour_de_ronces": {
-    "sprite": "res://assets/tours/spire_tour_02.png",
-    "cadre": {
-      "x": 128,
-      "y": 0,
-      "largeur": 64,
-      "hauteur": 192
-    },
+    "sprite": "res://assets/tours/ancienne.png",
+    "filtre": "lineaire",
     "defi": "haie_d_epines",
-    "echelle": 1.28,
+    "echelle": 0.66,
     "marque": {
       "genre": "fanion",
-      "x": 44,
-      "y": 64,
-      "largeur": 16,
-      "hauteur": 24
+      "x": 103,
+      "y": 1,
+      "largeur": 36,
+      "hauteur": 55
     },
     "licence": "CC0 1.0",
-    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "source": "manwesulimo2004, https://opengameart.org/content/old-tower",
     "ancrages": {
       "epines": {
-        "x": 32,
-        "y": 137
+        "x": 70,
+        "y": 185
       },
       "mana": {
-        "x": 32,
-        "y": 129
+        "x": 70,
+        "y": 166
       },
       "armure": {
-        "x": 32,
-        "y": 152
+        "x": 70,
+        "y": 223
       },
       "esquive": {
-        "x": 32,
-        "y": 121
+        "x": 70,
+        "y": 144
       },
       "regen": {
-        "x": 32,
-        "y": 137
+        "x": 70,
+        "y": 185
       },
       "vol_de_vie": {
-        "x": 32,
-        "y": 137
+        "x": 70,
+        "y": 185
+      }
+    }
+  },
+  "tour_survivante": {
+    "sprite": "res://assets/tours/chaumiere.png",
+    "filtre": "lineaire",
+    "defi": "dernier_debout",
+    "echelle": 0.72,
+    "marque": {
+      "genre": "fanion",
+      "x": 218,
+      "y": 1,
+      "largeur": 33,
+      "hauteur": 50
+    },
+    "licence": "CC-BY 3.0",
+    "source": "rubberduck (Bleed's Game Art), https://opengameart.org/content/hut-bleeds-game-art",
+    "ancrages": {
+      "epines": {
+        "x": 144,
+        "y": 102
+      },
+      "mana": {
+        "x": 144,
+        "y": 92
+      },
+      "armure": {
+        "x": 144,
+        "y": 122
+      },
+      "esquive": {
+        "x": 144,
+        "y": 79
+      },
+      "regen": {
+        "x": 144,
+        "y": 102
+      },
+      "vol_de_vie": {
+        "x": 144,
+        "y": 102
+      }
+    }
+  },
+  "tour_familiere": {
+    "sprite": "res://assets/tours/maison.png",
+    "filtre": "lineaire",
+    "defi": "habitue",
+    "echelle": 0.9,
+    "marque": {
+      "genre": "fanion",
+      "x": 151,
+      "y": 2,
+      "largeur": 27,
+      "hauteur": 40
+    },
+    "licence": "CC0 1.0",
+    "source": "OpenGameArt (Western-European Medieval Houses), https://opengameart.org/content/western-european-medieval-houses-isometric-25d",
+    "ancrages": {
+      "epines": {
+        "x": 90,
+        "y": 81
+      },
+      "mana": {
+        "x": 90,
+        "y": 73
+      },
+      "armure": {
+        "x": 90,
+        "y": 97
+      },
+      "esquive": {
+        "x": 90,
+        "y": 63
+      },
+      "regen": {
+        "x": 90,
+        "y": 81
+      },
+      "vol_de_vie": {
+        "x": 90,
+        "y": 81
       }
     }
   },
   "tour_veterane": {
-    "sprite": "res://assets/tours/spire_tour_01.png",
-    "cadre": {
-      "x": 128,
-      "y": 0,
-      "largeur": 64,
-      "hauteur": 128
-    },
+    "sprite": "res://assets/tours/ecurie.png",
+    "filtre": "lineaire",
     "defi": "veteran",
-    "echelle": 1.41,
+    "echelle": 0.66,
     "marque": {
       "genre": "fanion",
-      "x": 44,
-      "y": 12,
-      "largeur": 16,
-      "hauteur": 24
+      "x": 202,
+      "y": 1,
+      "largeur": 36,
+      "hauteur": 55
     },
     "licence": "CC0 1.0",
-    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "source": "Snabisch, https://opengameart.org/content/medieval-stable-isometric-25d",
     "ancrages": {
       "epines": {
-        "x": 32,
-        "y": 78
+        "x": 120,
+        "y": 108
       },
       "mana": {
-        "x": 32,
-        "y": 71
+        "x": 120,
+        "y": 97
       },
       "armure": {
-        "x": 32,
-        "y": 92
+        "x": 120,
+        "y": 130
       },
       "esquive": {
-        "x": 32,
-        "y": 63
+        "x": 120,
+        "y": 84
       },
       "regen": {
-        "x": 32,
-        "y": 78
+        "x": 120,
+        "y": 108
       },
       "vol_de_vie": {
-        "x": 32,
-        "y": 78
+        "x": 120,
+        "y": 108
       }
     }
   },
   "tour_conquerante": {
-    "sprite": "res://assets/tours/spire_tour_08.png",
-    "cadre": {
-      "x": 64,
-      "y": 0,
-      "largeur": 64,
-      "hauteur": 192
-    },
+    "sprite": "res://assets/tours/chateau.png",
+    "filtre": "lineaire",
     "defi": "conquerant",
-    "echelle": 1.53,
+    "echelle": 0.66,
     "marque": {
       "genre": "fanion",
-      "x": 44,
-      "y": 85,
-      "largeur": 16,
-      "hauteur": 24
+      "x": 195,
+      "y": 0,
+      "largeur": 36,
+      "hauteur": 55
     },
     "licence": "CC0 1.0",
-    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "source": "Andrettin, https://opengameart.org/content/western-european-castle-isometric-25d",
     "ancrages": {
       "epines": {
-        "x": 32,
-        "y": 146
+        "x": 116,
+        "y": 111
       },
       "mana": {
-        "x": 32,
-        "y": 140
+        "x": 116,
+        "y": 100
       },
       "armure": {
-        "x": 32,
-        "y": 158
+        "x": 116,
+        "y": 134
       },
       "esquive": {
-        "x": 32,
-        "y": 132
+        "x": 116,
+        "y": 86
       },
       "regen": {
-        "x": 32,
-        "y": 146
+        "x": 116,
+        "y": 111
       },
       "vol_de_vie": {
-        "x": 32,
-        "y": 146
+        "x": 116,
+        "y": 111
       }
     }
   },
   "tour_ossuaire": {
-    "sprite": "res://assets/tours/spire_tour_05.png",
-    "cadre": {
-      "x": 64,
-      "y": 0,
-      "largeur": 64,
-      "hauteur": 128
-    },
+    "sprite": "res://assets/tours/crane_mine.png",
+    "filtre": "lineaire",
     "defi": "faucheur_de_masse",
-    "echelle": 1.43,
+    "echelle": 0.8,
     "marque": {
       "genre": "fanion",
-      "x": 44,
-      "y": 14,
-      "largeur": 16,
-      "hauteur": 24
+      "x": 162,
+      "y": 2,
+      "largeur": 30,
+      "hauteur": 45
     },
     "licence": "CC0 1.0",
-    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "source": "OpenGameArt (CityBuildingKit), https://opengameart.org/content/goldmine-for-mobile-strategy-games",
     "ancrages": {
       "epines": {
-        "x": 32,
-        "y": 79
+        "x": 108,
+        "y": 106
       },
       "mana": {
-        "x": 32,
-        "y": 72
+        "x": 108,
+        "y": 95
       },
       "armure": {
-        "x": 32,
-        "y": 92
+        "x": 108,
+        "y": 127
       },
       "esquive": {
-        "x": 32,
-        "y": 64
+        "x": 108,
+        "y": 82
       },
       "regen": {
-        "x": 32,
-        "y": 79
+        "x": 108,
+        "y": 106
       },
       "vol_de_vie": {
-        "x": 32,
-        "y": 79
+        "x": 108,
+        "y": 106
+      }
+    }
+  },
+  "tour_comptoir": {
+    "sprite": "res://assets/tours/taverne_2.png",
+    "filtre": "lineaire",
+    "defi": "banquier",
+    "echelle": 0.66,
+    "marque": {
+      "genre": "fanion",
+      "x": 154,
+      "y": 1,
+      "largeur": 36,
+      "hauteur": 55
+    },
+    "licence": "CC-BY 3.0",
+    "source": "tir2, https://opengameart.org/content/isometric-medieval-tavern",
+    "ancrages": {
+      "epines": {
+        "x": 95,
+        "y": 135
+      },
+      "mana": {
+        "x": 95,
+        "y": 121
+      },
+      "armure": {
+        "x": 95,
+        "y": 162
+      },
+      "esquive": {
+        "x": 95,
+        "y": 105
+      },
+      "regen": {
+        "x": 95,
+        "y": 135
+      },
+      "vol_de_vie": {
+        "x": 95,
+        "y": 135
       }
     }
   },
   "tour_eternelle": {
-    "sprite": "res://assets/tours/spire_tour_04.png",
-    "cadre": {
-      "x": 64,
-      "y": 0,
-      "largeur": 64,
-      "hauteur": 128
-    },
+    "sprite": "res://assets/tours/ancienne.png",
+    "filtre": "lineaire",
     "defi": "endurant",
-    "echelle": 1.41,
+    "echelle": 0.66,
     "marque": {
       "genre": "fanion",
-      "x": 44,
-      "y": 12,
-      "largeur": 16,
-      "hauteur": 24
+      "x": 103,
+      "y": 1,
+      "largeur": 36,
+      "hauteur": 55
     },
     "licence": "CC0 1.0",
-    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "source": "manwesulimo2004, https://opengameart.org/content/old-tower",
     "ancrages": {
       "epines": {
-        "x": 32,
-        "y": 78
+        "x": 70,
+        "y": 185
       },
       "mana": {
-        "x": 32,
-        "y": 71
+        "x": 70,
+        "y": 166
       },
       "armure": {
-        "x": 32,
-        "y": 92
+        "x": 70,
+        "y": 223
       },
       "esquive": {
-        "x": 32,
-        "y": 63
+        "x": 70,
+        "y": 144
       },
       "regen": {
-        "x": 32,
-        "y": 78
+        "x": 70,
+        "y": 185
       },
       "vol_de_vie": {
-        "x": 32,
-        "y": 78
+        "x": 70,
+        "y": 185
+      }
+    }
+  },
+  "tour_de_la_table_ronde": {
+    "sprite": "res://assets/tours/taverne.png",
+    "filtre": "lineaire",
+    "defi": "compagnon_de_table",
+    "echelle": 0.66,
+    "marque": {
+      "genre": "fanion",
+      "x": 182,
+      "y": 0,
+      "largeur": 36,
+      "hauteur": 55
+    },
+    "licence": "CC-BY 3.0",
+    "source": "tir2, https://opengameart.org/content/isometric-medieval-tavern",
+    "ancrages": {
+      "epines": {
+        "x": 109,
+        "y": 118
+      },
+      "mana": {
+        "x": 109,
+        "y": 106
+      },
+      "armure": {
+        "x": 109,
+        "y": 142
+      },
+      "esquive": {
+        "x": 109,
+        "y": 91
+      },
+      "regen": {
+        "x": 109,
+        "y": 118
+      },
+      "vol_de_vie": {
+        "x": 109,
+        "y": 118
       }
     }
   },
   "tour_du_dernier_rempart": {
-    "sprite": "res://assets/tours/spire_tour_08.png",
-    "cadre": {
-      "x": 128,
-      "y": 0,
-      "largeur": 64,
-      "hauteur": 192
-    },
+    "sprite": "res://assets/tours/chateau.png",
+    "filtre": "lineaire",
     "defi": "maitre_des_remparts",
-    "echelle": 1.41,
+    "echelle": 0.66,
     "marque": {
       "genre": "fanion",
-      "x": 44,
-      "y": 76,
-      "largeur": 16,
-      "hauteur": 24
+      "x": 195,
+      "y": 0,
+      "largeur": 36,
+      "hauteur": 55
     },
     "licence": "CC0 1.0",
-    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "source": "Andrettin, https://opengameart.org/content/western-european-castle-isometric-25d",
     "ancrages": {
       "epines": {
-        "x": 32,
-        "y": 142
+        "x": 116,
+        "y": 111
       },
       "mana": {
-        "x": 32,
-        "y": 135
+        "x": 116,
+        "y": 100
       },
       "armure": {
-        "x": 32,
-        "y": 156
+        "x": 116,
+        "y": 134
       },
       "esquive": {
-        "x": 32,
-        "y": 127
+        "x": 116,
+        "y": 86
       },
       "regen": {
-        "x": 32,
-        "y": 142
+        "x": 116,
+        "y": 111
       },
       "vol_de_vie": {
-        "x": 32,
-        "y": 142
+        "x": 116,
+        "y": 111
       }
     }
   },
   "tour_cratere": {
-    "sprite": "res://assets/tours/spire_tour_07.png",
-    "cadre": {
-      "x": 64,
-      "y": 0,
-      "largeur": 64,
-      "hauteur": 128
-    },
+    "sprite": "res://assets/tours/crane_mine.png",
+    "filtre": "lineaire",
     "defi": "seul_zone_posee",
-    "echelle": 1.46,
+    "echelle": 0.8,
     "marque": {
       "genre": "fanion",
-      "x": 44,
-      "y": 16,
-      "largeur": 16,
-      "hauteur": 24
+      "x": 162,
+      "y": 2,
+      "largeur": 30,
+      "hauteur": 45
     },
     "licence": "CC0 1.0",
-    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "source": "OpenGameArt (CityBuildingKit), https://opengameart.org/content/goldmine-for-mobile-strategy-games",
     "ancrages": {
       "epines": {
-        "x": 32,
-        "y": 80
+        "x": 108,
+        "y": 106
       },
       "mana": {
-        "x": 32,
-        "y": 73
+        "x": 108,
+        "y": 95
       },
       "armure": {
-        "x": 32,
-        "y": 93
+        "x": 108,
+        "y": 127
       },
       "esquive": {
-        "x": 32,
-        "y": 65
+        "x": 108,
+        "y": 82
       },
       "regen": {
-        "x": 32,
-        "y": 80
+        "x": 108,
+        "y": 106
       },
       "vol_de_vie": {
-        "x": 32,
-        "y": 80
+        "x": 108,
+        "y": 106
       }
     }
   },
   "tour_artificier": {
-    "sprite": "res://assets/tours/spire_tour_03.png",
-    "cadre": {
-      "x": 128,
-      "y": 0,
-      "largeur": 64,
-      "hauteur": 128
-    },
+    "sprite": "res://assets/tours/forge.png",
+    "filtre": "lineaire",
     "defi": "seul_bombe",
-    "echelle": 1.29,
+    "echelle": 0.66,
     "marque": {
       "genre": "fanion",
-      "x": 44,
-      "y": 1,
-      "largeur": 16,
-      "hauteur": 24
+      "x": 193,
+      "y": 0,
+      "largeur": 36,
+      "hauteur": 55
     },
     "licence": "CC0 1.0",
-    "source": "Spire Tower Pack (Foozle), assets/tours/SOURCES.md",
+    "source": "rubberduck, https://opengameart.org/content/medieval-blacksmith-isometric-25d",
     "ancrages": {
       "epines": {
-        "x": 32,
-        "y": 73
+        "x": 114,
+        "y": 111
       },
       "mana": {
-        "x": 32,
-        "y": 66
+        "x": 114,
+        "y": 100
       },
       "armure": {
-        "x": 32,
-        "y": 88
+        "x": 114,
+        "y": 134
       },
       "esquive": {
-        "x": 32,
-        "y": 57
+        "x": 114,
+        "y": 86
       },
       "regen": {
-        "x": 32,
-        "y": 73
+        "x": 114,
+        "y": 111
       },
       "vol_de_vie": {
-        "x": 32,
-        "y": 73
+        "x": 114,
+        "y": 111
       }
     }
   }
