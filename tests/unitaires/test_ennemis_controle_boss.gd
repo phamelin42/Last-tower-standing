@@ -63,8 +63,7 @@ func _arrivee(e: Ennemis, i: int) -> float:
 	return -1.0
 
 
-func test_le_boss_arrive_a_portee_de_la_tour_malgre_700_ennemis_et_des_controles_sans_cesse_renouveles(
-) -> void:
+func test_le_boss_arrive_a_portee_malgre_700_ennemis_et_des_controles_renouveles() -> void:
 	var e := Ennemis.new(_d)
 	var boss := _boss(e)
 	for k: int in ENNEMIS_AUTOUR:
