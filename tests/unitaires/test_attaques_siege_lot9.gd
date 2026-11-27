@@ -62,3 +62,58 @@ func test_le_baril_s_efface_et_mouvement_reduit_sans_particule_ni_gel_ni_rotatio
 	verifier_egal(_a.particules_actives(), 0, "sans particule")
 	verifier_egal(_a.gel_restant(), 0.0, "sans gel")
 	verifier(_a.etats("explosion_feu").size() > 0, "l'explosion reste")
+
+
+# --- Maillet de rempart : zone --------------------------------------------------------------------
+
+
+func test_le_maillet_est_une_zone_de_siege_sans_statut() -> void:
+	_verifier_arme("maillet_de_rempart", "maillet", "zone")
+	verifier_egal(_statut("maillet_de_rempart"), "", "aucun statut")
+
+
+func test_le_maillet_est_lance_en_cloche_en_tournant_et_arrive_en_quatorze_images() -> void:
+	verifier_proche(_a.tirer("maillet", TOUR, CIBLE) / IMAGE, 14.0, 0.01, "3 + 11 images")
+	verifier_egal(_a.etats("ombre").size(), 1, "l'ombre suit la cloche")
+	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 3)
+	var maillet: Dictionary = _a.etats("maillet")[0]
+	verifier(maillet["visible"], "il vole")
+	verifier(absf(maillet["rotation"]) > 0.05, "il tourne sur lui-même")
+	verifier(maillet["position"].y < CIBLE.y - 10.0, "il passe au-dessus de la ligne de tir")
+
+
+func test_l_onde_de_choc_du_maillet_est_au_rayon_reel_avec_un_gel_d_impact() -> void:
+	var rayon: float = _rayon_px("maillet_de_rempart")
+	verifier(_a.impacter("maillet", CIBLE, rayon, true))
+	verifier_proche(_a.etats("onde_choc")[0]["diametre"], rayon * 2.0, rayon * 0.2, "au rayon")
+	verifier_egal(_a.etats("").size(), 1, "un anneau fin")
+	verifier_proche(_a.etats("")[0]["diametre"], rayon * 2.0, 0.5, "anneau au rayon exact")
+	verifier(_a.gel_restant() > 0.0, "coup de siège : le gel visuel")
+	verifier(_a.particules_actives() >= 1, "de la poussière")
+	var total: int = 12
+	var rang: int = _rang_du_pic("onde_choc", int(PIC["onde_choc"]), total)
+	verifier(rang >= 0 and rang <= total / 4, "pic à l'image %d sur %d" % [rang, total])
+
+
+func test_le_maillet_dans_effets_ne_dessine_que_son_onde() -> void:
+	var effets: Effets = _effets_neuf()
+	effets.ajouter(_evenement("maillet_de_rempart", "tir"))
+	effets.ajouter(_evenement("maillet_de_rempart", "impact"))
+	for _i: int in 20:
+		effets.avancer(IMAGE)
+	verifier(_pic_de(effets, "onde_choc", 30) > 0, "l'onde de choc du maillet")
+	verifier_faux(effets.formes_vivantes().has("explosion"), "pas d'explosion du pack en plus")
+	effets.free()
+
+
+func test_mouvement_reduit_le_maillet_sans_particule_ni_gel_ni_rotation() -> void:
+	_a.mouvement_reduit = true
+	_a.tirer("maillet", TOUR, CIBLE)
+	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 5)
+	verifier_egal(_a.etats("maillet")[0]["rotation"], 0.0, "il ne tourne pas")
+	_a.impacter("maillet", CIBLE, 60.0, true)
+	verifier_egal(_a.particules_actives(), 0)
+	verifier_egal(_a.gel_restant(), 0.0)
+	verifier(_a.etats("onde_choc").size() > 0, "l'onde reste")
+	_avancer(120)
+	verifier_egal(_a.nombre_vivants(), 0)

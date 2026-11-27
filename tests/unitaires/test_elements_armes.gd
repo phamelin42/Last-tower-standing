@@ -61,6 +61,7 @@ const ATTENDU: Dictionary = {
 	"nuee_d_etincelles": "nuee",
 	"nova_celeste": "nova_celeste",
 	"baril_a_retardement": "baril",
+	"maillet_de_rempart": "maillet",
 }
 
 
