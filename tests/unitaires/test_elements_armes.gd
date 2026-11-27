@@ -59,6 +59,7 @@ const ATTENDU: Dictionary = {
 	"couronne_d_etoiles": "couronne_etoiles",
 	"vasque_d_arcanes": "vasque",
 	"nuee_d_etincelles": "nuee",
+	"nova_celeste": "nova_celeste",
 }
 
 

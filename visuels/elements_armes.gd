@@ -75,6 +75,7 @@ const ORAGE: String = "orage"
 const COURONNE_ETOILES: String = "couronne_etoiles"
 const VASQUE: String = "vasque"
 const NUEE: String = "nuee"
+const NOVA_CELESTE: String = "nova_celeste"
 
 const ELEMENTS: Array[String] = [
 	FEU,
@@ -133,6 +134,7 @@ const ELEMENTS: Array[String] = [
 	COURONNE_ETOILES,
 	VASQUE,
 	NUEE,
+	NOVA_CELESTE,
 ]
 
 ## id d'arme → élément.
@@ -193,6 +195,7 @@ const TABLE: Dictionary = {
 	"couronne_d_etoiles": COURONNE_ETOILES,
 	"vasque_d_arcanes": VASQUE,
 	"nuee_d_etincelles": NUEE,
+	"nova_celeste": NOVA_CELESTE,
 }
 
 

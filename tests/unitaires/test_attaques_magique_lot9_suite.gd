@@ -181,3 +181,139 @@ func test_mouvement_reduit_la_nuee_sans_particule() -> void:
 	_a.impacter_en_groupe("nuee", CIBLE, 25.0)
 	verifier_egal(_a.particules_actives(), 0)
 	verifier(_a.etats("eclat_rune").size() > 0, "l'éclat reste")
+
+
+# --- Nova céleste : onde, vulnérabilité et siphon ------------------------------------------------
+
+
+func test_la_nova_celeste_est_une_onde_qui_rend_vulnerable_et_siphonne() -> void:
+	_verifier_arme("nova_celeste", "nova_celeste", "onde")
+	verifier_egal(_statut("nova_celeste"), "vulnerabilite")
+	verifier_egal(AttaquesElementaires.planche_projectile("nova_celeste"), "", "rien ne part")
+
+
+func test_l_onde_celeste_a_le_rayon_et_la_vitesse_des_donnees() -> void:
+	var rayon: float = _rayon_px("nova_celeste", "rayon_max")
+	var vitesse: float = _rayon_px("nova_celeste", "vitesse")
+	verifier_proche(AttaqueNovaCeleste.RAYON_PX, rayon, 0.001, "rayon de data/armes.json")
+	verifier_proche(AttaqueNovaCeleste.VITESSE_PX, vitesse, 0.001, "vitesse de data/armes.json")
+
+
+func test_les_croissants_avancent_a_la_vitesse_de_l_onde_jusqu_au_rayon() -> void:
+	verifier(_a.onde("nova_celeste", TOUR))
+	verifier_egal(_a.etats("vague_celeste").size(), AttaqueNovaCeleste.CROISSANTS, "un front")
+	_avancer(15)
+	var attendu: float = AttaqueNovaCeleste.VITESSE_PX * 15.0 * IMAGE
+	for lame: Dictionary in _a.etats("vague_celeste"):
+		verifier_proche((lame["position"] as Vector2).distance_to(TOUR), attendu, 1.0, "vitesse")
+	_avancer(80)
+	for lame: Dictionary in _a.etats("vague_celeste"):
+		verifier(
+			(lame["position"] as Vector2).distance_to(TOUR) <= AttaqueNovaCeleste.RAYON_PX + 0.5,
+			"jamais au-delà du rayon"
+		)
+
+
+func test_des_eclats_etoiles_naissent_quand_le_front_passe_et_restent_dans_le_rayon() -> void:
+	_a.onde("nova_celeste", TOUR)
+	var visibles: int = 0
+	for eclat: Dictionary in _a.etats("eclat_astral"):
+		visibles += 1 if eclat["visible"] else 0
+	verifier_egal(visibles, 0, "rien avant le passage du front")
+	var passage: float = AttaqueNovaCeleste.RAYON_PX / AttaqueNovaCeleste.VITESSE_PX / IMAGE
+	_avancer(int(passage * AttaqueNovaCeleste.COURONNES_ECLATS[0]) + 3)
+	visibles = 0
+	for eclat: Dictionary in _a.etats("eclat_astral"):
+		if not eclat["visible"]:
+			continue
+		visibles += 1
+		var d: float = (eclat["position"] as Vector2).distance_to(TOUR)
+		verifier(d + eclat["diametre"] * 0.5 <= AttaqueNovaCeleste.RAYON_PX + 1.0, "dans le rayon")
+	verifier(visibles > 0, "les éclats sont sortis")
+	var total: int = AttaqueNovaCeleste.SEQ_ECLAT.size()
+	_a.vider()
+	_a.onde("nova_celeste", TOUR)
+	_avancer(int(passage * AttaqueNovaCeleste.COURONNES_ECLATS[0]))
+	var rang: int = _rang_du_pic("eclat_astral", AttaqueNovaCeleste.IMAGE_PIC, total)
+	verifier(rang >= 0 and rang <= total / 4, "pic à %d images après le passage" % rang)
+
+
+func test_l_onde_celeste_s_efface_et_rend_le_pool() -> void:
+	_a.onde("nova_celeste", TOUR)
+	_avancer(150)
+	verifier_egal(_a.nombre_vivants(), 0)
+	verifier_egal(_a.particules_actives(), 0)
+
+
+func test_la_nova_celeste_dans_effets_se_dessine_au_depart_de_l_onde() -> void:
+	var effets: Effets = _effets_de("nova_celeste")
+	verifier_egal(
+		effets.elementaires().etats("vague_celeste").size(),
+		AttaqueNovaCeleste.CROISSANTS,
+		"un front"
+	)
+	verifier_faux(effets.formes_vivantes().has("anneau"), "plus d'anneau générique")
+	effets.free()
+
+
+# --- Les neuf armes : en jeu, plafond, impacts -------------------------------------------------
+
+
+func test_les_neuf_armes_magiques_ont_chacune_leur_element_et_leurs_planches() -> void:
+	var vus: Dictionary = {}
+	for id: String in ARMES:
+		var element: String = String(ARMES[id])
+		verifier_egal(ElementsArmes.de(id), element, "table de %s" % id)
+		verifier_faux(vus.has(element), "%s : élément partagé" % id)
+		vus[element] = true
+		verifier(SignaturesArmes.en_jeu(id), "%s : en jeu" % id)
+		var el: AttaqueElement = AttaquesElementaires.registre()[element]
+		for planche: String in el.planches():
+			verifier(
+				ResourceLoader.exists("%s%s.png" % [AttaquesElementaires.DOSSIER, planche]),
+				"%s : planche %s" % [id, planche]
+			)
+	verifier_egal(vus.size(), 9, "neuf armes")
+
+
+func _noter_impact(_ou: Vector2, _rayon: float, _fort: bool) -> void:
+	_impacts_visibles += 1
+
+
+## Un impact visible n'est émis que pour un coup que la simulation émet : l'impact décoratif
+## (le bout d'un rayon tournant) n'ajoute rien à ceux des événements de la vitrine.
+func test_une_arme_magique_n_emet_un_impact_visible_que_par_evenement_d_impact() -> void:
+	for id: String in ARMES:
+		_impacts_visibles = 0
+		var effets: Effets = Effets.new()
+		effets.catalogue = _donnees.ids_catalogue
+		effets.impact_visible.connect(_noter_impact)
+		arbre.root.add_child(effets)
+		var vitrine: VitrineArmes = VitrineArmes.new()
+		vitrine.armes = [id] as Array[String]
+		var attendus: int = 0
+		for evenement: Dictionary in vitrine.evenements_du_cycle(id):
+			attendus += 1 if String(evenement["k"]) == "impact" else 0
+			effets.ajouter(evenement)
+		vitrine.free()
+		for _i: int in 60:
+			effets.avancer(IMAGE)
+		verifier_egal(_impacts_visibles, attendus, "%s : un impact par événement d'impact" % id)
+		effets.free()
+
+
+func test_aucun_effet_magique_ne_depasse_le_plafond_ni_l_opacite_maximale() -> void:
+	for id: String in ARMES:
+		var element: String = String(ARMES[id])
+		var rayon: float = _rayon_px(id) if _effet(id).has("rayon") else 0.0
+		for _tour: int in 30:
+			_a.tirer(element, TOUR, CIBLE)
+			_a.impacter(element, CIBLE, rayon)
+			_a.impacter_en_groupe(element, CIBLE, rayon)
+			_a.zone(element, CIBLE, rayon)
+			_a.aura(element, TOUR, rayon)
+			_a.onde(element, TOUR)
+		_avancer(4)
+		verifier(_a.nombre_vivants() <= _a.place, "%s : plafond" % id)
+		verifier(_a.opacite_max() <= AttaquesElementaires.ALPHA_MAX + 0.0001, "%s : opacité" % id)
+		_a.vider()
