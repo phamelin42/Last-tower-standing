@@ -53,8 +53,9 @@ const PLANCHES_COMMUNES: Dictionary = {
 	"depart": Vector2i(12, 12),
 	"ombre": Vector2i(12, 6),
 	"etincelle": Vector2i(8, 8),
+	"bombe_meche": Vector2i(18, 18),
 }
-const VISIBLES_COMMUNES: Dictionary = {"etincelle": 8.0}
+const VISIBLES_COMMUNES: Dictionary = {"etincelle": 8.0, "bombe_meche": 16.0}
 
 ## Image de planche à chaque image à 60 i/s : le pic est dans le premier quart de l'impact.
 const SEQ_EXPLOSION: Array[int] = [0, 1, 2, 2, 3, 3, 4, 4, 4, 5, 5, 5]
@@ -90,6 +91,7 @@ const IMAGES_NUAGE: int = 36
 const ALPHA_NUAGE: float = 0.6
 const MONTEE_NUAGE: float = 24.0
 
+static var _textures_vue: Dictionary = {}
 static var _registre: Dictionary = {}
 static var _planches: Dictionary = {}
 static var _visibles: Dictionary = {}
@@ -118,75 +120,12 @@ static func retard_barrage(element: String) -> float:
 	return RETARD_BARRAGE if e == null else float(e.conf().get("retard", 2.0)) * IMAGE
 
 
-## Un élément par fichier sous `visuels/attaques/` : une ligne ici suffit à en ajouter un.
-static func _scripts() -> Array[GDScript]:
-	return [
-		AttaqueFeu,
-		AttaqueGlace,
-		AttaqueBombe,
-		AttaquePoison,
-		AttaqueFoudre,
-		AttaqueArcane,
-		AttaqueLame,
-		AttaqueFaucille,
-		AttaqueDisque,
-		AttaqueMoulinet,
-		AttaqueGuillotine,
-		AttaqueTourbillon,
-		AttaqueArbalete,
-		AttaqueChausseTrape,
-		AttaqueRicochet,
-		AttaqueHerse,
-		AttaqueBaliste,
-		AttaquePluie,
-		AttaqueCercleGivre,
-		AttaqueNova,
-		AttaqueTempete,
-		AttaquePetard,
-		AttaqueMineForge,
-		AttaqueTrebuchet,
-		AttaqueGrandeBombe,
-		AttaqueDePipe,
-		AttaqueSablier,
-		AttaqueMiroir,
-		AttaqueVortex,
-		AttaqueHorloge,
-		AttaqueSerpe,
-		AttaqueRasoir,
-		AttaqueCouperet,
-		AttaqueBrume,
-		AttaqueFaucheuse,
-		AttaqueFleau,
-		AttaqueHache,
-		AttaqueScie,
-		AttaqueMoissonneuse,
-		AttaqueJaveline,
-		AttaqueTraitGerbe,
-		AttaqueFlecheMarquante,
-		AttaqueArcRemparts,
-		AttaqueHersePieux,
-		AttaqueLanceEpineuse,
-		AttaqueCarquois,
-		AttaqueMurPointes,
-		AttaqueCouronnePointes,
-		AttaqueRuneVeille,
-		AttaqueSiphonneur,
-		AttaqueLueur,
-		AttaquePrisme,
-		AttaqueOrage,
-		AttaqueCouronneEtoiles,
-		AttaqueVasque,
-		AttaqueNuee,
-		AttaqueNovaCeleste,
-	]
-
-
 ## Les éléments, par identifiant (créés une fois).
 static func registre() -> Dictionary:
 	if _registre.is_empty():
 		_planches = PLANCHES_COMMUNES.duplicate()
 		_visibles = VISIBLES_COMMUNES.duplicate()
-		for script: GDScript in _scripts():
+		for script: GDScript in RegistreAttaques.scripts():
 			var element: AttaqueElement = script.new()
 			_registre[element.id()] = element
 			_planches.merge(element.planches())
@@ -215,6 +154,25 @@ static func explosion_du_pack(element: String) -> bool:
 static func planche_projectile(element: String) -> String:
 	var e: AttaqueElement = registre().get(element)
 	return "" if e == null else String(e.conf()["projectile"])
+
+
+## Le nom de la planche du disque au sol de `element` (zone posée), `""` s'il n'en a pas.
+static func disque_de(element: String) -> String:
+	var e: AttaqueElement = registre().get(element)
+	return "" if e == null else String(e.conf().get("disque", ""))
+
+
+## La texture de `planche`, pour ce que la vue dessine elle-même (bombe, disque au sol).
+static func texture_de(planche: String) -> Texture2D:
+	if not _textures_vue.has(planche):
+		_textures_vue[planche] = load(DOSSIER + planche + ".png") as Texture2D
+	return _textures_vue[planche]
+
+
+## Diamètre visible (pixels de planche) de la plus grande image de `planche`, 0 si inconnue.
+static func visible_de(planche: String) -> float:
+	registre()
+	return float(_visibles.get(planche, 0.0))
 
 
 func nombre_vivants() -> int:

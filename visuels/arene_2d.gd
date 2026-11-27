@@ -517,7 +517,6 @@ func _recevoir(vue: VueArene, temps: float) -> void:
 		return
 	_dernier_tick = vue.tick
 	_interpolation.pousser(vue, temps)
-	_poses.afficher(vue)
 	_superpositions.viser(vue)
 	_echantillon_affiche = {}
 	var explosifs: Array[Vector2] = []
@@ -541,6 +540,8 @@ func _recevoir(vue: VueArene, temps: float) -> void:
 	# Après la boucle : l'impact qui tue peut suivre l'événement de mort dans la même vue.
 	for ou: Vector2 in tues:
 		_annoncer_mort(ou, vue)
+	# Après les événements : le tir qui pose une bombe dit si son projectile est encore en vol.
+	_poses.afficher(vue, _effets)
 	_barres.afficher(vue)
 	_vue_precedente = vue
 
