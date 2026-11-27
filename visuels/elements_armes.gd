@@ -84,6 +84,7 @@ const CATAPULTE: String = "catapulte"
 const OBUSIER: String = "obusier"
 const BRAISE: String = "braise"
 const ECRASEMENT: String = "ecrasement"
+const COLOSSE: String = "colosse"
 
 const ELEMENTS: Array[String] = [
 	FEU,
@@ -149,6 +150,7 @@ const ELEMENTS: Array[String] = [
 	OBUSIER,
 	BRAISE,
 	ECRASEMENT,
+	COLOSSE,
 ]
 
 ## id d'arme → élément.
@@ -216,6 +218,7 @@ const TABLE: Dictionary = {
 	"obusier_de_breche": OBUSIER,
 	"braise_de_siege": BRAISE,
 	"ecrasement_de_tour": ECRASEMENT,
+	"colosse_de_pierre": COLOSSE,
 }
 
 

@@ -66,6 +66,7 @@ const ATTENDU: Dictionary = {
 	"obusier_de_breche": "obusier",
 	"braise_de_siege": "braise",
 	"ecrasement_de_tour": "ecrasement",
+	"colosse_de_pierre": "colosse",
 }
 
 
