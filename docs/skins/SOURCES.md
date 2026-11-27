@@ -70,3 +70,37 @@ famille est permis, et un skin sans candidat reçoit le **meilleur rapprochement
 
 Sources des bâtiments Tiny Swords : `assets/tiny_swords/LICENCE.md` (Pixel Frog, https://pixelfrog-assets.itch.io/tiny-swords,
 « TS_old version_CC0 Licensed »).
+
+## Candidats de remplacement (étape 3, 27/11/2026)
+
+Décision de Phil (27/11) : chercher d'autres packs gratuits pour remplacer les skins qui ne collent pas à leur thème
+(les 28 rapprochés, puis les 13 partiels), avec un style compatible ou une autre famille. Planche :
+`docs/skins/planche_candidats_v5.png` (script `docs/skins/generer_candidats.py`). **Rien n'est intégré** :
+`data/skins_tour.json` et `assets/tours/` ne changent pas.
+
+- **Recherche :** 9 recherches web de plus (18 au total pour T11.6), un relevé OpenGameArt par requêtes directes, et
+  la lecture des pages des packs trouvés.
+- **Retenu : MiniWorld Sprites** (Shade), CC0 : https://opengameart.org/content/miniworld-sprites (page : « License(s) :
+  CC0 ») et https://merchant-shade.itch.io/16x16-mini-world-sprites (listé dans les assets CC0 d'itch.io).
+  Archive téléchargée par le lien direct d'OpenGameArt (`miniworldsprites_1.zip`), sans jeton ni contournement ; elle
+  ne contient pas de fichier de licence (seulement `OtherLinks.docx`, un mot de remerciement) : la licence est celle de la
+  page. Des bâtiments de 16 px aux contours épais, d'un style voisin de Tiny Swords : puits, étals de marché, palissade
+  de pieux, maisons, tavernes, ateliers, casernes, donjon, mausolée, tours de pierre, coffres.
+- **Retenu : Ruining tower** (Blarumyrran), CC0 : https://opengameart.org/content/ruining-tower (une tour en ruine,
+  pixel art).
+- **Écartés :** Tiny Town et Tiny Dungeon (Kenney, CC0) : des tuiles de décor, pas de bâtiments ; Old tower
+  (manwesulimo2004, CC0) : une tour moussue peinte, pas du pixel art ; Castle and Village de edermunizz (CC-BY 4.0) :
+  payant (9 $) et interdit de redistribution des fichiers ; Stone Tower Defense de CraftPix (OGA-BY 3.0, vectoriel),
+  CraftPix et GameArt2D en général (licences maison) ; Pixel Castle Towers, Pixel Buildings, Building Pack et les
+  packs de pixel-1992 (conditions maison ou génération par IA) ; Tower 4 damaged versions (CC-BY-SA 3.0) et Platformer
+  Ice Tileset (CC-BY-SA 3.0) : partage à l'identique.
+- **Bilan :** sur les 41 skins visés, 18 ont un candidat. « Bons » : **9 aujourd'hui, 17** avec les meilleurs candidats
+  (puits, comptoir, embuscade, famille, les trois tours de pierre unie, tour de pierre). Aucun candidat libre pour la
+  lame, l'œil, le halo, le manège, le tonnerre, le sang, le bouclier, les balafres, la faux, les trophées, le cratère,
+  l'artificier, le sapeur, la nuée, les ondes (pas de pack de tours magiques, élémentaires ou à pièges en pixel art
+  libre de droits).
+- **À télécharger à la main :** aucun pack. Les deux archives retenues viennent de liens directs d'OpenGameArt.
+- **Point technique avant intégration :** les candidats MiniWorld font 16 px : le jeu devra les agrandir d'un facteur
+  entier (huit pour s'approcher de la tour par défaut). Ce facteur doit vivre dans `data/skins_tour.json` (nouveau
+  champ, à ajouter avec la session Apparence) et non dans le code ; changer la taille d'un fichier ne doit pas
+  demander de toucher au code.
