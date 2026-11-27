@@ -51,6 +51,7 @@ const ATTENDU: Dictionary = {
 	"carquois_en_rafale": "carquois",
 	"mur_de_pointes": "mur_pointes",
 	"couronne_de_pointes": "couronne_pointes",
+	"rune_de_veille": "rune_veille",
 }
 
 

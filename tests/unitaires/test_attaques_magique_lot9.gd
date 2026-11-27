@@ -1,0 +1,61 @@
+extends CasAttaquesMagique
+## Les armes magiques du lot 9 (D22), première moitié : rune de veille, éclat siphonneur, lueur
+## vagabonde, prisme de faille, orage en cage. Mêmes phases et mêmes bornes que les armes du lot 8
+## (anticipation 3 images, vol direct 7 ou en cloche 11, impact au pic dans le premier quart, zone
+## au rayon réel lu dans `data/armes.json`). Durées en images à 60 i/s.
+
+# --- Rune de veille : zone posée -----------------------------------------------------------------
+
+
+func test_la_rune_de_veille_est_une_zone_posee_sans_statut() -> void:
+	_verifier_arme("rune_de_veille", "rune_veille", "zone_posee")
+	verifier_egal(_statut("rune_de_veille"), "", "aucun statut")
+
+
+func test_la_rune_est_lancee_en_cloche_et_arrive_en_quatorze_images() -> void:
+	verifier_proche(_a.tirer("rune_veille", TOUR, CIBLE) / IMAGE, 14.0, 0.01, "3 + 11 images")
+	verifier_egal(_a.etats("ombre").size(), 1, "l'ombre suit la cloche")
+	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 6)
+	var rune: Dictionary = _a.etats("rune")[0]
+	verifier(rune["visible"], "elle vole")
+	verifier(rune["position"].y < CIBLE.y - 10.0, "elle passe au-dessus de la ligne de tir")
+	verifier(_a.particules_actives() >= 1, "une traînée")
+	_avancer(10)
+	verifier_egal(_a.etats("rune").size(), 0, "arrivée, elle disparaît")
+
+
+func test_la_rune_pose_son_eclat_petit_et_un_anneau_au_rayon_reel_de_la_zone() -> void:
+	var rayon: float = _rayon_px("rune_de_veille")
+	verifier(_a.impacter("rune_veille", CIBLE, rayon))
+	var eclat: Dictionary = _a.etats("eclat_rune")[0]
+	verifier(eclat["taille"].x <= 60.0, "l'éclat reste petit : le disque est dessiné par la vue")
+	verifier_egal(_a.etats("").size(), 1, "un anneau fin")
+	verifier_proche(_a.diametre_max(), rayon * 2.0, rayon * 2.0 * 0.1, "au rayon réel")
+	verifier(_a.particules_actives() >= 1, "quelques éclats")
+
+
+func test_l_eclat_de_la_rune_est_au_pic_dans_le_premier_quart() -> void:
+	_a.impacter("rune_veille", CIBLE, 75.0)
+	var total: int = AttaqueRuneVeille.SEQ_ECLAT.size()
+	var rang: int = _rang_du_pic("eclat_rune", AttaqueRuneVeille.IMAGE_PIC, total)
+	verifier(rang >= 0 and rang <= total / 4, "pic à l'image %d sur %d" % [rang, total])
+
+
+func test_la_rune_s_efface_et_rend_le_pool_et_mouvement_reduit_sans_particule() -> void:
+	_a.impacter("rune_veille", CIBLE, 75.0)
+	_avancer(60)
+	verifier_egal(_a.nombre_vivants(), 0)
+	verifier_egal(_a.particules_actives(), 0)
+	_a.mouvement_reduit = true
+	_a.tirer("rune_veille", TOUR, CIBLE)
+	_a.impacter("rune_veille", CIBLE, 75.0)
+	verifier_egal(_a.particules_actives(), 0, "sans particule")
+	verifier(_a.etats("eclat_rune").size() > 0, "l'éclat reste")
+
+
+func test_la_rune_dans_effets_ne_dessine_plus_l_anneau_generique_de_la_zone() -> void:
+	var effets: Effets = _effets_de("rune_de_veille")
+	verifier_egal(effets.elementaires().etats("rune").size(), 1, "la rune vole")
+	verifier(_pic_de(effets, "eclat_rune", 40) > 0, "l'éclat de la rune à l'arrivée")
+	verifier_faux(effets.formes_vivantes().has("anneau"), "plus d'anneau générique")
+	effets.free()
