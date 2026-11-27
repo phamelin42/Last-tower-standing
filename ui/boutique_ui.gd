@@ -24,7 +24,7 @@ const HAUTEUR_CONTROLE := 48.0
 const LARGEUR_CARTE := 180.0
 const LARGEUR_TEXTE := 130.0
 ## Largeur de la colonne d'actions (relance, message) et du panneau des armes.
-const LARGEUR_ACTIONS := 152.0
+const LARGEUR_ACTIONS := 160.0
 const LARGEUR_COTE := 300.0
 const LARGEUR_NOM_ARME := 100.0
 ## Image de l'offre en tête de carte : la plus grande taille qui tient, entre ces bornes. Elle
@@ -139,11 +139,10 @@ func _construire_bandeau() -> void:
 		cartes.add_child(_construire_carte(i))
 	var actions := VBoxContainer.new()
 	actions.name = "Actions"
+	# Sans interligne : « Tout acheter » s'ajoute à la relance sans faire dépasser les cartes (D13).
+	actions.add_theme_constant_override("separation", 0)
 	actions.custom_minimum_size = Vector2(LARGEUR_ACTIONS, 0.0)
 	rangee.add_child(actions)
-	var titre := _etiquette("Titre", "BOUTIQUE_TITRE")
-	titre.theme_type_variation = "TitrePetit"
-	actions.add_child(titre)
 	_relance = _bouton(Callable(self, "relancer"))
 	# « Relancer » puis le prix : deux lignes de 23 px et les marges du bouton (36 px), sinon la
 	# seconde ligne est coupée.
@@ -154,6 +153,7 @@ func _construire_bandeau() -> void:
 	actions.add_child(_relance)
 	_tout_acheter = _bouton(Callable(self, "tout_acheter"))
 	_tout_acheter.name = "ToutAcheter"
+	_tout_acheter.autowrap_mode = TextServer.AUTOWRAP_OFF
 	actions.add_child(_tout_acheter)
 	_note_relance = _etiquette("NoteRelance")
 	_message = _etiquette("Message")
@@ -666,14 +666,17 @@ func _libelle_achat(i: int) -> String:
 	return tr("BOUTIQUE_ACHETER_TOUCHE") % touche if touche != "" else tr("BOUTIQUE_ACHETER")
 
 
-## « Tout acheter » : actif quand au moins une offre se paie, la touche liée en suffixe.
+## « Tout acheter » : actif quand au moins une offre se paie. Le bouton ne tient que sur une ligne
+## (une seconde ferait grandir le bandeau, D13) : la touche liée se lit dans l'infobulle.
 func _afficher_tout_acheter(vue: VueArene) -> void:
 	var touche := AchatsGroupes.touche_de(ACTION_TOUT_ACHETER)
-	_tout_acheter.text = (
-		tr("BOUTIQUE_TOUT_ACHETER_TOUCHE") % touche if touche != "" else tr("BOUTIQUE_TOUT_ACHETER")
-	)
+	_tout_acheter.text = tr("BOUTIQUE_TOUT_ACHETER")
 	_tout_acheter.disabled = AchatsGroupes.ordre_tout_acheter(vue).is_empty()
-	_tout_acheter.tooltip_text = tr("BOUTIQUE_TOUT_ACHETER_AIDE")
+	_tout_acheter.tooltip_text = (
+		tr("BOUTIQUE_TOUT_ACHETER_AIDE_TOUCHE") % touche
+		if touche != ""
+		else tr("BOUTIQUE_TOUT_ACHETER_AIDE")
+	)
 
 
 func _libelle_relance(detail: String) -> String:

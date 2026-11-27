@@ -244,5 +244,5 @@ BOUTIQUE_NIVEAU_INFOBULLE,Niveau %d : %s dégâts
 BOUTIQUE_NIVEAU_INSIGNE,%d
 BOUTIQUE_ACHETER_TOUCHE,Acheter (%s)
 BOUTIQUE_TOUT_ACHETER,Tout acheter
-BOUTIQUE_TOUT_ACHETER_TOUCHE,Tout acheter (%s)
 BOUTIQUE_TOUT_ACHETER_AIDE,"Achète toutes les offres que votre or permet, de la moins chère à la plus chère."
+BOUTIQUE_TOUT_ACHETER_AIDE_TOUCHE,"Achète toutes les offres que votre or permet, de la moins chère à la plus chère. Touche : %s."

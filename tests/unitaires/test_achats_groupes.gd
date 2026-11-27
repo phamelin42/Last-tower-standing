@@ -197,9 +197,9 @@ func test_le_bouton_est_grise_quand_aucune_offre_ne_se_paie() -> void:
 	verifier_faux(_bouton("ToutAcheter").disabled, "une offre se paie : le bouton est actif")
 
 
-func test_le_bouton_porte_sa_touche_et_une_aide() -> void:
+func test_le_bouton_tient_sur_une_ligne_et_son_infobulle_dit_la_touche() -> void:
 	_ui.afficher(_vue([100, 200, 300, 400], 1000))
 	var b := _bouton("ToutAcheter")
-	verifier_egal(b.text, "Tout acheter (T)")
-	verifier(b.tooltip_text != "", "une infobulle dit ce que fait le bouton")
+	verifier_egal(b.text, "Tout acheter")
+	verifier(b.tooltip_text.contains("Touche : T"), "l'infobulle dit la touche : " + b.tooltip_text)
 	verifier(b.focus_mode != Control.FOCUS_NONE, "atteignable à la manette et au clavier")
