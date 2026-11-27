@@ -15,7 +15,7 @@ var _compte: int = 0
 
 func avant_chaque() -> void:
 	d = Donnees.charger()
-	# Ce test vérifie l'ordre des couches, pas le prix de la mana : un point de mana par point de dégât.
+	# L'ordre des couches se teste ici, pas le prix de la mana : 1 point de mana par point de dégât.
 	(d.partie["tour"] as Dictionary)["mana_cout_par_pv"] = 1.0
 	# Sans régénération, la mana ne remonte jamais seule : les tests la posent à la main.
 	(d.partie["tour"] as Dictionary)["mana_regen"] = 0.0
