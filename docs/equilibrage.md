@@ -130,3 +130,21 @@ Phil a laissé la décision au lot 12 (T12.9). Mesure du 27/11 sur le robot « b
 - **Tirs des ennemis à distance (Phil, 27/11/2026 : « on laisse comme ça »)** : purement visuels
   (`visuels/tirs_ennemis.gd`, réglages dans `data/assets.json`), déduits de la vue d'arène. Aucun événement de tir
   ennemi dans `VueArene` ni dans `Protocole` : ne pas l'ajouter.
+
+## Robots du lot 12 (T12.9, première phase, 27/11/2026)
+
+`StrategiesJoueur` suit les règles du lot 12 : plus de vente, un niveau de plus d'une arme déjà portée quand
+l'arsenal est plein (valeur : `niveaux.gain_degats + niveaux.gain_cadence`, lue dans les données), les raretés de fin
+de partie s'achètent, et la « bonne » stratégie préfère de 2 fois les améliorations de revenu tant qu'elle en a moins de
+30 (Phil, 27/11/2026 : « suffisamment d'améliorations d'income »). Mesure de départ, robot « bonne », graines 1 à 10,
+catalogue d'avant les 15 armes tardives (T12.7), combat contre le boss limité à 400 s :
+
+| Mesure                                  | Résultat                                                                      |
+| --------------------------------------- | ----------------------------------------------------------------------------- |
+| Or restant au début du combat du boss   | 99 à 584 or sur 9 graines (la graine 8 tombe en manche 23) : l'or est dépensé |
+| Niveaux d'armes au boss                 | 63 à 102 niveaux répartis sur 8 armes                                         |
+| Améliorations de fin de partie achetées | 1 à 5 par graine                                                              |
+| Améliorations de revenu au boss         | 11 à 28 (le tirage en offre peu : la cible de 30 n'est jamais atteinte)       |
+| Boss vaincu en moins de 400 s           | 0 graine sur 9 (une victoire en 142 s sans le boost de revenu, graine 6)      |
+
+La mesure complète (boss, 50 graines, leviers) attend T12.7 (15 armes) et S27 : voir T12.9.
