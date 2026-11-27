@@ -171,6 +171,18 @@ const PLANCHES: Dictionary = {
 	"cendre": {"taille": Vector2i(12, 12), "images": 2},
 	"malefice": {"taille": Vector2i(12, 12), "images": 2},
 	"allie": {"taille": Vector2i(32, 32), "images": 2},
+	# Lot 9 (T9.19) : impacts et apparitions du chaos, carrés de quatre images.
+	"eclat_sang": {"taille": Vector2i(24, 24), "images": 4},
+	"eclat_jumeau": {"taille": Vector2i(24, 24), "images": 4},
+	"eclat_serment": {"taille": Vector2i(24, 24), "images": 4},
+	"eclat_spectre": {"taille": Vector2i(24, 24), "images": 4},
+	"pointes_discorde": {"taille": Vector2i(24, 24), "images": 4},
+	"volute_oubli": {"taille": Vector2i(24, 24), "images": 4},
+	"nuage_cendre": {"taille": Vector2i(32, 32), "images": 4},
+	"eclat_malefice": {"taille": Vector2i(24, 24), "images": 4},
+	"apparition_ombre": {"taille": Vector2i(32, 32), "images": 4},
+	"apparition_spectre": {"taille": Vector2i(32, 32), "images": 4},
+	"eclat_ombre": {"taille": Vector2i(24, 24), "images": 4},
 }
 
 
