@@ -79,6 +79,17 @@ func _portee(entite: int) -> float:
 	return float(_donnees.boss["portee_attaque"])
 
 
+## Classe d'attaque lue dans les données : 1 au contact, 0 de loin, -1 pour le convoi (sans classe).
+func _au_contact(entite: int) -> int:
+	if entite == _donnees.familles.size():
+		return -1
+	return int(Apparence.attaque_au_contact(_donnees, entite))
+
+
+func _arret(entite: int) -> float:
+	return Apparence.distance_arret(_portee(entite), _rayon_tour(), _au_contact(entite))
+
+
 func _entree(entite: int) -> Dictionary:
 	return Apparence.entree(Apparence.ids_entites(_donnees)[entite])
 
@@ -188,8 +199,8 @@ func test_l_animation_suit_ce_que_fait_l_ennemi() -> void:
 	for entite: int in _nb_entites():
 		var e := _entree(entite)
 		var portee: float = _portee(entite)
-		var arret: float = Apparence.distance_arret(portee, _rayon_tour())
-		var a_distance: bool = portee > Apparence.PORTEE_CORPS_A_CORPS
+		var arret: float = _arret(entite)
+		var a_distance: bool = _au_contact(entite) == 0
 		# Loin de la tour : il court.
 		_arene.afficher(_vue_un(entite, Vector2(RAYON_SPAWN, 0)), 1.0)
 		verifier_egal(_ligne(entite), (e["course"] as Vector2i).x, "entité %d court" % entite)
@@ -206,21 +217,26 @@ func test_l_animation_suit_ce_que_fait_l_ennemi() -> void:
 
 func test_l_attaque_au_contact_regarde_vers_la_tour() -> void:
 	# Un ennemi au-dessus de la tour frappe vers le bas, un ennemi dessous vers le haut.
-	for entite: int in _donnees.familles.size():
-		if _portee(entite) > Apparence.PORTEE_CORPS_A_CORPS:
+	# Le boss compte parmi eux : sa classe de portée est « corps_a_corps » (Phil, 27/11/2026).
+	var au_contact := 0
+	for entite: int in _nb_entites():
+		if _au_contact(entite) != 1:
 			continue
+		au_contact += 1
 		var e := _entree(entite)
-		var arret: float = Apparence.distance_arret(_portee(entite), _rayon_tour())
+		var arret: float = _arret(entite)
 		_arene.afficher(_vue_un(entite, Vector2(0, -arret)), 1.0)
 		verifier_egal(_ligne(entite), (e["attaque_bas"] as Vector2i).x)
 		_arene.afficher(_vue_un(entite, Vector2(0, arret)), 2.0)
 		verifier_egal(_ligne(entite), (e["attaque_haut"] as Vector2i).x)
+	verifier(_au_contact(_donnees.familles.size() + 1) == 1, "le boss attaque au contact")
+	verifier(au_contact > 1, "des ennemis au contact, boss compris")
 
 
 func test_l_image_affichee_reste_dans_les_images_de_l_animation() -> void:
 	for entite: int in _nb_entites():
 		var e := _entree(entite)
-		var arret: float = Apparence.distance_arret(_portee(entite), _rayon_tour())
+		var arret: float = _arret(entite)
 		for p: Vector2 in [Vector2(RAYON_SPAWN, 0), Vector2(arret, 0)]:
 			for t: int in 40:
 				_arene.afficher(_vue_un(entite, p), 1.0 + float(t) * 0.07)
@@ -380,7 +396,7 @@ func test_le_pied_reste_au_meme_point_de_l_ecran_apres_recadrage_pour_chaque_ima
 	for entite: int in _nb_entites():
 		var e := _entree(entite)
 		var case_px: Vector2i = e["case"]
-		var arret: float = Apparence.distance_arret(_portee(entite), _rayon_tour())
+		var arret: float = _arret(entite)
 		var vues: Array[Vector2] = [arret_loin, -arret_loin, Vector2(arret, 0), Vector2(-arret, 0)]
 		vues.append_array([Vector2(0, arret), Vector2(0, -arret)])
 		for p: Vector2 in vues:

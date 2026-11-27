@@ -58,6 +58,9 @@ static func valider(e: Dictionary, err: Array[String]) -> void:
 	]
 	for spec: Dictionary in champs_boss:
 		Donnees._nombre(boss_brut, spec, f, "boss", err)
+	# Le boss attaque au contact (Phil, 27/11/2026) malgré sa portée de 80 : épines et riposte le
+	# touchent. La classe vient des données, pas d'un seuil de portée.
+	Donnees._nom_enum(boss_brut, "classe_portee", Types.NOMS_CLASSES_PORTEE, f, "boss", err)
 
 
 ## Paliers de couleur : identifiants uniques, `manche_entree` strictement croissante à partir de 1,

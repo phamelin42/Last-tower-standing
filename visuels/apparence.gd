@@ -151,15 +151,30 @@ static func chemin_feuille(cle: String, couleur: String) -> String:
 	return chemin if chemin.begins_with("res://") else RACINE + chemin
 
 
+## Vrai si l'entité `f` des données (famille, puis boss à l'index `nb_familles + 1`) attaque au
+## contact : la classe de portée des données, jamais un seuil de portée.
+static func attaque_au_contact(donnees: Donnees, f: int) -> bool:
+	var nb := donnees.familles.size()
+	if f < nb:
+		return (
+			int((donnees.familles[f] as Dictionary)["classe_portee"])
+			== Types.ClassePortee.CORPS_A_CORPS
+		)
+	if f == nb + 1:
+		return String(donnees.boss["classe_portee"]) == Types.NOMS_CLASSES_PORTEE[0]
+	return false
+
+
 ## Pixels du monde pour une position de la vue (unités de jeu).
 static func vers_pixels(p: Vector2) -> Vector2:
 	return p * PX_PAR_UNITE
 
 
 ## Distance à la tour à laquelle un ennemi s'arrête (miroir de `sim/ennemis.gd`) : au bord de la
-## tour au corps à corps, à sa portée pour un tireur.
-static func distance_arret(portee: float, rayon_tour: float) -> float:
-	if portee <= PORTEE_CORPS_A_CORPS:
+## tour au corps à corps, à sa portée pour un tireur. `au_contact` (0 ou 1) vient de la classe de
+## portée des données ; -1 le déduit de la portée (ennemis sans classe).
+static func distance_arret(portee: float, rayon_tour: float, au_contact: int = -1) -> float:
+	if au_contact == 1 or (au_contact < 0 and portee <= PORTEE_CORPS_A_CORPS):
 		return rayon_tour + portee
 	return portee
 

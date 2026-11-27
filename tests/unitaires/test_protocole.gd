@@ -101,6 +101,7 @@ func _brut_catalogue() -> Dictionary:
 			"vitesse": 35,
 			"degats": 60,
 			"portee_attaque": 80,
+			"classe_portee": "corps_a_corps",
 			"cadence_attaque": 1.5,
 		},
 	}
