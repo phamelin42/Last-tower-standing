@@ -11,7 +11,6 @@ const CONF: Dictionary = {
 	"anticipation": AttaquesElementaires.COULEUR_BOUFFEE,
 	"projectile": "brasero",
 	"cloche": 0.4,
-	"fps": 8.0,
 	"tour": 0.0,
 	"bosse": 0.1,
 	"echelle": 1.3,
@@ -27,18 +26,6 @@ func id() -> String:
 
 func conf() -> Dictionary:
 	return CONF
-
-
-func planches() -> Dictionary:
-	return {
-		"brasero": Vector2i(12, 12),
-		"explosion_feu": Vector2i(32, 32),
-		"disque_braise": Vector2i(32, 16),
-	}
-
-
-func visibles() -> Dictionary:
-	return {"explosion_feu": 28.0, "disque_braise": 30.0}
 
 
 func suivre_vol(

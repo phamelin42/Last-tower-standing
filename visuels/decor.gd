@@ -43,8 +43,8 @@ func construire(nouveau: PlanDecor) -> void:
 	_fond.name = "Fond"
 	_fond.texture = ImageTexture.create_from_image(_composer())
 	_fond.centered = false
-	_fond.scale = Vector2.ONE * PlanDecor.ECHELLE
-	_fond.position = -Vector2(_demi_image()) * PlanDecor.ECHELLE
+	_fond.scale = Vector2.ONE * PlanDecor.echelle
+	_fond.position = -Vector2(_demi_image()) * PlanDecor.echelle
 	add_child(_fond)
 	var rochers := Node2D.new()
 	rochers.name = "RochersEau"
@@ -127,15 +127,15 @@ func _source(fichier: String) -> Image:
 	return _images_sources[fichier]
 
 
-## Moitié de l'image composée, en pixels de l'image (un pixel de l'image fait `ECHELLE` pixels du
-## monde) : la tour est au centre.
+## Moitié de l'image composée, en pixels de l'image (un pixel de l'image fait `PlanDecor.echelle`
+## pixels du monde) : la tour est au centre.
 func _demi_image() -> Vector2i:
 	return Vector2i(PlanDecor.DEMI_COLONNES * taille_tuile, PlanDecor.DEMI_LIGNES * taille_tuile)
 
 
 ## Pixel de l'image composée sous un point du monde.
 func _vers_image(p: Vector2) -> Vector2i:
-	return Vector2i((p / PlanDecor.ECHELLE).floor()) + _demi_image()
+	return Vector2i((p / PlanDecor.echelle).floor()) + _demi_image()
 
 
 ## Pose une image de la feuille `fichier` (région `source`) sur `dest`, avec miroir au besoin.
@@ -220,7 +220,7 @@ func _coller_objet(image: Image, objet: Dictionary) -> void:
 ## Les terres sont bordées d'eau jusqu'aux limites de l'écran le plus large : de grandes bandes
 ## d'une seule couleur prolongent l'image composée ; elles ne sont tracées que si l'écran y arrive.
 func _poser_les_bords_d_eau() -> void:
-	var demi := Vector2(_demi_image()) * PlanDecor.ECHELLE
+	var demi := Vector2(_demi_image()) * PlanDecor.echelle
 	var grand: float = RAYON_EAU
 	# Gauche, droite, haut, bas ; les bandes de gauche et de droite couvrent aussi les coins.
 	var bandes: Array[Rect2] = [

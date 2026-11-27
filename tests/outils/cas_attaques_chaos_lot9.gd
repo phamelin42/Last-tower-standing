@@ -144,9 +144,7 @@ func _impact(id: String) -> String:
 ## L'image la plus grande d'une planche (rang, côté de sa boîte de pixels opaques), lue sur le
 ## fichier : c'est là que l'impact est au pic.
 func _pic_de_planche(planche: String) -> Vector2i:
-	var img: Image = (
-		(load(AttaquesElementaires.DOSSIER + planche + ".png") as Texture2D).get_image()
-	)
+	var img: Image = (load(PlanchesEffets.dossier() + planche + ".png") as Texture2D).get_image()
 	var cote: int = img.get_height()
 	var meilleur: int = 0
 	var plus_grand: int = -1

@@ -8,7 +8,6 @@ const CONF: Dictionary = {
 	"couleur": COULEUR_ACIER,
 	"projectile": "chausse_trape",
 	"cloche": 0.22,
-	"fps": 0.0,
 	"tour": 4.0 * PI,
 }
 const LANCES: int = 3
@@ -30,14 +29,6 @@ func id() -> String:
 
 func conf() -> Dictionary:
 	return CONF
-
-
-func planches() -> Dictionary:
-	return {"chausse_trape": Vector2i(12, 12), "pointes_sol": Vector2i(32, 32)}
-
-
-func visibles() -> Dictionary:
-	return {"pointes_sol": 28.0}
 
 
 func piege(m: AttaquesElementaires, depart: Vector2, arrivee: Vector2) -> bool:

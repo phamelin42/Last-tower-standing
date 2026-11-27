@@ -11,7 +11,6 @@ const CONF: Dictionary = {
 	"couleur": COULEUR,
 	"projectile": "etincelle",
 	"cloche": 0.3,
-	"fps": 0.0,
 	"echelle": 1.6,
 	"bosse": 0.2,
 }
@@ -29,14 +28,6 @@ func id() -> String:
 
 func conf() -> Dictionary:
 	return CONF
-
-
-func planches() -> Dictionary:
-	return {"eclat_astral": Vector2i(24, 24)}
-
-
-func visibles() -> Dictionary:
-	return {"eclat_astral": 22.0}
 
 
 func suivre_vol(

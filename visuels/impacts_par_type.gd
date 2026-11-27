@@ -105,6 +105,6 @@ func explosion(ou: Vector2, rayon: float) -> Dictionary:
 		return {}
 	effet["depart"] = ou
 	effet["taille"] = rayon * Apparence.PX_PAR_UNITE * 2.0
-	_effets.geler(effet, Effets.AGE_PIC_EXPLOSION)
+	_effets.geler(effet, Effets.age_pic_explosion())
 	PoseEffets.poser(effet)
 	return effet

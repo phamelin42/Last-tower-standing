@@ -22,15 +22,12 @@ const GROSSISSEMENT: float = 0.7
 const PULSATION: float = 0.12
 const BATTEMENT_MIN: float = 1.5
 const BATTEMENT_MAX: float = 6.0
-## La bombe à mèche : sa planche, ses images (de la posée à la sur le point d'exploser) et sa
-## taille à l'écran, en multiple de la planche.
+## La bombe à mèche : sa planche. Ses images (de la posée à la sur le point d'exploser) se comptent
+## sur la texture, sa taille à l'écran est l'échelle des planches.
 const PLANCHE_BOMBE: String = "bombe_meche"
-const IMAGES_BOMBE: int = 3
-const ECHELLE_BOMBE: float = 3.0
-## Le disque au sol : opacité, images du cycle de braises et images par seconde.
+## Le disque au sol : opacité. Ses images (le cycle de braises) se comptent sur la texture et sa
+## cadence est celle de sa planche.
 const OPACITE_DISQUE: float = 0.85
-const IMAGES_DISQUE: int = 3
-const CADENCE_DISQUE: float = 6.0
 const OPACITE_SOUFFLE_MIN: float = 0.06
 const OPACITE_SOUFFLE_MAX: float = 0.28
 ## Un allié trop proche de la position d'une pose ne la confond pas : deux bombes se reconnaissent
@@ -88,7 +85,8 @@ func planche_bombe() -> String:
 
 ## L'image de la bombe à mèche : la première posée, la dernière sur le point d'exploser.
 func image_bombe(i: int) -> int:
-	return mini(int(avancement_bombe(i) * IMAGES_BOMBE), IMAGES_BOMBE - 1)
+	var images: int = AttaquesElementaires.images_de(PLANCHE_BOMBE)
+	return mini(int(avancement_bombe(i) * images), images - 1)
 
 
 ## La planche du disque au sol de la zone `i`, `""` si son arme n'en a pas (disque tracé).
@@ -100,7 +98,11 @@ func disque_zone(i: int) -> String:
 func image_disque(i: int) -> int:
 	if mouvement_reduit or i < 0 or i >= _zones.size():
 		return 1
-	return int(_horloge * CADENCE_DISQUE) % IMAGES_DISQUE
+	var planche: String = disque_zone(i)
+	if planche == "":
+		return 1
+	var cadence: float = PlanchesEffets.cadence_de(planche)
+	return int(_horloge * cadence) % AttaquesElementaires.images_de(planche)
 
 
 ## La taille à l'écran du disque de la zone `i` : sa partie visible couvre exactement le disque de
@@ -303,7 +305,7 @@ func _dessiner_bombe(i: int) -> void:
 	draw_circle(centre, rayon, Color(COULEUR_SOUFFLE, plein))
 	_anneau(centre, rayon, COULEUR_SOUFFLE, 1.0)
 	var case_px: Vector2i = AttaquesElementaires.planches()[PLANCHE_BOMBE]
-	var taille: Vector2 = Vector2(case_px) * ECHELLE_BOMBE * echelle_bombe(i)
+	var taille: Vector2 = Vector2(case_px) * PlanchesEffets.echelle() * echelle_bombe(i)
 	var source: Rect2 = Rect2(image_bombe(i) * case_px.x, 0.0, case_px.x, case_px.y)
 	draw_texture_rect_region(
 		AttaquesElementaires.texture_de(PLANCHE_BOMBE), Rect2(centre - taille * 0.5, taille), source

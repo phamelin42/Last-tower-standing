@@ -117,7 +117,7 @@ func test_un_tir_ne_retient_qu_un_seul_impact() -> void:
 func test_le_projectile_vole_sept_images_et_apparait_en_grossissant() -> void:
 	verifier_proche(Effets.DUREE_TIR, 7.0 * IMAGE, 0.0001, "sept images à 60 i/s")
 	_effets.ajouter(_evenement("tir", Types.TypeDegats.PERCANT, Vector2.ZERO, ARRIVEE, 0.0))
-	var plein: float = Effets.ECHELLE_FLECHE
+	var plein: float = float(PlanchesEffets.pack("fleche")["echelle"])
 	verifier_proche(_effets.taille_du_premier(), plein * 0.5, 0.001, "départ à la moitié")
 	_images(1)
 	var a_une_image: float = _effets.taille_du_premier()

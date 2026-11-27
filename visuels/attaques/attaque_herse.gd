@@ -8,7 +8,6 @@ const CONF: Dictionary = {
 	"couleur": COULEUR_BOIS,
 	"projectile": "pique",
 	"cloche": 0.0,
-	"fps": 0.0,
 }
 const IMAGES_ANNEAU: int = 18
 const ECLATS: int = 3
@@ -20,14 +19,6 @@ func id() -> String:
 
 func conf() -> Dictionary:
 	return CONF
-
-
-func planches() -> Dictionary:
-	return PLANCHES_PERCANTES.merged({"pique": Vector2i(12, 10)})
-
-
-func visibles() -> Dictionary:
-	return VISIBLES_PERCANTES
 
 
 func impacter(

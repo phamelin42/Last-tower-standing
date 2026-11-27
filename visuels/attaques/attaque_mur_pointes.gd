@@ -11,7 +11,6 @@ const CONF: Dictionary = {
 	"couleur": COULEUR_HAIE,
 	"projectile": "pique",
 	"cloche": 0.0,
-	"fps": 0.0,
 	"teinte": TEINTE,
 }
 const PIQUES: int = 12
@@ -32,14 +31,6 @@ func conf() -> Dictionary:
 	return CONF
 
 
-func planches() -> Dictionary:
-	return PLANCHES_PERCANTES.merged({"pique": Vector2i(12, 10), "pointes_sol": Vector2i(32, 32)})
-
-
-func visibles() -> Dictionary:
-	return VISIBLES_PERCANTES.merged({"pointes_sol": 28.0})
-
-
 func impacter(
 	m: AttaquesElementaires, ou: Vector2, rayon_px: float, _fort: bool, _de: Vector2, age: float
 ) -> bool:
@@ -47,7 +38,7 @@ func impacter(
 	# Le pieu regarde vers l'extérieur : sa pointe, et non son centre, s'arrête au rayon réel ; la
 	# demi-longueur se lit sur la planche.
 	var demi: float = float(AttaquesElementaires.planches()["pique"].x) * 0.5
-	var arret: float = maxf(rayon - demi * AttaquesElementaires.ECHELLE, 0.0)
+	var arret: float = maxf(rayon - demi * PlanchesEffets.echelle(), 0.0)
 	var vitesse: float = arret / (IMAGES_SURGISSEMENT * AttaquesElementaires.IMAGE)
 	var cree: bool = m.front("pique", ou, arret, vitesse, PIQUES, age, TEINTE)
 	var bord: float = maxf(rayon - DIAMETRE_POINTES * 0.5, 0.0)

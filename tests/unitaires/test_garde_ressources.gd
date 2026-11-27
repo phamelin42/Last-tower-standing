@@ -7,16 +7,14 @@ extends CasDeTest
 ## des images au lieu de les afficher).
 
 ## Fichiers qui écrivent un chemin d'image : correspondance entité → sprites, images des offres,
-## recadrages, thème de l'interface, décor, effets.
+## thème de l'interface, décor. Les chemins des effets, des planches maison et du terrain sont dans
+## `data/assets.json` (T10.4) : la liste ne fait que rétrécir, et chaque fichier qui y reste cite
+## encore une image (`test_la_liste_fermee_contient_bien_des_citations_et_des_chargements`).
 const CITENT_DES_IMAGES: Array[String] = [
 	"res://visuels/apparence.gd",
 	"res://visuels/images_offres.gd",
-	"res://visuels/recadrages.gd",
 	"res://ui/theme.gd",
 	"res://visuels/decor.gd",
-	"res://visuels/plan_decor.gd",
-	"res://visuels/effets.gd",
-	"res://visuels/attaques_elementaires.gd",
 ]
 ## Fichiers qui chargent une texture ou un nuanceur : les précédents, plus les deux qui chargent
 ## les chemins que leur donnent `Apparence` et `ImagesOffres` (l'arène et l'image d'une offre).
@@ -140,13 +138,14 @@ func test_aucune_image_n_est_chargee_hors_de_la_liste_fermee() -> void:
 
 func test_la_liste_fermee_contient_bien_des_citations_et_des_chargements() -> void:
 	# Contrôle négatif : un détecteur qui ne voit rien ferait passer les deux tests précédents.
-	var citent := 0
+	for chemin: String in CITENT_DES_IMAGES:
+		verifier(
+			not _citations(FileAccess.get_file_as_string(chemin)).is_empty(),
+			"%s ne cite plus d'image : à retirer de la liste fermée" % chemin
+		)
 	var chargent := 0
 	for chemin: String in CHARGENT_DES_IMAGES:
-		var source := FileAccess.get_file_as_string(chemin)
-		citent += 1 if not _citations(source).is_empty() else 0
-		chargent += 1 if not _chargements(source).is_empty() else 0
-	verifier(citent >= 5, "les citations ne sont plus détectées (%d fichiers)" % citent)
+		chargent += 1 if not _chargements(FileAccess.get_file_as_string(chemin)).is_empty() else 0
 	verifier(chargent >= 5, "les chargements ne sont plus détectés (%d fichiers)" % chargent)
 
 

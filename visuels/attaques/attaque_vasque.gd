@@ -10,7 +10,6 @@ const CONF: Dictionary = {
 	"couleur": COULEUR,
 	"projectile": "",
 	"cloche": 0.0,
-	"fps": 0.0,
 }
 const VASQUES: int = 6
 const VOLUTES: int = 4
@@ -31,19 +30,11 @@ func conf() -> Dictionary:
 	return CONF
 
 
-func planches() -> Dictionary:
-	return {"vasque": Vector2i(14, 10), "eclat_siphon": Vector2i(24, 24)}
-
-
-func visibles() -> Dictionary:
-	return {"eclat_siphon": 24.0}
-
-
 func aura(m: AttaquesElementaires, centre: Vector2, rayon_px: float, age: float) -> bool:
 	# La vasque est tangente à la couronne : la moitié de sa hauteur dépasse du cercle des centres,
 	# reculé d'autant (lue sur la planche, pas en dur).
 	var demi: float = float(AttaquesElementaires.planches()["vasque"].y) * 0.5
-	var recul: float = demi * AttaquesElementaires.ECHELLE
+	var recul: float = demi * PlanchesEffets.echelle()
 	var cree: bool = m.couronne(
 		"vasque", centre, maxf(rayon_px - recul, 0.0), VASQUES, age, Color.WHITE
 	)

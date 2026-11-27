@@ -9,7 +9,6 @@ const CONF: Dictionary = {
 	"couleur": Color(0.7, 0.88, 1.0),
 	"projectile": "",
 	"cloche": 0.0,
-	"fps": 0.0,
 }
 ## Le rayon maximal (450 unités) et la vitesse (500 unités par seconde) de l'onde de
 ## `data/armes.json`, en pixels du monde : un test les compare aux données.
@@ -29,14 +28,6 @@ func id() -> String:
 
 func conf() -> Dictionary:
 	return CONF
-
-
-func planches() -> Dictionary:
-	return {"vague_verre": Vector2i(16, 32), "eclat_verre": Vector2i(4, 4)}
-
-
-func visibles() -> Dictionary:
-	return {"eclat_verre": 4.0}
 
 
 func onde(m: AttaquesElementaires, centre: Vector2, age: float) -> bool:

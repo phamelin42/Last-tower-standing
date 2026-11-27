@@ -10,7 +10,6 @@ const CONF_GRANDE: Dictionary = {
 	"anticipation": AttaquesElementaires.COULEUR_BOUFFEE,
 	"projectile": "bombe",
 	"cloche": 0.35,
-	"fps": 8.0,
 	"tour": PI,
 	"bosse": 0.15,
 	"echelle": 1.5,

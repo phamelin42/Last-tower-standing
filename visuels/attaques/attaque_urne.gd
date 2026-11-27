@@ -9,7 +9,6 @@ const CONF: Dictionary = {
 	"couleur": VIOLET,
 	"projectile": "urne",
 	"cloche": 0.35,
-	"fps": 0.0,
 	"tour": 0.0,
 }
 const DIAMETRE_APPARITION: float = 60.0
@@ -27,11 +26,11 @@ func conf() -> Dictionary:
 
 
 func planches() -> Dictionary:
-	return cases(["apparition_ombre", "eclat_ombre"]).merged({"urne": Vector2i(12, 14)})
+	return cases(["apparition_ombre", "eclat_ombre"]).merged(super.planches())
 
 
 func visibles() -> Dictionary:
-	return mesures(["apparition_ombre", "eclat_ombre"])
+	return mesures(["apparition_ombre", "eclat_ombre"]).merged(super.visibles())
 
 
 func suivre_vol(m: AttaquesElementaires, vol: Dictionary, attente: float, duree_vol: float) -> void:

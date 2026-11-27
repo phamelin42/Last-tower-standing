@@ -9,7 +9,6 @@ const CONF: Dictionary = {
 	"couleur": MAGENTA,
 	"projectile": "malefice",
 	"cloche": 0.0,
-	"fps": 12.0,
 	"fige_reduit": true,
 	"retard": 2.0,
 }
@@ -26,11 +25,11 @@ func conf() -> Dictionary:
 
 
 func planches() -> Dictionary:
-	return cases(["eclat_malefice"]).merged({"malefice": Vector2i(12, 12)})
+	return cases(["eclat_malefice"]).merged(super.planches())
 
 
 func visibles() -> Dictionary:
-	return mesures(["eclat_malefice"])
+	return mesures(["eclat_malefice"]).merged(super.visibles())
 
 
 func impacter(

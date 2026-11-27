@@ -44,8 +44,7 @@ func _bombe(reste: float) -> Dictionary:
 func test_la_bombe_est_la_bombe_a_meche_de_sa_carte() -> void:
 	verifier_egal(_poses.planche_bombe(), "bombe_meche")
 	verifier(
-		ResourceLoader.exists("%sbombe_meche.png" % AttaquesElementaires.DOSSIER),
-		"planche présente"
+		ResourceLoader.exists("%sbombe_meche.png" % PlanchesEffets.dossier()), "planche présente"
 	)
 	verifier(AttaquesElementaires.planches().has("bombe_meche"), "planche déclarée")
 

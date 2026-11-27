@@ -10,10 +10,8 @@ const CONF: Dictionary = {
 	"couleur": COULEUR_VENIN,
 	"projectile": "lance_epineuse",
 	"cloche": 0.0,
-	"fps": 0.0,
 }
 const DIAMETRE_GERBE: float = 48.0
-const DIAMETRE_PLANTEE: float = 44.0
 const IMAGES_PLANTE: int = 14
 const EPINES: int = 5
 const GOUTTES: int = 3
@@ -28,14 +26,6 @@ func conf() -> Dictionary:
 	return CONF
 
 
-func planches() -> Dictionary:
-	return PLANCHES_PERCANTES.merged({"lance_epineuse": Vector2i(22, 8)})
-
-
-func visibles() -> Dictionary:
-	return VISIBLES_PERCANTES
-
-
 func suivre_vol(
 	m: AttaquesElementaires, vol: Dictionary, _attente: float, _duree_vol: float
 ) -> void:
@@ -46,7 +36,7 @@ func impacter(
 	m: AttaquesElementaires, ou: Vector2, _rayon_px: float, _fort: bool, _de: Vector2, age: float
 ) -> bool:
 	var cree: bool = gerbe(m, ou, DIAMETRE_GERBE, age)
-	cree = planter(m, ou, IMAGES_PLANTE, age, DIAMETRE_PLANTEE) or cree
+	cree = planter(m, ou, IMAGES_PLANTE, age, diametre_plante(MULTIPLE_PLANTE_LOURD)) or cree
 	m.salve(
 		ou, EPINES, COULEUR_EPINE, 14.0 * AttaquesElementaires.IMAGE, 70.0, 160.0, Vector2.ZERO, 1.5
 	)

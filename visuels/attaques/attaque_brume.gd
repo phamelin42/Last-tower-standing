@@ -9,7 +9,6 @@ const CONF: Dictionary = {
 	"couleur": TEINTE,
 	"projectile": "lame_croissant",
 	"cloche": 0.0,
-	"fps": 30.0,
 	"fige_reduit": true,
 	"teinte": TEINTE,
 }
@@ -25,16 +24,6 @@ func id() -> String:
 
 func conf() -> Dictionary:
 	return CONF
-
-
-func planches() -> Dictionary:
-	return {
-		"lame_croissant": Vector2i(16, 16), "entaille": Vector2i(24, 24), "vapeur": Vector2i(16, 16)
-	}
-
-
-func visibles() -> Dictionary:
-	return {"entaille": 22.0}
 
 
 func impacter(

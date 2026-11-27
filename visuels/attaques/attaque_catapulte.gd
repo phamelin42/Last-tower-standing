@@ -10,7 +10,6 @@ const CONF: Dictionary = {
 	"anticipation": AttaquesElementaires.COULEUR_BOUFFEE,
 	"projectile": "pierre_lestee",
 	"cloche": 0.5,
-	"fps": 0.0,
 	"tour": 0.0,
 	"bosse": 0.1,
 	"echelle": 1.3,
@@ -25,14 +24,6 @@ func id() -> String:
 
 func conf() -> Dictionary:
 	return CONF
-
-
-func planches() -> Dictionary:
-	return {"pierre_lestee": Vector2i(14, 12), "cratere": Vector2i(32, 32)}
-
-
-func visibles() -> Dictionary:
-	return {"cratere": 30.0}
 
 
 func impacter(

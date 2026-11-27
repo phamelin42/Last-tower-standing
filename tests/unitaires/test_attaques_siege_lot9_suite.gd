@@ -243,7 +243,7 @@ func test_les_neuf_armes_de_siege_ont_chacune_leur_element_et_leurs_planches() -
 		var el: AttaqueElement = AttaquesElementaires.registre()[element]
 		for planche: String in el.planches():
 			verifier(
-				ResourceLoader.exists("%s%s.png" % [AttaquesElementaires.DOSSIER, planche]),
+				ResourceLoader.exists("%s%s.png" % [PlanchesEffets.dossier(), planche]),
 				"%s : planche %s" % [id, planche]
 			)
 	verifier_egal(vus.size(), 9, "neuf armes")

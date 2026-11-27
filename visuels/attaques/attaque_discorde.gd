@@ -8,7 +8,6 @@ const CONF: Dictionary = {
 	"couleur": MAGENTA,
 	"projectile": "eclat_discorde",
 	"cloche": 0.0,
-	"fps": 14.0,
 	"vrille": 2.0,
 	"saut": true,
 	"fige_reduit": true,
@@ -25,11 +24,11 @@ func conf() -> Dictionary:
 
 
 func planches() -> Dictionary:
-	return cases(["pointes_discorde"]).merged({"eclat_discorde": Vector2i(12, 12)})
+	return cases(["pointes_discorde"]).merged(super.planches())
 
 
 func visibles() -> Dictionary:
-	return mesures(["pointes_discorde"])
+	return mesures(["pointes_discorde"]).merged(super.visibles())
 
 
 func suivre_vol(

@@ -8,7 +8,6 @@ const CONF: Dictionary = {
 	"couleur": OR,
 	"projectile": "engrenage_double",
 	"cloche": 0.0,
-	"fps": 12.0,
 	"fige_reduit": true,
 }
 const DIAMETRE_COUP: float = 46.0
@@ -23,11 +22,11 @@ func conf() -> Dictionary:
 
 
 func planches() -> Dictionary:
-	return cases(["eclat_jumeau"]).merged({"engrenage_double": Vector2i(16, 12)})
+	return cases(["eclat_jumeau"]).merged(super.planches())
 
 
 func visibles() -> Dictionary:
-	return mesures(["eclat_jumeau"])
+	return mesures(["eclat_jumeau"]).merged(super.visibles())
 
 
 func suivre_vol(

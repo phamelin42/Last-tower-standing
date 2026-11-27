@@ -8,7 +8,6 @@ const CONF: Dictionary = {
 	"couleur": Color(0.78, 0.7, 1.0),
 	"projectile": "",
 	"cloche": 0.0,
-	"fps": 0.0,
 }
 
 
@@ -26,7 +25,11 @@ func impacter(
 	var couleur: Color = CONF["couleur"]
 	var cree: bool = m.eclair(de, ou, age, couleur)
 	var etincelle: Dictionary = m.image_impact(
-		"etincelle", ou, 8.0 * AttaquesElementaires.ECHELLE, SEQ_ETINCELLE, age
+		"etincelle",
+		ou,
+		AttaquesElementaires.visible_de("etincelle") * PlanchesEffets.echelle(),
+		SEQ_ETINCELLE,
+		age
 	)
 	cree = cree or not etincelle.is_empty()
 	m.salve(ou, 4, couleur, 12.0 * AttaquesElementaires.IMAGE, 60.0, 150.0, Vector2.ZERO, 1.5)

@@ -294,7 +294,7 @@ func test_une_explosion_de_mort_et_le_siege_gelent_leur_effet() -> void:
 	while _effets.nombre_vivants() > 0 and images < 100:
 		_effets.avancer(IMAGE)
 		images += 1
-	var attendu: float = Effets.DUREE_EXPLOSION - Effets.AGE_PIC_EXPLOSION + GelImpact.DUREE_GEL
+	var attendu: float = Effets.DUREE_EXPLOSION - Effets.age_pic_explosion() + GelImpact.DUREE_GEL
 	verifier_proche(images * IMAGE, attendu, 1.5 * IMAGE, "l'explosion tient son pic DUREE_GEL")
 
 

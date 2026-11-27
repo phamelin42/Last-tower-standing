@@ -195,7 +195,9 @@ func test_l_explosion_de_la_mine_de_forge_est_celle_du_pack_au_rayon_exact() -> 
 	effets.ajouter(evenements[1])
 	verifier_contient(effets.formes_vivantes(), "explosion")
 	var rayon: float = _rayon_px("mine_de_forge")
-	var diametre: float = effets.echelle_de("explosion") * Effets.DIAMETRE_EXPLOSION
+	var diametre: float = (
+		effets.echelle_de("explosion") * float(PlanchesEffets.pack("explosion")["visible"])
+	)
 	verifier_proche(diametre, rayon * 2.0, rayon * 0.2, "diamètre = 2 × rayon")
 	verifier_egal(effets.elementaires().etats("mine_forge").size(), 0, "la mine a servi")
 	verifier_egal(effets.elementaires().etats("").size(), 1, "un anneau au rayon")
@@ -303,7 +305,9 @@ func test_la_grande_bombarde_dans_effets_explose_comme_le_pack_au_rayon_exact() 
 		effets.avancer(IMAGE)
 	verifier_contient(effets.formes_vivantes(), "explosion")
 	var rayon: float = _rayon_px("grande_bombarde")
-	var diametre: float = effets.echelle_de("explosion") * Effets.DIAMETRE_EXPLOSION
+	var diametre: float = (
+		effets.echelle_de("explosion") * float(PlanchesEffets.pack("explosion")["visible"])
+	)
 	verifier_proche(diametre, rayon * 2.0, rayon * 0.2, "diamètre = 2 × rayon")
 	verifier(effets.gel_restant() > 0.0, "gel d'un coup de siège")
 	effets.free()

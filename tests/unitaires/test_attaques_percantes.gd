@@ -257,7 +257,7 @@ func test_les_aiguilles_sont_affichees_une_fois_et_demie_plus_grandes() -> void:
 	_a.tirer("pluie", TOUR, CIBLE)
 	_avancer(AttaquesElementaires.IMAGES_ANTICIPATION + 1)
 	verifier_proche(
-		(_a.etats("aiguille")[0]["echelle"] as Vector2).x, AttaquesElementaires.ECHELLE, 0.01
+		(_a.etats("aiguille")[0]["echelle"] as Vector2).x, PlanchesEffets.echelle(), 0.01
 	)
 
 
