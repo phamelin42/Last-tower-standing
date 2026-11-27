@@ -100,6 +100,8 @@ var _morts_debut: PackedFloat64Array = PackedFloat64Array()
 var _mourants: Array[Dictionary] = []
 var _texture_mort: Texture2D = null
 var _effets: Effets = null
+## Les alliés invoqués, posés dans le nœud des ennemis pour se trier en profondeur avec eux.
+var _allies := Allies2D.new()
 ## Ennemis touchés : flash et recul, par id d'ennemi (purement visuel).
 var _reactions: ReactionsCoups = ReactionsCoups.new()
 ## L'échantillon affiché cette image (positions lissées) : une seule fois par image, partagé entre
@@ -148,6 +150,8 @@ func _assurer_construite() -> void:
 	_ennemis.name = "Ennemis"
 	_ennemis.y_sort_enabled = true
 	add_child(_ennemis)
+	_allies.parent = _ennemis
+	_allies.donnees = donnees
 	_effets = Effets.new()
 	_effets.name = "Effets"
 	_effets.parent_sol = _ennemis
@@ -202,6 +206,7 @@ func reinitialiser() -> void:
 	_vue_precedente = null
 	_effets.vider()
 	_vider_mourants()
+	_allies.vider()
 	_reactions.reinitialiser()
 	_echantillon_affiche = {}
 	_barres.reinitialiser()
@@ -378,6 +383,35 @@ func teinte_instance(famille: int, i: int) -> Color:
 	return teintes[i] if i < teintes.size() else Color.WHITE
 
 
+func nombre_allies_visibles() -> int:
+	_assurer_construite()
+	return _allies.nombre_visibles()
+
+
+## Le sprite de l'allié de rang `i` (`null` s'il n'existe pas).
+func sprite_allie(i: int) -> Sprite2D:
+	var a: Allies2D.Allie = _allies.allie(i)
+	return a.sprite if a != null else null
+
+
+## L'anneau au sol de l'allié de rang `i` : les ennemis n'en ont pas.
+func anneau_allie(i: int) -> Node2D:
+	var a: Allies2D.Allie = _allies.allie(i)
+	return a.anneau if a != null else null
+
+
+## La teinte posée sur l'allié de rang `i` (`Color.WHITE` s'il n'existe pas).
+func teinte_allie(i: int) -> Color:
+	var a: Allies2D.Allie = _allies.allie(i)
+	return a.sprite.modulate if a != null else Color.WHITE
+
+
+## Où l'allié de rang `i` est posé dans le monde, en pixels (`Vector2.ZERO` s'il n'existe pas).
+func position_allie(i: int) -> Vector2:
+	var a: Allies2D.Allie = _allies.allie(i)
+	return a.position if a != null else Vector2.ZERO
+
+
 ## La teinte d'un octet de statuts (`Types.STATUT_*`) : un seul statut se lit, le plus gênant
 ## d'abord (étourdi, brûlé, empoisonné, gelé, ralenti) ; blanc sans statut.
 static func teinte_statut(octet: int) -> Color:
@@ -550,6 +584,7 @@ func _afficher_echantillon() -> void:
 			teintes.resize(rang + 1)
 		teintes[rang] = teinte
 		_teintes[f] = teintes
+	_allies.afficher(_interpolation.echantillon_allies(_horloge), image_courante)
 	_animer_morts()
 
 
