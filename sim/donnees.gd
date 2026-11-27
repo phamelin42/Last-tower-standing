@@ -396,8 +396,7 @@ static func _valider_partie(p: Dictionary, err: Array[String]) -> void:
 	var convoi_p_ok := _objet(p, "convoi", f, "", err)
 	if convoi_p_ok:
 		var convoi_p: Dictionary = p["convoi"]
-		for spec: Dictionary in [_ratio("probabilite"), _ent("manche_min", 1.0)]:
-			_nombre(convoi_p, spec, f, "convoi", err)
+		_nombre(convoi_p, _ent("tous_les", 2.0), f, "convoi", err)
 	if _objet(p, "vagues", f, "", err):
 		var vagues: Dictionary = p["vagues"]
 		var part := _spec("part_majoritaire", 0.0, true, 1.0)

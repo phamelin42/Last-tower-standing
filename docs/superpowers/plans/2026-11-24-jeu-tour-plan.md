@@ -2415,3 +2415,225 @@ décisions) se corrige sans attendre.
   (une feuille factice d'une autre taille, décrite dans une donnée de test, se rend sans changer le code) ; en boucle,
   chaque entrée de la description pointe un fichier qui existe et dont les dimensions tiennent ses régions.
 - **Hors périmètre :** changer d'assets ; retoucher un sprite.
+
+# Lot 12 — Armes de fin de partie et niveaux d'arme (décision de Phil du 27/11/2026, D23)
+
+Conception : §6.17 de `2026-11-25-retours-partie-design.md`, **validée par Phil le 27/11/2026** (Q1 dégâts et
+cadence par niveau, Q4 plus de vente, Q6 améliorations de fin de partie aussi, le reste par défaut). Chaque tâche
+cite le paragraphe de §6.17 qu'elle exécute ; les valeurs chiffrées (gains par niveau, prix, raretés, poids) sont
+des propositions que la mesure de T12.9 confirme ou corrige.
+
+**Interfaces à figer d'abord** (dans cette PR de plan, avant tout code) :
+
+```
+# sim/inventaire.gd : armes: Array[String] = ids DISTINCTS dans l'ordre d'achat ; niveaux: Dictionary (id → int ≥ 1)
+#   ajouter(id) : une arme déjà portée monte son niveau ; niveau(id) -> int ; plus de retirer_arme ni de prix_vente
+# sim/types.gd : Rarete gagne ANCESTRALE et SOUVERAINE à la fin (NOMS_RARETES : "ancestrale", "souveraine") ;
+#   Resultat.ARMES_AU_MAXIMUM n'est plus renvoyé (conservé dans l'énumération, test qui le dit)
+# data/partie.json : "niveaux": {"gain_degats": 0.30, "gain_cadence": 0.10, "cadence_max": 3.0} ; la clé "vente_ratio" disparaît
+# sim/arme_equipee.gd : recharge_effective(stats, niveau) : cadence = stats.cadence + gain_cadence × (niveau − 1), bornée par cadence_max
+# Boutique.vendre, Arene.vendre, Partie.intention_vendre, Client.vendre, Serveur (intention) : supprimés
+# sim/tir.gd : degats_de_base(..., niveau: int, ...) remplace le paramètre `exemplaires`
+# data/armes.json : degats_par_exemplaire renommé degats_par_niveau (2 armes)
+# VueArene.armes : [{id, recharge_ratio, niveau}] ; l'intention « vendre » est retirée (numéro de genre réservé, refusé)
+# Protocole.VERSION = (celle de main) + 1 pour la fin de la vente (T12.1b), puis + 1 pour le niveau (T12.3)
+```
+
+**Dépendances :** T12.1 → T12.1b → T12.2, T12.3 ; T12.3 → T12.4, T12.5 ; T12.6 → T12.7, T12.7b → T12.9 ; T12.8 après la
+validation de Phil sur la planche ; T12.9 après T12.1 à T12.7b ; T12.10 en dernier. T12.1 et T12.6 touchent
+`sim/types.gd` et `data/` : une seule session à la fois sur ces fichiers.
+
+## Points de vigilance du lot 12 (« Review Focus »)
+
+1. **Une arme, un état de tir** : plus aucun code ne lit `armes` comme une liste d'exemplaires (`armes.size()`
+   compte des armes distinctes). Pinglé par T12.1.
+2. **Le protocole refuse tout préfixe d'un état valide** avec `niveau`, et les versions précédentes. T12.3.
+3. **Aucun plafond de PV du boss** : un test lit `data/ennemis.json` et `data/difficulte.json` et échoue si le
+   boss ou la rampe sont plafonnés. T12.9.
+4. **Les cibles D16 et D17 tiennent** (passive tombe en manche 3, PV et dégâts strictement croissants).
+   T12.9.
+5. **Plus aucune vente** : aucun fichier de `sim/`, `reseau/`, `ui/`, `i18n/`, `data/` ni `tests/outils/` ne
+   cite `vendre`, `prix_vente` ni `vente_ratio` ; un test le garde. T12.1b.
+6. **Les plafonds tiennent** : `facteur_degats_max`, `niveaux.cadence_max`, bornes de résurrection et de revenu,
+   avec des piles d'améliorations tardives et des niveaux élevés. T12.1 et T12.7b.
+
+## Session « Simulation »
+
+### Task 12.1 : Niveaux d'arme dans l'inventaire, la boutique et le tir — `sonnet`
+
+- [ ] **Objectif :** §6.17.3. Une arme achetée une seconde fois monte de niveau au lieu d'être ajoutée ; les
+      dégâts du niveau n valent base × (1 + `gain_degats` × (n − 1)) et la cadence base × (1 + `gain_cadence` ×
+      (n − 1)), bornée par `cadence_max` ; `copie_prochaine_offre` donne un niveau gratuit ; une `ArmeEquipee`
+      par arme distincte.
+- **Fichiers :** `sim/inventaire.gd`, `sim/boutique.gd`, `sim/arene.gd` (création des `ArmeEquipee`), `sim/tir.gd`,
+  `sim/arme_equipee.gd` (`recharge_effective`), `sim/types.gd`, `sim/donnees.gd` (validation de `partie.niveaux`),
+  `data/partie.json` ; tests `test_inventaire.gd`,
+  `test_boutique.gd`, `test_tir.gd`, `test_donnees.gd`.
+- **Lire :** `sim/inventaire.gd`, `sim/boutique.gd` (`acheter`), `sim/arme_equipee.gd`, `sim/tir.gd` (`degats_de_base`),
+  `sim/arene.gd` (où `inventaire.armes` crée les armes équipées).
+- **Tests :**
+  - `test_acheter_deux_fois_la_meme_arme_monte_son_niveau_sans_ajouter_d_arme` ; en boucle sur **toutes les armes
+    de `data/`**.
+  - `test_les_degats_du_niveau_n_suivent_la_formule` pour n de 1 à 20, valeurs lues dans les données (jamais 0,30
+    en dur) ; `test_seuls_les_degats_et_la_cadence_montent` (portée, projectiles, statuts identiques au niveau 10) ;
+    `test_la_cadence_du_niveau_n_suit_la_formule` (n de 1 à 20, valeurs lues dans les données) ;
+    `test_la_cadence_totale_ne_depasse_jamais_cadence_max` (niveau 255 et une pile d'améliorations de cadence).
+  - `test_la_copie_gratuite_donne_un_niveau`.
+  - `test_une_arme_n_a_qu_un_etat_de_tir` (recharge, mines, ondes non multipliées par le niveau).
+  - `test_un_gain_ou_un_plafond_de_niveau_negatif_ou_non_fini_est_refuse` (mutations de `partie.json` : `gain_degats`,
+    `gain_cadence`, `cadence_max`).
+  - `test_acheter_n_est_plus_refuse_pour_armes_au_maximum` : les tests qui figeaient la 256e arme sont **inversés**.
+- **Vérif :** `T --filtre test_inventaire`, `test_boutique`, `test_tir`, `test_donnees`, puis `tools/verifier.sh`
+  (interface partagée).
+
+### Task 12.1b : Fin de la vente — `sonnet`
+
+- [ ] **Objectif :** §6.17.4 (Phil, Q4 : « No selling in game »). Retirer la vente partout : simulation, réseau,
+      interface, textes, robot de test et données ; **montée de `Protocole.VERSION`** (relire celle de `main`).
+- **Fichiers :** `sim/boutique.gd` (`vendre`), `sim/arene.gd` (`vendre`), `sim/partie.gd` (`intention_vendre`),
+  `sim/inventaire.gd` (`prix_vente`, `retirer_arme` si plus rien ne l'appelle), `sim/donnees.gd` et `data/partie.json`
+  (`vente_ratio`), `reseau/client.gd`, `reseau/serveur.gd`, `reseau/protocole.gd` (intention), `app/source_vue.gd`,
+  `app/source_locale.gd`, `ui/boutique_ui.gd` (ligne et bouton de vente), `i18n/textes_boutique.csv`,
+  `tests/outils/source_factice.gd`, `tests/outils/strategies_joueur.gd` ; tests `test_boutique.gd`, `test_arene.gd`,
+  `test_arene_boutique.gd`, `test_partie_fin.gd`, `test_inventaire.gd`, `test_donnees.gd`, `test_source_locale.gd`,
+  `test_source_factice.gd`, `test_client.gd`, `test_serveur.gd`, `test_boutique_ui.gd`.
+- **Lire :** le résultat de `grep -rn "vendre\|prix_vente\|vente_ratio\|VENDRE" sim reseau app ui i18n data tests` ;
+  `reseau/protocole.gd` (numéros de genre d'intention).
+- **Tests :** `test_on_ne_peut_plus_vendre` (aucune méthode ni intention de vente ; un octet de genre de vente est
+  **refusé** par le serveur) ; `test_aucun_fichier_ne_cite_la_vente` (balayage de `sim/`, `reseau/`, `app/`, `ui/`,
+  `i18n/`, `data/`, `tests/outils/`) ; `test_la_clef_vente_ratio_n_est_plus_lue` (modèle de
+  `test_emplacements_armes_n_est_plus_lu_nulle_part`) ; `test_les_versions_precedentes_sont_refusees` en boucle de 1 à
+  `VERSION − 1`. Les tests de la vente sont **inversés**, pas supprimés ; le robot « bonne » et le robot
+  raisonnable n'utilisent plus la vente (`strategies_joueur.gd`), et leurs cibles sont rejouées (T12.9).
+- **Vérif :** `T --filtre` sur chaque fichier de test touché, puis `tools/verifier.sh` (interface partagée).
+- **Dépend de :** T12.1.
+
+### Task 12.2 : `degats_par_exemplaire` devient `degats_par_niveau` — `haiku`
+
+- [ ] **Objectif :** §6.17.3 (M5). Renommer le champ des 2 armes concernées dans `data/armes.json`, le schéma, la
+      description de l'offre et `Equilibrage.rendement`, avec la même formule sur le niveau.
+- **Fichiers :** `data/armes.json`, `sim/donnees.gd`, `sim/equilibrage.gd`, `ui/description_offre.gd`, `i18n/*.csv`
+  (si le libellé cite « exemplaire ») ; tests `test_donnees.gd`, `test_description_offre.gd`, `test_equilibrage.gd`.
+- **Tests :** `test_aucune_arme_ne_porte_encore_degats_par_exemplaire` (en boucle sur `data/armes.json`) ;
+  `test_le_bonus_par_niveau_est_borne_par_bonus_selon_stat_max` ; la description dit « par niveau ».
+- **Dépend de :** T12.1b.
+
+### Task 12.3 : Niveau dans la vue et le protocole — `sonnet`
+
+- [ ] **Objectif :** §6.17.4. `VueArene.armes` gagne `niveau`, encodé sur un octet par arme ; **montée de
+      `Protocole.VERSION`** : relire celle de `main` avant de l'incrémenter ; à l'intégration, si une autre PR a pris
+      le numéro, prendre le suivant et garder les deux formats.
+- **Fichiers :** `sim/vue_arene.gd` (`SCHEMA_ARME`, `to_dict`, `from_dict`), `sim/arene.gd` (`vue`),
+  `reseau/protocole.gd` ; tests `test_vues.gd`, `test_protocole_niveaux.gd` (nouveau), `test_serveur_debit.gd`.
+- **Lire :** `reseau/protocole.gd` (`encoder_etat_arene`, `OFFSET_*`, `TAILLE_FIXE`), `test_protocole_apparence.gd`.
+- **Tests :** `test_la_vue_porte_le_niveau_de_chaque_arme_aller_retour` (niveaux 1, 2, 255) ;
+  `test_un_niveau_a_zero_ou_non_fini_est_refuse` ; **tous les préfixes d'un état valide** et 2 000 tableaux tirés
+  d'une graine fixe rendent `null` ou `{}` ; `test_les_versions_precedentes_sont_refusees` en boucle de 1 à
+  `VERSION − 1` ; `test_le_budget_de_50_000_octets_par_client_tient_toujours`.
+- **Dépend de :** T12.1b (une seule montée de version si les deux tâches sont intégrées ensemble).
+
+## Session « Interface »
+
+### Task 12.4 : Boutique, grille des armes et textes en niveaux — `sonnet`
+
+- [ ] **Objectif :** §6.17.4. L'offre d'une arme déjà portée affiche « niv. N → N + 1 » et les dégâts gagnés ;
+      la grille des armes montre une icône par arme distincte avec l'insigne de niveau ; l'infobulle donne les
+      dégâts du niveau courant ; plus de bouton ni de ligne de vente (la grille ne sert qu'à lire).
+- **Fichiers :** `ui/boutique_ui.gd`, `ui/hud.gd` ou le fichier de la grille des armes (à trouver par `grep` sur `armes` dans `ui/`), `ui/description_offre.gd`, `i18n/*.csv` ; tests `test_boutique_description.gd`,
+  `test_mise_en_page.gd`, `test_textes_communs.gd`.
+- **Tests :** `test_l_offre_d_une_arme_portee_dit_son_niveau_et_le_gain` (en boucle sur toutes les armes) ;
+  `test_la_grille_montre_une_icone_par_arme_distincte` ; textes avec espaces insécables ; **la boutique reste 30 %
+  plus petite qu'avant** (D13) et ne saute pas (`test_boutons_stables`).
+- **Dépend de :** T12.3.
+
+### Task 12.5 : Défis et bilan en niveaux — `haiku`
+
+- [ ] **Objectif :** §6.17.4. Les deux défis « exemplaires d'une seule arme » deviennent « niveaux d'une seule
+      arme » ; `armes_achetees` compte un achat par niveau ; aucun changement du format de sauvegarde.
+- **Fichiers :** `data/defis.json`, `i18n/*.csv`, `sim/bilan.gd` (commentaires et test seulement si nécessaire) ;
+  tests `test_defis.gd`, `test_bilan.gd`, `test_sauvegarde.gd`.
+- **Tests :** `test_acheter_dix_niveaux_d_une_arme_compte_dix_achats_et_une_arme_distincte` ;
+  `test_le_defi_arme_unique_est_reussi_avec_des_niveaux` ; `test_le_format_de_sauvegarde_n_a_pas_change`.
+- **Dépend de :** T12.3.
+
+## Session « Catalogue »
+
+### Task 12.6 : Raretés ancestrale et souveraine — `sonnet`
+
+- [ ] **Objectif :** §6.17.2. `Types.Rarete` et `NOMS_RARETES` passent à six ; apparition et poids dans
+      `data/boutique.json` (ancestrale dès la manche 14, souveraine dès la 22 ; marché noir inchangé) ; couleur,
+      symbole et libellé de chaque rareté ; tous les tableaux indexés par rareté suivent.
+- **Fichiers :** `sim/types.gd`, `sim/boutique.gd`, `sim/donnees.gd`, `data/boutique.json`, `visuels/apparence.gd`
+  (`couleur_rarete`, `symbole_rarete`, `cle_libelle_rarete`), `ui/theme.gd` si une couleur y est, `i18n/*.csv` ;
+  tests `test_boutique.gd`, `test_apparence.gd`, `test_textes_communs.gd`, `test_donnees.gd`.
+- **Tests :** en boucle sur **toutes les raretés** : couleur distincte, symbole distinct, libellé traduit ;
+  `test_les_raretes_tardives_n_apparaissent_pas_avant_leur_manche` (en boucle sur 200 tirages à graines fixes) ;
+  `test_le_marche_noir_ne_propose_jamais_une_rarete_tardive` ; `test_chaque_rarete_est_atteignable`.
+- **Vérif :** `tools/verifier.sh` (schéma de `data/` partagé).
+
+### Task 12.7 : 15 armes de fin de partie — `sonnet`
+
+- [ ] **Objectif :** §6.17.2. 3 armes par type de dégâts (2 ancestrales à 3 000 à 5 000 or, 1 souveraine à 8 000
+      à 10 000 or), noms originaux, descriptions, rendement 1,2 × et 1,5 × celui de la meilleure épique du type ;
+      sons de tir (D15) et `SignaturesArmes` en liste `TABLE_LOT_12` jusqu'à validation (modèle de `TABLE_LOT_9`).
+- **Fichiers :** `data/armes.json`, `i18n/*.csv`, `sons/catalogue_sons.gd` (ids d'armes), `assets/sons/`,
+  `visuels/signatures_armes.gd` ; tests `test_contenu.gd`, `test_noms_origine.gd`, `test_catalogue_sons.gd`,
+  `test_equilibrage.gd`, `test_signatures_armes.gd`.
+- **Tests :** en boucle sur les 15 : nom absent de `docs/tower_survivors.md`, rareté et prix dans la bande,
+  rendement dans le rapport demandé, description non vide, son de tir présent ;
+  `test_chaque_type_a_ses_trois_armes_tardives`.
+- **Dépend de :** T12.1 (niveaux) et T12.6 (raretés). Une douzaine de fichiers de test lisent le catalogue :
+  `tools/verifier.sh --etape tests` avant de pousser.
+
+### Task 12.7b : 20 améliorations de fin de partie — `sonnet`
+
+- [ ] **Objectif :** §6.17.2 (Phil, Q6 : « Oui late game upgrade aussi »). Une amélioration ancestrale et une
+      souveraine par famille des 10 épiques d'aujourd'hui (dégâts globaux, cadence, revenu, dégâts de chacun des 5
+      types, PV maximum, résurrection), soit 20, noms originaux, descriptions. Valeur de l'effet 1,2 × (ancestrale) et
+      1,5 × (souveraine) celle de l'épique de la même famille ; prix dans les bandes des armes de la rareté (3 000 à
+      5 000, 8 000 à 10 000 or). Les améliorations de dégâts entrent dans la catégorie C (additive) ; les plafonds
+      existants (`ameliorations.facteur_degats_max`, bornes de résurrection et de revenu) s'appliquent.
+- **Fichiers :** `data/ameliorations.json`, `i18n/*.csv`, `sim/donnees.gd` (rareté tardive acceptée par le schéma) ;
+  tests `test_contenu.gd`, `test_noms_origine.gd`, `test_inventaire.gd`, `test_equilibrage.gd`,
+  `test_apparence_tour.gd` (les statistiques d'apparence suivent les nouvelles améliorations).
+- **Lire :** `data/ameliorations.json` (les 10 épiques), `sim/inventaire.gd` (`_appliquer`), `sim/tir.gd` (plafond du
+  produit des dégâts), `docs/tower_survivors.md` §6.2 (familles, sans en copier les chiffres).
+- **Tests :** en boucle sur **les 10 familles** : l'amélioration ancestrale et la souveraine existent, leur valeur
+  vaut 1,2 × et 1,5 × l'épique (à la tolérance du fichier), leur prix est dans la bande, nom absent de
+  `docs/tower_survivors.md` ; `test_chaque_amelioration_tardive_est_atteignable` (offerte par la boutique à partir
+  de sa manche) ; `test_une_pile_d_ameliorations_tardives_reste_sous_les_plafonds` (le produit des dégâts ≤
+  `facteur_degats_max`, la résurrection et le revenu restent bornés) ; `test_les_statistiques_d_apparence_suivent`.
+- **Dépend de :** T12.6 (raretés) ; mêmes fichiers de `data/` que T12.7 : une seule session à la fois.
+
+### Task 12.8 : Signatures visuelles des 15 armes — `sonnet` — **attend Phil**
+
+- [ ] **Objectif :** Q5. Planche avant intégration (familles existantes teintées, insigne de rareté), validée
+      par Phil, puis levée de `TABLE_LOT_12`. Même méthode que T9.19.
+- **Fichiers :** `visuels/signatures_armes.gd`, `visuels/attaques/`, `tools/` (planche) ; tests des signatures.
+- **Dépend de :** T12.7 et de la validation de Phil.
+
+## Session « Équilibrage »
+
+### Task 12.9 : Passe d'équilibrage et mesure du boss — `sonnet`
+
+- [ ] **Objectif :** §6.17.5. Réécrire `StrategiesJoueur` pour monter des niveaux et acheter les raretés tardives,
+      rejouer `SimulationEquilibrage` (graines 1 à 10 d'abord, puis 50) et consigner dans `docs/equilibrage.md`.
+- **Cibles :** (1) or restant au boss ≤ 10 % de l'or gagné sur ≥ 8 graines sur 10 ; (2) boss vaincu en moins
+  de 10 minutes de combat sur ≥ 5 graines sur 10 (souhaité : 5 minutes) ; (3) D16 et D17 intactes, robot de
+  référence jamais éliminé avant la manche 20, médiane du raisonnable de 18 à 25.
+- **Leviers :** gain de dégâts par niveau (`niveaux.gain_degats`) et **gain de cadence par niveau
+  (`niveaux.gain_cadence`, 0,10 : valeur à confirmer par cette mesure)**, rendement, prix et poids des raretés
+  tardives, valeur des améliorations tardives ; **jamais** un plafond de PV du boss ni de la rampe.
+- **Fichiers :** `tests/outils/strategies_joueur.gd`, `tests/outils/simulation_equilibrage.gd`, `data/`,
+  `docs/equilibrage.md`, `tools/equilibrage.gd` ; tests `test_equilibrage_partie.gd`.
+- **Tests :** `test_le_boss_n_est_pas_plafonne` (lit `data/ennemis.json` et `data/difficulte.json`) ;
+  `test_les_cibles_du_robot_sont_tenues` (robots sans vente) ; mesure du gain de cadence : le même robot à
+  `gain_cadence` 0, 0,10 et 0,20, graines 1 à 10, et le choix consigné ; mesure de base avant le lot reprise dans `docs/equilibrage.md` (ci-dessus :
+  or au boss de 160 à 1 040 sauf la graine 1, combats de 2 200 et 2 691 s, six graines sans victoire en 3 070 s).
+- **Dépend de :** T12.1 à T12.7b.
+
+### Task 12.10 : Clôture du lot 12 — `sonnet`
+
+- [ ] **Objectif :** `docs/jouer.md` (niveaux d'arme, raretés tardives), `CREDITS.md` (sons des 15 armes), suivis
+      relevés, `tools/verifier.sh` complet, rapport et rétro.
+- **Dépend de :** T12.1 à T12.9.
